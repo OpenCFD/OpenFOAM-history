@@ -1,0 +1,26 @@
+#ifndef __CosExternalizationContainment_idl__
+#define __CosExternalizationContainment_idl__
+
+#include <coss/CosContainment.idl>
+#include <coss/CosExternalization.idl>
+
+#pragma prefix "omg.org"
+
+module CosExternalizationContainment {
+  
+  interface Relationship :
+      ::CosCompoundExternalization::Relationship,
+      ::CosContainment::Relationship {};
+
+  interface ContainsRole :
+      ::CosCompoundExternalization::Role,
+      ::CosContainment::ContainsRole {};
+
+  interface ContainedInRole :
+      ::CosCompoundExternalization::Role,
+      ::CosContainment::ContainedInRole {};
+
+};
+
+#endif
+

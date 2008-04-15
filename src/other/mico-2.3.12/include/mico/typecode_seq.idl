@@ -1,0 +1,12 @@
+#ifndef __typecodeseq_idl__
+#define __typecodeseq_idl__
+
+
+#pragma prefix "omg.org"
+
+module CORBA {
+	typedef sequence<TypeCode> TypeCodeSeq;
+};
+
+
+#endif

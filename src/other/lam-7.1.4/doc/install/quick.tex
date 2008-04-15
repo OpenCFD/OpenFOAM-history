@@ -1,0 +1,55 @@
+% -*- latex -*-
+%
+% Copyright (c) 2001-2004 The Trustees of Indiana University.  
+%                         All rights reserved.
+% Copyright (c) 1998-2001 University of Notre Dame. 
+%                         All rights reserved.
+% Copyright (c) 1994-1998 The Ohio State University.  
+%                         All rights reserved.
+% 
+% This file is part of the LAM/MPI software package.  For license
+% information, see the LICENSE file in the top level directory of the
+% LAM/MPI source distribution.
+%
+% $Id: quick.tex,v 1.7 2003/06/20 14:36:32 jsquyres Exp $
+%
+
+
+\chapter{For the Impatient}
+\label{sec:quick}
+
+If you don't want to read the rest of the instructions, the following
+should build a minimal installation of LAM/MPI in most situations
+(note that some options will be disabled, particularly if supporting
+libraries are installed in non-default locations, such as Myrinet,
+BProc, Globus, PBS, etc.).
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ gunzip -c lam-7.1.2.tar.gz | tar xf -
+shell$ cd lam-7.1.2
+
+# Set the desired C, C++, and Fortran compilers, unless using the GNU compilers is sufficient
+shell$ ./configure CC=cc CXX=CC FC=f77 --prefix=/directory/to/install/in
+# ...lots of output...
+
+shell$ make
+# ...lots of output...
+shell$ make install
+# ...lots of output...
+
+# The following step is optional.  Ensure that $prefix/bin is in in your $path so that
+# LAM's newly-created ``mpicc'' can be found before running this step.
+shell$ make examples
+# ...lots of output...
+\end{lstlisting}
+
+If you do not specify a prefix, LAM will first look for \icmd{lamclean} in
+your path.  If \icmd{lamclean} is found, it will use the parent of the
+directory where \icmd{lamclean} is located as the prefix.  Otherwise,
+\file{/usr/local} is used (like most GNU software).
+
+Now read Chapter~\ref{sec:releasenotes}
+(page~\pageref{sec:releasenotes}); it contains information about the
+new features of this release of LAM/MPI.
+

@@ -1,0 +1,9 @@
+
+/*
+ * Bad #pragma directive // not an error any more
+ */
+
+#pragma foobar "omg.org"
+
+typedef string Identifier;
+

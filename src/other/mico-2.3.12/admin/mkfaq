@@ -1,0 +1,16 @@
+#!/bin/sh
+
+sed -e 's/}//g' \
+    -e 's/\\item\[Q:\]/Q: /g' \
+    -e 's/\\item\[A:\]/A: /g' \
+    -e 's/\\chapter{//g' \
+    -e 's/\\item/-/g' \
+    -e 's/\\begin{verbatim//g' \
+    -e 's/\\end{verbatim//g' \
+    -e 's/\\begin{itemize//g' \
+    -e 's/\\end{itemize//g' \
+    -e 's/\\emph{//g' \
+    -e 's/\\texttt{//g' \
+    -e 's/\\//g' \
+        < $1 > $2
+

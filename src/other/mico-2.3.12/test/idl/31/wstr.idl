@@ -1,0 +1,5 @@
+// -*- c++ -*-
+
+interface TestWString {
+  wstring echo(in wstring x);
+};

@@ -1,0 +1,15 @@
+// -*- c++ -*-
+
+interface IRBrowser {
+    typedef sequence<string> NameList;
+
+    string getwd ();
+    boolean back ();
+    boolean cd (in string el);
+    NameList list ();
+    string type (in string el);
+    string describe( in string el );
+    NameList types ();
+    string optemplate (in string el);
+    string repoid ();
+};

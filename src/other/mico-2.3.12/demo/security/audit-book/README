@@ -1,0 +1,22 @@
+This is a short test program for CORBASec auditing.
+Auditing requires two additional command line arguments:
+
+1-st argument
+-AuditType 
+values: file, syslog, db
+
+2-nd argument
+-AuditArchName
+values (in order above): <yourfilename>, <empty>, <yourdatabasename>
+
+Example1 (auditdb must exist!):
+-AuditType db -AuditArchName auditdb
+
+Example2
+-AuditType syslog
+
+Example3
+-AuditType file -AuditArchName MyLogFile.log
+
+Please see the startup scripts
+

@@ -1,0 +1,24 @@
+#!/bin/sh
+
+ADDR=ssl:inet:`uname -n`:12456
+
+./server -ORBIIOPAddr $ADDR -ORBSSLcert ServerCert.pem -ORBSSLkey ServerKey.pem -ORBSSLverify 0 -ODMConfig ODM.cnf -AccessConfig access.cnf -AuditConfig audit.cnf -RightsConfig rights.cnf -AuditType file -AuditArchName server.log &
+server_pid=$!
+
+trap "kill $server_pid > /dev/null 2> /dev/null" 0
+sleep 2
+
+# Manager
+echo "Manager"
+./client -ORBBindAddr $ADDR -ORBSSLcert manager.pem -ORBSSLkey key.pem -ORBSSLverify 0 
+
+# Owner
+echo "Owner"
+./client2 -ORBBindAddr $ADDR -ORBSSLcert owner.pem -ORBSSLkey key.pem -ORBSSLverify 0 
+
+
+# Wife
+echo "Wife"
+./client2 -ORBBindAddr $ADDR -ORBSSLcert wife.pem -ORBSSLkey key.pem -ORBSSLverify 0 
+
+

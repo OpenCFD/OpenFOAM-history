@@ -1,0 +1,73 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+COUNT=3
+
+if test $# -eq 1 && test $1 -ge 2 && test $1 -le 20 ; then
+    COUNT=$1
+fi
+
+# run Naming Service
+
+echo "Starting Naming Service ..."
+
+rm -f nsd.ior
+nsd --ior nsd.ior &
+nsd_pid=$!
+
+trap "kill $nsd_pid > /dev/null 2> /dev/null" 0
+
+# wait for Naming Service to start
+
+for i in 0 1 2 3 4 5 6 7 8 9 ; do
+	if test -r nsd.ior ; then break ; else sleep 1 ; fi
+done
+
+# start Server Activator
+
+echo "Starting MicoCCM Daemon ..."
+
+rm -f ccmd.ior
+mico-ccmd --ior ccmd.ior &
+server_pid=$!
+
+trap "kill $nsd_pid $server_pid > /dev/null 2> /dev/null" 0
+
+# wait for Server Activator to start
+
+for i in 0 1 2 3 4 5 6 7 8 9 ; do
+	if test -r ccmd.ior ; then break ; else sleep 1 ; fi
+done
+
+#
+# run graphical Observer if present
+#
+
+if test -f tkobserver.so ; then
+	echo "Loading Tk Observer component ..."
+	ccmload -ORBInitRef NameService=file://`pwd`/nsd.ior --ccmd file://`pwd`/ccmd.ior -v --ns TkObserverHome DiningPhilosophers::ObserverHome ./tkobserver.so
+fi
+
+echo "Loading Fork component ..."
+
+ccmload -ORBInitRef NameService=file://`pwd`/nsd.ior --ccmd file://`pwd`/ccmd.ior -v --ns ForkHome DiningPhilosophers::ForkHome ./philo.so
+
+echo "Loading Philosopher component ..."
+
+ccmload -ORBInitRef NameService=file://`pwd`/nsd.ior --ccmd file://`pwd`/ccmd.ior -v --ns PhilosopherHome DiningPhilosophers::PhilosopherHome ./philo.so
+
+echo "Loading Observer component ..."
+
+ccmload -ORBInitRef NameService=file://`pwd`/nsd.ior --ccmd file://`pwd`/ccmd.ior -v --ns ObserverHome DiningPhilosophers::ObserverHome ./philo.so
+
+# run Client
+
+echo "Running Client to configure philosophers ..."
+
+./client -ORBInitRef NameService=file://`pwd`/nsd.ior $COUNT
+
+# Let the philosophers do some thinking
+
+sleep 1234

@@ -1,0 +1,87 @@
+.TH LAM_KSIGNAL 2 "July, 2007" "LAM 7.1.4" "LAM LOCAL LIBRARY"
+.SH NAME
+lam_ksignal \- Specify a signal handler for a LAM signal.
+.SH SYNOPSIS
+#include <lam_ksignal.h>
+.PP
+void (*lam_ksignal (int signum, void (*func)())) ();
+.SH DESCRIPTION
+.I lam_ksignal()
+exchanges a current signal handler for a new signal handler.
+When a process is signalled, execution control passes immediately
+to the handler function.
+Control passes back to the previous location when the handler
+function returns.
+Each signal begins with a default handler when the process is initialized.
+.PP
+LAM signals are completely separate from the signal facilities
+of the host operating system.
+While the syntax and functionality are similar, signal(3) cannot
+affect LAM signals and vice versa.
+.PP
+The following is a list of LAM signals as they appear in
+<lam_ksignal.h>.
+.PP
+.nf
+.ta \w'LAM_SIGRELEASE 'u +\w'15*  'u
+LAM_SIGTRACE	1	unload trace data
+LAM_SIGUDIE	4	terminate
+LAM_SIGARREST	5	suspend execution
+LAM_SIGRELEASE	6	continue execution
+LAM_SIGA	7	user defined
+LAM_SIGB	8	user defined
+LAM_SIGFUSE	9	node about to die
+LAM_SIGSHRINK	10	another node has died
+.fi
+.PP
+By default, LAM_SIGA and LAM_SIGB are ignored.
+They are reserved for application programmers
+LAM_SIGUDIE causes the signalled process to exit.
+LAM_SIGARREST causes the signalled process to indefinitely block
+and LAM_SIGRELEASE reschedules it.
+.PP
+LAM_SIGTRACE causes the current contents of the trace buffer to
+be flushed to the local trace daemon.
+.PP
+LAM_SIGFUSE and LAM_SIGSHRINK are fault tolerant signals.
+The former indicates that the local node and all its processes
+will terminate imminently.
+The process receiving LAM_SIGFUSE should take immediate action to clean up.
+By default, LAM_SIGFUSE is ignored.
+LAM_SIGSHRINK indicates that another node has died or been forcefully
+terminated.
+The default action is to flush the route cache so that subsequent
+remote service calls to the dead node will fail with EBADNODE
+(in <terror.h>).
+If the application decides to trap this signal, the signal handler
+should call the old handler (the default which will be returned by
+.IR lam_ksignal() )
+before returning.
+.PP
+The new signal handler must be the address of a function.
+The special value LAM_KSIG_IGN ignores the given signal.
+(A function that does nothing is called when the signal occurs.)
+Another special value, LAM_KSIG_DFL, returns the signal handler
+to the default function.
+.PP
+When a signal handler is called, the signal number that caused the
+invocation is passed as the sole parameter to the handler.
+.PP
+While an signal handler is running, further signals on
+the same number are blocked.
+Interrupts do not form queues.
+A second signal will overwrite the first (thus two appear as one)
+if the first has not yet been handled, either due to scheduling or
+signal blocking.
+.SH RETURN VALUE
+Upon successful completion, the address of the previously installed
+signal handler, which may be reinstated later, is returned.
+Otherwise, \-1 is returned and the global variable
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP 15
+EINVAL
+The signal number is invalid or privileged.
+.SH SEE ALSO
+MPIL_Signal(2), lam_ksigblock(2)

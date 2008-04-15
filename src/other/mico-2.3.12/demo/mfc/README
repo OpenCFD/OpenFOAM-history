@@ -1,0 +1,71 @@
+
+The example in this directory shows how to use the Microsoft
+Foundation Classes (MFC) in conjunction with MICO. We assume that you
+have successfully installed MICO (see file README-WIN32 in the main
+MICO directory for details). We have not used the Application Wizard
+to create this demo. The problem with the application wizard is that
+it creates bloated code that is hard to understand. Our approach of
+starting from scratch should help you to understand how and where to
+integrate MICO into your MFC projects. Be sure to pay close attention
+to the command line options passed to the compiler and linker during
+the application creation process. If you use the IDE, you'll need
+define all the necessary switches yourself (things like including the
+include path of the MICO header files and such).
+
+
+Compiling the demo
+------------------
+
+Edit the variable MICO_HOME in Makefile.win32 to point to the location
+of the MICO binaries on your system. Make sure that the PATH
+environment variable includes the path the MICO binaries (the same
+location as MICO_HOME). This can be done with the following command:
+
+  path \<path-to-mico-home>\win32-bin;%PATH%
+
+Next type:
+
+  nmake /f Makefile.win32
+
+This will build two executables: client.exe and server.exe
+
+
+Running the demo
+----------------
+
+First run the server by invoking:
+
+  server.exe
+
+from a command shell. The server should open a dialog box showing the
+initial amount of 0 of the account. Next run the client by invoking:
+
+  client.exe
+
+from a command shell. This will open a second dialog box. Here you can 
+enter a certain amount in the appropriate edit field and use the
+buttons labelled "Deposit" or "Withdraw" to invoke the operation on
+the server.
+
+
+Files
+-----
+
+account.idl
+  IDL specification of the account example
+
+client.rc
+client-res.h
+  Resources for the client dialog box
+
+client.h
+client.cpp
+  Implementation of the client
+
+server.rc
+server-res.h
+  Resources for the server dialog box
+
+server.h
+server.cpp
+  Implementation of the server

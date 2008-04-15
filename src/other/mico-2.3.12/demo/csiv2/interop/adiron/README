@@ -1,0 +1,15 @@
+
+  This is an MICO CSIv2 interoperability test which runs against
+Adiron CSIv2 Interoperability Testbed. For more information about
+this Adiron project, please look at
+http://www.adiron.com/InterOpTest.html.
+
+For running this test you have to obtain various IORs files from
+Adiron web-site. If you have 'wget' utility, you can use 'get_iors.sh'
+script located in this directory, otherwise you have to go to 
+http://www.adiron.com/InterOpTest.html and download files:
+Johnson_IIOP_POA.ior, Johnson_TLS_POA.ior,
+Johnson_IIOP_CSIv2_UP_POA.ior and Johnson_TLS_CSIv2_UP_POA.ior.
+
+After obtaining these files and saving them into this directory, you
+can run all tests by starting 'run.sh' script.

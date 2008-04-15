@@ -1,0 +1,214 @@
+SUMMARY
+
+   1. MICO/JBoss Interoperability
+   2. Prerequisites
+   3. Running the examples
+   4. Why different versions of the examples for JDK 1.3.x and for JDK 1.4.x?
+
+
+1. MICO/JBoss Interoperability
+   ---------------------------
+
+The subdirectories of this directory contain examples of MICO/JBoss 
+interoperability. Two versions of the same set of three examples are 
+provided. You should chose one of these versions depending on whether 
+you run the JBoss server with JDK 1.3.x or with JDK 1.4.x:
+
+  - the subdirectory jdk1.3.x contain three examples that demonstrate 
+    the interoperability between MICO and a JBoss server on JDK 1.3.x;
+
+  - the subdirectory jdk1.4.x contain three examples that demonstrate 
+    the interoperability between MICO and a JBoss server on JDK 1.4.x.
+
+These examples are in the subdirectories
+
+    jdk1.3.x/converter-ejb              jdk1.4.x/converter-ejb 
+    jdk1.3.x/cart-ejb                   jdk1.4.x/cart-ejb 
+    jdk1.3.x/corba-friendly-ejb         jdk1.4.x/corba-friendly-ejb 
+
+Each such subdirectory contains an example of EJB, a C++ client that 
+accesses that EJB, and a Makefile that generates both the client and 
+an EJB jar file ready to be deployed into a JBoss server running on
+the corresponding JDK.
+
+The examples are:
+
+  - converter-ejb: Sun's well-known "converter" example, a very simple 
+        stateless session bean. This is the same example in directory 
+        interop/ejb. No value types are passed between the client
+        and the server in this example.
+
+  - cart-ejb: this stateful session bean is a version of Sun's well-known 
+        "cart" example. Value types are passed between the client and the 
+         server. Moreover, a Java exception thrown by the session bean is 
+         caught by the C++ client.
+
+  - corba-friendly-ejb: this stateless session bean exemplifies the use
+         of IDL entities as "data objects" passed between the client and
+         the server. IDL-defined "data objects" minimize the use of value 
+         types.
+
+
+2. Prerequisites
+   -------------
+
+ - Sun's JDK (a.k.a. J2SE) 1.3.x or 1.4.x, available from java.sun.com
+
+ - JBoss 3.2.0 or higher, available from the JBoss Files page at SourceForge:
+   http://sourceforge.net/project/showfiles.php?group_id=22866
+
+ - Either MICO snapshot with date 2003/04/04 (or later) or the upcoming
+   MICO 2.3.10
+
+
+3. Running the examples
+   --------------------
+
+Depending on your JDK version, edit one of the setenv.sh files (either 
+jdk1.3.x/setenv.sh or jdk1.4.x/setenv.sh) and use it to prepare your 
+environment by typing 'source setenv.sh' in the corresponding subdirectory.
+Compile all the necessary binaries by typing 'make' in each example 
+subdirectory (converter-ejb, cart-ejb, and corba-friendly-ejb). This will 
+generate a MICO client and an EJB jar file in each example subdirectory. 
+Before you can run each client, you need to deploy the EJB jar file in a
+JBoss server. To do this, copy the EJB jar file to the "deploy" directory
+of the JBoss server. (If you are not familiar with JBoss, read the "NOTE ON 
+JBOSS" below.) Once the EJB jar file is deployed (and the JBoss server 
+running), simply type 'run-client' to run the MICO client. 
+
+The output of the converter-ejb client should be:
+
+    Looking up examples/MyConverter... Done.
+    Result: 1100
+
+The output of the cart-ejb client should be:
+
+    Looking up examples/CartExample... Done.
+    Cart contents:
+            The Martian Chronicles
+            2001 A Space Odyssey
+            The Left Hand of Darkness
+    Caught expected exception examples::BookEx:
+            Alice in Wonderland not in cart.
+
+The output of the corba-friendly-ejb client should be:
+
+    Looking up examples/MyCorbaFriendlySession... Done.
+    Before echo call:               7       Hello, world!
+    After echo call:                8       Hello, world!!
+    Before echoSequence call:       8       Hello, world!!
+                                    8       Hello, world!!
+                                    8       Hello, world!!
+                                    8       Hello, world!!
+    After echoSequence call:        12      Hello, world!!!!!!
+                                    12      Hello, world!!!!!!
+                                    12      Hello, world!!!!!!
+                                    12      Hello, world!!!!!!
+
+NOTE ON JBOSS: 
+
+JBoss comes with three server configurations: "min", "default", and "all".
+Each of them corresponds to a subdirectory of $JBOSS_HOME/server, e.g.: 
+$JBOSS_HOME/server/default.
+
+The "default" JBoss configuration does not include IIOP support. To run 
+these examples, you should use the "all" configuration:
+
+  - To start the server, go to $JBOSS_HOME/bin and say 
+
+        ./run.sh -c all
+
+    (rather than just `./run.sh', which would start a server with the 
+     "default" config)
+
+  - To deploy an EJB, copy the EJB jar file to $JBOSS_HOME/server/all/deploy
+    (rather than to $JBOSS_HOME/server/default/deploy).
+
+Alternatively, you can use a customized "iiop" configuration, with ejb/IIOP 
+and little else. (This saves machine resources and makes the server startup 
+time much shorter.) Creating a customized "iiop" configuration is very easy:
+
+  - Recursively copy  $JBOSS_HOME/server/all to $JBOSS_HOME/server/iiop:
+
+        cd $JBOSS_HOME/server
+        cp -a all iiop
+
+  - Remove all subdirectories and files in $JBOSS_HOME/server/iiop,
+    EXCEPT the subdirectories jmx-rmi-adaptor.sar and jbossweb-jetty.sar
+    and the following files: 
+        
+        hsqldb-ds.xml
+        iiop-service.xml
+        jboss-jca.sar
+        jboss-local-jdbc.rar
+        jboss-xa-jdbc.rar
+        transaction-service.xml
+
+  - Use the "iiop" configuration instead of the "all" configuration:
+
+        * Start the server by saying `./run.sh -c iiop' at the $JBOSS/bin
+          directory.
+
+        * Deploy an EJB by copying the EJB jar file to the directory
+          $JBOSS_HOME/server/iiop/deploy.
+
+
+4. Why different versions of the examples for JDK 1.3.x and for JDK 1.4.x?
+   -----------------------------------------------------------------------
+
+Due to a change in class java.lang.Throwable, from which all Java
+exceptions inherit. In order to support exception chaining, two new 
+fields were added to class Throwable in JDK 1.4: a cause field (which 
+is itself a Throwable) and a stackTrace field (which is an array of 
+StackTraceElements). Recall that a Java exception is mapped to an IDL 
+exception that contains the Java exception in a value field. The 
+addition of new fields to Throwable (and, by inheritance, to each and 
+every Java exception) means that a different stub must be used to 
+unmarshal the corresponding IDL exception. Therefore different C++ 
+stubs are needed depending on whether the JBoss server runs on JDK 1.3.x 
+or on JDK 1.4.x. 
+
+Besides adding new fields to class Throwable, JDK 1.4 also added a 
+writeObject method to this class. According to the Java to IDL mapping
+specification, a Java serializable object with a writeObject method
+is mapped to a *custom* value type. Therefore a java.lang.Throwable 
+should now be mapped to an IDL exception that has a custom value type 
+in its value field. Moreover, CORBA says that "non-custom value 
+types may not (transitively) inherit from custom value types". As a
+consequence, *any* Java exception should now (from JDK 1.4 on) be 
+mapped to an IDL exception that has a *custom* value field. 
+
+The rmic utility in JDK 1.4.x, however, does not map Java exceptions
+in a CORBA-compliant way. The command 'rmic -idl' correctly maps
+java.lang.Throwable into an IDL exception that has a custom value field 
+containing the java.lang.Throwable. But it fails to do this in the case 
+of a Java exception class that does not explicitly define a writeObject 
+method. As an example: it maps java.lang.Exception into an IDL exception 
+that contains a field whose type is a non-custom value type that 
+(incorrectly) inherits from the custom value type Throwable. In other 
+words, 'rmic -idl' maps Java exception classes into *invalid* IDL 
+definitions. The current version of the MICO IDL compiler (both MICO 
+2.3.9 and mico-snapshot-030404) fails to detect that such IDL definitions 
+are invalid and translates them into C++ code that does not compile.
+
+A solution to this problem would be to add the missing `custom' modifier
+to the exception value type definitions generated by rmic. There is a
+simpler solution, though. Even though class java.lang.Throwable has a 
+writeObject method, it does not really need custom marshaling. Its 
+writeObject method merely ensures that that the stackTrace field of
+the java.lang.Throwable instance is properly set before this instance
+gets marshaled in the standard way. So we can safely discard the
+rmic-generated custom value type for Throwable and replace it by a 
+non-custom value type. This is the approach we took in the jdk1.4.x
+examples. It spares users from the trouble of (1) adding the missing
+'custom' modifier to several value type definitions generated by rmic
+and (2) writing custom marshaling code for each such value type.
+The Makefiles for the jdk1.4.x examples discard the Throwable.idl
+file generated by 'rmic -idl' and replace it by a file copied from 
+the subdirectory jdk1.4-Throwable.
+
+
+That's it!
+
+
+ -- Francisco Reverbel (reverbel@ime.usp.br)

@@ -1,0 +1,1 @@
+exec ab -WATMGIOPAddr inet:$1:41513 -WATMGTPAddr inet:$1:21100 -WATMBridgeName Bridge1 -POAImplName MobilitySupport -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -ORBDebug All -ORBNoIIOPServer -ORBConfFile ./micorc -ORBRequestLimit 1 >ab0.ref

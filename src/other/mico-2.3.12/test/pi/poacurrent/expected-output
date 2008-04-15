@@ -1,0 +1,22 @@
+Running.
+receive_request_service_contexts
+current->get_reference() ... OK - caught NoContext();
+current->get_servant() ... OK - caught NoContext();
+current->get_POA() ... OK - caught NoContext();
+current->get_object_id() ... OK - caught NoContext();
+receive_request
+current->get_reference() ... OK!
+current->get_servant() ... OK!
+current->get_POA() ... OK!
+current->get_object_id() ... OK!
+Hello World
+current->get_reference() ... OK!
+current->get_servant() ... OK!
+current->get_POA() ... OK!
+current->get_object_id() ... OK!
+Finishing invocation
+send_reply
+current->get_reference() ... OK - caught NoContext();
+current->get_servant() ... OK - caught NoContext();
+current->get_POA() ... OK - caught NoContext();
+current->get_object_id() ... OK - caught NoContext();

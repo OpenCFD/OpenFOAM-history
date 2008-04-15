@@ -1,0 +1,36 @@
+.TH RRSETRENTS 2 "July, 2007" "LAM 7.1.4" "LAM NETWORK LIBRARY"
+.SH NAME
+rrsetrents, rremrent \- Set LAM route information.
+.SH SYNOPSIS
+.nf
+#include <rreq.h>
+
+int rrsetrents (int node, struct route *rents, nrents);
+int rremrent (int node, int remnode);
+.fi
+.SH ARGUMENTS
+.TP 12
+node
+where route information will be updated
+.TP
+rents
+array of route information structures (see getrents(2))
+.TP
+nrents
+array length
+.TP
+remnode
+node whose route information will be removed
+.SH DESCRIPTION
+New nodes are added to the local route daemon by
+.IR rrsetrents() .
+If the node already exists, its information is updated.
+Existing nodes are removed by
+.IR rremrent() .
+.PP
+Simply changing information in the local route daemon does not
+ensure that the changes are immediately visible to client processes.
+The LAM runtime system caches route information and the cache should
+be flushed if node information is changed or removed.
+.SH SEE ALSO
+getrent(2)

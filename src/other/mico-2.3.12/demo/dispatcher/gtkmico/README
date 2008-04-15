@@ -1,0 +1,16 @@
+This is an implementation of a MICO Dispatcher using the GTK main
+loop. It should be pretty much complete and correct - the only thing
+that isn't implemented is the move() operation. (i.e., changing to
+another dispatcher). It wouldn't be that hard to do, but it is hard to
+imagine a case where it would be useful. (The Xaw and Qt Dispatchers
+don't implement it either).
+
+The code here is extensively based on the Xaw Dispatcher in the
+MICO distribution. See client.cc and server.cc for examples of
+the (very simple) usage.
+
+Owen Taylor
+owt1@cornell.edu
+
+23 January 1997
+

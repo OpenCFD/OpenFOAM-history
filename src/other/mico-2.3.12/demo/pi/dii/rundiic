@@ -1,0 +1,3 @@
+#!/bin/sh
+./diiclient `cat server.ior`
+

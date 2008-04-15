@@ -1,0 +1,19 @@
+GInstall.bat GUnInstall.bat - Generic Install/Uninstall scripts
+nsinstall.bat 		- Install script for Naming Service
+
+NTServApp.cpp 		- entry point of the application
+NTServMsg.mc 		- here are the codes of the service
+NTService.cpp 		- base class for a (not very) Generic NT Service (imported from MSDN)
+criticalsection.cpp - Wrapper for a Critical Section. Used only in DEBUG
+include.cpp 		- Precompiled Header file
+include.h
+
+
+makefile 			- just type nmake and you'll see what this does
+myservice.cpp 		- holder of the derived class from NTService. Here is application 
+						logic
+readme          	- hopefully a good and clear help file
+roadmap				- this file
+service_jobs.cpp  	- this starts, stops and restarts a service
+trace.cpp 			- Creates a log file
+util.cpp 			- some utility functions

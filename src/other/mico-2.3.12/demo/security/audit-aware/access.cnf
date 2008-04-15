@@ -1,0 +1,19 @@
+# Object access configuration file
+# Different rights for hello in different domains
+
+# Bank operations
+
+/Access/Bank Combinator = Union
+{
+ IDL:Bank:1.0 create  corba:SecAnyRight:m
+ IDL:Bank:1.0 open    corba:SecAnyRight:ug
+}
+
+#Account operations
+
+/Access/Accounts Combinator = Union
+{
+ IDL:Account:1.0 deposit  corba:SecAnyRight:ug
+ IDL:Account:1.0 withdraw corba:SecAnyRight:u
+ IDL:Account:1.0 balance  corba:SecAnyRight:ug
+}

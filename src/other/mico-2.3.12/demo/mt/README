@@ -1,0 +1,9 @@
+Some example which ilustrate usage of MT stuff.
+
+callback: Trivial callback hello world like application. Client starts
+          new thread for orb and then enters infinite loop (in which we can do whichever
+          we (or client) want). Server creates new thread for sending requests to the client
+	  and starts it.
+
+prodcons-1: Producer/consumer demo which uses mutex, condition variable and threads
+            from MICO/MT library.

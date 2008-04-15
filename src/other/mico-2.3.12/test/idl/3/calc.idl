@@ -1,0 +1,4 @@
+
+interface Calc {
+    void add( in short x, in short y, out long z );
+};

@@ -1,0 +1,40 @@
+[templates]-
+	->(menu)->[values:VALUE]-
+		->(entry)->[long]->(BASIC)->[LONG:0],
+		->(entry)->['unsigned long']->(BASIC)->[ULONG:0],
+		->(entry)->[short]->(BASIC)->[SHORT:0],
+		->(entry)->['unsigned short']->(BASIC)->[USHORT:0],
+		->(entry)->['boolean']->(BASIC)->[BOOL:TRUE],
+		->(entry)->['string']->(BASIC)->[STRING:'foobar'],
+		->(entry)->['objref']->(BASIC)->[OBJREF:'$0'],
+		->(entry)->[struct]->(COMPLEX)->[STRUCT],
+		->(entry)->[sequence]->(COMPLEX)->[SEQUENCE]
+		.,
+	->(menu)->[parameters:OPERATION]-
+		->(entry)->['input parameter']->(IN_PARAM)-
+			->[VALUE],
+			->[NAME:x]
+			.,
+		->(entry)->['output parameter']->(OUT_PARAM)-
+			->[VALUE],
+			->[NAME:x]
+			.,
+		->(entry)->['inout parameter']->(INOUT_PARAM)-
+			->[VALUE],
+			->[NAME:x]
+			.,
+		->(entry)->['result']->(RESULT)-
+			->[VALUE]
+			.
+		.,
+	->(menu)->[elements:SEQUENCE]-
+		->(entry)->['element']->(ELEMENT)->[VALUE],
+		->(entry)->['dummy']->(DUMMY)->[VALUE]
+		.,
+	->(menu)->[members:STRUCT]-
+		->(entry)->['member']->(MEMBER)-
+			->[VALUE],
+			->[NAME:x]
+			.
+		.
+	.

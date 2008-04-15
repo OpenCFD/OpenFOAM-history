@@ -1,0 +1,204 @@
+#
+#  MICO --- an Open Source CORBA implementation
+#  Copyright (c) 1997-2001 by The Mico Team
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  For more information, visit the MICO Home Page at
+#  http://www.mico.org/
+#
+
+#
+# Configuration
+#
+
+!include MakefileConfig.win32
+
+
+
+# Adapted by Sorin Mustaca <sorinm@home.ro>
+# Download and compile the OpenSSL sources. Install the DLLs into win32-bin
+# and the libraries in win32-bin\lib. 
+# If the libs are found, then MICO will be automatically SSL-enabled.
+# 
+# After compiling the sources execute install-openssl.bat from the root of MICO tree
+
+!ifdef HAVE_SSL
+SSL_PATH=$(RELATIVE)\contrib\openssl
+SSL_FLAGS=/W3 /G5 /Gs0 /GF /Gy /nologo \
+               -DMONOLITH -DWIN32 -DWIN32_LEAN_AND_MEAN -DL_ENDIAN \
+               /DHAVE_SSL /DHAVE_OPENSSL_SSL_H -I$(SSL_PATH) 
+SSL_LIBS=/LIBPATH:$(RELATIVE)\win32-bin\lib ssleay32.lib libeay32.lib
+MPATH= $(RELATIVE)\win32-bin
+
+!endif
+
+
+# CSIv2 stuff
+#
+# NOTE: MICO CSIv2 implementation depends on MICO SSL support, so
+# please don't enable CSIv2 build if you don't have properly set SSL
+# build variables above, otherwise your build will fail.
+#
+# uncomment the following section to enable CSIv2 MICO build
+
+!ifdef HAVE_SSL
+USE_CSIV2 = 1
+
+!if defined(USE_CSIV2)
+CSIV2_FLAGS = /DUSE_CSIV2
+!endif
+!endif
+
+# PTHREADS adaptation by Sorin Mustaca <sorinm@home.ro>
+#
+# MICO is able to be compiled and run in multi-threaded environment on
+# top of Win32 OS by using posix threads "emulation" layer which is
+# provided by POSIX Threads for Win32 project. For more information
+# about this project and for sources of pthreads library please look at
+# http://sources.redhat.com/pthreads-win32/ 
+#
+# In order to compile MICO with pthreads first compile the library you
+# want to use: PthreadsVC(no exception), PthreadsVCE(C++ EH) and/or
+# PthreadsVSE(MSVC Structured EH). Please read 'README' file from
+# pthreads package before doing any modification here. If you have
+# pthreads library compiled and ready, install the dlls into win32-bin
+# and the libs into win32-bin\lib 
+# If the libs are found, then MICO will be automatically compiled as MT-enabled.
+#
+
+!ifdef HAVE_THREADS
+PTHREADS_PATH= $(RELATIVE)\contrib\pthreads
+
+# NEED_THREADID_OPERATORS define solves issue with a new pthread_t
+# defined as a struct of a pointer and int in a recent versions
+# of Win32 POSIX Threading library (the change was done on 2004-10-29)
+NEED_THREADID_OPERATORS = 1
+
+# Starting with version 2.x.y, Win32 POSIX Threads library is using
+# "1" or "2" as a library name suffix
+PTHREADS_LIB_SUFFIX = 2
+
+!if defined (HAVE_PTHREADS_VSE)
+PTHREADS_LIB= pthreadVSE$(PTHREADS_LIB_SUFFIX).lib
+PTHREADS_EXC= __CLEANUP_SEH
+!endif
+
+!if defined(HAVE_PTHREADS_VC)
+PTHREADS_LIB= pthreadVC$(PTHREADS_LIB_SUFFIX).lib
+PTHREADS_EXC= __CLEANUP_C
+!endif
+
+!if defined(HAVE_PTHREADS_VCE)
+PTHREADS_LIB= pthreadVCE$(PTHREADS_LIB_SUFFIX).lib
+PTHREADS_EXC= __CLEANUP_CXX
+!endif
+
+PTHREADS_LIB=/LIBPATH:$(RELATIVE)\win32-bin\lib $(PTHREADS_LIB)
+!ifdef NEED_THREADID_OPERATORS
+PTHREADS_FLAGS=  /DNEED_THREADID_OPERATORS /W3 /Yd /DHAVE_PTHREADS /DHAVE_THREADS /I$(PTHREADS_PATH) /DPtW32NoCatchWarn /D$(PTHREADS_EXC) /D_WIN32_WINNT=0x400
+!else
+PTHREADS_FLAGS=  /W3 /Yd /DHAVE_PTHREADS /DHAVE_THREADS /I$(PTHREADS_PATH) /DPtW32NoCatchWarn /D$(PTHREADS_EXC) /D_WIN32_WINNT=0x400
+!endif
+
+MPATH= $(MPATH);$(PTHREADS_PATH)
+!endif
+
+
+#CCM stuff
+# Enable or disable it from the MakefileConfig.win32 file.
+# Default: OFF
+
+!ifdef USE_CCM
+CCM_FLAGS = /DUSE_CCM
+!endif
+
+#
+#End of configuration 
+#
+
+CXX             = cl.exe
+CC              = cl.exe
+LINK            = link.exe
+LD	        = $(LINK)
+JAVAC           = javac.exe
+JCUP            = java.exe java_cup.Main
+MAKE            = nmake /nologo
+
+#where the compilation is done regarding to ROOT
+#do not uncomment
+#RELATIVE		=
+
+COPY			= copy /Y	
+
+SYSLIBS         = wsock32.lib
+AR              = lib.exe
+ARFLAGS         = /nologo
+RM          	= del /F /Q 2> nul
+LDFLAGS     	= $(LINKFLAGS)
+IDL     	= $(RELATIVE)\win32-bin\idl.exe
+MKDEPEND    	= echo 
+DELETE		= $(RM) *.obj *.exe *.def *.dmp *.dll *.lib *.exp  *.pdb *.pch *.ilk
+
+
+!ifdef RELEASE_BUILD
+CXXFLAGS        = /nologo /Ox /EHsc /GX /GR /TP /MD $(SSL_FLAGS) $(CSIV2_FLAGS) $(PTHREADS_FLAGS) $(CCM_FLAGS)
+CCFLAGS         = /nologo /GX /TC /MD $(SSL_FLAGS) $(CSIV2_FLAGS) $(PTHREADS_FLAGS) $(CCM_FLAGS)
+LINKFLAGS       = /nologo /subsystem:console /OPT:REF /incremental:no $(SSL_LIBS) $(PTHREADS_LIB)
+LINKDLLFLAGS    = /nologo /dll /incremental:no /OPT:REF $(SSL_LIBS) $(PTHREADS_LIB)
+!else
+# In Debug there are a lot of security checks: /GS,/GZ . Consult MSDN for details.
+
+# If you need faster compilation and execution times in DEBUG, just comment the var below
+#SECURITY_CHECKS	= /GS /GZ /Ge /RTCu /RTCs
+#HAVE_MEMCHECK = 1
+CXXFLAGS        = /nologo $(SECURITY_CHECKS) /EHsc /GX /GR /TP /Zi /MDd $(SSL_FLAGS) $(CSIV2_FLAGS) $(PTHREADS_FLAGS) $(CCM_FLAGS)
+CCFLAGS         = /nologo $(SECURITY_CHECKS) /GX /TC /Zi /MDd $(SSL_FLAGS) $(CSIV2_FLAGS) $(PTHREADS_FLAGS) $(CCM_FLAGS)
+LINKFLAGS       = /nologo /debug /subsystem:console /incremental:no $(SSL_LIBS) $(PTHREADS_LIB)
+LINKDLLFLAGS    = /nologo /debug /dll /incremental:no $(SSL_LIBS) $(PTHREADS_LIB)
+!endif
+# uncomment if you have tcl installed and declare path
+# HAVE_TCL	= 1
+# TCL_PATH	= d:\tcl
+# Tcl support is not usable yet
+
+.SUFFIXES:
+.SUFFIXES:	.c .cc .cpp .obj .rc .RES .idl .class .java .cup
+
+.cc.obj:
+	$(CXX) /c $(CXXFLAGS) $< /Fo$*.obj
+
+.cpp.obj:
+	$(CXX) /c $(CXXFLAGS) $< /Fo$*.obj
+
+.cxx.obj:
+	$(CXX) /c $(CXXFLAGS) $< /Fo$*.obj
+
+
+.rc.RES:
+	$(RC) $<
+
+.idl.cpp:
+    echo compiling IDL
+    $(IDL) --c++-suffix=cpp $<
+
+.c.obj:
+	$(CC) /c $(CCFLAGS) $< /Fo$*.obj
+
+.java.class:
+	$(JAVAC) $<
+
+.cup.java:
+	$(JCUP) < $<

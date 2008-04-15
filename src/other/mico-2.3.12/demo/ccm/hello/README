@@ -1,0 +1,13 @@
+
+This is a simple "Hello World" component.
+
+The Hello World component supports the Hello interface, which has a single
+method to elicit a message from the server. The component has an attribute
+that allows setting of that message.
+
+The HelloHome also does not do anything fancy.
+
+The client creates an instance of the HelloWorld component, via the home
+interface, configures the message to "Hello World", and then calls sayHello.
+
+This one builds the component into a standalone server.

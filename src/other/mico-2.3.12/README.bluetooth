@@ -1,0 +1,58 @@
+The text below is approximately what is found in the MIWCO-LTP
+distribution.  I have tried to update it to reflect the correct
+arrangement in the current sources, but some inconsistencies may
+remain.
+
+I recently got access to some Bluetooth devices and tried to test the
+L2CAP IOR profile.  Unfortunately this did not work out of the box,
+and I do not have time to do proper debugging.  I suspect that using
+LTP as a GTP layer works, but did not test this.
+
+Jaakko Kangasharju
+
+
+28.1.2002
+
+LTP - GTP tunneling over L2CAP
+
+This is a version of MIWCO wireless CORBA that has been extended with
+GTP tunneling support over Bluetooth L2CAP layer. Bluetooth support is
+implemented using BlueZ stack version 2.0-pre1
+(http://bluez.sourceforge.net). The implementation is preliminary
+tested with Nokia Connectivity Card DTL-1. Other configuration
+included the following:
+ -Linux kernel 2.4.13
+ -Linux PCMCIA package pcmcia-cs version 3.1.31
+ -DTL1 driver version 0.4 for the Nokia Connectivity Card DTL-1
+
+The following files were added:
+orb/ltp_address.cc		- LTP address format with parser
+orb/transport/ltp.cc		- transport and server over L2CAP
+orb/ltp_ior.cc			- IOR profile
+
+Also header file ltp.h for the previous files was added in the
+include/mico directory.
+
+In addition the following files were modified:
+include/mico/MobileTerminal.idl		- LTP tunneling identifier
+include/mico/ior.h			- support for the IOR profile
+coss/wireless/proxy.cc			- recognizes LTP
+coss/wireless/AccessBridge_impl.cc	- recognizes LTP
+orb/orb.cc				- support for the IOR profile
+
+
+Bluetooth support is compiled with the --with-bluetooth configure
+option.  You will need the BlueZ stack installed.
+
+Note that in order to use any tunneling, including LTP, you have to have 
+certain preferences made (.micorc and .hlarc configuration files etc). 
+These steps are described in MIWCO's documentation so they are not 
+discussed here. 
+
+Also note that because IOR profile is implemented, MIWCO-LTP can now be 
+used like traditional ORB without any wireless parts. The directory 
+demo/ltp/hello contains a simple helloworld example and startup 
+scripts for both server and client. In order to use the IOR profile the 
+Bluetooth address must be given in the -ORBIIOPAddr command line parameter 
+(e.g. like -ORBIIOPAddr bt-l2cap:XX:XX:XX:XX:XX:XX#PSM (check BlueZ's
+documentation for more info about address and psm)).

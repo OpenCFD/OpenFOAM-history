@@ -1,0 +1,43 @@
+.TH RGET 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rget, rforget \- Find tagged storage on a LAM remote node.
+.SH SYNOPSIS
+char *rget (int node, int tag);
+.br
+char *rforget (int node, int tag);
+.SH DESCRIPTION
+The flat storage service allows data to be loaded onto a remote
+node, stored in a remote file, and assigned a reference tag by the client.
+The client can then send the tag to any process on the remote node
+and that process can convert the tag locally, using either
+.I rget()
+or
+.IR rforget() ,
+to the stored filename.
+The flat storage service has two important purposes.
+It allows remote servers to remain stateless vis-a-vis incoming message
+packets when a large dataset or file need to be transferred to the server
+(e.g. loading and running a program).
+There is no load on the buffers and no chance of memory deadlock.
+Secondly, in multicast operations, it gives the client the power to
+refer to remote storage by the same tag value on several nodes.
+Thus, one message containing a tag value can be efficiently multicasted.
+.PP
+The tag is preserved by
+.I rget()
+but removed by
+.IR rforget() .
+The latter function should be used if the tag will not be
+used again, to avoid overflow of the associated tables.
+.SH RETURN VALUE
+Upon successful completion, the actual filename of the remote storage
+is returned.
+If an error occurred, \-1 is returned and the global variable
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP 16
+EBADTAG
+The tag is unknown.
+.SH SEE ALSO
+rflat(2), rload(2)

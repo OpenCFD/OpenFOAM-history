@@ -1,0 +1,19 @@
+.TH MPI_File_f2c 3 "3/25/2003" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_File_f2c \-  Translates a Fortran file handle to a C file handle 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+MPI_File MPI_File_f2c(MPI_Fint fh)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B fh 
+- Fortran file handle (integer)
+.PD 1
+
+.SH RETURN VALUE
+C file handle (handle)
+.SH LOCATION
+file_f2c.c

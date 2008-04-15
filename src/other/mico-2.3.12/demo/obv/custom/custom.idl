@@ -1,0 +1,8 @@
+/*
+ * Test custom marshalling
+ */
+
+custom valuetype CustomValue {
+  long value ();
+};
+

@@ -1,0 +1,73 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+all:  everything.exe
+
+RELATIVE  = ..\..\..
+!include ..\..\MakeVars.win32
+
+CXXFLAGS  = $(COS_CXXFLAGS) $(CXXFLAGS)
+LDLIBS    = $(COS_LDLIBS) $(LDLIBS)
+LDFLAGS   = /LIBPATH:. $(COS_LDFLAGS) $(LDFLAGS)
+DEPS      = $(COS_DEPS) $(DEPS)
+IDLFLAGS  = -B$(RELATIVE)
+
+INSTALL_DIR = relship
+LIB_SRCS =  Test_impl.cc Documents_impl.cc simple-test.cc DocumentsServer.cc \
+  TestServer.cc
+
+LIB_OBJS = $(LIB_SRCS:.cc=.obj)
+
+
+PRGS = BankServer.obj PersonServer.obj RelationshipIteratorServer.obj \
+  RoleFactoryServer.obj RelationshipFactoryServer.obj EmployerRoleServer.obj \
+  EmployeeRoleServer.obj EmploymentServer.obj OwnerRoleServer.obj \
+  OwnedByRoleServer.obj OwnershipServer.obj FigureServer.obj TextServer.obj \
+  ContainsRoleServer.obj ContainedInRoleServer.obj ContainmentServer.obj \
+  ReferencesRoleServer.obj ReferencedByRoleServer.obj ReferenceServer.obj \
+  simple-client.obj test-client.obj interactive-client.obj
+
+Test.obj: Test.cc Test.h
+
+Test.cc Test.h: Test.idl
+	$(IDL) $(IDLFLAGS) Test.idl
+
+Documents.cc Documents.h: Documents.idl
+	$(IDL) $(IDLFLAGS) --poa-ties Documents.idl
+
+
+TestServer: Test.obj Test_impl.obj TestServer.obj $(DEPS)
+	$(LD) $(LDFLAGS) TestServer.obj Test.obj Test_impl.obj \
+		$(LDLIBS) /out:$@
+
+DocumentsServer: Documents.obj Documents_impl.obj DocumentsServer.obj $(DEPS)
+	$(LD) $(LDFLAGS) DocumentsServer.obj Documents.obj \
+		Documents_impl.obj $(LDLIBS) /out:$@
+
+simple-test: Test.obj Documents.obj simple-test.obj $(DEPS)
+	$(LD) $(LDFLAGS) simple-test.obj Test.obj Documents.obj \
+		$(LDLIBS) /out:$@
+
+clean:
+	-$(RM) /f /q 2> nul .depend *.obj core *~ TestServer DocumentsServer Documents.cc
+	-$(RM) /f /q 2> nul Documents.h Test.cc Test.h ir-db.idl ird.pid simple-test
+	-$(DELETE)

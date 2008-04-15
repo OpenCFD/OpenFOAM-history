@@ -1,0 +1,19 @@
+#!/bin/sh
+PATH=../../daemon:../../coss/naming:../../imr:../../ir:$PATH
+ADDR=inet:`uname -n`:12456
+IRADDR=inet:`uname -n`:12500
+REFERENCE=inet:`uname -n`:13300
+CONTAINMENT=inet:`uname -n`:13400
+NODE=inet:`uname -n`:13500
+DOCUMENT=inet:`uname -n`:13002
+TEST=inet:`uname -n`:13600
+TRAVERSAL=inet:`uname -n`:13700
+
+CMD="./simple-test -ORBBindAddr $CONTAINMENT -ORBBindAddr $REFERENCE -ORBBindAddr $NODE -ORBBindAddr $DOCUMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $TEST -ORBBindAddr $TRAVERSAL"
+#echo $CMD
+eval $CMD
+
+
+
+
+

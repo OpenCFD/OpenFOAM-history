@@ -1,0 +1,4 @@
+Running.
+Client DII exception: IDL:omg.org/CORBA/UnknownUserException:1.0
+Client DII real exception: IDL:Z/E:1.0
+Server DII exception: IDL:Z/E:1.0

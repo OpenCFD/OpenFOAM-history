@@ -1,0 +1,392 @@
+1999-11-23  Karel Gardas  <kgardas@karel-ws.nyssa.cz>
+
+	* Traversal_impl.h: patched for better traversing for externalization and lifecycle 
+	services (patch provided by Dmitry V. Sedov) 
+
+	* Traversal_impl.cc: patched for better traversing for externalization and lifecycle 
+	services (patch provided by Dmitry V. Sedov) 
+
+1999-09-01  Karel Gardas  <kgardas@karel-ws.nyssa.cz>
+
+	* simple-test.cc: changed to use only TestServer, DocumentsServer 
+	and compliant servers
+
+	
+1999-08-29  Karel Gardas  <kgardas@karel-ws.nyssa.cz>
+
+	* Node_impl.cc (remove_role): fixed for remove more than one role
+	(roles_of_type): fixed 
+
+	* referenced.cc (main): changed to use RelationshipFactory_impl (CORBA::ORB_ptr)
+
+	* containmentd.cc (main): changed to use RelationshipFactory_impl (CORBA::ORB_ptr)
+
+	* RelationshipFactory_impl.h (RelationshipFactory_impl): changed to use new 
+	IdentifiableObject_impl (CORBA::ORB_ptr)
+
+	* IdentifiableObject_impl.cc (IdentifiableObject_impl): changed to use randomd except own
+	random number generator
+
+	* proxyd.cc: written
+
+	* randomd.cc: written 
+
+	* RandomGenerator_impl.cc: written
+
+	* RandomGenerator_impl.h: written
+
+	* RandomGenerator.idl: written
+
+Thu Aug 26 00:05:08 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* TraversalCriteria_impl.cc (next_one): changed to duplicate all object
+ 	references with using USE_DUPLICATE
+
+	* Node_impl.cc (roles_of_node): bug fix
+
+Wed Aug 25 17:21:49 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* changes in versioning: rename directory now for current snapshot to
+	relship for better making of patch
+
+	* Traversal_impl.cc: remove debug messages 
+
+Wed Aug 24 22:52:13 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* try to compile on mico snapshot - it seems ok.
+
+Tue Aug 24 14:44:31 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* TraversalServer.cc: changed to traversald.cc
+
+	* NodeServer.cc: changed to noded.cc
+
+	* ReferenceServer.cc: changed to referenced.cc
+
+	* containmentd.cc (main): changed to be more third level compliant
+
+	* ContainmentServer.cc: changed to containmentd.cc
+
+Mon Aug 23 21:33:58 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* RelationshipFactory_impl.h (named_role_types): fixed bug - must 
+	create new struct and this return except of return _named_role_types
+	variable which is then NULL (as I think)
+	(RelationshipFactory): changed to use standard exception handling
+
+	* RoleFactory_impl.h (role_type): remove allocated tmp_role by role's 
+	method destroy, small speedup with only one binding 
+	to InterfaceRepository
+	(RoleFactory): many memoryleak fixing - removing code which duplicate 
+	returned repoid
+
+	* CosRelationships.idl: removed obsolete extension: destroy methods 
+	on Factories
+
+	* Relationship_impl.cc (named_roles): duplicate role 
+	(named_roles): string_dup (n_roles[i].name);
+
+	* Role_impl.cc: changed to use stdandard exception handling
+
+Sun Aug 22 21:29:04 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* EdgeIterator_impl.cc (next_n): delete tmp_edge
+
+	* GraphsRole_impl.cc (findThisRole): delete roles
+	(get_edge): delete roles
+	(get_edges): delete returned edge from method get_edge
+
+	* Reference.idl: removed from source tree - now we provide 
+	COS Relationship Service compliant third level of this service
+
+	* Containment.idl: removed from source tree - now we provide 
+	COS Relationship Service compliant third level of this service
+
+Sat Aug 21 00:16:53 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* Traversal_impl.cc (~Traversal_impl): created for deleting w_edges 
+	and visited_ids
+	(next_one): fix memleak - delete WeightedEdge removed from w_edges 
+	(with using pop_front () method)
+
+	* EdgeIterator_impl.cc (destroy): deleting _edges in destroy ()
+
+	* Traversal_impl.cc (next_one): bug fix - now it run until not visited 
+	edge isn't finded or w_edges is empty
+
+Fri Aug 20 12:26:48 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* Traversal_impl.cc (next_one): bug fix - set relationship of returned 
+	edge as visited
+
+	* TraversalCriteria_impl.cc (visit_node): added deleting of temporary 
+	variables
+	(visit_node): added deleting of edges (if some edges remain while 
+	client call other "visit_node")
+
+	* EdgeIterator_impl.cc (next_one): added code which use _duplicate 
+	method on CORBA Object (Role, Node, Relationship) it is use with using
+	USE_DUPLICATE directive
+
+	* GraphsRole_impl.cc (get_edge): use CORBA::string_dup - for role name
+	except trivial =
+	(get_edge): fix for duplicating relationship
+
+	* TraversalCriteria_impl.cc (next_one): bug fix if not remain weighted
+ 	edges to return - must create new empty weightededge and return false
+
+	* CriteriaServer.cc: created - for better testing of work between 
+	Traversal and TraversalCriteria
+
+	* TraversalFactory_impl.cc (create_traversal_on): bug fix - must 
+	duplicate TraversalCriteria
+
+Thu Aug 19 14:52:09 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* Makefile: changed to make only one library for implemenatation 
+	of COS Relationship Service (librs.so) and one library for extension 
+	and demo (libext.so and libdemo.so)
+
+Wed Aug 18 11:41:09 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* Traversal_impl.cc (next_n): implemented
+
+Tue Aug 17 22:42:50 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* TraversalCriteria_impl.cc (visit_node): implemented
+	(next_one): implemented
+	(next_n): implemented
+
+Mon Aug 16 00:54:05 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* Makefile: changed to use CosGraphsExtension 
+
+	* GenericCriteriaFactory_impl.cc (create): generated
+
+	* GenericCriteriaFactory_impl.h (GenericCriteriaFactory): generated 
+
+	* CosGraphsExtension.idl: written for generic factory for creating 
+	TraversalCriteria so user can use this without need high-level services
+	such as Life Cycle or Externalization
+
+Sat Aug 14 14:09:51 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* CosReference_impl.cc: changes in calling constructor of parent
+	(see note bellow)
+
+	* CosContainment_impl.cc: changes in calling constructor of parent
+	(see note bellow)
+
+	* GraphsRole_impl.cc (Role_impl): changes in calling constructor 
+	of ::Role_impl - now call implicit constructor and in body 
+	of CosGraphs::Role_impl (...) do work which is done in constructor 
+	with parameter in ::Role_impl - this is change because of virtual 
+	public inheritance functionality in which object in creation time
+	call constructor with params only of your moust derivated parent 
+	- others parents constructor are called but only implicit constructors
+  	without parameters - so don't forgot assign Related Object (parameter
+	of constructor) to inherited rel_obj variable!!!
+
+Thu Aug 12 18:41:06 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* EdgeIterator_impl.cc (next_one): rewrote to more effecient code
+	(next_one): well tested
+
+Fri Jul 16 13:08:09 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* Node_impl.cc (related_object): fixed - must return duplicate 
+	_related_object
+
+	* Test.idl: added for better testing
+
+	* InterfaceDefsHelper.cc (add): fixed bug when unknown type is added -
+	it cause increase length of interfaces but correct CORBA::InterfaceDef 
+	isn't then added this cause problem with RoleFactory_impl::create_role
+
+	* Node_impl.cc (roles_of_node): fixed - must copy values of _roles to 
+	temporary variable and return this 
+
+Thu Jul 15 11:24:03 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* NodeFactory_impl.h (create_node): fixed bugs which cause errors 
+	during compilation
+
+	* simple-test.cc (main): prepare for testing of second level
+
+	* NodeServer.cc (main): added for generic node factory
+
+	* ReferenceServer.cc (main): use CosReference except of non-compliant 
+	Reference
+
+	* ContainmentServer.cc (main): added constrains for
+	IDL:CosGraphs/Node:1.0
+	(main): use CosContainment except of non-compliant Containment
+
+	* ReferenceServer.cc (main): added constrains for 
+	IDL:CosGraphs/Node:1.0 
+
+	* CosReference.idl: added
+
+	* CosContainment.idl: added
+
+	* GraphsRole_impl.cc (get_edges): was implemented
+
+	* Role_impl.h: change private rel_ships to protected 
+
+Wed Jul 14 18:37:12 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* EdgeIterator_impl.cc: implemented all method and constructor
+
+	* NodeFactory_impl.h (create_node): was implemented
+	change to template class type as RoleFactory_impl 
+	and RelationshipFactory_impl
+
+	* Node_impl.cc (add_role): was implemented
+	(remove_role): was implemented
+
+Tue Jun 15 20:16:15 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* RelationshipFactory_impl.h: change return statement
+
+	* RoleFactory_impl.h: change return statement and delete repoid
+
+	* RelationshipIterator_impl.cc: update in destroy () - now it correctly
+	call destructor
+
+	* Role_impl.cc (destroy): update in destroy () - now it correctly call 
+	destructor
+
+	* Relationship_impl.cc: update in destroy () - now it correctly call 
+	destructor.
+
+	* port to mico 2.2.7
+
+Mon Apr  5 13:53:27 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* RoleFactory_impl.h: bug fix in role_type () method - comment delete 
+	of temporary role when first call this method, when it is uncomment
+	then this crash server but test run correct to end!!! Only second 
+	bindings isn't correct!!!
+
+Sun Apr  4 12:08:50 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* EdgeIterator_impl.cc: created
+
+	* GraphsRole_impl.cc: created
+
+	* NodeFactory_impl.cc: created
+
+	* Node_impl.cc: created
+
+	* TraversalCriteria_impl.cc: created
+
+	* Traversal_impl.cc: created
+
+	* TraversalFactory_impl.cc: created
+
+Sat Apr  3 22:44:50 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* EdgeIterator_impl.h: created
+
+	* GraphsRole_impl.h: created - with namespace GraphsImpl (comment) it
+	can be important in conflicts between class Role_impl from 
+	CosRelationships and Role_impl from CosGraphs
+
+	* NodeFactory_impl.h: created 
+
+	* Node_impl.h: created
+
+	* TraversalCriteria_impl.h: created
+
+	* Traversal_impl.h: created
+
+	* TraversalFactory_impl.h: created
+
+	* Makefile: Added CosGraphs.idl to Makefile so it's now compile and 
+	link to relship.so shared library
+
+Fri Apr  2 21:20:41 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* try to port to mico 2.2.6
+
+Tue Mar 16 19:00:39 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* try to port to mico 2.2.5
+
+Fri Jan 29 11:30:58 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* change daemons-start script to load ir_base.idl before ir.idl
+
+	* try to port to mico 2.2.4 again
+
+Wed Jan 27 15:49:17 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* downgrade to mico 2.2.3
+
+Thu Jan 14 20:28:28 1999  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* upgrade to mico 2.2.4
+
+Thu Dec 10 20:07:50 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* change interactive-client.cc, rewrote Containment and Reference 
+	servers
+
+Mon Dec  7 17:35:18 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* change Makefile to use -Wall parameter
+
+Tue Dec  1 23:39:38 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* try to implement Role_impl::destroy () method, it seems to be good 
+	and the problem with invocation(1) abort seems to be solved! :))  
+
+Thu Nov 26 22:27:10 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* bug fixed in get_relationships method of Role_impl
+
+	* formal bug fix in Role_impl.cc - initialize constructor of base class
+	POA_CosRelationships::Role
+
+	* change RelationshipIterator_impl.* to use POA based skels instead of 
+	tie aproach
+
+Mon Nov 22 21:53:14 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* bug fix in mico/imr/imr_impl.cc, patch was send to mico conference
+	I tried to use micod and nsd. 
+
+Mon Nov 16 00:05:04 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* IdentifiableObject_impl and Relationship_impl change to use poa based
+ 	skeletons
+
+	* Role_impl: finish convert from tie to skeleton base object.
+
+	* tie aproach isn't good for comparing two roles in role_impl::link 
+	operation. So I'll rewrite all to use inheritance with POA_* class 
+
+Tue Nov 10 23:19:03 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* fix the problem with template depth by adding -ftemplate-depth-18 
+	parameter 
+
+	* try port to mico 2.2.3 - this is problem with max template depth
+
+Sun Nov  8 00:19:38 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* simple-test.cc run correctly with dirty hacked libmico..
+	I comment asserts in set and unset method...
+
+Fri Nov  6 17:14:19 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* change role_type in RoleFactory_impl, so this method was compiled 
+	correctly and run successfully
+
+Tue Nov  3 19:34:40 1998  Karel Gardas  <xkarel@miracle.upol.cz>
+
+	* role_type () in RoleFactory_impl isn't correct! but run succesfully
+
+	* change r_type to _role_type in RoleFactory_impl 
+
+	* add set_orb method to RoleFactory_impl

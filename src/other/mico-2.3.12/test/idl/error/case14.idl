@@ -1,0 +1,10 @@
+
+/*
+ * Parse error
+ */
+
+struct S {
+  long x;
+  char !!!a;
+};
+

@@ -1,0 +1,86 @@
+.TH LAM_RFSTATE 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+lam_rfstate \- Report status of remote LAM file descriptors.
+.SH SYNOPSIS
+.hy 0
+#include <freq.h>
+.HP
+int lam_rfstate(int node, struct fstate *table, int maxsize);
+.hy 1
+.SH DESCRIPTION
+The remote function
+.I lam_rfstate()
+accesses a remote LAM file daemon and returns status information
+on all file descriptors.
+.PP
+The arguments to
+.I lam_rfstate()
+are:
+.IR node ,
+the target node identifier;
+.IR table ,
+an array of structures where status information will be stored; and
+.IR maxsize ,
+the number of elements in that array.
+.PP
+The file status structure is defined in <freq.h>.
+.PP
+.RS
+.nf
+.ta 1i 2i
+struct fstate {
+	int	fs_tfd
+	int	fs_tflags
+	int	fs_flow
+	int	fs_src_node
+	int	fs_src_event
+	int	fs_ncubix
+	int	fs_nheard
+	int	fs_req
+	char	fs_name[24]
+};
+.fi
+.DT
+.RE
+.TP 16
+fs_tfd
+LAM file handle
+.TP
+fs_tflags
+LAM, POSIX, and internal filed flags
+.TP
+fs_flow
+total amount of data transferred to date
+.TP
+fs_src_node
+last client's nodeid
+.TP
+fs_src_event
+last client's reply event (negative PID)
+.TP
+fs_name
+trailing 24 bytes of file name
+.PP
+The
+.I fs_tflags
+field contains the original POSIX and LAM open flags as well
+as extra status flags added by the file daemon.
+See open(2) for information on POSIX open flags.
+See lam_rfposix(2) for information on LAM open flags.
+The LAM status flags are defined in <freq.h>.
+.TP 10
+FACTIVE
+The LAM file descriptor has an associated open POSIX file descriptor.
+.TP
+FLOCK
+The descriptor is permanently FACTIVE.
+.SH RETURN VALUE
+Upon successful completion, the number of open file descriptors mananged
+by the remote file daemon is returned.
+The return value may be more or less than
+.IR maxsize .
+If an error occurred, \-1 is returned and the global variable
+.I errno
+is set to indicate the type of error.
+.SH SEE ALSO
+fstate(1), lam_rfposix(2)

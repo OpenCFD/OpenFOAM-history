@@ -1,0 +1,37 @@
+Running.
+server: after unmarshal for: create
+RepoId=IDL:Bank:1.0
++++ allowed! +++
+server: after unmarshal for: deposit
+RepoId=IDL:Account:1.0
+--- denied! ---
+server: after unmarshal for: withdraw
+RepoId=IDL:Account:1.0
+--- denied! ---
+server: after unmarshal for: balance
+RepoId=IDL:Account:1.0
+--- denied! ---
+server: after unmarshal for: open
+RepoId=IDL:Bank:1.0
++++ allowed! +++
+server: after unmarshal for: deposit
+RepoId=IDL:Account:1.0
++++ allowed! +++
+server: after unmarshal for: withdraw
+RepoId=IDL:Account:1.0
++++ allowed! +++
+server: after unmarshal for: balance
+RepoId=IDL:Account:1.0
++++ allowed! +++
+server: after unmarshal for: open
+RepoId=IDL:Bank:1.0
++++ allowed! +++
+server: after unmarshal for: deposit
+RepoId=IDL:Account:1.0
++++ allowed! +++
+server: after unmarshal for: withdraw
+RepoId=IDL:Account:1.0
++++ allowed! +++
+server: after unmarshal for: balance
+RepoId=IDL:Account:1.0
++++ allowed! +++

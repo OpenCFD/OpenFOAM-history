@@ -1,0 +1,31 @@
+
+This directory contains various CSIv2 demos. All demos are simple
+Hello World CORBA app which uses various aspect of CSIv2
+implementation. Every demo can be compiled by 'make' command and
+executed by provided 'hello' script except interoperability tests
+which are located in interop directory.
+
+hello-1:
+uses GSSUP authentication over plain IIOP (without SSL/TLS)
+
+tls-hello-1:
+similar to hello-1 demo but runs over SSL/TLS protected IIOP
+connection
+
+tls-hello-2:
+demonstrates SSL/TLS based client (without CSIv2 support)
+authentication to CSIv2 server. Server can authenticate client by
+using information obtained from TLS layer
+
+identity-1:
+uses and demonstrates identity assertion in attribute layer of SAS
+protocol
+
+tls-identity-1:
+similar to identity-1 demo, but uses SSL/TLS transport layer and
+doesn't use authentication layer. Asserted identity is verified on the
+basis of information obtained from transport layer
+
+interop:
+demonstrates MICO CSIv2 interoperability against various vendors
+products

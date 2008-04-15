@@ -1,0 +1,118 @@
+/* src/lam-ssi-boot-tm-config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* -*- c -*-
+ *
+ * Copyright (c) 2001-2003 The Trustees of Indiana University.  
+ *                         All rights reserved.
+ * Copyright (c) 1998-2001 University of Notre Dame. 
+ *                         All rights reserved.
+ * Copyright (c) 1994-1998 The Ohio State University.  
+ *                         All rights reserved.
+ * 
+ * This file is part of the LAM/MPI software package.  For license
+ * information, see the LICENSE file in the top level directory of the
+ * LAM/MPI source distribution.
+ *
+ * LAM/MPI configuation header file.
+ * SSI boot: tm module
+ */
+
+#ifndef LAM_SSI_BOOT_TM_CONFIG_H
+#define LAM_SSI_BOOT_TM_CONFIG_H
+
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+#undef HAVE_LIBNSL
+
+/* Define to 1 if you have the `socket' library (-lsocket). */
+#undef HAVE_LIBSOCKET
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <tm.h> header file. */
+#undef HAVE_TM_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* LAM underlying C compiler */
+#undef LAM_CC
+
+/* Alpha LAM SSI boot tm version */
+#undef LAM_SSI_BOOT_TM_ALPHA_VERSION
+
+/* Beta LAM SSI boot tm version */
+#undef LAM_SSI_BOOT_TM_BETA_VERSION
+
+/* CVS LAM SSI boot tm version */
+#undef LAM_SSI_BOOT_TM_CVS_VERSION
+
+/* Whether the tm boot is the default boot or not */
+#undef LAM_SSI_BOOT_TM_DEFAULT
+
+/* Major LAM SSI boot tm version */
+#undef LAM_SSI_BOOT_TM_MAJOR_VERSION
+
+/* Minor LAM SSI boot tm version */
+#undef LAM_SSI_BOOT_TM_MINOR_VERSION
+
+/* Release LAM SSI boot tm version */
+#undef LAM_SSI_BOOT_TM_RELEASE_VERSION
+
+/* Overall LAM SSI boot tm version number */
+#undef LAM_SSI_BOOT_TM_VERSION
+
+/* LAM debug flag */
+#undef LAM_WANT_DEBUG
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if on AIX 3.
+   System headers sometimes define this.
+   We just want to avoid a redefinition error message.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+
+#endif /* _LAM_SSI_BOOT_TM_CONFIG_H */

@@ -1,0 +1,66 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+Mandelbrot is a simple example of the master/slave parallel
+programming technique, written in C.  It runs one master process which
+dynamically spawns any number of slaves.  Because the program
+dynamically spawns slave processes, you only need to launch the
+master.  The master writes the computed image into a Sun rasterfile
+formatted file.  Try viewing it with X11/xv.
+
+This application contains some degree of fault tolerance.  Slave
+*nodes* can die and the application will continue with less slaves, as
+long as one slave is alive.  If an individual slave dies, the entire
+process will abort -- this example is aimed at showing that LAM/MPI
+can continue if an entire node (including the LAM daemon on that node)
+crashes.  To test this, try executing the 'tkill' program on a slave
+node while the program is running. This will kill the LAM daemon and
+slave process on that node.  (Do not run 'tkill' on the node with the
+master.)
+
+Note that this application is only an example, and is not a
+full-featured fault-tolerant application.  For example, if a slave
+dies, the manager does not contain any extra logic to reassign the
+lost work to a different slave.  As such, the resulting output image
+may contain a "hole" showing the work that would have been performed
+by the dead slave.  Making the manager more robust is an exercise left
+for the reader.  :-)
+
+This feature relies on the MPI system reporting errors on MPI
+functions whose communicator includes a dead slave.  Since the
+application creates a separate communicator for each slave, the master
+will know from a returned error which slave has died.  The application
+cannot tolerate the untimely death of the master, although this could
+be done with mirroring.
+
+Use "make" to compile this example.  Make will use mpicc to compile
+both programs:
+
+        mpicc -o master master.c 
+        mpicc -o slave slave.c 
+
+To run this program, first boot LAM across your cluster with the
+"lamboot" command. Then, you can run the master program on one node
+with mpirun:
+
+	mpirun n0 ./master
+
+or you can launch "master" directly without lamboot, since this
+program only needs an MPI_COMM_WORLD size of one rank:
+
+	./master
+
+NOTE: This example requires that the executable "slave" be available
+on all nodes.

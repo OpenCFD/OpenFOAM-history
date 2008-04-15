@@ -1,0 +1,106 @@
+version alpha4 snapshot 54 - 981031
+- stop using this file for changelog, start using ChangeLog for good support 
+  in GNU Emacs 
+
+	
+version alpha4 snapshot 53 - 981030
+- because of errors with nested template in OwnershipServer, try rewrote 
+  RoleFactory_impl to inherit from POA_CosRelationships::RoleFactory
+  - somethink seems work correctly - simple-test.elf
+
+version alpha4 snapshot 52 - 981029
+- try use tie approach
+
+version alpha4 snapshot 51-with-tie - 981029
+- try use tie approach
+
+version alpha4 snapshot 51 - 981022
+- try rewrite RoleFactory_impl and Role_impl to using POA :)) 
+  - That is test for other experiments with rewritting all implementations 
+  from this service to using POA, I expect better performance after finish 
+  these changes.
+
+version alpha4 snapshot 50 - 981022
+- port relaship to mico 2.2.1
+- test it - OK
+
+version alpha3 distribution relship - 980628
+- because of problems with mico-pre2.0.9-2 I test it only with mico-2.0.8
+- rename client4.cc to interactive-client.cc
+
+version alpha3 snapshot 49 - 980628
+- port to mico-pre2.0.9-2
+
+version alpha3 snapshot 48 - 980627
+- bug fix in method create in RelationshipFactory_impl - when throw 
+  MaxCardinalityExceeded, all correctly linked roles was unlinked,
+  added catching of RelationshipTypeError and destroy relationship which is 
+  created and some exception was thrown
+- wrote another tests in test-client
+- wrote simple-client
+  
+version alpha3 snapshot 47 - 980626
+- rewrote concept of constructors - replace many constructors with set methods
+  - it seems to work :))
+
+version alpha3 snapshot 46 - 980625 - 980626
+- writing test-client.cc
+  bug fix in RelationshipFactory_impl.h
+  rewrote concept of constructors - replace many constructors with set methods
+
+version alpha3 snapshot 44 - 980621 - 980622 - 980623
+- verifing implementation
+  wrote relationship_type () method to RelationshipFactory_impl.h
+  bug fix in link () and unlink method in Role_impl.cc
+  bug fix in create () method in RelationshipFactory_impl.cc 
+  - catch MaxCardinalityExceeded
+
+
+version alpha3 snapshot 43 - 980618 - 980619
+- port to mico pre2.0.9 
+  Role_impl.cc minor update
+  
+
+version alpha2 snapshot 42 - 980617
+- rewrote template Relationship to T in class RelationshipFactory_impl,
+  because of crash on DEC Alpha (this is test)
+
+
+version alpha2 snapshot 41 - 980616
+- continue with writing UI
+
+
+version alpha2 snapshot 40 - 980615
+- start writing UI	
+
+
+version alpha2 snapshot 39 - 980615
+- test Reference_impl and servers, but not well
+
+
+version alpha2 snapshot 38 - 980615
+- test Containment_impl and servers, but not well
+  wrote from scratch Reference_impl and servers. but not tested
+
+
+version alpha2 snapshot 37 - 980614
+
+- rewrote Documents.idl and Documents_impl and servers
+  wrote from scratch Containment_impl and servers, but not tested
+
+
+version alpha2 snapshot 36 - 980614
+
+- rewrote RelationshipIterator, start from scratch
+  next_one method now works :))
+  next_n method works too :))
+ 
+
+version alpha2 snapshot 35 - 980613
+
+- rewrote part of RelationshipIterator_impl
+  next_one method is now more efecient      - not working
+  next_n method now works correctly         - not working
+- remove part of RelationshipIteratorFactory
+
+

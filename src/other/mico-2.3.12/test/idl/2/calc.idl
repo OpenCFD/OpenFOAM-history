@@ -1,0 +1,9 @@
+
+interface Calc {
+    void add();
+    void sub();
+};
+
+interface ComplexCalc {
+    void div();
+};

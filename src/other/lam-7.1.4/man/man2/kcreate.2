@@ -1,0 +1,35 @@
+.TH KCREATE 2 "July, 2007" "LAM 7.1.4" "LAM LOCAL LIBRARY"
+.SH NAME
+kcreate \- Create a LAM process from an executable program.
+.SH SYNOPSIS
+.nf
+int kcreate (char *filename, char **argv);
+.fi
+.SH DESCRIPTION
+This local layer function is used to create a process on the local
+node from an executable program.
+Higher level functions are available that simplify process creation.
+.PP
+The
+.I filename
+argument is a locally accessible pathname containing the exectuable
+program.
+The
+.I argv
+argument points to a null terminated array of strings.
+By convention, the first string is the
+.I filename
+argument.
+.PP
+The new process must call kenter(2) before any other system functions.
+.PP
+For most purposes, users will prefer to create LAM processes using
+rploadgo(2), which permits a process to be created on any node, including
+locally, from an executable file on any node.
+.SH RETURN VALUE
+Upon successful completion, the new process identifier is returned.
+Otherwise \-1 is returned and the global variable
+.I errno
+is set to indicate the error.
+.SH SEE ALSO
+rploadgo(2)

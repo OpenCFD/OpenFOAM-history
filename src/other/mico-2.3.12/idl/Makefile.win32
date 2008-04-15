@@ -1,0 +1,72 @@
+#
+# MICO --- a CORBA 2.0 implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and/or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+RELATIVE = ..
+
+!include ..\MakeVars.win32
+
+CXXFLAGS = $(CXXFLAGS)
+
+CXXFLAGS = $(CXXFLAGS) /I. /I..\include /I..\include\windows
+LIBS = ../win32-bin/lib/mico$(VERSION).lib
+
+SRCS = params.cc codegen-c++-common.cc codegen-idl.cc codegen-c++-skel.cc \
+       codegen.cc parsenode.cc codegen-c++-stub.cc const.cc \
+       parser.cc codegen-c++-util.cc codegen-c++-impl.cc db.cc \
+       prepro.cc codegen-c++.cc dep.cc error.cc scanner.cc \
+       codegen-midl.cc idlparser.cc yacc.cc ir-copy.cc keymap.cc \
+       codegen-wsdl.cc
+
+!ifdef USE_CCM
+SRCS = $(SRCS) ccm-transform.cc
+LIBS = $(LIBS) ..\win32-bin\lib\ir$(VERSION).lib
+!endif
+
+all: lib prg
+
+DLL_SRCS = $(SRCS)
+DLL_OBJS = $(DLL_SRCS:.cc=.obj)
+
+lib: idl$(VERSION).dll
+#need to install these in order to have idl for coss	
+prg:  idl.exe copy
+	
+install: prg copy
+copy:	
+	$(COPY) idl$(VERSION).dll ..\win32-bin
+	$(COPY) idl$(VERSION).lib ..\win32-bin\lib
+	$(COPY) idl.exe ..\win32-bin
+
+idl.exe: main.obj $(DLL_OBJS)
+	$(LINK) $(LINKFLAGS) main.obj  $(DLL_OBJS) \
+		/subsystem:console  $(LIBS) ole32.lib \
+		/out:idl.exe
+
+idl$(VERSION).dll: $(DLL_OBJS) idl$(VERSION).def
+	$(LINK) $(LINKDLLFLAGS) $(DLL_OBJS) ole32.lib $(LIBS) \
+		/out:idl$(VERSION).dll \
+		/def:idl$(VERSION).def
+
+idl$(VERSION).def: $(DLL_OBJS)
+	..\win32-bin\gendef idl$(VERSION).def idl$(VERSION) $(DLL_OBJS)
+
+clean:
+	-$(DELETE)

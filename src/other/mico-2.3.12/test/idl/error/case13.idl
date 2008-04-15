@@ -1,0 +1,14 @@
+
+/*
+ * Wrong union label with an enum as a discriminator.
+ */
+
+enum E {
+  A,
+  B
+};
+
+union U switch(E) {
+  case A: long a;
+  case C: char b;
+};

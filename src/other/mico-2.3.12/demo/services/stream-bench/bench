@@ -1,0 +1,21 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+./req_server &
+req_pid=$!
+sleep 1
+
+echo "request based communication:"
+time ./req_client
+kill $req_pid
+
+./stream_server &
+str_pid=$!
+sleep 1
+
+echo "stream based communication:"
+time ./stream_client
+kill $str_pid
+

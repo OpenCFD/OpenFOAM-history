@@ -1,0 +1,6 @@
+# bench operations
+/Access Combinator = Union
+{
+#	IDL:bench:1.0 perform corba:SecAnyRight:k
+	IDL:bench:1.0 shutdown corba:SecAnyRight:k
+}

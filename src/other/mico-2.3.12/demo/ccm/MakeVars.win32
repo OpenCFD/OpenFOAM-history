@@ -1,0 +1,13 @@
+RELATIVE = ..\..\..
+
+CCMGEN = $(RELATIVE)\win32-bin\mico-ccm
+
+CCMLIBS = micoccm$(VERSION).lib micocoss$(VERSION).lib mico$(VERSION).lib
+
+CXXFLAGS = /nologo /GX /GR /TP /MD $(SSL_FLAGS) $(CSIV2_FLAGS) $(PTHREADS_FLAGS)
+CXXFLAGS = /I. /I..\..\..\include /I..\..\..\include\windows $(CXXFLAGS)
+CCFLAGS  = /nologo /GX /TC /MD $(SSL_FLAGS) $(CSIV2_FLAGS) $(PTHREADS_FLAGS)
+
+IDLFLAGS = $(IDLFLAGS) -B$(RELATIVE)
+
+LDFLAGS = $(LDFLAGS) /LIBPATH:$(RELATIVE)\win32-bin\lib

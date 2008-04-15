@@ -1,0 +1,34 @@
+Running.
+client: send_request
+valid operations
+invalid operations
+server: receive_request_service_contexts
+valid operations
+invalid operations
+server: receive_request
+valid operations
+invalid operations
+server: Hello World
+server: send_reply
+valid operations
+invalid operations
+client: receive_reply
+valid operations
+invalid operations
+client: send_request
+valid operations
+invalid operations
+server: receive_request_service_contexts
+valid operations
+invalid operations
+server: receive_request
+valid operations
+invalid operations
+server: Hello World
+server: send_exception
+valid operations
+invalid operations
+client: receive_exception
+valid operations
+invalid operations
+client: caught: IDL:omg.org/CORBA/NO_PERMISSION:1.0

@@ -1,0 +1,37 @@
+Security unware access control example
+
+There are 3 persons: "manager" (bank manager), "owner" and his "wife".
+They have appropriate certificates: manager.pem, owner.pem, wife.pem
+
+User Rights:
+
+
+AccessId:manager        "m"
+GroupId:owner & wife    "u"
+
+Object Access Policies:
+
+bank->create()       "m"    in /Access/Domain1
+bank->open()         "ug"   in /Access/Domain1
+
+account->deposit()   "ug"   in /Access/Accounts
+account->withdraw()  "u"    in /Access/Accounts
+account->balance()   "ug"   in /Access/Accounts
+
+Rights combinator   - Any
+
+SecPolicyCombinator - Union
+
+
+To check how it works run server - rss
+Then clients                     - rcs
+
+"manager" can create account only.
+"owner" and "wife" can open account, deposit/withdraw money, see the balance,
+
+Files:
+config.cnf - describes object -> domain mapping,
+access.cnf - describes domain -> required right mapping,
+rights.cnf - describes user rights
+
+

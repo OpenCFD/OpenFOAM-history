@@ -1,0 +1,94 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+PATH=../../daemon:../../coss/naming:../../imr:../../ir:../../coss/lifecycle:../../coss/trader:$PATH
+
+if [ "$1x" = "x" ]; then
+	TYPE="-n"
+else
+	TYPE=$1
+fi
+
+ADDR=inet:`uname -n`:12123
+IRADDR=inet:`uname -n`:12500
+GENERIC=inet:`uname -n`:13800
+FACTORY=inet:`uname -n`:13900
+TRADER=inet:`uname -n`:14000
+NAMING=inet:`uname -n`:15000
+
+./daemons-start
+# register server
+if [ "$TYPE" = "-n" ]; then
+	printf "Starting naming ..."
+	#echo -ORBIIOPAddr $NAMING
+	nsd -ORBIIOPAddr $NAMING &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting factoryfinderd ..."
+	#echo -ORBIIOPAddr $FACTORY -ORBNamingAddr $NAMING $TYPE
+	factoryfinderd -ORBIIOPAddr $FACTORY -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting test server ..."
+	#echo -ORBIIOPAddr $ADDR -ORBNamingAddr $NAMING $TYPE
+	./server -ORBIIOPAddr $ADDR -ORBIfaceRepoAddr $IRADDR -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting genericfactory ..."
+	#echo -ORBIIOPAddr $GENERIC -ORBNamingAddr $NAMING $TYPE
+	genericfactory -ORBIIOPAddr $GENERIC -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+else
+	printf "Starting traderd ..."
+	#echo -ORBIIOPAddr $TRADER
+	traderd -ORBIIOPAddr $TRADER &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting factoryfinderd ..."
+	#echo -ORBIIOPAddr $FACTORY -ORBTradingAddr $TRADER $TYPE
+	factoryfinderd -ORBIIOPAddr $FACTORY -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting test server ..."
+	#echo -ORBIIOPAddr $ADDR -ORBTradingAddr $TRADER
+	./server -ORBIIOPAddr $ADDR -ORBIfaceRepoAddr $IRADDR -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting genericfactory ..."
+	#echo -ORBIIOPAddr $GENERIC -ORBTradingAddr $TRADER $TYPE
+	genericfactory -ORBIIOPAddr $GENERIC -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+fi
+
+
+# trap "kill -9 `cat pids`; rm -f pids" 0
+
+./client $ADDR -ORBBindAddr $GENERIC -ORBBindAddr $FACTORY 
+kill -9 `cat pids`
+rm -f pids
+./daemons-stop

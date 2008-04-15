@@ -1,0 +1,56 @@
+/* Dynamic loaded CORBA Modules
+ *  Copyright (c) 2002 Sorin Mustaca
+ *
+ *  For more information, visit the Personal Home Page at
+ *  http://come.to/sorin-mustaca
+ */
+
+MICO programs as NT services
+by Sorin Mustaca - sorin.mustaca@ravantivirus.com
+
+This is free source and it is distributed in the same way as MICO ... 
+
+Purpose:
+	This is a generic wrapper that 
+	installs
+	uninstalls
+	starts
+	stops
+	restarts
+	run
+a NT service.
+	
+	Call micoservice.exe with these arguments:
+	<service name> -i <configuration file>  to install a service.
+		It will write the in the registry the configuration file
+		The Display name (what you see in Services) of the service 
+		will be "MICO Service("+Service Name+")".
+		The Service Name will be <Service Name>
+	<service name> -u   to uninstall a service
+	<service name> --start,--stop,--restart   - no explanation needed
+	<service name> --run  - to run the MICO program as if it were a console application,not NT Service
+	It will read the configuration specified upon installation  
+	and read the command line specified in that file.
+	I prefered the file and not registry because it is easier to work with.
+	
+
+Build:
+	Just call nmake.exe
+Install:
+	See example of Naming Service installation
+	See GInstall.bat and GUninstall.bat for a generic installation and uninstallation
+
+Platforms supported:
+	Of course, only Windows :)))
+	Any NT, 2000, XP
+	See that you have ws2_32.dll somewhere in the path.
+
+Tested on:
+	XP Professional - all patches
+	2000 Server SP1
+	2000 Professional SP1
+	NT Server 4.0 - SP6a
+
+Comments,bugs: directly to me, or to mico-devel list.
+or	sorin.mustaca@ravantivirus.com
+	

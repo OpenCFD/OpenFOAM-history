@@ -1,0 +1,29 @@
+
+This is an example that demonstrates usage of publishes and consumes
+event ports.
+
+The EventChannel component (channel.idl) implements a very simple
+event channel similar to the Event Service. The component simply sends
+out all events that are sent to the "incoming" port to all components
+that are subscribed to its "outgoing" port, and voilà, you have a
+oneway, n-to-n event channel. You could even create multiple event
+channels and connect them.
+
+Also included here are a Consumer component (consumer.idl) and a
+Producer component (producer.idl).
+
+The eventtype that is sent is defined in message.idl.
+
+The client starts one event channel, a couple of producers and
+consumers, and interconnects them. It then causes each producer to
+send some events. Since all three consumers are launched in the same
+console, you will see each event thrice.
+
+The Producer and the EventChannel consumers both implement the
+SessionComponent interface to gain access to their SessionContext,
+which they need to push events. Otherwise, the components don't have
+very much to do.
+
+Note the create_* entry points, which must register the Valuetype
+factory for the Message type. For this reason, entry points receive a
+pointer to the ORB, upon which they can call register_value_factory.

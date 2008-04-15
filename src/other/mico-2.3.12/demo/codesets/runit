@@ -1,0 +1,26 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+#
+# there are two ORB options to specify the code sets the application
+# uses for chars and wide chars.
+# -ORBNativeCS specifies the char code set (which defaults to ISO-8859-1),
+# -ORBNativeWCS specifies the wide char code set (defaults to UTF-16).
+# the values of these options are shell-like patterns that must match
+# the 'description' field of a code set in the OSF code set registry
+# (see admin/code_set_registry.txt and admin/mico_code_set_registry.txt).
+#
+
+# server speaks ISO-8859-1 (Latin1)
+./server -ORBNativeCS '*8859-1*' -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 &
+server_pid=$!
+
+sleep 1
+
+trap "kill $server_pid" 0
+
+# client speaks HTML
+./client -ORBNativeCS '*HTML*' -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2
+

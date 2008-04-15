@@ -1,0 +1,58 @@
+#!/bin/sh
+
+# This file is part of the load-balancing example
+
+NS_ADDR=inet:`uname -n`:12556
+RC="-ORBNamingAddr $NS_ADDR"
+
+for i in 1 2 3 ;
+do
+
+if [ $i = "1" ] ;
+then
+  echo "Launching naming service without load-balancing option ..."
+  nsd -ORBIIOPAddr $NS_ADDR &
+  ns_pid=$!
+elif [ $i = "2" ] ;
+then
+  echo "Launching naming service with round-robin load-balancing option ..."
+  nsd --lb round_robin -ORBIIOPAddr $NS_ADDR &
+  ns_pid=$!
+elif [ $i = "3" ] ;
+then
+  echo "Launching naming service with random load-balancing option ..."
+  nsd --lb random -ORBIIOPAddr $NS_ADDR &
+  ns_pid=$!
+fi;
+
+echo "Wait 2 seconds for the naming service to be ready ..."
+sleep 2
+
+echo "Launching servers ..."
+
+# This server is named Laser_Admin.Printer using the name format id.kind
+./Server Laser_Admin.Printer $RC &
+server1_pid=$!
+
+# This server is named Injet_Marketing.Printer using the name format id.kind
+./Server InkJet_Marketing.Printer $RC &
+server2_pid=$!
+
+echo "Wait 2 seconds for the servers to be ready ..."
+sleep 2
+
+echo "Launching client ..."
+
+# The client looks for the server named Laser_Admin.Printer.
+# If the naming service does not do load-balancing, the reference to the
+# server named Laser_Admin.Printer will be given to the client.  However,
+# if the naming service is launched using the load-balancing option of either
+# "--lb round_robin" or "--lb random", the reference to one of the servers
+# with the kind value of Printer will be given to the client.
+./Client Laser_Admin.Printer 10 $RC
+
+kill $ns_pid $server1_pid $server2_pid
+
+echo "======== Execution ends ========"
+
+done

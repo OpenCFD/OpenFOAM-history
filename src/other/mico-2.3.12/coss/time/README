@@ -1,0 +1,16 @@
+
+This is the first release off an COSS TimeService according to the base
+specifications of the OMG. 
+
+Curently only TimeBase and CosTime is covered, there is no TimeEvent available.
+It is unlikly that I will add them, if you feel the need you are welcome.
+
+For additional information look at the doc directory and the sources.
+
+To compile go to src and invoke make, the implementation has only been
+tested with mico2.2.7 on Linux/Intel.
+
+For bugreport etc.: zerbst@tu-harburg.de 
+
+
+Carsten Zerbst, 22. July 1999

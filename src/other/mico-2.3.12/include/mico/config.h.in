@@ -1,0 +1,448 @@
+/* include/mico/config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
+
+/* Define if you don't have vprintf but do have _doprnt.  */
+#undef HAVE_DOPRNT
+
+/* Define if you have the vprintf function.  */
+#undef HAVE_VPRINTF
+
+/* Define if you need to in order for stat and other things to work.  */
+#undef _POSIX_SOURCE
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define if you can safely include both <sys/time.h> and <time.h>.  */
+#undef TIME_WITH_SYS_TIME
+
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+#undef WORDS_BIGENDIAN
+
+/* Define if the X Window System is missing or not being used.  */
+#undef X_DISPLAY_MISSING
+
+/* whether or not --enable-mini-stl is used */
+#undef HAVE_MINI_STL
+
+/* whether CORBASec Level 2 is used */
+#undef USE_CSL2
+
+/* whether CSIv2 is used */
+#undef USE_CSIV2
+
+/* whether anything wireless is built */
+#undef USE_WIRELESS
+
+/* whether we have byteorder big endian */
+#undef HAVE_BYTEORDER_BE
+
+/* whether we have byteorder little endian */
+#undef HAVE_BYTEORDER_LE
+
+/* whether we have a prototype for gethostname */
+#undef HAVE_GETHOSTNAME_PROTO
+
+/* whether we have a prototype for finite */
+#undef HAVE_FINITE_PROTO
+
+/* whether we have a prototype for strerror */
+#undef HAVE_STRERROR_PROTO
+
+/* whether we have a prototype for ftime */
+#undef HAVE_FTIME_PROTO
+
+/* whether C++ compiler supports exception handling */
+#undef HAVE_EXCEPTS
+
+/* whether C++ compiler supports exceptions in shared libs */
+#undef HAVE_SHARED_EXCEPTS
+
+/* whether C++ compiler supports standard exception handling */
+#undef HAVE_STD_EH
+
+/* whether to built ORB with exception support */
+#undef HAVE_ORB_EXCEPTS
+
+/* whether we need to explicitely call global ctors in dlopen()ed module */
+#undef HAVE_EXPLICIT_CTORS
+
+/* whether we have IEEE compliant floating point types */
+#undef HAVE_IEEE_FP
+
+/* whether or not class foo { friend void f <> (); } works */
+#undef HAVE_GUIDING_DECLS
+
+/* whether or not namespaces work */
+#undef HAVE_NAMESPACE
+
+/* type of size argument to socket calls */
+#undef socket_size_t
+
+/* type of sockaddr argument to socket calls */
+#undef socket_addr_t
+
+/* type of fd_set arguments to select calls */
+#undef select_addr_t
+
+/* whether gettimeofday has two args */
+#undef HAVE_GETTIMEOFDAY_TWOARGS
+
+/* whether or not he have SSLeay */
+#undef HAVE_SSL
+
+/* whether or not he have Postgresql */
+#undef HAVE_PGSQL
+
+/* whether or not we have Bluetooth */
+#undef HAVE_BLUETOOTH
+
+/* whether or not bool is supported by C++ compiler */
+#undef HAVE_BOOL_TYPE
+
+/* whether or not typename is supported by C++ compiler */
+#undef HAVE_TYPENAME
+#undef typename
+
+/* whether or not scanf ("%Lf", ...) works */
+#undef HAVE_SCANF_LF
+
+/* whether or not printf ("%Lf", ...) works */
+#undef HAVE_PRINTF_LF
+
+/* whether the system supports dynamic module loading */
+#undef HAVE_DYNAMIC
+
+/* whether c++ compiler supports const overload of conversion operators */
+#undef HAVE_CONST_OVERLOAD
+
+/* whether virtual methods inherited from two or more base class must be
+   overridden */
+#undef HAVE_EXPLICIT_METHOD_OVERRIDE
+
+/* whether the compiler fails to automatically generate working
+   copy constructors, assignment operators and destructors on structs
+   with template members */
+#undef HAVE_EXPLICIT_STRUCT_OPS
+
+/* whether we can use the advanced memchecker */
+#undef USE_MEMTRACE
+
+/* whether a derived class can override a typedef in the base class */
+#undef HAVE_TYPEDEF_OVERLOAD
+
+/* Define if you have the <pth.h> header file.  */
+#undef HAVE_PTH_H
+
+/* Define if you have pthread support */
+#undef HAVE_PTHREADS
+
+/* Define if you have DCE thread support */
+#undef HAVE_DCE_THREADS
+
+/* Define if you have Solaris thread support */
+#undef HAVE_SOLARIS_THREADS
+
+/* Define if you have GNU Pth thread support */
+#undef HAVE_PTH_THREADS
+
+/* Define if you want thread support at all */
+#undef HAVE_THREADS
+
+/* whether we support dynamic_cast<> */
+#undef HAVE_DYNAMIC_CAST
+
+/* whether to build CCM-specific parts */
+#undef USE_CCM
+
+/* path information */
+#undef ABSEXECDIR
+#undef ABSSHRDDIR
+
+/* whether ANSI C++ header files are present */
+#undef HAVE_ANSI_CPLUSPLUS_HEADERS
+
+/* The number of bytes in a double.  */
+#undef SIZEOF_DOUBLE
+
+/* The number of bytes in a float.  */
+#undef SIZEOF_FLOAT
+
+/* The number of bytes in a int.  */
+#undef SIZEOF_INT
+
+/* The number of bytes in a long.  */
+#undef SIZEOF_LONG
+
+/* The number of bytes in a long double.  */
+#undef SIZEOF_LONG_DOUBLE
+
+/* The number of bytes in a long long.  */
+#undef SIZEOF_LONG_LONG
+
+/* The number of bytes in a short.  */
+#undef SIZEOF_SHORT
+
+/* The number of bytes in a unsigned char.  */
+#undef SIZEOF_UNSIGNED_CHAR
+
+/* The number of bytes in a unsigned int.  */
+#undef SIZEOF_UNSIGNED_INT
+
+/* The number of bytes in a unsigned long.  */
+#undef SIZEOF_UNSIGNED_LONG
+
+/* The number of bytes in a unsigned long long.  */
+#undef SIZEOF_UNSIGNED_LONG_LONG
+
+/* The number of bytes in a unsigned short.  */
+#undef SIZEOF_UNSIGNED_SHORT
+
+/* Define if you have the __cxa_demangle function.  */
+#undef HAVE___CXA_DEMANGLE
+
+/* Define if you have the asinl function.  */
+#undef HAVE_ASINL
+
+/* Define if you have the backtrace function.  */
+#undef HAVE_BACKTRACE
+
+/* Define if you have the backtrace_symbols function.  */
+#undef HAVE_BACKTRACE_SYMBOLS
+
+/* Define if you have the ceill function.  */
+#undef HAVE_CEILL
+
+/* Define if you have the dlopen function.  */
+#undef HAVE_DLOPEN
+
+/* Define if you have the fabsl function.  */
+#undef HAVE_FABSL
+
+/* Define if you have the finite function.  */
+#undef HAVE_FINITE
+
+/* Define if you have the floorl function.  */
+#undef HAVE_FLOORL
+
+/* Define if you have the fmodl function.  */
+#undef HAVE_FMODL
+
+/* Define if you have the frexpl function.  */
+#undef HAVE_FREXPL
+
+/* Define if you have the ftime function.  */
+#undef HAVE_FTIME
+
+/* Define if you have the gethostname function.  */
+#undef HAVE_GETHOSTNAME
+
+/* Define if you have the infnan function.  */
+#undef HAVE_INFNAN
+
+/* Define if you have the infnanl function.  */
+#undef HAVE_INFNANL
+
+/* Define if you have the isinf function.  */
+#undef HAVE_ISINF
+
+/* Define if you have the isinfl function.  */
+#undef HAVE_ISINFL
+
+/* Define if you have the isnan function.  */
+#undef HAVE_ISNAN
+
+/* Define if you have the isnanl function.  */
+#undef HAVE_ISNANL
+
+/* Define if you have the ldexpl function.  */
+#undef HAVE_LDEXPL
+
+/* Define if you have the powl function.  */
+#undef HAVE_POWL
+
+/* Define if you have the shl_load function.  */
+#undef HAVE_SHL_LOAD
+
+/* Define if you have the strdup function.  */
+#undef HAVE_STRDUP
+
+/* Define if you have the strerror function.  */
+#undef HAVE_STRERROR
+
+/* Define if you have the <arpa/inet.h> header file.  */
+#undef HAVE_ARPA_INET_H
+
+/* Define if you have the <bfd.h> header file.  */
+#undef HAVE_BFD_H
+
+/* Define if you have the <byteorder.h> header file.  */
+#undef HAVE_BYTEORDER_H
+
+/* Define if you have the <cxxabi.h> header file.  */
+#undef HAVE_CXXABI_H
+
+/* Define if you have the <dl.h> header file.  */
+#undef HAVE_DL_H
+
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
+
+/* Define if you have the <exception> header file.  */
+#undef HAVE_EXCEPTION
+
+/* Define if you have the <exception.h> header file.  */
+#undef HAVE_EXCEPTION_H
+
+/* Define if you have the <fcntl.h> header file.  */
+#undef HAVE_FCNTL_H
+
+/* Define if you have the <float.h> header file.  */
+#undef HAVE_FLOAT_H
+
+/* Define if you have the <ieeefp.h> header file.  */
+#undef HAVE_IEEEFP_H
+
+/* Define if you have the <iostream> header file.  */
+#undef HAVE_IOSTREAM
+
+/* Define if you have the <link.h> header file.  */
+#undef HAVE_LINK_H
+
+/* Define if you have the <map> header file.  */
+#undef HAVE_MAP
+
+/* Define if you have the <netdb.h> header file.  */
+#undef HAVE_NETDB_H
+
+/* Define if you have the <netinet/in.h> header file.  */
+#undef HAVE_NETINET_IN_H
+
+/* Define if you have the <netinet/tcp.h> header file.  */
+#undef HAVE_NETINET_TCP_H
+
+/* Define if you have the <openssl/ssl.h> header file.  */
+#undef HAVE_OPENSSL_SSL_H
+
+/* Define if you have the <pgsql/libpq-fe.h> header file.  */
+#undef HAVE_PGSQL_LIBPQ_FE_H
+
+/* Define if you have the <poll.h> header file.  */
+#undef HAVE_POLL_H
+
+/* Define if you have the <pthread.h> header file.  */
+#undef HAVE_PTHREAD_H
+
+/* Define if you have the <qapplication.h> header file.  */
+#undef HAVE_QAPPLICATION_H
+
+/* Define if you have the <qlineedit.h> header file.  */
+#undef HAVE_QLINEEDIT_H
+
+/* Define if you have the <qsocketnotifier.h> header file.  */
+#undef HAVE_QSOCKETNOTIFIER_H
+
+/* Define if you have the <sched.h> header file.  */
+#undef HAVE_SCHED_H
+
+/* Define if you have the <semaphore.h> header file.  */
+#undef HAVE_SEMAPHORE_H
+
+/* Define if you have the <sstream> header file.  */
+#undef HAVE_SSTREAM
+
+/* Define if you have the <stdlib.h> header file.  */
+#undef HAVE_STDLIB_H
+
+/* Define if you have the <string> header file.  */
+#undef HAVE_STRING
+
+/* Define if you have the <strings.h> header file.  */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <sunmath.h> header file.  */
+#undef HAVE_SUNMATH_H
+
+/* Define if you have the <synch.h> header file.  */
+#undef HAVE_SYNCH_H
+
+/* Define if you have the <sys/select.h> header file.  */
+#undef HAVE_SYS_SELECT_H
+
+/* Define if you have the <sys/stat.h> header file.  */
+#undef HAVE_SYS_STAT_H
+
+/* Define if you have the <sys/time.h> header file.  */
+#undef HAVE_SYS_TIME_H
+
+/* Define if you have the <sys/un.h> header file.  */
+#undef HAVE_SYS_UN_H
+
+/* Define if you have the <terminate.h> header file.  */
+#undef HAVE_TERMINATE_H
+
+/* Define if you have the <thread.h> header file.  */
+#undef HAVE_THREAD_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the Hcurses library (-lHcurses).  */
+#undef HAVE_LIBHCURSES
+
+/* Define if you have the bfd library (-lbfd).  */
+#undef HAVE_LIBBFD
+
+/* Define if you have the bluetooth library (-lbluetooth).  */
+#undef HAVE_LIBBLUETOOTH
+
+/* Define if you have the bsd library (-lbsd).  */
+#undef HAVE_LIBBSD
+
+/* Define if you have the crypto library (-lcrypto).  */
+#undef HAVE_LIBCRYPTO
+
+/* Define if you have the curses library (-lcurses).  */
+#undef HAVE_LIBCURSES
+
+/* Define if you have the dl library (-ldl).  */
+#undef HAVE_LIBDL
+
+/* Define if you have the dld library (-ldld).  */
+#undef HAVE_LIBDLD
+
+/* Define if you have the elf library (-lelf).  */
+#undef HAVE_LIBELF
+
+/* Define if you have the iberty library (-liberty).  */
+#undef HAVE_LIBIBERTY
+
+/* Define if you have the ld library (-lld).  */
+#undef HAVE_LIBLD
+
+/* Define if you have the m library (-lm).  */
+#undef HAVE_LIBM
+
+/* Define if you have the ncurses library (-lncurses).  */
+#undef HAVE_LIBNCURSES
+
+/* Define if you have the nsl library (-lnsl).  */
+#undef HAVE_LIBNSL
+
+/* Define if you have the pq library (-lpq).  */
+#undef HAVE_LIBPQ
+
+/* Define if you have the readline library (-lreadline).  */
+#undef HAVE_LIBREADLINE
+
+/* Define if you have the socket library (-lsocket).  */
+#undef HAVE_LIBSOCKET
+
+/* Define if you have the ssl library (-lssl).  */
+#undef HAVE_LIBSSL
+
+/* Define if you have the termcap library (-ltermcap).  */
+#undef HAVE_LIBTERMCAP
+
+/* Define if you have the wsock32 library (-lwsock32).  */
+#undef HAVE_LIBWSOCK32

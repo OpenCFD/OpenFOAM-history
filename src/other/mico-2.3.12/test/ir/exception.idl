@@ -1,0 +1,13 @@
+
+exception GeneralException
+{
+    enum Severities
+    {
+	FATAL,
+	FAILURE,
+	WARNING,
+	TEMPORARY,
+	USER
+    } severity;
+};
+

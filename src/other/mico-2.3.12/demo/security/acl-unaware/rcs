@@ -1,0 +1,16 @@
+#!/bin/sh
+
+ADDR=ssl:inet:`uname -n`:12456
+
+# Manager
+echo "Manager"
+./client -ORBBindAddr $ADDR -ORBSSLcert manager.pem -ORBSSLkey key.pem -ORBSSLverify 0
+
+# Owner
+echo "Owner"
+./client2 -ORBBindAddr $ADDR -ORBSSLcert owner.pem -ORBSSLkey key.pem -ORBSSLverify 0
+
+# Wife
+echo "Wife"
+./client2  -ORBBindAddr $ADDR -ORBSSLcert wife.pem -ORBSSLkey key.pem -ORBSSLverify 0
+

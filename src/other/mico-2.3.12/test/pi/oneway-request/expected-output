@@ -1,0 +1,13 @@
+Running.
+client: send_request
+client: receive_other
+server: receive_request_service_contexts
+server: receive_request
+server: Hello World
+server: send_reply
+client: send_request
+client: receive_other
+server: receive_request_service_contexts
+server: receive_request
+server: Hello World
+server: send_exception

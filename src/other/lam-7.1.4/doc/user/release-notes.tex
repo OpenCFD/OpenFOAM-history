@@ -1,0 +1,646 @@
+% -*- latex -*-
+%
+% Copyright (c) 2001-2004 The Trustees of Indiana University.  
+%                         All rights reserved.
+% Copyright (c) 1998-2001 University of Notre Dame. 
+%                         All rights reserved.
+% Copyright (c) 1994-1998 The Ohio State University.  
+%                         All rights reserved.
+% 
+% This file is part of the LAM/MPI software package.  For license
+% information, see the LICENSE file in the top level directory of the
+% LAM/MPI source distribution.
+%
+% $Id: release-notes.tex,v 1.22 2003/11/14 21:54:24 pkambadu Exp $
+%
+
+\chapter{Release Notes}
+\label{sec:release-notes}
+\index{release notes|(}
+
+This chapter contains release notes as they pertain to the run-time
+operation of LAM/MPI.  The Installation Guide contains additional
+release notes on the configuration, compilation, and installation of
+LAM/MPI.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{New Feature Overview}
+
+A full, high-level overview of all changes in the 7 series (and
+previous versions) can be found in the \file{HISTORY} file that is
+included in the LAM/MPI distribution.
+
+This docuemntation was originally written for LAM/MPI v7.0.
+Changebars are used extensively throughout the document to indicate
+changes, updates, and new features in the versions since 7.0.  The
+change bars indicate a version number in which the change was
+introduced.
+
+Major new features specific to the 7 series include the following:
+
+\begin{itemize}
+  
+\item LAM/MPI 7.0 is the first version to feature the System Services
+  Interface (SSI).  SSI is a ``pluggable'' framework that allows for a
+  variety of run-time selectable modules to be used in MPI
+  applications.  For example, the selection of which network to use
+  for MPI point-to-point message passing is now a run-time decision,
+  not a compile-time decision.
+  
+  \changebegin{7.1}
+  
+  SSI modules can be built as part of the MPI libraries that are
+  linked into user applications or as standalone dynamic shared
+  objects (DSOs).  When compiled as DSOs, all SSI modules are
+  installed in \cmd{\$prefix/lib/lam}; new modules can be added to or
+  removed from an existing LAM installation simply by putting new DSOs
+  in that directory (there is no need to recompile or relink user
+  applications).
+
+  \changeend{7.1}
+
+\item When used with supported back-end checkpoint/restart systems,
+  LAM/MPI can checkpoint parallel MPI jobs (see
+  Section~\ref{sec:mpi-ssi-cr}, page~\pageref{sec:mpi-ssi-cr} for more
+  details).
+  
+\item LAM/MPI supports the following underlying networks for MPI
+  communication, including several run-time tunable-parameters for
+  each (see Section~\ref{sec:mpi-ssi-rpi},
+  page~\pageref{sec:mpi-ssi-rpi} for more details):
+
+  \begin{itemize}
+  \item TCP/IP, using direct peer-to-peer sockets
+  \item Myrinet, using the native gm message passing library
+    \changebegin{7.1}
+  \item Infinband, using the Mellanox VAPI (mVAPI) message passing
+    library
+    \changeend{7.1}
+  \item Shared memory, using either spin locks or semaphores
+  \item ``LAM Daemon'' mode, using LAM's native run-time environment
+    message passing
+  \end{itemize}
+
+\item LAM's run-time environment can now be ``natively'' executed in
+  the following environments (see Section~\ref{sec:lam-ssi-boot},
+  page~\pageref{sec:lam-ssi-boot} for more details):
+
+  \begin{itemize}
+  \item BProc clusters
+  \item Globus grid environments (beta level support)
+  \item Traditional \cmd{rsh} / \cmd{ssh}-based clusters
+  \item OpenPBS/PBS Pro/Torque batch queue jobs
+    \changebegin{7.1}
+  \item SLURM batch queue systems
+    \changeend{7.1}
+  \end{itemize}
+
+\changebegin{7.1}
+
+\item Improvements to collective algorithms:
+
+  \begin{itemize}
+  \item Several collective algorithms have now been made
+    ``SMP-aware'', exhibiting better performance when enabled and
+    executed on clusters of SMPs (see Section~\ref{sec:mpi-ssi-coll},
+    page~\pageref{sec:mpi-ssi-coll} for more details).
+
+  \item Several collective now use shared memory collective algorithms
+    (not based on MPI point-to-point communication) when all processes
+    in a communicator are on the same node.
+    
+  \item Collectives on intercommunicators are now supported.
+  \end{itemize}
+  
+\changeend{7.1}
+
+\item Full support of the TotalView parallel debugger (see
+  Section~\ref{sec:debug-totalview},
+  page~\pageref{sec:debug-totalview} for more details).
+  
+\item Support for the MPI-2 portable MPI process startup command
+  \icmd{mpiexec} (see Section~\ref{sec:commands-mpiexec},
+  page~\pageref{sec:commands-mpiexec} for more details).
+  
+\item Full documentation for system administrators, users, and
+  developers~\cite{sankaran03:_check_restar_suppor_system_servic,squyres03:_boot_system_servic_inter_ssi,squyres03:_mpi_collec_operat_system_servic,squyres03:_reques_progr_inter_rpi_system,squyres03:_system_servic_inter_ssi_lam_mpi,lamteam03:_lam_mpi_install_guide,lamteam03:_lam_mpi_user_guide}.
+  
+\item Various MPI enhancements:
+
+  \begin{itemize}
+  \item C++ bindings are provided for all supported MPI functionality.
+    
+  \item Upgraded the included ROMIO package~\cite{thak99a,thak99b} to
+    version 1.2.5.1 for MPI I/O support.
+    
+  \item Per MPI-2:4.8 free the \mpiconst{MPI\_\-COMM\_\-SELF}
+    communicator at the beginning of \mpifunc{MPI\_\-FINALIZE},
+    allowing user-specified functions to be automatically invoked.
+  
+  \item Formal support for \mpiconst{MPI\_\-THREAD\_\-SINGLE},
+    \mpiconst{MPI\_\-THREAD\_\-FUNNELED}, and
+    \mpiconst{MPI\_\-THREAD\_\-SERIALIZED}.
+    \mpiconst{MPI\_\-THREAD\_\-MULTIPLE} is not supported (see
+    Section~\ref{sec:misc-threads}, page~\pageref{sec:misc-threads}
+    for more details).
+    
+  \item Significantly increased the number of tags and communicators
+    supported in most RPIs.
+    
+  \item Enhanced scheduling capabilities for
+    \mpifunc{MPI\_\-COMM\_\-SPAWN}.
+  \end{itemize}
+  
+\item Various LAM run-time environment enhancements:
+
+  \begin{itemize}
+  \item New \icmd{laminfo} command that provides detailed information
+    about a given LAM/MPI installation.
+  \item Use \ienvvar{TMPDIR} environment variable for LAM's session
+    directory.
+  \item Restore the original {\tt umask} when creating MPI processes.
+  \item Allow Fortran MPI processes to change how their name shows up
+    in \icmd{mpitask}.
+  \item Better {\tt SIGTERM} support in the LAM daemon; catch the
+    signal and ensure that all sub-processes are killed and resources
+    are released.
+  \end{itemize}
+  
+\item Deprecated functionality (may disappear in future releases of
+  LAM/MPI):
+
+  \begin{itemize}
+  \item \idepenvvar{LAMRSH}: The \envvar{LAMRSH} environment variable
+    has been deprecated in favor of the
+    \issiparam{boot\_\-rsh\_\-agent} parameter to the \boot{rsh} SSI
+    boot module.
+    
+  \item \idepenvvar{LAM\_\-MPI\_\-SOCKET\_\-SUFFIX}: The
+    \envvar{LAM\_\-MPI\_\-SOCKET\_\-SUFFIX} has been deprecated in
+    favor of the \ienvvar{LAM\_\-MPI\_\-SESSION\_\-SUFFIX} environment
+    variable.
+  \end{itemize}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Known Issues}
+
+\changebegin{7.1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{\cmd{mpirun} and MPI Application \kind{cr}\ Module Disagreement}
+
+Due to ordering issues in LAM's \mpifunc{MPI\_\-INIT} startup
+sequence, it is possible for \cmd{mpirun} to believe that it can
+checkpoint an MPI application when the application knows that it
+cannot be checkpointed.  A common case of this is when an
+un-checkpointable RPI module is selected for the MPI application, but
+checkpointing services are available.
+
+In this case, even though there is a mismatch between \cmd{mpirun} and
+the MPI application, there is no actual harm.  Regardless of what
+\cmd{mpirun} believes, attempting to checkpoint the MPI application
+will fail.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Checkpoint Support Disabled for Spawned Processes}
+
+\changebegin{7.1.2}
+
+Checkpointing support is only enabled for MPI-1 processes -- spawned
+processes will have checkpointing support explicitly disabled
+(regardless of the SSI parameters passed and the back-end
+checkpointing support available).
+
+\changeend{7.1.2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{BLCR Support Only Works When Compiled Statically}
+
+\changebegin{7.1.2}
+
+Due to linker ordering issues, BLCR checkpointing support only works
+when the \crssi{blcr} modules are compiled statically into LAM.
+Attempting to use the \crssi{blcr} modules are dynamic shared objects
+will result in errors when compiling MPI applications (the error will
+complain that \file{libpthread} must be listed {\em after}
+\file{libcr}).
+
+\changeend{7.1.2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Infiniband \kind{rpi} Module}
+
+The Infiniband (\rpi{ib}) module implementation in LAM/MPI is based on
+the IB send/receive protocol for tiny messages and RDMA protocol for
+long messages.  Future optmizations include allowing tiny messages to
+use RDMA (for potentialy latency performance improvements for tiny
+messages).
+
+The \rpi{ib} \kind{rpi} has been tested with Mellanox VAPI
+thca-linux-3.2-build-024.  Other versions of VAPI, to include OpenIB
+and versions from other vendors have not been well tested.
+%
+\changebegin{7.1.1}
+%
+Whichever Infiniband driver is used, it must include support for
+shared completion queues.  Mellanox VAPI, for example, did not include
+support for this feature until mVAPI v3.0.  {\bf If your Infiniband
+  driver does not support shared completion queues, the LAM/MPI}
+\rpi{ib} \kind{rpi} {\bf will not function properly.}  Symptoms will
+include LAM hanging or crashing during \mpifunc{MPI\_\-INIT}.
+%
+\changeend{7.1.1}
+
+\changebegin{7.1.2}
+
+Note that the 7.1.x versions of the \rpi{ib} \kind{rpi} will not scale
+well to large numbers of nodes because they register a fixed number of
+buffers ($M$ bytes) for each process peer during
+\mpifunc{MPI\_\-INIT}.  Hence, for an $N$-process
+\mpiconst{MPI\_\-COMM\_\-WORLD}, the total memory registered by each
+process during \mpifunc{MPI\_\-INIT} is $(N - 1) \times M$ bytes.
+This can be prohibitive as $N$ grows large.
+
+This effect can be limited, however, by decreasing the number and size
+of buffers that the \rpi{ib} \kind{rpi} module via SSI parameters at
+run-time.  See the Section~\ref{sec:mpi-ssi-ib}
+(page~\pageref{sec:mpi-ssi-ib}) for more details.
+
+\changeend{7.1.2}
+
+\changeend{7.1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Usage Notes}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\changebegin{7.1}
+
+\subsection{Operating System Bypass Communication: Myrinet and
+  Infiniband}
+\label{release-notes:os-bypass}
+\index{Myrinet release notes}
+\index{Infiniband release notes}
+\index{Memory management}
+
+The \rpi{gm} and \rpi{ib} RPI modules require an additional memory
+manager in order to run properly.  On most systems, LAM will
+automatically select the proper memory manager and the system
+administrator / end user doesn't need to know anything about this.
+However, on some systems and/or in some applications, extra work is
+required.
+
+The issue is that OS-bypass networks such as Myrinet and Infiniband
+require virtual pages to be ``pinned'' down to specific hardware
+addresses before they can be used by the Myrinet/Infiniband NIC
+hardware.  This allows the NIC communication processor to operate on
+memory buffers independent of the main CPU because it knows that the
+buffers will never be swapped out (or otherwise be relocated in
+memory) before the operation is complete.\footnote{Surprisingly, this
+  memory management is unnecessary on Solaris.  The details are too
+  lengthy for this document.}
+
+LAM performs the ``pinning'' operation behind the scenes; for example,
+if application \mpifunc{MPI\_\-SEND}s a buffer using the \rpi{gm} or
+\rpi{ib} RPI modules, LAM will automatically pin the buffer before it
+is sent.  However, since pinning is a relatively expensive operation,
+LAM usually leaves buffers pinned when the function completes (e.g.,
+\mpifunc{MPI\_\-SEND}).  This typically speeds up future sends and
+receives because the buffer does not need to be [re-]pinned.  However,
+if the user frees this memory, the buffer {\em must} be unpinned
+before it is given back to the operating system.  This is where the
+additional memory manager comes in.
+
+LAM will, by default, intercept calls to \func{malloc()},
+\func{calloc()}, and \func{free()} by use of the ptmalloc, ptmalloc2,
+or Mac OS X dynlib functionality (note that C++ \func{new} and
+\func{delete} are {\em not} intercepted).  However, this is actually
+only an unfortunate side effect: LAM really only needs to intercept
+the \func{sbrk()} function in order to catch memory before it is
+returned to the operating system.  Specifically, an internal LAM
+routine runs during \func{sbrk()} to ensure that all memory is
+properly unpinned before it is given back to the operating system.
+
+There is, sadly, no easy, portable way to intercept \func{sbrk()}
+without also intercepting \func{malloc()} et al.  In most cases,
+however, this is not a problem: the user's application invokes
+\func{malloc()} and obtains heap memory, just as expected (and the
+other memory functions also function as expected).  However, there are
+some applications do their own intercepting of \func{malloc()} (et
+al.).  These applications will not work properly with a default
+installation of LAM/MPI.
+
+To fix this problem, LAM allows you to disable all memory management,
+but only if the top-level application promises to invoke an internal
+LAM handler function when \func{sbrk()} is invoked ({\em before} the
+memory is returned to the operating system).  This is accomplished by
+configuring LAM with the following switch:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ configure --with-memory-manager=external ...
+\end{lstlisting}
+% stupid emacs mode: $
+
+``\cmdarg{external}'' specifically indicates that if the \rpi{gm} or
+\rpi{ib} RPI modules are used, the application promises to invoke the
+internal LAM function for unpinning memory as required.  Note that
+this function is irrelevant (but harmless) when any other RPI module
+is used.  The function that must be invoked is prototyped in
+\file{<mpi.h>}:
+
+\lstset{style=lam-c}
+\begin{lstlisting}
+void lam_handle_free(void *buf, size_t length);
+\end{lstlisting}
+
+For applications that must use this functionality, it is probably
+safest to wrap the call to \func{lam\_\-handle\_\-free()} in the
+following preprocessor conditional:
+
+\lstset{style=lam-c}
+\begin{lstlisting}
+#include <mpi.h>
+
+int my_sbrk(...) {
+  /* ...sbrk() functionality... */
+#if defined(LAM_MPI)
+  lam_handle_free(bufer, length);
+#endif
+  /* ...rest of sbrk() functionality... */
+}
+\end{lstlisting}
+
+Note that when LAM is configured this way, {\em all} MPI applications
+that use the \rpi{gm} or \rpi{ib} RPI modules must invoke this
+function as required.  Failure to do so will result in undefined
+behavior. 
+
+\changeend{7.1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Platform-Specific Notes}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Provided RPMs}
+\index{RPMs}
+
+If you install LAM/MPI via an official RPM from the LAM/MPI web site
+(or one of its mirrors), you may not have all the SSI modules that are
+described in Chapters~\ref{sec:lam-ssi} and~\ref{sec:mpi-ssi}.  The
+modules that are shipped in \lamversion\ are listed in
+Table~\ref{tbl:release-notes-included-ssi-modules}.  If you need
+modules that are not provided in the RPMs, you will likely need to
+download and install the source LAM/MPI tarball.
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{|c|c|c|c|}
+    \hline
+    {\bf Boot} & {\bf Collective} & {\bf Checkpoint/Restart} & {\bf RPI} \\
+    \hline
+    \hline
+    \boot{globus} & \coll{lam\_\-basic} & $ \crssi{self} $ & \rpi{crtcp} \\
+    \boot{rsh} & \coll{smp} & ~ & \rpi{lamd} \\
+    \boot{slurm} & \coll{shmem} & ~ & \rpi{sysv} \\
+    ~ & ~ & ~ & \rpi{tcp} \\
+    ~ & ~ & ~ & \rpi{usysv} \\
+    \hline
+  \end{tabular}
+  \caption{SSI modules that are included in the official LAM/MPI RPMs.}
+  \label{tbl:release-notes-included-ssi-modules}
+\end{table}
+
+This is for multiple reasons:
+
+\begin{itemize}
+\item If provided as a binary, each SSI module may require a specific
+  configuration (e.g., a specific version of the back-end software
+  that it links to/interacts with).  Since each SSI module is
+  orthogonal to other modules, and since the back-end software systems
+  that each SSI module interacts with may release new versions at any
+  time, the number of combinations that would need to be provided is
+  exponential.
+  
+  The logistics of attempting to provide pre-compiled binaries for all
+  of these configurations is beyond the capability of the LAM Team.
+  As a direct result, significant effort has going into making
+  building LAM/MPI from the source distribution as simple and
+  all-inclusive as possible.
+  
+\item Although LAM/MPI is free software (and freely distributable),
+  some of the systems that its modules can interact with are not.  The
+  LAM Team cannot distribute modules that contain references to
+  non-freely-distributable code.
+\end{itemize}
+
+The \icmd{laminfo} command can be used to see which SSI modules are
+available in your LAM/MPI installation.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Filesystem Issues}
+
+\paragraph{Case-insensitive filesystems.}
+\index{case-insensitive filesystem}
+\index{filesystem notes!case-insensitive filesystems}
+
+On systems with case-insensitive filesystems (such as Mac OS X with
+HFS+, Linux with NTFS, or Microsoft Windows\trademark\ (Cygwin)), the 
+\icmd{mpicc} and \icmd{mpiCC} commands will both refer to the same executable.  
+This obviously makes distinguishing between the \cmd{mpicc} and \cmd{mpiCC} 
+wrapper compilers impossible.  LAM will attempt to determine if you are
+building on a case-insensitive filesystem.  If you are, the C++
+wrapper compiler will be called \icmd{mpic++}.  Otherwise, the C++
+compiler will be called \cmd{mpiCC} (although \cmd{mpic++} will also
+be available).
+  
+\paragraph{NFS-shared \file{/tmp}.}
+\index{NFS filesystem}
+\index{filesystem notes!NFS}
+
+The LAM per-session directory may not work properly when hosted in an
+NFS directory, and may cause problems when running MPI programs and/or
+supplementary LAM run-time environment commands.  If using a local
+filesystem is not possible (e.g., on diskless workstations), the use
+of {\tt tmpfs} or {\tt tinyfs} is recommended.  LAM's session
+directory will not grow large; it contains a small amount of meta data
+as well as known endpoints for Unix sockets to allow LAM/MPI programs
+to contact the local LAM run-time environment daemon.
+
+\paragraph{AFS and tokens/permissions.}
+\index{AFS filesystem}
+\index{filesystem notes!AFS}
+
+AFS has some peculiarities, especially with file permissions when
+using \cmd{rsh}/\cmd{ssh}.  
+
+Many sites tend to install the AFS \cmd{rsh} replacement that passes
+tokens to the remote machine as the default \cmd{rsh}.  Similarly,
+most modern versions of \cmd{ssh} have the ability to pass AFS tokens.
+Hence, if you are using the \boot{rsh} boot module with \cmd{recon} or
+\cmd{lamboot}, your AFS token will be passed to the remote LAM daemon
+automatically.  If your site does not install the AFS replacement
+\cmd{rsh} as the default, consult the documentation on
+\confflag{with-rsh} to see how to set the path to the \cmd{rsh} that
+LAM will use.
+
+Once you use the replacement \cmd{rsh} or an AFS-capable \cmd{ssh},
+you should get a token on the target node when using the \boot{rsh}
+boot module.\footnote{If you are using a different boot module, you
+  may experience problems with obtaining AFS tokens on remote nodes.}
+This means that your LAM daemons are running with your AFS token, and
+you should be able to run any program that you wish, including those
+that are not {\tt system:anyuser} accessible.  You will even be able
+to write into AFS directories where you have write permission (as you
+would expect).
+
+Keep in mind, however, that AFS tokens have limited lives, and will
+eventually expire.  This means that your LAM daemons (and user MPI
+programs) will lose their AFS permissions after some specified time
+unless you renew your token (with the \cmd{klog} command, for example)
+on the originating machine before the token runs out.  This can play
+havoc with long-running MPI programs that periodically write out file
+results; if you lose your AFS token in the middle of a run, and your
+program tries to write out to a file, it will not have permission to,
+which may cause Bad Things to happen.
+
+If you need to run long MPI jobs with LAM on AFS, it is usually
+advisable to ask your AFS administrator to increase your default token
+life time to a large value, such as 2 weeks.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Dynamic/Embedded Environments}
+
+\index{dynamic environments}
+\index{Matlab}
+\index{MEX functions}
+%
+In LAM/MPI version \lamversion, some RPI modules may utilize an
+additional memory manager mechanism (see
+Section~\ref{release-notes:os-bypass},
+page~\pageref{release-notes:os-bypass} for more details).  This can
+cause problems when running MPI processes as dynamically loaded
+modules.
+%
+For example, when running a LAM/MPI program as a MEX function in a
+Matlab environment, normal Unix linker semantics create situations
+where both the default Unix and the memory management systems are
+used.  This typically results in process failure.
+
+Note that this {\em only} occurs when LAM/MPI processes are used in a
+dynamic environment and an additional memory manager is included in
+LAM/MPI.  This appears to occur because of normal Unix semantics;
+the only way to avoid it is to use the
+\confflag{with-memory-manager} parameter to LAM's \cmd{configure}
+script, specifying either ``{\tt none}'' or ``{\tt external}'' as its
+value.  See the LAM/MPI Installation Guide for more details.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Linux}
+
+LAM/MPI is frequently used on Linux-based machines (IA-32 and
+otherwise).  Although LAM/MPI is generally tested on Red Hat and
+Mandrake Linux systems using recent kernel versions, it should work on
+other Linux distributions as well.
+
+Note that kernel versions 2.2.0 through 2.2.9 had some TCP/IP
+performance problems.  It seems that version 2.2.10 fixed these
+problems; if you are using a Linux version between 2.2.0 and 2.2.9,
+LAM may exhibit poor TCP performance due to the Linux TCP/IP kernel
+bugs.  We recommend that you upgrade to 2.2.10 (or the latest
+version).
+See \url{http://www.lam-mpi.org/linux/} for a full discussion of the
+problem.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Mac OS X (Absoft Fortran Compilers)}
+
+\changebegin{7.1.2}
+
+\index{Absoft Fortran compilers}
+\index{Fortran compilers!Absoft}
+
+To use the Absoft Fortran compilers with LAM/MPI on OS X, you must
+have at least version 9.0 EP (Enhancement Pack).  Contact
+\url{mailto:support@absoft.com} for details.
+
+\changeend{7.1.2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Microsoft Windows\trademark (Cygwin)}
+\index{Microsoft Windows}
+\index{Windows|see {Microsoft Windows}}
+
+\changebegin{7.1}
+LAM/MPI is supported on Microsoft Windows \trademark\ (Cygwin 1.5.5).
+Currently \rpi{tcp}, \rpi{sysv}, \rpi{usysv} and \rpi{tcp} RPIs are
+supported. ROMIO is not suported.
+
+In Microsoft Windows\trademark\ (Cygwin), IPC services are provided by
+the CygIPC module.  Hence, installation and use of the 
+\rpi{sysv} and \rpi{usysv} RPIs require this module.
+Specifically, \rpi{sysv} and \rpi{usysv} RPIs are installed if and only if
+the library \file{libcygipc.a} is found and \cmd{ipc-daemon2.exe} is
+running when configuring LAM/MPI.  Furthermore, to use these RPIs,
+it is necessary to have \cmd{ipc-daemon2.exe} running on all the nodes.
+For detailed instructions on configuring these RPIs, please refer 
+to the LAM/MPI Installation Guide.
+
+Since there are some issues with the use of the native Cygwin terminal for
+standard IO redirection, it is advised to run MPI applications on xterm.  
+For more information on getting X services for Cygwin, please see the
+XFree86 web site.\footnote{\url{http://www.cygwin.com/}}
+
+Although we have tried to port the complete functionality of 
+LAM/MPI to Cygwin, because of some outstanding portability issues,  
+execution of LAM/MPI applications on Cygwin may not always be 
+reliable.
+\changeend{7.1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Solaris}
+
+The \rpi{gm} RPI will fail to function properly on versions of Solaris
+older than Solaris 7.
+
+\changebegin{7.1}
+
+The default amount of shared memory available on Solaris is fairly
+small.  It may need to be increased to allow running more than a small
+number of processes on a single Solaris node using the \rpi{sysv} or
+\rpi{usysv} RPI modules.\footnote{See
+  \url{http://sunsite.uakom.sk/sunworldonline/swol-09-1997/swol-09-insidesolaris.html}
+  for a good examplantion of Solaris shared memory.}  For example, if
+running the LAM test suite on a single node, some tests run several
+instances of the executable (e.g., 6) which may cause the system to
+run out of shared memory and therefore cause the test to fail.
+Increasing the shared memory limits on the system will allow the test
+to pass.
+
+\changeend{7.1}
+
+% Close out the Release notes index entry
+
+\index{release notes|)}

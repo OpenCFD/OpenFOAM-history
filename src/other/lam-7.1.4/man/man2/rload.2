@@ -1,0 +1,34 @@
+.TH RLOAD 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rload \- Load a file onto a LAM remote node.
+.SH SYNOPSIS
+.HP
+int rload(int src_node, int dest_node, int tag, char *filename);
+.SH ARGUMENTS
+.TP 12
+src_node
+source node for file
+.TP
+dest_node
+where file will be temporarily stored
+.TP
+tag
+an arbitrary integer that will refer to file on the destination node
+.TP
+filename
+full or partial pathname of file
+.SH DESCRIPTION
+The transfer is done by the load daemon on the source node using
+the flat daemon on the destination node.
+See rflat(2).
+.PP
+After returning from
+.I rload()
+the tag can be converted to a local address on the destination node
+using rget(2).
+.SH ERRORS
+.TP 20
+ENOFLDESCRIPTORS
+The table of storage blocks (kept by the flat daemon) is full.
+.SH SEE ALSO
+rflat(2), rpgo(2)

@@ -1,0 +1,207 @@
+
+#ifndef _SECURITY_LEVEL_2_IDL_
+#define _SECURITY_LEVEL_2_IDL_
+
+#include <mico/security/securitylevel1.idl>
+
+#pragma prefix "omg.org"
+
+module SecurityLevel2 {
+  
+    interface Credentials;
+    interface Current;
+    interface AuditDecision;
+    interface AccessDecision;
+    interface RequiredRights;
+    interface AccessRights;
+  
+    const Security::AuthenticationMethod KeyCertCAPass = 1;	
+
+    interface Credentials { // Locality Constrained
+	Credentials copy();
+	void destroy();
+	readonly attribute Security::CredentialsType credentials_type;
+	readonly attribute Security::AuthenticationStatus authentication_state;
+	readonly attribute Security::MechanismType mechanism;
+	attribute Security::AssociationOptions accepting_options_supported;
+	attribute Security::AssociationOptions accepting_options_required;
+	attribute Security::AssociationOptions invocation_options_supported;
+	attribute Security::AssociationOptions invocation_options_required;
+	boolean get_security_feature(in Security::CommunicationDirection direction,
+				     in Security::SecurityFeature feature);
+	Security::AttributeList get_attributes(in Security::AttributeTypeList attributes);
+    
+	boolean set_attributes(in Security::AttributeList requested_attributes,
+			       out Security::AttributeList actual_attributes);
+	boolean is_valid(out Security::UtcT expiry_time);
+    
+	boolean refresh (in Security::Opaque refresh_data);
+    };
+  
+    typedef sequence <Credentials> CredentialsList;	
+  
+    interface ReceivedCredentials : Credentials {
+	readonly attribute CredentialsList accepting_credentials;
+	readonly attribute Security::AssociationOptions
+	association_options_used;
+	readonly attribute Security::DelegationState delegation_state;
+	readonly attribute Security::DelegationMode delegation_mode;
+    };
+  
+    interface TargetCredentials : Credentials {
+	readonly attribute CredentialsList initiating_credentials;
+	readonly attribute Security::AssociationOptions association_options_used;
+    };
+  
+    interface PrincipalAuthenticator {
+	Security::AuthenticationStatus authenticate(in Security::AuthenticationMethod method,
+						    in Security::MechanismType mechanism,
+						    in Security::SecurityName security_name,
+						    in any auth_data,
+						    in Security::AttributeList privileges, //-
+						    out Credentials creds,
+						    out any continuation_data, //-
+						    out any auth_specific_data);
+    
+	Security::AuthenticationMethodList get_supported_authen_methods(in Security::MechanismType mechanism);
+    
+	Security::AuthenticationStatus continue_authentication(in any response_data,
+							       in Credentials creds,
+							       out any continuation_data,
+							       out any auth_specific_data);
+    };
+
+    interface PolicyCurrent : CORBA::Current {
+	void set_policy_overrides(in CORBA::PolicyList policies,
+				  in CORBA::SetOverrideType override_type);
+	CORBA::PolicyList get_policy_overrides(in CORBA::PolicyTypeSeq policy_types);
+    };
+  
+    interface MechanismPolicy : CORBA::Policy {
+	readonly attribute Security::MechanismTypeList mechanisms;
+    };
+
+    interface InvocationCredentialsPolicy : CORBA::Policy {
+	readonly attribute SecurityLevel2::CredentialsList creds;
+    };
+
+    interface QOPPolicy : CORBA::Policy {
+	readonly attribute Security::QOP qop;
+    };
+
+    interface DelegationDirectivePolicy : CORBA::Policy {
+	readonly attribute Security::DelegationDirective delegation_mode;
+    };
+
+    interface EstablishTrustPolicy : CORBA::Policy {
+	readonly attribute Security::EstablishTrust trust;
+    };
+
+    interface SecurityManager {
+	//readonly attribute SecurityLevel2::AttributeManager attribute_manager;
+	readonly attribute Security::MechandOptionsList supported_mechanisms;
+	readonly attribute PrincipalAuthenticator principal_authenticator;
+	readonly attribute AuditDecision audit_decision;
+	readonly attribute CredentialsList own_credentials;
+	// for new mapping
+	//readonly attribute RequiredRights required_rights;
+	readonly attribute AccessRights access_rights;
+	readonly attribute AccessDecision access_decision;
+    
+	// Locality Constrainedrequired_rights_object;
+	//readonly attribute SSLKeyCertCAPass ; 
+	void remove_own_credentials(in Credentials creds);
+	void set_own_credentials(in CredentialsList creds);
+    
+	TargetCredentials get_target_credentials(in Object target);
+    
+	CORBA::Policy get_security_policy(in CORBA::PolicyType policy_type);
+    
+	any get_method_data(in Security::AuthenticationMethod method);
+    };
+
+    interface Current : SecurityLevel1::Current { 
+	readonly attribute ReceivedCredentials received_credentials;
+	// ###ras This is not in the 1.7 IDL File, but in ORBASec
+	// IMHO we need it
+	TargetCredentials get_target_credentials(in Object target);
+    };
+  
+  
+    // Access
+    // RequiredRights Interface 
+    interface RequiredRights {
+	void get_required_rights(in Object obj,
+				 in CORBA::Identifier operation_name,
+				 in CORBA::RepositoryId interface_name,
+				 out Security::RightsList rights,
+				 out Security::RightsCombinator rights_combinator);
+    
+	void set_required_rights(in CORBA::Identifier operation_name,
+				 in CORBA::RepositoryId interface_name,
+				 in Security::RightsList rights,
+				 in Security::RightsCombinator rights_combinator);
+    
+	boolean load_config_file(in string filename);
+    };
+    // for new mapping
+    interface AccessRights {
+	Security::RightsList get_effective_rights(in Security::AttributeList attribute_list,
+						  in Security::ExtensibleFamily rights_family);
+    
+	Security::RightsList get_all_effective_rights(in Security::AttributeList attrib_list);
+    
+	void grant_rights(in Security::SecAttribute priv_attr,
+			  in Security::DelegationState del_state,
+			  in Security::RightsList rights);
+    
+	void revoke_rights(in Security::SecAttribute priv_attr,
+			   in Security::DelegationState del_state,
+			   in Security::RightsList rights);
+    
+	void replace_rights(in Security::SecAttribute priv_attr,
+			    in Security::DelegationState del_state,
+			    in Security::RightsList rights);
+    
+	Security::RightsList get_rights(in Security::SecAttribute priv_attr,
+					in Security::DelegationState del_state,
+					in Security::ExtensibleFamily rights_family);
+    
+	Security::RightsList get_all_rights(in Security::SecAttribute priv_attr,
+					    in Security::DelegationState del_state);
+    
+	boolean load_config_file(in string filename);
+    };
+  
+    //Audit
+    interface AuditChannel {
+	void audit_write(in Security::AuditEventType event_type,
+			 in SecurityLevel2::CredentialsList creds,
+			 in Security::UtcT time,
+			 in Security::SelectorValueList descriptors,
+			 in Security::Opaque event_specific_data);
+    
+	readonly attribute Security::AuditChannelId audit_channel_id;
+    };
+  
+    interface AuditDecision {  // locality constrained
+	boolean audit_needed(in Security::AuditEventType event_type,
+			     in Security::SelectorValueList value_list);
+    
+	boolean create(in string arch_type,
+		       in string arch_name);
+    
+	readonly attribute AuditChannel audit_channel;
+    };
+  
+  
+    // Access
+    interface AccessDecision { // Locality Constrained
+	boolean access_allowed(in SecurityLevel2::CredentialsList cred_list,
+			       in Object target,
+			       in CORBA::Identifier operation_name,
+			       in CORBA::Identifier target_interface_name);
+    };
+};
+
+#endif // _SECURITY_LEVEL_2_IDL_

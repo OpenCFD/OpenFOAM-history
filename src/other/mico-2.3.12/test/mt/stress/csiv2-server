@@ -1,0 +1,2 @@
+#!/bin/sh
+./server -ORBIIOPAddr inet:localhost:6677 -ORBCSIv2 -ORBCSIv2Realm '@objectsecurity.com' -ORBGSSServerUser karel,cobalt $@ > ref

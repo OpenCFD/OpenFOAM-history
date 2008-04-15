@@ -1,0 +1,172 @@
+
+RELEASE NOTES
+-------------
+This file is maintained by Sorin Mustaca. For details/suggestions/bugs/patches
+please mail to mico-devel@mico.org .
+
+
+This README describes compiling and using MICO in the Windows environment,
+using Microsoft Visual C++. Basically, this port works well; this file
+describes how to avoid some of the pitfalls that you might come across.
+
+We have tested MICO with Visual C++ 7.0 and 7.1. Older versions WILL NOT work.
+Please, do not write on the list asking for solutions to build the MICO's last release 
+with MSVSTUDIO 6 or below. 
+
+We *removed* all the necessary hacks that allowed a compilation of MICO using VC++ 6 and below.
+
+BUILDING
+--------
+
+To build MICO, please open a command shell window, change to the MICO
+directory and type
+
+	nmake /f Makefile.win32
+
+This builds Mico's libraries and executables and places them in the
+mico\win32-bin directory.
+
+You may then copy the contents of this directory to a location of your
+choice, or simply use its contents in-place (by adding that directory
+to your PATH etc.).
+
+NOTE:
+The Multithreading is enabled by default.
+You don't have to download the latest libraries and dlls of Redhat's pthreads. The headers are 
+already present in your source tree.
+
+SSL:
+If you have the latest OPENSSL source tree, then compile it and afterwards execute the script
+admin\install-openssl.bat. It will copy the binaries into MICO's source tree.
+Because of its license, we can not include it into our source tree as we did with PTHREADS.
+The only parameter of this script is the installation directory of the OpenSSL build.
+It will just copy the headers and binaries of OpenSSL in the needed locations.
+
+
+DEMOS
+-----
+
+Most of the demos now come with a Makefile.win32. If this is the case, you
+can change to that directory and type, as before,
+
+	nmake /f Makefile.win32
+
+You can also run 
+	nmake /f Makefile.win32 demo
+from MICO's root directory.
+
+Look at the .bat files located in the demo's directory to run it.
+
+Some of these batch files launch new command shells in order to execute some
+servers, but batch files provide no means of stopping them after the demo has
+finished. In order to stop a server, activate its window and press CTRL-C.
+
+Take a look at mico\demo\mfc\README to see an example that uses MICO
+in conjunction with the MFC class library.
+
+
+
+How to compile mico as a static library with VC++
+
+
+1.) Creating the project
+
+- Create a new project "micolib" as a Win32 Static Library
+
+- VSTUDIO ,NET 2003 is able to detect .cc files now.
+
+- Add BUILD_MICO_DLL and __MICO_ORB__ to the
+  precompiler definitions for Debug and Release
+
+- Select "Multithreaded debugger" for Debug and "Multithreaded"
+  for Release as Runtime Library
+
+- Add the following files to the project:
+
+  mico\orb\*.cc, mico\ir\ir_all.cc, mico\imr\imr_all.cc
+
+- Remove the following files from the project:
+
+  *.cc.diff
+  win32def.cc,
+  win32dll.cc
+  os-unix.cc
+  memcheck.cc
+  memtrace.cc
+  orb_all.cc
+
+- Add mico\include\windows and mico\include to your include
+  path. Move mico\include\windows up to the very top
+
+- Compile the library
+
+- Be prepared for a huge debug lib (up to 40M)
+
+2.) Using the library
+
+- Create a new project for your application and make it depend on
+  the mico lib project.
+
+- Select "Multithreaded debugger" as Runtime Library for the
+  debug build and "Multithreaded" for the release build
+
+- Add wsock32.lib to the list of libraries and any other lib you
+  want to link your application with. The mico lib will be linked
+  to your application through the dependency
+
+- Compile the project
+
+- Be prepared for huge debug database files (.pdb)
+
+---------------------------------------
+
+
+When using micod with --forward it takes a rather long time (about
+1.5 sec) to invoke an object after the server has been restarted
+after a shutdown.
+
+To improve the performance of rebinding to an object,
+an adjustment can be made to the Microsoft TCP/IP implementation.
+Without this change, the time it takes for a client to rebind to a
+server object is significantly longer than needed.
+
+Specifically, if a server responds that a port in the search range
+is not in use, the Microsoft TCP/IP default is to continue trying
+3 times with a half-second interval between each retry.
+This value of 3 retries is settable in the registry, and
+we recommend this be changed to 0.
+Note that changing this parameter only takes effect after a reboot.
+
+To set this manually, use REGEDIT:
+
+Windows NT
+------------------
+create a DWORD value called TcpMaxConnectRetransmissions in:
+
+HKEY_LOCAL_MACHINE\
+SYSTEM\
+CurrentControlSet\
+Services\
+Tcpip\
+Parameters
+
+and set the value to 0.
+
+Windows 95
+-----------------
+create a DWORD value called MaxConnectRetries in:
+
+KEY_LOCAL_MACHINE\
+System\
+CurrentControlSet\
+Services\
+VxD\
+MSTCP
+
+and set the value to 0.
+
+
+HELP
+----
+
+Feel free to send comments, patches, or whatever over the mailing list!

@@ -1,0 +1,29 @@
+# -*- shell-script -*-
+#
+# Copyright (c) 2001-2003 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+# 
+# $HEADER$
+# 
+# $Id: lam-shell-setup.csh.in,v 1.5 2003/12/31 22:07:55 jsquyres Exp $
+#
+# Set LAM/MPI at the end of the path
+# Part of the OSCAR install
+#
+
+if ($?LAMMPI == "0") then
+  set path = ($path @LAM_BINDIR@)
+  if ($?MANPATH == "0") then
+    set MANPATH="/usr/share/man:@LAM_MANDIR@"
+  else
+    set MANPATH="${MANPATH}:@LAM_MANDIR@"
+  endif
+endif

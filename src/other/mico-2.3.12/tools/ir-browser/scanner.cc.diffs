@@ -1,0 +1,36 @@
+*** scanner.cc~	Wed Jan 10 12:32:38 2001
+--- scanner.cc	Wed Jan 10 12:35:16 2001
+***************
+*** 22,28 ****
+--- 22,36 ----
+  #ifdef __cplusplus
+  
+  #include <stdlib.h>
++ #ifdef _WIN32
++ //AP
++ #include <iostream.h> 
++ #endif
++ #ifndef _WIN32
++ //AP
+  class istream;
++ #endif
+  #include <unistd.h>
+  
+  /* Use prototypes in function declarations. */
+***************
+*** 1403,1409 ****
+  	}
+  
+  
+! extern "C" int isatty YY_PROTO(( int ));
+  void yyFlexLexer::yy_init_buffer( YY_BUFFER_STATE b, istream* file )
+  
+  	{
+--- 1411,1417 ----
+  	}
+  
+  
+! //extern "C" int isatty YY_PROTO(( int ));
+  void yyFlexLexer::yy_init_buffer( YY_BUFFER_STATE b, istream* file )
+  
+  	{

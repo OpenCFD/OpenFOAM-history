@@ -1,0 +1,30 @@
+#!/bin/sh
+
+PATH=../../../daemon:../../../imr:$PATH
+ADDR=inet:`uname -n`:12456
+RC="-ORBImplRepoAddr $ADDR"
+
+# run BOA daemon
+echo "starting BOA daemon ..."
+micod -ORBIIOPAddr $ADDR &
+micod_pid=$!
+
+trap "kill $micod_pid" 0
+
+sleep 1
+
+# register server
+
+echo "register account service ..."
+imr create Account shared "`pwd`/account_svr $RC" \
+ IDL:Account:1.0 $RC
+
+sleep 1
+# activate the account server to make itself register with the
+# name service so the client can find it ...
+echo "activating Account implementation"
+imr activate Account $RC
+
+# run client
+echo "and run client ..."
+vbj Client

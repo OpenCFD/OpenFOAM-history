@@ -1,0 +1,29 @@
+
+RELATIVE=../../..
+!include ../../MakeVars.win32
+
+all:  path client server
+
+path:
+
+INSTALL_DIR     = mt/callback
+INSTALL_SRCS    = Makefile client.cc server.cc callback.idl
+INSTALL_SCRIPTS = run
+
+server:  callback.h callback.cc callback.obj server.obj 
+	$(LD)  $(LDFLAGS) callback.obj  server.obj  $(LDLIBS) /out:server.exe
+
+client: callback.h callback.cc callback.obj  client.obj  
+	$(LD)  $(LDFLAGS) callback.obj  client.obj  $(LDLIBS) /out:client.exe 
+
+
+callback.cc callback.h: callback.idl 
+	$(IDL) callback.idl
+
+clean:
+	-$(RM) /Q callback.cc callback.h *.obj  client.exe server.exe 
+	-$(DELETE)
+
+run:  run.bat
+	call run.bat
+

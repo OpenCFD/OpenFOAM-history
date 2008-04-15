@@ -1,0 +1,170 @@
+.\"
+.\" MICO --- a CORBA 2.0 implementation
+.\" Copyright (C) 1997 Kay Roemer & Arno Puder
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Send comments and/or bug reports to:
+.\"                mico@informatik.uni-frankfurt.de
+.\"
+.TH MICORC 5 "April 8 1997"
+.SH NAME
+~/.micorc \- MICO configuration file format
+.SH DESCRIPTION
+This file consists of a whitespace separated list of valid MICO command
+line options. The file is read by every MICO application. Valid command
+line options are:
+.TP
+.BR -ORBNoIIOPServer
+Do not activate the IIOP server. The IIOP server enables other processes
+to invoke methods on objects in this process using the Internet
+Inter ORB Protocol (IIOP). If for some reason you do not want other
+processes to be able to invoke objects in this process you can use this
+option. Default is to activate the IIOP server.
+.TP
+.BR -ORBNoIIOPProxy
+Do not activate the IIOP proxy. The IIOP proxy enables this process to
+invoke methods on objects in other processes using IIOP. If you do not
+want or need this you can use this option. Default is to activate the
+IIOP proxy.
+.TP
+.BR -ORBIIOPBlocking
+Make IIOP code use sockets in blocking mode. This gains some extra
+performance, but nested method invocations do not work in this mode.
+.TP
+.BR "-ORBIIOPAddr <address>"
+Set the address the IIOP server should run on. If you do not specify
+this option the IIOP server will choose an unused address. This option
+can be used multiple times to make the IIOP server listen on multiple
+addresses.
+.TP
+.BR "-ORBId <ORB identifier>"
+Specify the ORB identifier,
+.BR mico-local-orb
+is currently the
+only supported ORB identifier. This option is intended for programs
+that needed access to different CORBA implementations in the same
+process. In this case the option
+.BR -ORBId
+is used to select one of the CORBA implementations.
+.TP
+.BR "-ORBImplRepoIOR <impl repository IOR>"
+Specify a stringified object reference for the implementation repository
+the ORB should use.
+.TP
+.BR "-ORBImplRepoAddr <impl repository address>"
+Specify the address of a process that runs an implementation repository.
+The ORB will then try to bind to an implementation repository object using
+the given address. If the bind fails or if you did neither specify
+.BR -ORBImplRepoAddr
+nor
+.BR -ORBImpRepoIOR
+the ORB will run a local implementation repository.
+.TP
+.BR "-ORBIfaceRepoIOR <interface repository IOR>"
+The same as
+.BR -ORBImplRepoIOR
+but for the interface repository.
+.TP
+.BR "-ORBIfaceRepoAddr <interface repository address>"
+The same as
+.BR -ORBImplRepoAddr
+but for the interface repository.
+.TP
+.BR "-ORBNamingIOR <naming service IOR>"
+The same as
+.BR -ORBImplRepoIOR
+but for the naming service.
+.TP
+.BR "-ORBNamingAddr <naming service address>"
+The same as
+.BR -ORBImplRepoAddr
+but for the naming service.
+.TP
+.BR "-ORBDebugLevel <level>"
+Specify the debug level.
+.BR <level>
+is a non--negative integer with greater values giving more debug output on
+.BR cerr.
+.TP
+.BR "-ORBBindAddr <address>"
+Specify an address which
+.BR "bind(const char *repoid)"
+should try to bind to. This option can be used more than once to specify
+multiple addresses.
+.TP
+.BR "-ORBConfFile <rcfile>"
+Specifies the file from which to read additional command line options
+(defaults to 
+.BR "~/.micorc" ).
+.TP
+.BR "-ORBNoCodeSets"
+Do not add code set information to object references. Since code set
+conversion is a CORBA 2.1 feature this option may be needed to talk
+to ORBs which are not CORBA compliant. Furthermore it may gain some
+speed.
+.TP
+.BR "-ORBNativeCS <pattern>"
+Specifies the code set the application uses for characters and
+strings.
+.BR "<pattern>"
+is a shell-like pattern that must match the
+.BR description
+field of a code set in the OSF code set registry (see files
+.BR "admin/code_set_registry.txt" " and " "admin/mico_code_set_registry.txt"
+in the MICO source tree).
+For example the pattern
+.BR "*8859-1*"
+will make the ORB use the code set ISO-8859-1 (Latin 1) as the native
+char code set, which is
+the default if you do not specify this option. The ORB uses this
+information to automatically convert characters and strings when talking
+to an application that uses a different code set.
+.TP
+.BR "-ORBNativeWCS <pattern>"
+Similar to
+.BR "-ORBNativeWCS"
+, but specifies the code set the
+application uses to wide characters and wide strings. Defaults
+to UTF-16, a 16 bit encoding of Unicode.
+.TP
+.BR "-OAId <BOA identifier>"
+Specify the BOA identifier,
+.BR mico-local-boa
+is the only currently supported BOA identifier.
+.TP
+.BR "-OAImplName <name of the object implementation>"
+This options is part of the interface between the BOA daemon and an object
+implementation. Do not use this option!
+.TP
+.BR "-OARestoreIOR <IOR to restore>"
+This options is part of the interface between the BOA daemon and an object
+implementation. Do not use this option!
+.TP
+.BR "-OARemoteIOR <remote BOA IOR>"
+This options is part of the interface between the BOA daemon and an object
+implementation. Do not use this option!
+.TP
+.BR "-OARemoteAddr <remote BOA address>"
+This option tells an object implementation the address of the BOA daemon.
+You should use this option only when starting persistent servers that
+should register with the BOA daemon.
+.SH "SEE ALSO"
+.IR "MICO Reference Manual" ", " rsh(1) ", " micod(8) ", " imr(1) ", "
+.IR imr(1) ", " micorc(5) ", " idl(1)
+.SH COPYRIGHT
+Copyright (C) 1997, Kay Roemer & Arno Puder
+.SH AUTHOR
+Kay Roemer & Arno Puder

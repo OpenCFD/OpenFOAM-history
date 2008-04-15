@@ -1,0 +1,13 @@
+
+interface Hello {
+  void sayHello ();
+};
+
+component HelloWorld supports Hello {
+  attribute string message;
+};
+
+home HelloHome manages HelloWorld {
+  attribute string initial_message;
+};
+

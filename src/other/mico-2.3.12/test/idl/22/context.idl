@@ -1,0 +1,6 @@
+
+interface A {
+  void bar( in string pattern )
+    context( "a*" );
+};
+

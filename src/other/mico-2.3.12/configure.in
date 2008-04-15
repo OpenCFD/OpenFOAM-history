@@ -1,0 +1,2156 @@
+#
+#  MICO --- an Open Source CORBA implementation
+#  Copyright (c) 1997-2005 by The Mico Team
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  For more information, visit the MICO Home Page at
+#  http://www.mico.org/
+#
+
+# Process this file with autoconf to produce a configure script.
+AC_INIT(idl/scanner.ll)
+
+#
+# arguments
+#
+
+AC_ARG_ENABLE(ccm,
+ [  --enable-ccm            build CCM-specific parts],
+ use_ccm=$enableval, use_ccm=no)
+
+AC_ARG_ENABLE(coss,
+ [  --disable-coss,         do not use MICO COSS],
+ use_coss=$enableval, use_coss=yes)
+
+AC_ARG_ENABLE(csl2,
+ [  --enable-csl2           enable CORBASec Level 2],
+ use_csl2=$enableval, use_csl2=no)
+
+AC_ARG_ENABLE(csiv2,
+ [  --disable-csiv2         disable CSIv2],
+ use_csiv2=$enableval, use_csiv2=yes)
+
+AC_ARG_ENABLE(naming,
+ [  --disable-naming,       do not use MICO Naming Service],
+ use_naming=$enableval, use_naming=$use_coss)
+
+AC_ARG_ENABLE(relship,
+ [  --enable-relship,       enable MICO Relationship Service],
+ use_relship=$enableval, use_relship=no)
+
+AC_ARG_ENABLE(events,
+ [  --disable-events,       do not use MICO Event Service],
+ use_events=$enableval, use_events=$use_coss)
+
+AC_ARG_ENABLE(streams,
+ [  --enable-streams,      use MICO Stream Service],
+ use_streams=$enableval, use_streams=no)
+
+AC_ARG_ENABLE(property,
+ [  --disable-property,     do not use MICO Property Service],
+ use_property=$enableval, use_property=$use_coss)
+
+AC_ARG_ENABLE(trader,
+ [  --enable-trader,       use MICO Trading Service],
+ use_trader=$enableval, use_trader=no)
+
+AC_ARG_ENABLE(time,
+ [  --disable-time,         do not use MICO Time Service],
+ use_time=$enableval, use_time=$use_coss)
+
+AC_ARG_ENABLE(life,
+ [  --enable-life,          use MICO Life Cycle Service],
+ use_life=$enableval, use_life=no)
+
+AC_ARG_ENABLE(externalize,
+ [  --enable-externalize,   use MICO Externalization Service],
+ use_extern=$enableval, use_extern=no)
+
+AC_ARG_ENABLE(wireless,
+ [  --enable-wireless         include full Wireless CORBA support],
+ use_wireless=$enableval, use_wireless=no)
+
+AC_ARG_ENABLE(wireless-home,
+ [  --enable-wireless-home    compile Home Location Agent for wCORBA],
+ use_wireless_home=$enableval, use_wireless_home=$use_wireless)
+
+AC_ARG_ENABLE(wireless-terminal,
+ [  --enable-wireless-terminal  Wireless CORBA for terminals],
+ use_wireless_terminal=$enableval, use_wireless_terminal=$use_wireless)
+
+AC_ARG_ENABLE(wireless-access,
+ [  --enable-wireless-access  Wireless CORBA Access Bridge],
+ use_wireless_access=$enableval, use_wireless_access=$use_wireless)
+
+AC_ARG_ENABLE(mini-stl,
+ [  --enable-mini-stl       use MICO-supplied STL],
+ use_mini_stl=$enableval, use_mini_stl=no)
+
+AC_ARG_ENABLE(repo,
+ [  --enable-repo           use gcc's template repository],
+ use_repo=$enableval, use_repo=no)
+
+AC_ARG_ENABLE(optimize,
+ [  --disable-optimize      do not use -O2 to compile],
+ use_opt=$enableval, use_opt=yes)
+
+AC_ARG_ENABLE(debug,
+ [  --enable-debug          use -g to compile],
+ use_debug=$enableval, use_debug=no)
+
+AC_ARG_ENABLE(shared,
+ [  --disable-shared        don't build shared libs],
+ use_shared=$enableval, use_shared=yes)
+
+AC_ARG_ENABLE(static,
+ [  --disable-static        don't build static libs],
+ use_static=$enableval, use_static=yes)
+
+AC_ARG_ENABLE(dynamic,
+ [  --disable-dynamic       disable dynamic loading],
+ use_dynamic=$enableval, use_dynamic=yes)
+
+AC_ARG_ENABLE(final,
+ [  --enable-final          build size optimized lib (needs lots of memory)],
+ use_final=$enableval, use_final=no)
+
+AC_ARG_ENABLE(except,
+ [  --disable-except        disable exception handling],
+ use_except=$enableval, use_except=yes)
+
+AC_ARG_ENABLE(std-eh,
+ [  --disable-std-eh        disable CORBA compliant exception handling],
+ use_std_eh=$enableval, use_std_eh=yes)
+
+AC_ARG_ENABLE(cd,
+ [  --enable-cd             disable use of fancy libs etc],
+ use_cd=$enableval, use_cd=no)
+
+AC_ARG_WITH(qt,
+ [  --with-qt=qtdir         use QT installed in qtdir],
+ QTDIR=$withval, QTDIR="")
+
+AC_ARG_WITH(gtk,
+ [  --with-gtk=gtkdir       use GTK installed in gtkdir],
+ GTKDIR=$withval, GTKDIR="")
+
+AC_ARG_WITH(tcl,
+ [  --with-tcl=tcldir       use TCL installed in tcldir],
+ TCLDIR=$withval, TCLDIR="")
+
+AC_ARG_WITH(ssl,
+ [  --with-ssl=ssldir       use SSL/TLS installed in ssldir],
+ SSLDIR=$withval, SSLDIR="")
+
+AC_ARG_WITH(bluetooth,
+ [  --with-bluetooth=btdir  use Bluetooth installed in btdir],
+ BTDIR=$withval, BTDIR="")
+
+AC_ARG_WITH(extra-dir,
+ [  --with-extra-dir=dir    add dir(s) into extra dirs],
+ EXTRADIR="$withval", EXTRADIR="")
+
+AC_ARG_WITH(pgsql,
+ [  --with-pgsql=pgsqldir       use PostgreSQL installed in pgsqldir],
+ PGSQLDIR=$withval, PGSQLDIR="")  
+
+AC_ARG_WITH(mico,
+ [  --with-mico=micodir     use MICO installed in micodir (suitable for cross-compiling)],
+ MICODIR=$withval, MICODIR="")  
+
+AC_ARG_ENABLE(split,
+ [  --disable-split         dont split large source files],
+ use_split=$enableval, use_split=yes)
+
+AC_ARG_ENABLE(orb-excepts,
+ [  --disable-orb-excepts   build libmico without exception support],
+ use_orb_excepts=$enableval, use_orb_excepts=yes)
+
+AC_ARG_ENABLE(memcheck,
+ [  --enable-memcheck       for debugging MICO memory management],
+ use_memcheck=$enableval, use_memcheck=no)
+
+AC_ARG_ENABLE(compiled-headers,
+ [  --enable-compiled-headers  use precompiled headers if supported],
+ use_compiled_headers=$enableval, use_compiled_headers=no)
+
+AC_ARG_ENABLE(speed-tune,
+ [  --enable-speed-tune     compile MICO for maximum peformance],
+ use_speed_tune=$enableval, use_speed_tune=no)
+
+AC_ARG_ENABLE(threads,
+ [  --disable-threads       compile single-threaded MICO],
+ use_threads=$enableval, use_threads=yes)
+
+AC_ARG_ENABLE(minimum-corba,
+ [  --enable-minimum-corba  build minimum ORB only],
+ minimum_corba=$enableval, minimum_corba=no)
+
+
+AC_SUBST(HAVE_MINGW)
+AC_SUBST(HAVE_CYGWIN)
+ 
+AC_SUBST(HAVE_MEMCHECK)
+HAVE_MEMCHECK=$use_memcheck
+
+AC_SUBST(USE_MEMTRACE)
+USE_MEMTRACE=no
+
+AC_SUBST(HAVE_FINAL)
+HAVE_FINAL=$use_final
+
+AC_SUBST(HAVE_MINIMUM_CORBA)
+HAVE_MINIMUM_CORBA=$minimum_corba
+
+if test X"$use_speed_tune" = Xyes; then
+  use_orb_excepts=no
+fi
+
+if test X"$use_wireless_access" = Xyes -o X"$use_wireless_terminal" = Xyes -o X"$use_wireless_home" = Xyes; then
+  use_wireless=yes
+fi
+
+# Bomb out as soon as possible
+if test X"$use_wireless" = Xyes -a X"$use_threads" = Xyes; then
+  echo ""
+  AC_MSG_ERROR([The current Wireless CORBA implementation is incompatible with multi-threading, do not use --enable-threads if Wireless CORBA is needed])
+fi
+
+# doesnt work at the moment 
+#if test X"$use_split" = Xyes; then
+#  AC_DEFINE(HAVE_SIZE_LIMIT)
+#fi
+
+#
+# extra dirs
+#
+
+wi_EXTRA_DIRS(no, $EXTRADIR $QTDIR $GTKDIR $TCLDIR $SSLDIR $PGSQLDIR)
+
+#
+# misc
+#
+
+AC_CONFIG_AUX_DIR($srcdir/admin)
+AC_CANONICAL_SYSTEM
+
+AC_SUBST(ABSSRCDIR)
+case $srcdir in
+/*)
+  ABSSRCDIR=$srcdir
+  ;;
+*)
+  ABSSRCDIR=`pwd`/$srcdir
+  ;;
+esac
+
+myprefix=$prefix
+myexec=$exec_prefix
+test "x$myprefix" = xNONE && myprefix=$ac_default_prefix
+test "x$myexec" = xNONE && myexec=${myprefix}
+ABSEXECDIR=$myexec
+ABSSHRDDIR=$myprefix
+AC_DEFINE_UNQUOTED(ABSEXECDIR, "$myexec")
+AC_DEFINE_UNQUOTED(ABSSHRDDIR, "$myprefix")
+AC_SUBST(ABSEXECDIR)
+AC_SUBST(ABSSHRDDIR)
+
+if test X"$use_csl2" != Xno; then
+  AC_DEFINE(USE_CSL2)
+fi
+
+#if test X"$use_csiv2" != Xno; then
+#  AC_DEFINE(USE_CSIV2)
+#fi
+
+if test X"$use_wireless" != Xno; then
+  AC_DEFINE(USE_WIRELESS)
+fi
+
+AC_SUBST(STLINC)
+if test X"$use_mini_stl" != Xno; then
+  AC_DEFINE(HAVE_MINI_STL)
+  #
+  # hack for Cygnus CDK: replace //E/... by E:/...
+  # since CDK's gcc does not understand -I//E/...
+  #
+  changequote(<<, >>)
+  CDK_ABSSRCDIR=`echo $ABSSRCDIR | sed -e 's,^//\([a-zA-Z]\),\1:,g'`
+  changequote([, ])
+  STLINC=-I$CDK_ABSSRCDIR/include/ministl
+fi
+
+AC_SUBST(REPOFLAG)
+AC_SUBST(HAVE_REPO)
+HAVE_REPO=no
+if test X"$use_repo" != Xno; then
+  HAVE_REPO=yes
+  REPOFLAG=-frepo
+fi
+
+AC_SUBST(PRELINK_FLAG)
+AC_SUBST(HAVE_PRELINK)
+HAVE_PRELINK=no
+
+AC_SUBST(PCHFLAGS)
+AC_SUBST(USE_PCH_DIR)
+USE_PCH_DIR=no
+
+#
+# Checks for compiler.
+#
+
+AC_PROG_CC
+AC_PROG_CPP
+
+AC_PROG_CXX
+AC_PROG_CXXCPP
+
+if test X"$cross_compiling" != X"no"; then
+    # cross compiling we have to test target and host
+    if test X"$host" != X"$target"; then
+        # this is ok we have specified different target system
+        echo
+        echo "MICO will be cross-compiled for the $target target platform."
+        echo
+    else
+        # we are cross-compiling to the target == host =>
+        # the user probably forget to supply --target=xxx option
+        echo "ERROR:"
+        echo "ERROR:"
+        echo "ERROR: Specified C++ compiler is probably cross-compiler. If so and if you"
+        echo "ERROR: really try to cross-compile MICO to some other target,"
+        echo "ERROR: then please use --target=<target platform name> option to specify"
+        echo "ERROR: required target exactly. It is needed for correct MICO configuration."
+        echo "ERROR:"
+        echo "ERROR:"
+        exit 1
+    fi
+fi
+
+AC_ISC_POSIX
+
+AC_LANG_CPLUSPLUS
+
+AC_MSG_CHECKING(OS Type)
+gxxversion=`$CXX -v 2>&1`
+case $gxxversion in
+*mingw*special*)
+	#
+	# This is the MinGW compiler in a Cygwin environment
+	#
+	OSTYPE=windows
+	RMPROG="rm -f"
+	LNPROG="cp"
+	;;
+*)
+	OSTYPE=unix
+	RMPROG="rm -f"
+	LNPROG="ln -f -s"
+	;;
+esac
+AC_MSG_RESULT($OSTYPE)
+AC_SUBST(OSTYPE)
+AC_SUBST(RMPROG)
+AC_SUBST(LNPROG)
+
+#
+# extra libraries ...
+#
+
+AC_SUBST(EXTRA_LIBS)
+ac_link="$ac_link "'$EXTRA_LIBS'
+
+AC_SUBST(EXTRA_CXXFLAGS)
+ac_compile="$ac_compile "'$EXTRA_CXXFLAGS'
+
+#
+# thread support
+#
+
+# some platforms needs -D_REENTRANT to correctly find
+# thread related header files (example: Tru64)
+CPPFLAGS_BACKUP=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS -D_REENTRANT"
+
+platform_supports_threads=no
+
+if test X"$use_pthreads" = Xyes; then
+  use_solaris_threads=no
+  use_dce_threads=no
+  use_pth_threads=no
+  AC_CHECK_LIB(pthread, open, use_pthreads=yes, use_pthreads=no)
+  if test X"$use_pthreads" = Xyes; then
+    AC_CHECK_HEADERS(pthread.h sched.h,, 
+      AC_MSG_ERROR(pthread header files incomplete)	
+    )
+    AC_CHECK_HEADERS(semaphore.h)
+    AC_DEFINE(HAVE_PTHREADS)
+    SHLIBS="-lpthread"
+    platform_supports_threads=yes
+    use_threads=yes
+  else
+    AC_CHECK_LIB(c_r, pthread_create, use_pthreads=yes, use_pthreads=no)
+    if test X"$use_pthreads" = Xyes; then
+      AC_CHECK_HEADERS(pthread.h sched.h,, 
+        AC_MSG_ERROR(pthread header files incomplete)	
+      )
+      AC_CHECK_HEADERS(semaphore.h)
+      AC_DEFINE(HAVE_PTHREADS)
+      #SHLIBS="-lpthread"
+      LDFLAGS="-pthread $LDFLAGS"
+      platform_supports_threads=yes
+      use_threads=yes
+    else
+      echo ""
+      AC_MSG_ERROR("Your platform does not support POSIX-threads !")
+    fi
+  fi
+fi
+
+if test X"$use_solaris_threads" = Xyes; then
+  use_pthreads=no
+  use_dce_threads=no
+  use_pth_threads=no
+  AC_CHECK_LIB(thread, open, use_solaris_threads=yes, use_solaris_threads=no)
+  if test X"$use_solaris_threads" = Xyes; then
+    AC_CHECK_HEADERS(thread.h semaphore.h synch.h,, 
+    AC_MSG_ERROR(solaris thread header files incomplete)	
+    )
+    AC_DEFINE(HAVE_SOLARIS_THREADS)
+    SHLIBS="-lthread"
+    platform_supports_threads=yes
+    use_threads=yes
+  else
+    echo ""
+    AC_MSG_ERROR("Your platform does not support Solaris threads !")
+  fi
+fi
+
+if test X"$use_dce_threads" = Xyes; then
+  use_pthreads=no
+  use_solaris_threads=no
+  use_pth_threads=no
+  AC_CHECK_LIB(cma, open, use_dcethreads=yes, use_dcethreads=no)
+  if test X"$use_dcethreads" = Xyes; then
+    AC_CHECK_HEADERS(pthread.h semaphore.h sched.h,,  
+      AC_MSG_ERROR(DCE pthread header files incomplete)	
+    )
+    AC_DEFINE(HAVE_DCE_THREADS)
+    SHLIBS="-lcma"
+    platform_supports_threads=yes
+    use_threads=yes
+  else
+    echo ""
+    AC_MSG_ERROR("Your platform does not support DCE threads !")
+  fi
+fi
+
+if test X"$use_pth_threads" = Xyes; then
+  use_pthreads=no
+  use_dce_threads=no
+  use_solaris_threads=no
+  unset pth_config_prog
+  AC_CHECK_PROG(pth_config_prog, pth-config, yes, no)
+  if test X"$pth_config_prog" = Xyes; then
+    PTH_HEADERS=`pth-config --cflags`
+    PTH_LDFLAGS=`pth-config --ldflags`
+    PTH_LIBS=`pth-config --libs`
+    CFLAGS="$PTH_HEADERS $CFLAGS"
+    CXXFLAGS="$PTH_HEADERS $CXXFLAGS"
+    LDFLAGS="$PTH_LDFLAGS $LDFLAGS"
+    PTH_INCLUDE_DIR=`pth-config --includedir`
+    PTH_LIB_DIR=`pth-config --libdir`
+    AC_CHECK_HEADER($PTH_INCLUDE_DIR/pth.h)
+    AC_CHECK_LIB(pth, pth_init, pth_lib=yes, pth_lib=no, "-L$PTH_LIB_DIR")
+    AC_DEFINE(HAVE_PTH_THREADS)
+    AC_DEFINE(HAVE_PTH_H)
+    SHLIBS=$PTH_LIBS
+    use_pth_threads=yes
+    platform_supports_threads=yes
+    use_threads=yes
+  else
+    echo ""
+    AC_MSG_ERROR("Your platform does not support GNU Pth threads !")
+  fi
+fi
+
+if test X"$platform_supports_threads" = Xno; then
+  if test X"$use_threads" = Xyes; then
+    AC_CHECK_LIB(pthread, open, use_pthreads=yes, use_pthreads=no)
+    if test X"$use_pthreads" = Xyes; then
+      AC_CHECK_HEADERS(pthread.h sched.h,, 
+        AC_MSG_ERROR(pthread header files incomplete)	
+      )
+      AC_CHECK_HEADERS(semaphore.h)
+      AC_DEFINE(HAVE_PTHREADS)
+      SHLIBS="-lpthread"
+    else 
+      AC_CHECK_LIB(c_r, pthread_create, use_pthreads=yes, use_pthreads=no)
+      if test X"$use_pthreads" = Xyes; then
+        AC_CHECK_HEADERS(pthread.h sched.h,,
+          AC_MSG_ERROR(pthread header files incomplete)
+        )
+        AC_CHECK_HEADERS(semaphore.h)
+        AC_DEFINE(HAVE_PTHREADS)
+        LDFLAGS="-pthread $LDFLAGS"
+      else
+        AC_CHECK_LIB(thread, open, use_solaris_threads=yes, use_solaris_threads=no)
+        if test X"$use_solaris_threads" = Xyes; then
+          AC_CHECK_HEADERS(thread.h semaphore.h synch.h,, 
+            AC_MSG_ERROR(solaris thread header files incomplete)	
+          )
+          AC_DEFINE(HAVE_SOLARIS_THREADS)
+          SHLIBS="-lthread"
+        else
+          AC_CHECK_LIB(cma, open, use_dcethreads=yes, use_dcethreads=no)
+          if test X"$use_dcethreads" = Xyes; then
+            AC_CHECK_HEADERS(pthread.h semaphore.h sched.h,,  
+              AC_MSG_ERROR(DCE pthread header files incomplete)	
+            )
+            AC_DEFINE(HAVE_DCE_THREADS)
+            SHLIBS="-lcma"
+          else
+            AC_CHECK_PROG(pth_config_prog, pth-config, yes, no)
+            if test X"$pth_config_prog" = Xyes; then
+              PTH_HEADERS=`pth-config --cflags`
+              PTH_LDFLAGS=`pth-config --ldflags`
+              PTH_LIBS=`pth-config --libs`
+              CFLAGS="$PTH_HEADERS $CFLAGS"
+              CXXFLAGS="$PTH_HEADERS $CXXFLAGS"
+              LDFLAGS="$PTH_LDFLAGS $LDFLAGS"
+              PTH_INCLUDE_DIR=`pth-config --includedir`
+              PTH_LIB_DIR=`pth-config --libdir`
+              AC_CHECK_HEADER($PTH_INCLUDE_DIR/pth.h)
+              AC_CHECK_LIB(pth, pth_init, pth_lib=yes, pth_lib=no, "-L$PTH_LIB_DIR")
+              AC_DEFINE(HAVE_PTH_THREADS)
+              AC_DEFINE(HAVE_PTH_H)
+              SHLIBS=$PTH_LIBS
+            else
+              use_pthreads=no
+              use_dcethreads=no
+              use_solaris_threads=no
+              use_pth_threads=no
+            fi
+          fi
+        fi
+      fi
+    fi
+  fi
+fi
+
+CPPFLAGS="$CPPFLAGS_BACKUP"
+
+
+service_disabled=no
+
+
+if test X"$use_threads" = Xyes; then
+  if test X"$use_pthreads" = Xno -a X"$use_dcethreads" = Xno -a X"$use_solaris_threads" = Xno -a X"$use_pth_threads" = Xno; then
+    echo ""
+    AC_MSG_ERROR([MICO does not support the thread package for your platform, please remove --enable-threads from your configure command-line and run configure again])
+  fi
+  if test X"$use_mini_stl" = Xyes; then
+    # don't use mini-stl with treads
+    AC_MSG_WARN(disabling mini-stl for multi-thread support.)
+    use_mini_stl=no
+    STLINC=""
+  fi
+  if test X"$use_ccm" = Xyes; then
+#    AC_MSG_WARN(disabling CCM support for MT build.)
+#    use_ccm=no
+    service_disabled=yes
+  fi
+  if test X"$use_coss" = Xyes; then
+    if test X"$use_streams" = Xyes; then
+#      AC_MSG_WARN(disabling mico streams for MT build.)
+#      use_streams=no
+      service_disabled=yes
+    fi
+    if test X"$use_relship" = Xyes; then
+#      AC_MSG_WARN(disabling cos relship for MT build.)
+#      use_relship=no
+      service_disabled=yes
+    fi
+    if test X"$use_trader" = Xyes; then
+#      AC_MSG_WARN(disabling cos trader for MT build.)
+#      use_trader=no
+      service_disabled=yes
+    fi
+  fi
+  AC_DEFINE(HAVE_THREADS)
+  HAVE_THREADS=yes
+  AC_SUBST(HAVE_THREADS)
+else
+  HAVE_THREADS=no
+  AC_SUBST(HAVE_THREADS)
+fi
+
+AC_SUBST(SHLIBS)
+
+#
+# System dependencies.
+#
+
+CONF_OPT_FLAGS=-O2
+CONF_DEBUG_FLAGS=-g
+CONF_LIBNSL=yes
+CONF_EXCEPT_FLAGS=
+CONF_NO_EXCEPT_FLAGS=
+CONF_AR=ar
+CONF_ARFLAGS=rc
+CONF_SHARED_CC="$CC -shared"
+CONF_LDSOFLAGS=
+CONF_PICFLAGS=
+CONF_OBJ_SIZE_LIMIT=no
+CONF_SOEXT=so
+CONF_LDSO_IN=admin/mico-shld.def.in
+CONF_DLFLAGS=
+CONF_LDFLAGS=
+
+if test X"$GXX" = Xyes; then
+  #
+  # GCC
+  #
+  # add -Wall
+  CXXFLAGS="-Wall $CXXFLAGS"
+  CFLAGS="-Wall $CFLAGS"
+
+  if test X"$use_speed_tune" = Xyes; then
+    CONF_OPT_FLAGS=-O2
+  fi
+
+  CONF_SHARED_CC="$CXX -shared"
+  CONF_PICFLAGS=-fPIC
+  CONF_LDSOFLAGS=-fPIC
+  CONF_NO_EXCEPT_FLAGS="-fno-exceptions"
+  CONF_EXCEPT_FLAGS=""
+
+  # workaround for compiling X11 headers with gcc 2.95
+  # kcg: I've commented it out, since it seems to be useless
+  # for a long time now
+  #SAVE_CXXFLAGS=$CXXFLAGS
+  #CXXFLAGS="$SAVE_CXXFLAGS -fpermissive"
+  #AC_TRY_COMPILE([],[],, CXXFLAGS=$SAVE_CXXFLAGS)
+  
+  GCCMT="safe"
+  gccmtversion=`$CXX --version 2>&1`
+  case $gccmtversion in
+    *2.95*)
+      GCCMT="unsafe"
+      ;;
+    *)
+      ;;
+  esac
+  if test X"$use_threads" = Xyes; then
+    CXXFLAGS="$CXXFLAGS -D_REENTRANT"
+  fi
+
+  case $target in
+  *aix*)
+    CONF_LDSO_IN=admin/mico-shld.aix.in
+    CONF_LDFLAGS=-Wl,-brtl,-bbigtoc
+    # all code is PIC on AIX
+    CONF_PICFLAGS=
+    CONF_LDSOFLAGS=
+    ;;
+  *linux*)
+    CONF_DLFLAGS=-rdynamic
+    if test X"$use_threads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE"
+    fi
+    ;;
+  *solaris*|*sunos*)
+    if test X"$use_threads" = Xyes; then
+      SHLIBS="$SHLIBS -lposix4"
+    fi
+    ;;
+  *osf*)
+    CONF_LDSOFLAGS="-Wl,-expect_unresolved,'*' $CONF_LDSOFLAGS"
+    ;;
+  *hpux*)
+    # -mmillicode-long-calls
+    CONF_LDFLAGS=-Wl,+s
+    CONF_DLFLAGS=-Wl,-E
+    CONF_SOEXT=sl
+    CONF_OBJ_SIZE_LIMIT=yes
+    ;;
+  *freebsd2*|*freebsd3*)
+    # does anybody still use this?
+    CONF_SOEXT=so.1.0
+    if test X"$use_threads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -D_THREAD_SAFE"
+    fi
+    ;;
+  *freebsd*)
+    # FreeBSD 4.x and later
+    # must not use .so.1.0 here
+    if test X"$use_threads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -D_THREAD_SAFE"
+    fi
+    ;;
+  *netbsd*)
+    # must not use .so.1.0 here
+    if test X"$use_threads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -D_THREAD_SAFE"
+    fi
+    ;;
+  *bsd*)
+    CONF_SOEXT=so.1.0
+    if test X"$use_threads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -D_THREAD_SAFE"
+    fi
+    ;;
+  *mingw*|*cygwin*)
+    # check if the compiler is cygwin or mingw
+    gxxversion=`$CXX -v 2>&1`
+    case $gxxversion in
+    *mingw*)
+	CONF_SOEXT=dll
+        CONF_PICFLAGS=
+        CONF_LDSOFLAGS=
+	HAVE_MINGW=yes
+	HAVE_CYGWIN=no
+	if test "x$use_shared" = "xyes" ; then
+		CXX="$CXX -mthreads"
+                CONF_SHARED_CC="$CXX -shared"
+	else
+		CXXFLAGS="-DBUILD_MICO_DLL $CXXFLAGS"
+	fi
+	;;
+    *cygwin*)
+        # cygwin doesn't support (or Windows doesn't support)
+        # symlinks to shared libraries => we just copy them
+        # to the libs directory
+	LNPROG="cp"
+	CONF_SOEXT=dll
+	CONF_PICFLAGS=
+	CONF_LDSOFLAGS=
+	HAVE_CYGWIN=yes
+	HAVE_MINGW=no
+	if test "x$use_shared" = "xyes" ; then
+		CXX="$CXX -mthreads"
+		CONF_SHARED_CC="$CXX -shared"
+	else
+		CXXFLAGS="-DBUILD_MICO_DLL $CXXFLAGS"
+	fi
+	;;
+    esac
+    ;;
+  *lynxos*)
+    CXXFLAGS="$CXXFLAGS -mminimal-toc"
+    ;;
+  *dgux*)
+    CONF_SHARED_CC="$CXX -shared"
+    ;;
+  *apple-darwin*)
+    # generated code is PIC by default
+    CONF_SHARED_CC="$CXX -dynamiclib"
+    CONF_SOEXT="dylib"
+    CONF_PICFLAGS=
+    CONF_LDSOFLAGS=
+    CXXFLAGS="$CXXFLAGS -Wno-long-double"
+    ;;
+  esac
+else
+  #
+  # native C/C++ compiler
+  #
+  case $target in
+  *irix*)
+    # -KPIC is on by default
+    AC_SUBST(SGI_ABI)
+    if test -z "$SGI_ABI"; then
+      $SGI_ABI="n32"
+    fi
+    case $SGI_ABI in
+    "n32")
+      LDFLAGS="$LDFLAGS -L/usr/lib32"
+      ;;
+    "o32")
+      LDFLAGS="$LDFLAGS -L/usr/lib"
+      ;;
+    "64")
+      LDFLAGS="$LDFLAGS -L/usr/lib64"
+      ;;
+    esac
+    CONF_SHARED_CC="$CXX -shared"
+    CONF_LIBNSL=no
+    CONF_OPT_FLAGS=-O1
+    CONF_AR="$CXX -ar -$SGI_ABI"
+    CONF_ARFLAGS="-o"
+    CPPFLAGS="$CPPFLAGS -$SGI_ABI -LANG:std"
+    CXXFLAGS="$CXXFLAGS -$SGI_ABI -OPT:Olimit_opt=on -G 4 -LANG:std -woff 1682,1110,1116,1014,1681,1047,1460"
+    LIBS=-lCio $LIBS
+    if test X"$use_compiled_headers" = Xyes; then
+      PCHFLAGS="$PCHFLAGS -LANG:pch_dir=$ABSSRCDIR/pch -LANG:pch -DFAST_PCH"
+      USE_PCH_DIR=yes
+    fi
+    ;;
+  *powermax*)
+    CONF_NO_EXCEPT_FLAGS=--no_exceptions
+    CONF_EXCEPT_FLAGS=--exceptions
+    CXXFLAGS="$CXXFLAGS -DPMaxOS --auto_instantiation --display_error_number --diag_suppress=382,610,611"
+    # dont know what this is for, ask <am@concurrent.co.uk>
+    HAVE_REPO=yes
+    ;;
+  *solaris*)
+    cxxversion=`$CXX -V 2>&1`
+    CONF_OPT_FLAGS=-xO2
+    CONF_SHARED_CC="$CXX -G"
+    # kcg: following option is probably for very old SunPRO compiler
+    # even Forte Developer C++ 6 update 2 should be ok with
+    # -pto instead of with full template repository (-ptr switch)
+#    CXXFLAGS="$CXXFLAGS -ptr$ABSSRCDIR"
+    # kcg: -pto is not needed anymore since Sun Studio 8
+    # where `-instances=global' was switched on by default
+    # so here we test for Forte Developer 6 and Sun Studio 7
+    if test ! -z "`echo $cxxversion|grep 'C++ 5.3'`" || test ! -z "`echo $cxxversion|grep 'C++ 5.4'`"; then
+      CXXFLAGS="$CXXFLAGS -pto"
+      HAVE_REPO=yes
+    fi
+    CONF_PICFLAGS=-KPIC
+    CONF_LDSOFLAGS=-KPIC
+    if test X"$use_threads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -D_THREAD_SAFE -D_REENTRANT"
+      SHLIBS="$SHLIBS -lthread -lrt"
+    fi
+    ;;
+  *aix*)
+    AC_PATH_PROG(AIXLINKER, makeC++SharedLib, makeC++SharedLib, $PATH:/usr/lpp/xlC/bin)
+    CONF_LDSO_IN=admin/mico-shld.aix-xlc.in
+    CONF_SHARED_CC="$AIXLINKER -p 0 -G"
+    CONF_LDFLAGS=-brtl
+    CXXFLAGS="$CXXFLAGS -+ -qrtti=all -qnotempinc -qlongdouble -qlonglong -w"
+    CFLAGS="$CFLAGS -qlongdouble -qlonglong"
+    ;;
+  *hpux*)
+    if test X"$use_pthreads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -mt"
+      SHLIBS="$SHLIBS -lrt"
+    fi
+    if test X"$use_dcethreads" = Xyes; then
+      CXXFLAGS="$CXXFLAGS -D_RW_MULTI_THREAD -D_RWSTD_MULTI_THREAD -D_HPUX_SOURCE -D_THREAD_SAFE -D_REENTRANT"
+    fi
+    if test X"$use_mini_stl" = Xyes; then
+      # mini-stl doesn't compile under HP aCC according to
+      # <kersting.andy.a@tci.com> because it clashes with the system
+      # supplied Rogue-Wave STL (RWSTL does not appear to be disable-able).
+      AC_MSG_WARN("HP aCC found - disabling mini-stl.")
+      use_mini_stl=no
+      STLINC=""
+    fi
+    CXXCPP="$CXXCPP -AA" # this is needed for correct detection of sstream header file below
+    CONF_OPT_FLAGS=+O2
+    CONF_SHARED_CC="$CXX -b"
+    CONF_LDFLAGS=-Wl,+s
+    CONF_DLFLAGS=-Wl,-E
+    CONF_SOEXT=sl
+    CONF_PICFLAGS=+Z
+    CONF_LDSOFLAGS=+Z
+    CXXFLAGS="$CXXFLAGS -AA -ext"
+    CFLAGS="$CFLAGS -Ae"
+    HAVE_REPO=yes
+    ;;
+  *osf*)
+    # generated code is PIC by default
+    CONF_SHARED_CC="ld -shared"
+    CONF_LDSOFLAGS="-expect_unresolved '*'"
+    CPPFLAGS="$CPPFLAGS -D__USE_STD_IOSTREAM"
+    CXXFLAGS="$CXXFLAGS -ptr $ABSSRCDIR/rep -ieee"
+    if test X"$use_threads" = Xyes; then
+      CXXFLAGS="-pthread $CXXFLAGS"
+      SHLIBS="$SHLIBS -lrt"
+    fi    
+    ;;
+  *linux*)
+    cxxversion=`$CXX -V 2>&1`
+    if test ! -z "`echo $cxxversion|grep como:`"; then
+      # Comeau C/C++ 4.3.x.x
+      HAVE_PRELINK=yes
+      PRELINK_FLAG=--prelink_objects
+      CONF_OPT_FLAGS="-O2"
+      CONF_PICFLAGS="-copt=-fPIC"
+      CONF_DLFLAGS=--lopt=-rdynamic
+      # old params for relaxed mode
+      #CXXFLAGS="$CXXFLAGS --const_string_literal --diag_suppress=997"
+      # new params for strict ansi warning mode
+      # (for strict ansi error mode please change '-a' to '-A')
+      CXXFLAGS="$CXXFLAGS -a --long_long --implicit_extern_c_type_conversion --diag_suppress=997"
+      if test X"$use_compiled_headers" = Xyes; then
+        PCHFLAGS="$PCHFLAGS --pch --pch_dir $ABSSRCDIR/pch -DFAST_PCH"
+        USE_PCH_DIR=yes
+      fi
+      if test X"$use_threads" = Xyes; then
+        CXXFLAGS="$CXXFLAGS -D_REENTRANT -D_GNU_SOURCE"
+      fi
+    elif test ! -z "`echo $cxxversion|grep Intel|grep \"Version 8.0\"`"; then
+      # Intel C++ 8 (icc) configuration
+      CONF_SHARED_CC="$CXX -shared"
+      CONF_PICFLAGS=-fPIC
+      CONF_LDSOFLAGS=-fPIC
+      CXXFLAGS="$CXXFLAGS -tpp5"
+      #CFLAGS="$CFLAGS -tpp5"
+      if test X"$use_opt" != Xyes; then
+        # by default Intel uses -O so we need to disable it
+        CONF_OPT_FLAGS=-O0
+        use_opt=yes
+      fi
+      if test X"$use_compiled_headers" = Xyes; then
+        PCHFLAGS="$PCHFLAGS -pch -pch_dir $ABSSRCDIR/pch -DFAST_PCH"
+        USE_PCH_DIR=yes
+      fi
+      if test X"$use_threads" = Xyes; then
+        CXXFLAGS="$CXXFLAGS -D_REENTRANT -D_GNU_SOURCE"
+      fi
+    else
+      echo
+      echo
+      echo "WARNING: You are using an unsupported C++ compiler."
+      echo "WARNING: You will probably run into trouble ..."
+      echo
+      echo
+    fi
+    ;;
+  *cray*)
+    HAVE_PRELINK=yes
+    PRELINK_FLAG="$ABSSRCDIR/contrib/cray/dummy.cc -o dummy"
+    CONF_SHARED_CC="$CXX"
+    CPPFLAGS="$CPPFLAGS"
+    CFLAGS="$CFLAGS -h command -h new_for_init"
+    CXXFLAGS="$CXXFLAGS -h command -h new_for_init"
+    ;;
+  *)
+    echo
+    echo
+    echo "WARNING: You are using an unsupported C++ compiler."
+    echo "WARNING: You will probably run into trouble ..."
+    echo
+    echo
+    ;;
+  esac
+fi
+
+#
+# Checks for programs.
+#
+
+changequote(<<, >>)
+CXXFLAGS=`echo " $CXXFLAGS " | sed -e 's/ -g / /g' -e 's/ -O[0-9]* / /g'`
+CFLAGS=`echo " $CFLAGS " | sed -e 's/ -g / /g' -e 's/ -O[0-9]* / /g'`
+changequote([, ])
+if test X"$use_opt" != Xno; then
+  CXXFLAGS="$CONF_OPT_FLAGS $CXXFLAGS"
+  CFLAGS="$CONF_OPT_FLAGS $CFLAGS"
+fi
+if test X"$use_debug" != Xno; then
+  CXXFLAGS="$CONF_DEBUG_FLAGS $CXXFLAGS"
+  CFLAGS="$CONF_DEBUG_FLAGS $CFLAGS"
+fi
+
+if test "x$use_memcheck" = "xyes" ; then
+    case $target in
+    *86*linux*)
+        AC_CHECK_LIB(iberty,open)
+        AC_CHECK_LIB(bfd,bfd_init)
+        AC_CHECK_HEADERS(bfd.h link.h)
+        if test "x$ac_cv_lib_bfd_bfd_init" = "xyes" && test "x$ac_cv_lib_iberty_open" = "xyes" && test "x$ac_cv_header_bfd_h" = "xyes" && test "x$ac_cv_header_link_h" ; then
+            CFLAGS="-fno-omit-frame-pointer $CFLAGS"
+            CXXFLAGS="-fno-omit-frame-pointer $CXXFLAGS"
+            if test "x$use_debug" != "xyes" ; then
+                CFLAGS="-g1 $CFLAGS"
+                CXXFLAGS="-g1 $CXXFLAGS"
+            fi
+            LIBS="$LIBS -lbfd -liberty"
+            AC_DEFINE(USE_MEMTRACE)
+            USE_MEMTRACE=yes
+        fi
+        ;;
+    esac
+fi
+
+AC_PROG_YACC
+AC_PROG_LEX
+
+AR=$CONF_AR
+AC_SUBST(AR)
+
+ARFLAGS=$CONF_ARFLAGS
+AC_SUBST(ARFLAGS)
+
+AC_MSG_CHECKING(for ar)
+AC_MSG_RESULT($AR $ARFLAGS)
+
+
+AC_PROG_RANLIB
+AC_PROG_MAKE_SET
+
+
+AC_PATH_PROG(TCLSH, tclsh, tclsh)
+
+
+AC_PATH_PROG(JAVAC, javac, no)
+if test X"$JAVAC" != Xno; then
+  AC_MSG_CHECKING(for JDK 1.1)
+  cat > conftest.java <<EOF
+import java.awt.event.*;
+public class conftest {}
+EOF
+  sh -c "$JAVAC conftest.java" 1>&5 2>&5
+  if test $? = 0; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+    JAVAC=no
+  fi
+  rm -f conftest.*
+fi
+
+
+AC_MSG_CHECKING(for JavaCUP)
+JAVACUPDIR=no
+for i in `echo $CLASSPATH | tr : ' '`; do
+  if test -d $i/java_cup; then
+    JAVACUPDIR=$i/java_cup
+  fi
+done
+AC_MSG_RESULT($JAVACUPDIR)
+
+AC_SUBST(HAVE_JDK)
+HAVE_JDK=yes
+if test X"$JAVAC" = Xno -o X"$JAVACUPDIR" = Xno; then
+  AC_MSG_WARN(you have not installed JDK 1.1 and JavaCUP. java parts disabled.)
+  HAVE_JDK=no
+fi
+
+AC_SUBST(HAVE_QT)
+AC_SUBST(QT_CXXFLAGS)
+AC_SUBST(QT_LIBS)
+
+if test X"$QTDIR" != X; then
+  HAVE_QT=yes
+  QT_LIBS="-lX11 -lqt"
+  AC_PATH_PROG(MOC, moc, no)
+  if test X"$MOC" = Xno; then
+    AC_MSG_WARN(cannot find moc. QT parts disabled.)
+    HAVE_QT=no
+  fi
+  if test X"$HAVE_THREADS" = Xyes; then
+    AC_CHECK_LIB(qt-mt, open, qt_mt=yes, qt_mt=no)
+    if test X"$qt_mt" = Xno; then
+      AC_MSG_WARN(cannot find multi-threaded version of QT library. QT parts disabled.)
+      HAVE_QT=no
+    fi
+    QT_CXXFLAGS=-DQT_THREAD_SUPPORT
+    QT_LIBS="-lX11 -lqt-mt"
+  fi
+else
+  HAVE_QT=no
+fi
+
+
+AC_SUBST(HAVE_GTK)
+
+if test X"$GTKDIR" != X; then
+  AM_PATH_GTK(,HAVE_GTK=yes,
+	      AC_MSG_WARN(cannot find gtk-config. GTK parts disabled)
+              HAVE_GTK=no)
+else
+  HAVE_GTK=no
+fi
+
+
+AC_SUBST(HAVE_TCL)
+AC_SUBST(TCL_LIBS)
+HAVE_TCL=no
+TCL_LIBS=
+if test X"$TCLDIR" != X; then
+  AC_MSG_CHECKING([for tcl version])
+  AC_GET_DEFINE(TCL_VERSION, TCL_VERSION, tcl.h)
+  if test X"$TCL_VERSION" != X; then
+    dnl # remove quotes if any
+    TCL_VERSION=`echo $TCL_VERSION | tr -d \"`
+    TCL_LIBS=-ltcl$TCL_VERSION
+    HAVE_TCL=yes
+    AC_MSG_RESULT($TCL_VERSION)
+  else
+    AC_MSG_RESULT([tcl.h not found, tcl parts disabled])
+  fi
+fi
+
+AC_SUBST(HAVE_BLUETOOTH)
+HAVE_BLUETOOTH=no
+if test X"$BTDIR" != X; then
+  AC_CHECK_LIB(bluetooth, open)
+  if test X"$ac_cv_lib_bluetooth_open" = Xyes; then
+    HAVE_BLUETOOTH=yes
+    AC_DEFINE(HAVE_BLUETOOTH)
+  fi
+fi
+
+#
+# Checks for libraries.
+#
+
+# special libs for Solaris,AIX
+AC_CHECK_LIB(m, open)
+
+if test X"$CONF_LIBNSL" = Xyes; then
+  AC_CHECK_LIB(nsl, open,,, -lsocket)
+fi
+
+# this must be after the nsl check because it implicitely checks for
+# -lnsl and doesnt take care whether -lnsl needs -lsocket
+AC_PATH_X
+AC_PATH_XTRA
+
+AC_SUBST(HAVE_X11)
+HAVE_X11=$have_x
+
+
+AC_CHECK_LIB(socket, open)
+AC_CHECK_LIB(bsd, open)
+
+AC_CHECK_LIB(elf, open)
+AC_CHECK_LIB(dl, open)
+AC_CHECK_LIB(dld, open)
+AC_CHECK_LIB(ld, open)
+
+if test "x$OSTYPE" = "xwindows" ; then
+	AC_CHECK_LIB(wsock32, open)
+fi
+
+# for wide char functions ...
+# AC_CHECK_LIB(w, open)
+
+# must do this after -lsocket check, because -lcrypto needs it
+AC_CHECK_LIB(crypto, open)
+AC_CHECK_LIB(ssl, open)
+
+# Postgresql Audit Storage
+AC_SUBST(HAVE_PGSQL)
+HAVE_PGSQL=no
+if test X"$PGSQLDIR" != X; then
+  AC_CHECK_LIB(pq, open)
+  if test X"$ac_cv_lib_pq_open" = Xyes;
+  then
+    HAVE_PGSQL=yes
+    AC_DEFINE(HAVE_PGSQL)
+  fi   
+fi 
+
+
+if test `uname` = FreeBSD; then
+  LIBS="-lcompat $LIBS"
+fi
+
+AC_SUBST(BASE_LIBS)
+BASE_LIBS="$LIBS $SHLIBS"
+
+# AC_CHECK_LIB(fl, open)
+if test X"$use_cd" != Xyes; then
+  # ncurses
+  AC_CHECK_LIB(ncurses, open)
+  if test X"$ac_cv_lib_ncurses_open" = Xno; then
+    # curses+termcap
+    AC_CHECK_LIB(termcap, open)
+    # -lcurses has a broken select(2) on HP-UX
+    AC_CHECK_LIB(Hcurses, open)
+    if test X"$ac_cv_lib_Hcurses_open" = Xno; then
+      AC_CHECK_LIB(curses, open)
+    fi
+  fi
+  AC_CHECK_LIB(readline, readline)
+fi
+
+# causes trouble with HP aCC according to <kersting.andy.a@tci.com>
+# if test X"$use_mini_stl" = Xno; then
+#   AC_CHECK_LIB(stdc++, open)
+# fi
+if test X"$use_mini_stl" != Xno; then
+  AC_DEFINE(HAVE_MINI_STL)
+fi;
+
+AC_SUBST(CURSES_LIBS)
+CURSES_LIBS="$LIBS $SHLIBS"
+
+#
+# Checks for header files.
+#
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h unistd.h sys/select.h strings.h float.h ieeefp.h)
+AC_CHECK_HEADERS(sys/un.h netinet/in.h arpa/inet.h netdb.h dlfcn.h dl.h)
+AC_CHECK_HEADERS(netinet/tcp.h stdlib.h sys/time.h sunmath.h sys/stat.h)
+AC_CHECK_HEADERS(poll.h)
+
+AC_CHECK_HEADERS(exception exception.h terminate.h openssl/ssl.h pgsql/libpq-fe.h)
+
+# QT
+AC_CHECK_HEADERS(qapplication.h qsocketnotifier.h qlineedit.h)
+
+# Cygwin32
+AC_CHECK_HEADERS(byteorder.h)
+
+# Ansi C++
+have_ansi_cplusplus_headers=yes
+AC_CHECK_HEADERS(iostream map string sstream,,have_ansi_cplusplus_headers=no)
+AC_MSG_CHECKING(for Ansi C++ headers)
+if test "x$have_ansi_cplusplus_headers" = "xyes" ; then
+	AC_DEFINE(HAVE_ANSI_CPLUSPLUS_HEADERS)
+fi
+AC_MSG_RESULT($have_ansi_cplusplus_headers)
+
+# GNU C++ demangling support
+AC_CHECK_HEADERS(cxxabi.h)
+AC_CHECK_FUNCS([__cxa_demangle])
+
+#
+# Checks for typedefs, structures, and compiler characteristics.
+#
+
+AC_HEADER_TIME
+AC_CHECK_SOCKET_SIZE_T
+AC_CHECK_SOCKET_ADDR_T
+AC_CHECK_SELECT_ADDR_T
+AC_CHECK_GETTIMEOFDAY
+
+AC_MSG_CHECKING([for scanf(\"%Lf\")])
+
+AC_TRY_RUN([
+#include <stdio.h>
+#include <string.h>
+int main ()
+{
+  long double d = 0.0L;
+  sscanf ("1.125", "%Lf", &d);
+  return !(d == 1.125L);
+}], LFSCANF=ok, LFSCANF=broken, LFSCANF=cross)
+
+
+case $LFSCANF in
+ok)
+    AC_MSG_RESULT(ok)
+    AC_DEFINE(HAVE_SCANF_LF)
+    ;;
+cross)
+    AC_MSG_RESULT([cross-compiling, assuming ok])
+    AC_DEFINE(HAVE_SCANF_LF)
+    ;;
+*|broken)
+    AC_MSG_RESULT(broken)
+    ;;
+esac
+
+
+AC_MSG_CHECKING([for printf(\"%Lf\")])
+
+AC_TRY_RUN([
+#include <stdio.h>
+#include <string.h>
+int main ()
+{
+  long double d = 1.125;
+  char buf[10];
+  sprintf (buf, "%.3Lf", d);
+  return strcmp (buf, "1.125");
+}], LFPRINTF=ok, LFPRINTF=broken, LFPRINTF=cross)
+
+
+case $LFPRINTF in
+ok)
+    AC_MSG_RESULT(ok)
+    AC_DEFINE(HAVE_PRINTF_LF)
+    ;;
+cross)
+    AC_MSG_RESULT([cross-compiling, assuming ok])
+    AC_DEFINE(HAVE_PRINTF_LF)
+    ;;
+*|broken)
+    AC_MSG_RESULT(broken)
+    ;;
+esac
+
+#
+# Checks for library functions.
+#
+
+# It seems that AC_FUNC_VPRINTF doesn't like AC_LANG_CPLUSPLUS
+# kcg: not only vprinf doesn't like C++, but also other functions like
+# asinl and others. The problem is observed on Solaris/GCC platform
+# where GCC's libstdc++ expose some of these symbols publicly
+# (probably by mistake) and hence configure is confused and declare
+# those functions as available. The solution is to switch to C to
+# avoid linking with libstdc++ for checking of these
+# functions. Finally I decided to switch to C++ again right after
+# whole this function checking block.
+AC_LANG_C
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(strdup strerror gethostname infnan isnan isinf finite)
+AC_CHECK_FUNCS(infnanl isnanl isinfl asinl ldexpl frexpl fabsl floorl ceill)
+AC_CHECK_FUNCS(powl fmodl dlopen shl_load ftime)
+AC_CHECK_FUNCS(backtrace backtrace_symbols)
+AC_LANG_CPLUSPLUS
+
+#
+# size of datatypes
+#
+
+if test X"$host" != X"$target"; then
+  case $target in
+  *arm*linux*)
+      AC_CHECK_SIZEOF(unsigned char, 1)
+      AC_CHECK_SIZEOF(int, 4)
+      AC_CHECK_SIZEOF(unsigned int, 4)
+      AC_CHECK_SIZEOF(long, 4)
+      AC_CHECK_SIZEOF(unsigned long, 4)
+      AC_CHECK_SIZEOF(long long, 8)
+      AC_CHECK_SIZEOF(unsigned long long, 8)
+      AC_CHECK_SIZEOF(short, 2)
+      AC_CHECK_SIZEOF(unsigned short, 2)
+      AC_CHECK_SIZEOF(float, 4)
+      AC_CHECK_SIZEOF(double, 8)
+      AC_CHECK_SIZEOF(long double, 8)
+      ;;
+  *cris*linux*)
+      AC_CHECK_SIZEOF(unsigned char, 1)
+      AC_CHECK_SIZEOF(int, 4)
+      AC_CHECK_SIZEOF(unsigned int, 4)
+      AC_CHECK_SIZEOF(long, 4)
+      AC_CHECK_SIZEOF(unsigned long, 4)
+      AC_CHECK_SIZEOF(long long, 8)
+      AC_CHECK_SIZEOF(unsigned long long, 8)
+      AC_CHECK_SIZEOF(short, 2)
+      AC_CHECK_SIZEOF(unsigned short, 2)
+      AC_CHECK_SIZEOF(float, 4)
+      AC_CHECK_SIZEOF(double, 8)
+      AC_CHECK_SIZEOF(long double, 8)
+      ;;
+  *mips*linux*)
+      AC_CHECK_SIZEOF(unsigned char, 1)
+      AC_CHECK_SIZEOF(int, 4)
+      AC_CHECK_SIZEOF(unsigned int, 4)
+      AC_CHECK_SIZEOF(long, 4)
+      AC_CHECK_SIZEOF(unsigned long, 4)
+      AC_CHECK_SIZEOF(long long, 8)
+      AC_CHECK_SIZEOF(unsigned long long, 8)
+      AC_CHECK_SIZEOF(short, 2)
+      AC_CHECK_SIZEOF(unsigned short, 2)
+      AC_CHECK_SIZEOF(float, 4)
+      AC_CHECK_SIZEOF(double, 8)
+      AC_CHECK_SIZEOF(long double, 8)
+      ;;
+  *powerpc*linux*)
+      AC_CHECK_SIZEOF(unsigned char, 1)
+      AC_CHECK_SIZEOF(int, 4)
+      AC_CHECK_SIZEOF(unsigned int, 4)
+      AC_CHECK_SIZEOF(long, 4)
+      AC_CHECK_SIZEOF(unsigned long, 4)
+      AC_CHECK_SIZEOF(long long, 8)
+      AC_CHECK_SIZEOF(unsigned long long, 8)
+      AC_CHECK_SIZEOF(short, 2)
+      AC_CHECK_SIZEOF(unsigned short, 2)
+      AC_CHECK_SIZEOF(float, 4)
+      AC_CHECK_SIZEOF(double, 8)
+      AC_CHECK_SIZEOF(long double, 8)
+      ;;
+  *)
+      echo "ERROR:"
+      echo "ERROR:"
+      echo "ERROR: You are trying to configure MICO for cross-compiling"
+      echo "ERROR: to the target which is not supported."
+      echo "ERROR:"
+      echo "ERROR:"
+      exit 1
+      ;;
+  esac
+else
+  AC_CHECK_SIZEOF(unsigned char, 1)
+  AC_CHECK_SIZEOF(int, 4)
+  AC_CHECK_SIZEOF(unsigned int, 4)
+  AC_CHECK_SIZEOF(long, 4)
+  AC_CHECK_SIZEOF(unsigned long, 4)
+  AC_CHECK_SIZEOF(long long, 8)
+  AC_CHECK_SIZEOF(unsigned long long, 8)
+  AC_CHECK_SIZEOF(short, 2)
+  AC_CHECK_SIZEOF(unsigned short, 2)
+  AC_CHECK_SIZEOF(float, 4)
+  AC_CHECK_SIZEOF(double, 8)
+  AC_CHECK_SIZEOF(long double, 12)
+fi
+
+#
+# byteorder
+#
+
+AC_C_BIGENDIAN
+
+case $ac_cv_c_bigendian in
+yes)
+  AC_DEFINE(HAVE_BYTEORDER_BE)
+  ;;
+no)
+  AC_DEFINE(HAVE_BYTEORDER_LE)
+  ;;
+unknown|*)
+  AC_DEFINE(HAVE_BYTEORDER_BE)
+  ;;
+esac
+
+
+#
+# floating point characteristics
+#
+
+AC_MSG_CHECKING([for floating point type])
+AC_TRY_RUN([
+int main ()
+{
+  float f;
+
+  f = 0;
+  if (*(int *)&f != 0)
+    return 1;
+
+  f = 1000.5;
+  if (*(unsigned int *)&f != 0x447a2000)
+    return 1;
+
+  f = -1000.5;
+  if (*(unsigned int *)&f != 0xc47a2000)
+    return 1;
+
+  return 0;
+}], IEEEFP=ok, IEEEFP=broken, IEEEFP=cross)
+
+
+case $IEEEFP in
+ok)
+    AC_MSG_RESULT(IEEE)
+    AC_DEFINE(HAVE_IEEE_FP)
+    ;;
+cross)
+    AC_MSG_RESULT([cross-compiling, assuming IEEE])
+    AC_DEFINE(HAVE_IEEE_FP)
+    ;;
+*|broken)
+    AC_MSG_RESULT([non IEEE])
+    ;;
+esac
+
+
+#
+# prototypes
+#
+
+AC_MSG_CHECKING([for gethostname prototype])
+gethostname_pt=no
+AC_EGREP_HEADER(gethostname, unistd.h, gethostname_pt=yes)
+AC_EGREP_HEADER(gethostname, sys/socket.h, gethostname_pt=yes)
+AC_EGREP_HEADER(gethostname, winsock.h, gethostname_pt=yes)
+if test $gethostname_pt = yes; then
+  AC_DEFINE(HAVE_GETHOSTNAME_PROTO)
+fi
+AC_MSG_RESULT($gethostname_pt)
+
+
+AC_MSG_CHECKING([for finite prototype])
+finite_pt=no
+AC_EGREP_HEADER(finite, math.h, finite_pt=yes)
+if test $finite_pt = yes; then
+  AC_DEFINE(HAVE_FINITE_PROTO)
+fi
+AC_MSG_RESULT($finite_pt)
+
+
+AC_MSG_CHECKING([for strerror prototype])
+strerror_pt=no
+AC_EGREP_HEADER(strerror, string.h, strerror_pt=yes)
+if test $strerror_pt = yes; then
+  AC_DEFINE(HAVE_STRERROR_PROTO)
+fi
+AC_MSG_RESULT($strerror_pt)
+
+
+AC_MSG_CHECKING([for ftime prototype])
+ftime_pt=no
+# solaris 2.5.1 mentions `ftime' it the header but doesnt have a prototype ...
+AC_EGREP_HEADER(ftime, sys/timeb.h, ftime_pt=yes)
+if test $ftime_pt = yes; then
+  AC_DEFINE(HAVE_FTIME_PROTO)
+fi
+AC_MSG_RESULT($ftime_pt)
+
+#
+# C++ features
+#
+
+# bool
+
+AC_CHECK_BOOL
+
+# typename
+
+AC_TYPENAME
+
+# guiding delcarations
+
+AC_GUIDING_DECLS
+
+# namespaces
+
+AC_NAMESPACE
+
+if test "x$HAVE_NAMESPACE" != "xyes" ; then
+  AC_MSG_ERROR(sorry, namespace support is mandatory)
+fi
+
+# const overload
+
+AC_CONST_OVERLOAD
+
+# explicit method override
+
+AC_EXPLICIT_METHOD_OVERRIDE
+
+# whether compiler fails to generate working ctor, dtor etc for structs
+# with template members
+
+AC_EXPLICIT_STRUCT_OPS
+
+# overloaded typedefs
+
+AC_TYPEDEF_OVERLOAD
+
+# dynamic casting
+AC_CXX_DYNAMIC_CAST
+
+# exception handling flags
+
+AC_MSG_CHECKING(for exception handling flags)
+
+if test X"$CONF_EXCEPT_FLAGS" != X; then
+  AC_MSG_RESULT($CONF_EXCEPT_FLAGS)
+else
+  AC_MSG_RESULT(none)
+fi
+
+# exception handling
+
+AC_SUBST(EHFLAGS)
+AC_SUBST(EHOPTFLAGS)
+AC_SUBST(NOEHFLAGS)
+AC_SUBST(HAVE_EXCEPTIONS)
+HAVE_EXCEPTIONS=no
+
+if test X"$use_except" = Xyes; then
+    SAVE_CXXFLAGS=$CXXFLAGS
+    CXXFLAGS="$CXXFLAGS $CONF_EXCEPT_FLAGS"
+
+    AC_MSG_CHECKING(for exception handling)
+    AC_TRY_RUN([
+class Ex {};
+
+int main ()
+{
+  try {
+    throw Ex();
+    return 1;
+  } catch (Ex &ex) {
+    return 0;
+  } catch (...) {
+    return 1;
+  }
+}], EXCEPT=ok, EXCEPT=broken, EXCEPT=cross)
+
+    case $EXCEPT in
+    ok)
+	AC_MSG_RESULT(ok)
+	AC_DEFINE(HAVE_EXCEPTS)
+	HAVE_EXCEPTIONS=yes
+	EHFLAGS=$CONF_EXCEPT_FLAGS
+	EHOPTFLAGS=$CONF_EXCEPT_OPT_FLAGS
+	NOEHFLAGS=$CONF_NO_EXCEPT_FLAGS
+	;;
+    cross)
+	AC_MSG_RESULT([cross-compiling, assuming working exceptions])
+	AC_DEFINE(HAVE_EXCEPTS)
+	HAVE_EXCEPTIONS=yes
+	EHFLAGS=$CONF_EXCEPT_FLAGS
+	EHOPTFLAGS=$CONF_EXCEPT_OPT_FLAGS
+	NOEHFLAGS=$CONF_NO_EXCEPT_FLAGS
+	;;
+    *|broken)
+	AC_MSG_RESULT([broken, exception support disabled])
+	EHFLAGS=$CONF_NO_EXCEPT_FLAGS
+	EHOPTFLAGS=$CONF_NO_EXCEPT_FLAGS
+	NOEHFLAGS=$CONF_NO_EXCEPT_FLAGS
+	;;
+    esac
+
+    CXXFLAGS=$SAVE_CXXFLAGS
+fi
+
+# standard exception handling
+
+AC_SUBST(HAVE_STD_EH)
+HAVE_STD_EH=no
+
+if test X"$HAVE_EXCEPTIONS" = Xyes && test X"$use_std_eh" = Xyes; then
+    SAVE_CXXFLAGS=$CXXFLAGS
+    CXXFLAGS="$CXXFLAGS $EHFLAGS"
+
+    AC_MSG_CHECKING(for standard exception handling)
+    AC_TRY_RUN([
+class Bex { public: virtual ~Bex () {} };
+
+class Dex: public Bex {};
+
+static void f () { throw Dex(); }
+
+int main ()
+{
+  try {
+    f();
+    return 1;
+  } catch (const Bex &) {
+    return 0;
+  } catch (...) {
+    return 1;
+  }
+}], STDEH=ok, STDEH=broken, STDEH=cross)
+
+    case $STDEH in
+    ok)
+	AC_MSG_RESULT(ok)
+	AC_DEFINE(HAVE_STD_EH)
+	HAVE_STD_EH=yes
+	;;
+    cross)
+	AC_MSG_RESULT([cross-compiling, assuming working std EH])
+	AC_DEFINE(HAVE_STD_EH)
+	HAVE_STD_EH=yes
+	;;
+    *|broken)
+	AC_MSG_RESULT([broken, std EH disabled])
+	;;
+    esac
+
+    CXXFLAGS=$SAVE_CXXFLAGS
+fi
+
+#
+# shared libraries
+#
+
+AC_SUBST(LDSOFLAGS)
+AC_SUBST(DLFLAGS)
+AC_SUBST(SOEXT)
+AC_SUBST(PICFLAGS)
+#AC_SUBST(LDSO)
+AC_SUBST(POSTLD)
+POSTLD=true
+
+SAVE_CXXFLAGS=$CXXFLAGS
+
+if test X"$use_shared" = Xyes -o X"$use_dynamic" = Xyes; then
+    #
+    # step 1) guess settings
+    #
+    AC_MSG_CHECKING(how to create shared libraries)
+    LDSO_IN=$CONF_LDSO_IN
+    PICFLAGS=$CONF_PICFLAGS
+    LDFLAGS="$LDFLAGS $CONF_LDFLAGS"
+    DLFLAGS=$CONF_DLFLAGS
+    SOEXT=$CONF_SOEXT
+    LDSOFLAGS=$CONF_LDSOFLAGS
+
+    AC_MSG_RESULT(using $LDSO_IN with $PICFLAGS)
+
+    #
+    # create mico-shld
+    #
+    sed -e "s%@LDFLAGS@%$LDFLAGS%g" \
+	-e "s%@SHARED_CC@%$CONF_SHARED_CC%g" \
+	-e "s%@DLFLAGS@%$DLFLAGS%g" \
+	-e "s%@LDSOFLAGS@%$LDSOFLAGS%g" \
+	-e "s%@PICFLAGS@%$PICFLAGS%g" \
+	-e "s%@SOEXT@%$SOEXT%g" \
+	-e "s%@LIBS@%$LIBS%g" < $srcdir/$LDSO_IN > $srcdir/admin/mico-shld
+    chmod +x $srcdir/admin/mico-shld
+
+    CXXFLAGS="$PICFLAGS $DLFLAGS $CXXFLAGS"
+    if test X"$HAVE_EXCEPTIONS" = Xyes; then
+	CXXFLAGS="$CXXFLAGS $EHFLAGS -DHAVE_EXCEPTIONS"
+    fi
+    #
+    # step 2) build a PIC object file
+    #
+    AC_MSG_CHECKING(build of PIC object file)
+    cat > conftest.$ac_ext <<EOF
+[#include "confdefs.h"
+#ifdef HAVE_ANSI_CPLUSPLUS_HEADERS
+#include <iostream>
+#else
+#include <iostream.h>
+#endif
+
+using namespace std;
+
+struct Global {
+  long i;
+  Global () { i = 0x31415927; }
+  int ok () { return i == 0x31415927; }
+};
+
+Global gbl;
+
+extern "C" int
+foo ()
+{
+  cout << flush;
+  return gbl.ok();
+}
+
+#ifdef HAVE_EXCEPTIONS
+class Ex {};
+
+void bar ()
+{
+  throw Ex();
+}
+#endif
+]
+EOF
+    if (eval $ac_compile) && test -f conftest.o; then
+        mv conftest.o shtest.o
+        rm -f conftest.*
+        AC_MSG_RESULT(ok)
+        AC_MSG_CHECKING(creation of shared lib)
+        #
+        # step 2) build shlib
+        #
+        #if (eval $LDSO libshtest 0 shtest.o) 1>&5 2>&5; then
+        if (eval $srcdir/admin/mico-shld -o libshtest shtest.o) 1>&5 2>&5; then
+	    AC_MSG_RESULT(ok)
+	else
+	    AC_MSG_RESULT([failed, shared libs/dynamic loading disabled])
+	    use_shared=no
+	    use_dynamic=no
+	fi
+    else
+        AC_MSG_RESULT([failed, shared libs/dynamic loading disabled])
+        use_shared=no
+        use_dynamic=no
+    fi
+fi
+
+if test X"$use_shared" = Xyes; then
+    #
+    # step 3) run program linked with shlib
+    #
+    AC_MSG_CHECKING(if binary linked against shlib works)
+    SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS="-L. $LDFLAGS $DLFLAGS"
+    SAVE_LIBS=$LIBS
+    LIBS="-lshtest $LIBS"
+    LD_LIBRARY_PATH="`pwd`:$LD_LIBRARY_PATH"
+    LIBPATH="`pwd`:$LIBPATH"
+    SHLIB_PATH="`pwd`:$SHLIB_PATH"
+    export LD_LIBRARY_PATH LIBPATH SHLIB_PATH
+
+    AC_TRY_RUN([
+extern "C" int foo ();
+int main ()
+{
+  return foo() ? 0 : 1;
+}], SHRUN=ok, SHRUN=failed, SHRUN=cross-compiling)
+
+    LDFLAGS=$SAVE_LDFLAGS
+    LIBS=$SAVE_LIBS
+    case $SHRUN in
+    ok)
+        AC_MSG_RESULT(ok)
+        ;;
+    cross-compiling)
+        AC_MSG_RESULT([cross-compiling, assuming working shared libraries])
+        ;;
+    *|failed)
+        AC_MSG_RESULT($SHRUN[, shared libs disabled])
+	use_shared=no
+        ;;
+    esac
+fi
+
+AC_SUBST(HAVE_SHARED)
+HAVE_SHARED=$use_shared
+
+AC_SUBST(HAVE_STATIC)
+if test X"$HAVE_SHARED" = Xyes; then
+  HAVE_STATIC=$use_static
+else
+  HAVE_STATIC=yes
+fi
+
+AC_SUBST(HAVE_SHARED_EXCEPTS)
+HAVE_SHARED_EXCEPTS=no
+
+if test X"$HAVE_SHARED" = Xyes && test X"$HAVE_EXCEPTIONS" = Xyes; then
+    AC_MSG_CHECKING(for exceptions in shared libraries)
+    SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS="-L. $LDFLAGS $DLFLAGS"
+    SAVE_LIBS=$LIBS
+    LIBS="-lshtest $LIBS"
+    LD_LIBRARY_PATH="`pwd`:$LD_LIBRARY_PATH"
+    LIBPATH="`pwd`:$LIBPATH"
+    SHLIB_PATH="`pwd`:$SHLIB_PATH"
+    export LD_LIBRARY_PATH LIBPATH SHLIB_PATH
+
+    AC_TRY_RUN([
+class Ex {};
+extern void bar ();
+int main ()
+{
+  try {
+    bar();
+  } catch (Ex &e) {
+    return 0;
+  } catch (...) {
+    return 1;
+  }
+  return 1;
+}], SHEXRUN=ok, SHEXRUN=failed, SHEXRUN=cross-compiling)
+
+    LDFLAGS=$SAVE_LDFLAGS
+    LIBS=$SAVE_LIBS
+    case $SHEXRUN in
+    ok)
+	AC_MSG_RESULT(ok)
+	HAVE_SHARED_EXCEPTS=yes
+	AC_DEFINE(HAVE_SHARED_EXCEPTS)
+        ;;
+    cross-compiling)
+        AC_MSG_RESULT([cross-compiling, assuming working exceptions in shared libraries])
+	HAVE_SHARED_EXCEPTS=yes
+	AC_DEFINE(HAVE_SHARED_EXCEPTS)
+        ;;
+    *|failed)
+        AC_MSG_RESULT($SHEXRUN[, exceptions in shared libs disabled])
+        ;;
+    esac
+fi
+
+# exception in libmico
+
+AC_SUBST(HAVE_ORB_EXCEPTS)
+HAVE_ORB_EXCEPTS=no
+if test X"$use_orb_excepts" = Xyes; then
+    HAVE_ORB_EXCEPTS=yes
+    AC_DEFINE(HAVE_ORB_EXCEPTS)
+fi
+
+CXXFLAGS=$SAVE_CXXFLAGS
+
+# dynamic loading
+
+if test X"$use_dynamic" = Xyes; then
+    AC_MSG_CHECKING(for dynamic loading)
+
+    if test X"$ac_cv_func_dlopen" = Xyes; then
+	DLTYPE='dlopen()'
+	SAVE_LDFLAGS=$LDFLAGS
+	LDFLAGS="$LDFLAGS $DLFLAGS"
+
+	AC_TRY_RUN([
+#ifdef HAVE_ANSI_CPLUSPLUS_HEADERS
+#include <iostream>
+#else
+#include <iostream.h>
+#endif
+#include <stdlib.h>
+#include <stdio.h>
+#include <dlfcn.h>
+
+#ifndef RTLD_NOW
+#define RTLD_NOW 1
+#endif
+
+using namespace std;
+
+int main ()
+{
+    cout << flush;
+    void *h = dlopen ("./libshtest.]$SOEXT[", RTLD_NOW);
+    if (!h) { puts (dlerror()); return 1; }
+    int (*foo) () = (int (*) ())dlsym (h, "foo");
+    if (!foo) { puts (dlerror()); return 1; }
+    if ((*foo) ())
+	return 0;
+
+    void (*initfn) () = (void (*) ())dlsym (h, "_GLOBAL__DI");
+    if (!initfn) { puts (dlerror()); return 1; }
+    (*initfn) ();
+    system ("touch mconf.explicit-ctors");
+
+    return (*foo) () ? 0 : 1;
+}], DLRUN=ok, DLRUN=failed, DLRUN=cross-compiling)
+
+	LDFLAGS=$SAVE_LDFLAGS
+    elif test X"$ac_cv_func_shl_load" = Xyes; then
+	DLTYPE='shl_load()'
+	SAVE_LDFLAGS=$LDFLAGS
+	LDFLAGS="$LDFLAGS $DLFLAGS"
+
+	AC_TRY_RUN([
+#ifdef HAVE_ANSI_CPLUSPLUS_HEADERS
+#include <iostream>
+#else
+#include <iostream.h>
+#endif
+#include <stdlib.h>
+#include <dl.h>
+
+int main ()
+{
+    cout << flush;
+    shl_t h = shl_load ("./libshtest.]$SOEXT[", BIND_IMMEDIATE, 0L);
+    if (!h) return 1;
+    void *val;
+    if (shl_findsym (&h, "foo", TYPE_PROCEDURE, &val) < 0 &&
+	shl_findsym (&h, "_foo", TYPE_PROCEDURE, &val) < 0)
+	return 1;
+    int (*foo) () = (int (*) ())val;
+    if ((*foo) ())
+	return 0;
+
+    if (shl_findsym (&h, "_GLOBAL__DI", TYPE_PROCEDURE, &val) < 0 &&
+	shl_findsym (&h, "__GLOBAL__DI", TYPE_PROCEDURE, &val) < 0)
+	return 1;
+
+    void (*initfn) () = (void (*) ())val;
+    (*initfn) ();
+
+    system ("touch mconf.explicit-ctors");
+    return (*foo) () ? 0 : 1;
+}], DLRUN=ok, DLRUN=failed, DLRUN=cross-compiling)
+
+	LDFLAGS=$SAVE_LDFLAGS
+    else
+	DLTYPE=
+	DLRUN=failed
+    fi
+
+    case $DLRUN in
+    failed)
+	AC_MSG_RESULT([failed, dynamic loading disabled])
+	use_dynamic=no
+	;;
+    *)
+	AC_MSG_RESULT($DLRUN[, using ]$DLTYPE[ family])
+	if test -f mconf.explicit-ctors; then
+	    AC_DEFINE(HAVE_EXPLICIT_CTORS)
+	fi
+	;;
+    esac
+    rm -f mconf.*
+fi
+
+AC_SUBST(HAVE_DYNAMIC)
+HAVE_DYNAMIC=$use_dynamic
+if test X"$HAVE_DYNAMIC" = Xyes; then
+  AC_DEFINE(HAVE_DYNAMIC)
+fi
+
+rm -f shtest* libshtest* conftest*
+
+# checking for thread-safe OpenSSL when it is needed
+SSLMTRUN=""
+
+if test X"$ac_cv_lib_ssl_open" = Xyes -a X"$ac_cv_lib_crypto_open" = Xyes -a X"$ac_cv_header_openssl_ssl_h" = Xyes -a X"$use_threads" = Xyes; then
+  AC_MSG_CHECKING(for thread-safe openssl)
+  AC_TRY_RUN([
+int
+main()
+{
+#define OPENSSL_THREAD_DEFINES
+#undef THREADS
+#undef OPENSSL_THREADS
+#include <openssl/opensslconf.h>
+#if !defined(THREADS) && !defined(OPENSSL_THREADS)
+//error You are trying to build multi-threaded MICO with single-threaded OpenSSL!
+return 1;
+#endif // THREADS
+return 0;
+}
+  ], SSLMTRUN=ok, SSLMTRUN=failed, SSLMTRUN=cross-compiling)
+
+  case $SSLMTRUN in
+  failed)
+	AC_MSG_RESULT([failed, security framework disabled])
+	;;
+  *)
+	AC_MSG_RESULT($SSLMTRUN)
+	;;
+  esac
+fi
+
+if test X"$use_threads" = Xyes -a X"$service_disabled" = Xyes; then
+  echo ""
+  echo ""
+  echo "\
+Note that services streams, relship, externalize, life-cycle and
+trader and CCM implementation are not prepared for running on top of
+multi-threaded MICO. You can use them safely on single-threaded
+version of MICO or on MICO/MT servers which use at most one thread for
+request processing (param -ORBRequestLimit 1)"
+  echo ""
+fi
+
+if test X"$GCCMT" = Xunsafe -a X"$use_threads" = Xyes; then
+  #
+  # Unsupported compiler for MT build
+  #
+  echo "WARNING:"
+  echo "WARNING:"
+  echo "WARNING: You are using GCC 2.95.x compiler for compiling MICO. Please note that"
+  echo "WARNING: this compiler provides not fully thread-safe libstdc++ implementation"
+  echo "WARNING: and so you will likely see some MICO application crashes. We highly"
+  echo "WARNING: recommend you to use at least GCC 3.1.x/3.2.x for compiling"
+  echo "WARNING: multi-threaded MICO."
+  echo "WARNING:"
+  echo "WARNING:"
+fi
+
+if test X"$use_wireless" = Xyes -a ! X"$use_naming" = Xyes ; then
+  echo ""
+  echo "Wireless CORBA applications require the use of Naming Service"
+  echo "Naming Service turned on"
+  echo ""
+  use_naming=yes
+fi
+
+if test \( X"$use_wireless_access" = Xyes -o X"$use_wireless_terminal" = Xyes \) -a ! X"$use_events" = Xyes ; then
+  echo ""
+  echo "Wireless CORBA Bridges require the use of Event Service"
+  echo "Event Service turned on"
+  echo ""
+  use_events=yes
+fi
+
+AC_SUBST(USE_CCM)
+USE_CCM=$use_ccm
+if test "x$USE_CCM" = "xyes" ; then
+  AC_DEFINE(USE_CCM)
+fi
+
+AC_SUBST(USE_NAMING)
+USE_NAMING=$use_naming
+
+AC_SUBST(USE_CSL2)
+USE_CSL2=$use_csl2
+
+# ssl/csiv2 setup
+AC_SUBST(HAVE_SSL)
+HAVE_SSL=no
+if test X"$ac_cv_lib_ssl_open" = Xyes -a X"$ac_cv_lib_crypto_open" = Xyes -a X"$ac_cv_header_openssl_ssl_h" = Xyes -a X"$SSLMTRUN" != Xfailed;
+then
+  HAVE_SSL=yes
+  AC_DEFINE(HAVE_SSL)
+fi
+
+if test X"$use_csiv2" != Xno -a X"$HAVE_SSL" != Xno; then
+  AC_DEFINE(USE_CSIV2)
+else
+  # we need to disable CSIv2
+  use_csiv2=no
+fi
+
+AC_SUBST(USE_CSIV2)
+USE_CSIV2=$use_csiv2
+
+AC_SUBST(USE_EVENTS)
+USE_EVENTS=$use_events
+
+AC_SUBST(USE_STREAMS)
+USE_STREAMS=$use_streams
+
+AC_SUBST(USE_RELSHIP)
+USE_RELSHIP=$use_relship
+
+AC_SUBST(USE_PROPERTY)
+USE_PROPERTY=$use_property
+
+AC_SUBST(USE_TRADER)
+USE_TRADER=$use_trader
+
+AC_SUBST(USE_TIME)
+USE_TIME=$use_time
+
+AC_SUBST(USE_LIFE)
+USE_LIFE=$use_life
+
+AC_SUBST(USE_EXTERN)
+USE_EXTERN=$use_extern
+
+AC_SUBST(USE_WIRELESS)
+USE_WIRELESS=$use_wireless
+
+AC_SUBST(USE_WIRELESS_HOME)
+USE_WIRELESS_HOME=$use_wireless_home
+
+AC_SUBST(USE_WIRELESS_TERMINAL)
+USE_WIRELESS_TERMINAL=$use_wireless_terminal
+
+AC_SUBST(USE_WIRELESS_ACCESS)
+USE_WIRELESS_ACCESS=$use_wireless_access
+
+AC_SUBST(IDL)
+AC_SUBST(CCMGEN)
+AC_SUBST(MKDEPEND)
+AC_SUBST(LIBPATH)
+AC_SUBST(CPPPATH)
+if test X"$MICODIR" = X""; then
+  IDL="\$(SRCDIR)/idl/idl"
+  IDLGEN="\$(SRCDIR)/idl/idl"
+  CCMGEN="\$(SRCDIR)/ccm/mico-ccm"
+  MKDEPEND="\$(SRCDIR)/admin/mkdepend"
+  LIBPATH="\$(SRCDIR)/libs"
+  CPPPATH="\$(SRCDIR)/cpp"
+else
+  IDL=$MICODIR/bin/idl
+  IDLGEN=$MICODIR/bin/idl
+  CCMGEN=$MICODIR/bin/mico-ccm
+  MKDEPEND=$MICODIR/bin/mkdepend
+  LIBPATH=$MICODIR/lib
+  CPPPATH=$MICODIR/bin
+fi
+
+AC_SUBST(MICO_VERSION)
+MICO_VERSION=`cat $srcdir/VERSION`
+
+#
+# create output
+#
+
+AC_CONFIG_HEADER(include/mico/config.h include/mico/config.idl)
+
+AC_OUTPUT(MakeVars demo/MakeVars.install admin/mico-c++ admin/mico-shc++
+ admin/mico-ld admin/mico-ar admin/mico-setup.sh admin/mico-setup.csh
+ admin/mico-config)
+
+chmod +x $srcdir/admin/mico-c++ $srcdir/admin/mico-shc++ \
+ $srcdir/admin/mico-ld $srcdir/admin/mico-ar $srcdir/admin/mico-config
+

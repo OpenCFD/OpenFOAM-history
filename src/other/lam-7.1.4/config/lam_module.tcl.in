@@ -1,0 +1,36 @@
+#%Module -*- tcl -*-
+#
+# Copyright (c) 2001-2003 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+# 
+# $HEADER$
+# 
+# $Id: lam_module.tcl.in,v 1.7 2003/12/31 22:07:55 jsquyres Exp $
+#
+# LAM/MPI modulefile for OSCAR clusters
+#
+
+proc ModulesHelp { } {
+  puts stderr "\tThis module adds LAM/MPI to the PATH and MANPATH."
+  puts stderr "\tHence, the mpicc, mpiCC, mpif77, and mpirun commands"
+  puts stderr "\tthat you run will be from LAM/MPI."
+}
+
+module-whatis "Sets up the LAM/MPI environment for an OSCAR cluster."
+
+# Don't let any other MPI module be loaded while this one is loaded
+
+conflict mpi
+
+# It's real simple.  Append to the PATH and to the MANPATH.
+
+append-path PATH @LAM_BINDIR@
+append-path MANPATH @LAM_MANDIR@

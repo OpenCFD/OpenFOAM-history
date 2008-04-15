@@ -1,0 +1,71 @@
+#
+#  MICO --- an Open Source CORBA implementation
+#  Copyright (c) 1997-2001 by The Mico Team
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  For more information, visit the MICO Home Page at
+#  http://www.mico.org/
+#
+
+RELATIVE=..
+!include ..\MakeVars.win32
+all: lib prg
+
+#will create the lib only when we have CCM
+CXXFLAGS = $(CXXFLAGS) /I. /I..\include /I..\include\windows /I..\idl
+
+!ifdef USE_CCM
+SRCS = $(SRCS) ir3_skel.cc ir3.cc
+!endif
+
+OBJS = $(SRCS:.cc=.obj)
+
+prg: lib ird.exe
+
+!ifdef USE_CCM
+lib: ir$(VERSION).lib
+install: lib prg
+	$(COPY) ird.exe ..\win32-bin
+	$(COPY) ir$(VERSION).lib ..\win32-bin\lib
+	
+ird.exe: ir$(VERSION).lib $(OBJS) main.obj
+	$(LINK) $(LINKFLAGS) main.obj ir$(VERSION).lib /out:ird.exe   \
+	..\orb\mico$(VERSION).lib ole32.lib ..\idl\idl$(VERSION).lib
+
+lib: ir$(VERSION).lib
+
+ir$(VERSION).lib :  $(OBJS)
+	lib.exe $(OBJS)  /out:ir$(VERSION).lib 
+	copy ir$(VERSION).lib ..\win32-bin\lib
+!else
+
+lib:
+#no lib here
+ird.exe: $(OBJS) main.obj
+	$(LINK) $(LINKFLAGS) main.obj /out:ird.exe   \
+	..\orb\mico$(VERSION).lib ole32.lib ..\idl\idl$(VERSION).lib
+
+!endif
+	
+install: prg
+	$(COPY) ird.exe ..\win32-bin
+!ifdef USE_CCM
+	$(COPY) ir$(VERSION).lib ..\win32-bin\lib
+!endif
+
+	
+clean:
+	-$(DELETE)

@@ -1,0 +1,45 @@
+TODO list for the Wireless CORBA implementation
+
+
+* Fix incompatibility with multi-threading
+
+  Last time it was tried, enabling thread use causes the Wireless
+  CORBA bridges to crash, possibly when they receive an invocation to
+  the local bridge object.  This might be caused by the bridge using
+  its own IIOPServer object.  Fixing this issue should be done as soon
+  as possible.
+
+* Modernize the GTP implementation
+
+  The GTP implementation was originally copied from the GIOP
+  implementation.  Now the GIOP implementation has seen a lot of
+  change and it would make sense to keep the GTP implementation in
+  sync with the GIOP one, since that would, e.g., make it more proof
+  against possible future changes in MICO.
+
+  Since the two protocols are pretty much the same in terms of their
+  requirements and design, it might be best to separate all common
+  code into an IOPConn class that is then used by the individual
+  protocol implementations.
+
+* Add multi-threading capability to bridges where sensible
+
+  The Wireless CORBA bridges have been designed so that
+  multi-threading in them helps very little, as there is no
+  possibility for message processing to be delayed indefinitely.
+
+  However, it might be sensible to have different terminal bridges
+  served by different threads at the access bridge.  Also, completing
+  some Wireless CORBA procedures requires networking, and it might be
+  useful if things that were not affected could proceed regardless.
+
+* Make sure the Bluetooth protocol works
+
+  The LTP protocol over Bluetooth has been tested in the MIWCO-LTP
+  implementation, which was based on MICO 2.3.6, but to my knowledge,
+  no one has tested the new implementation properly.
+
+  Also, much of the protocol implementation is copied from existing
+  transport implementations.  Since these have changed drastically, it
+  would be useful to re-copy the implementation.  This might also help
+  it to work better.

@@ -1,0 +1,623 @@
+/* share/include/lam_config.h.in.  Generated from configure.in by autoheader.  */
+
+/* -*- c -*-
+ *
+ * Copyright (c) 2001-2002 The Trustees of Indiana University.  
+ *                         All rights reserved.
+ * Copyright (c) 1998-2001 University of Notre Dame. 
+ *                         All rights reserved.
+ * Copyright (c) 1994-1998 The Ohio State University.  
+ *                         All rights reserved.
+ * 
+ * This file is part of the LAM/MPI software package.  For license
+ * information, see the LICENSE file in the top level directory of the
+ * LAM/MPI source distribution.
+ *
+ * Function: - OS, CPU and compiler dependent configuration 
+ */
+
+#ifndef _LAM_CONFIG_H
+#define _LAM_CONFIG_H
+
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <grp.h> header file. */
+#undef HAVE_GRP_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Whether we need -laio or not */
+#undef HAVE_LIBAIO
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <netinet/tcp.h> header file. */
+#undef HAVE_NETINET_TCP_H
+
+/* Define to 1 if you have the <pty.h> header file. */
+#undef HAVE_PTY_H
+
+/* Define to 1 if you have the <rpc/types.h> header file. */
+#undef HAVE_RPC_TYPES_H
+
+/* Define to 1 if you have the <rpc/xdr.h> header file. */
+#undef HAVE_RPC_XDR_H
+
+/* Define to 1 if you have the <sched.h> header file. */
+#undef HAVE_SCHED_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <stropts.h> header file. */
+#undef HAVE_STROPTS_H
+
+/* Define to 1 if you have the `syscall' function. */
+#undef HAVE_SYSCALL
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <util.h> header file. */
+#undef HAVE_UTIL_H
+
+/* Alignment of type char */
+#undef LAM_ALIGNMENT_CHAR
+
+/* Alignment of type bool */
+#undef LAM_ALIGNMENT_CXX_BOOL
+
+/* Alignment of type int */
+#undef LAM_ALIGNMENT_CXX_INT
+
+/* Alignment of type double */
+#undef LAM_ALIGNMENT_DOUBLE
+
+/* Alignment of type float */
+#undef LAM_ALIGNMENT_FLOAT
+
+/* Alignment of fortran COMPLEX */
+#undef LAM_ALIGNMENT_FORTRAN_COMPLEX
+
+/* Alignment of fortran DOUBLE COMPLEX */
+#undef LAM_ALIGNMENT_FORTRAN_DBLCOMPLEX
+
+/* Alignment of fortran DOUBLE PRECISION */
+#undef LAM_ALIGNMENT_FORTRAN_DBLPREC
+
+/* Alignment of fortran INTEGER */
+#undef LAM_ALIGNMENT_FORTRAN_INT
+
+/* Alignment of fortran INTEGER*1 */
+#undef LAM_ALIGNMENT_FORTRAN_INTEGER1
+
+/* Alignment of fortran INTEGER*2 */
+#undef LAM_ALIGNMENT_FORTRAN_INTEGER2
+
+/* Alignment of fortran INTEGER*4 */
+#undef LAM_ALIGNMENT_FORTRAN_INTEGER4
+
+/* Alignment of fortran INTEGER*8 */
+#undef LAM_ALIGNMENT_FORTRAN_INTEGER8
+
+/* Alignment of fortran REAL */
+#undef LAM_ALIGNMENT_FORTRAN_REAL
+
+/* Alignment of fortran REAL*16 */
+#undef LAM_ALIGNMENT_FORTRAN_REAL16
+
+/* Alignment of fortran REAL*4 */
+#undef LAM_ALIGNMENT_FORTRAN_REAL4
+
+/* Alignment of fortran REAL*8 */
+#undef LAM_ALIGNMENT_FORTRAN_REAL8
+
+/* Alignment of type int */
+#undef LAM_ALIGNMENT_INT
+
+/* Alignment of type long */
+#undef LAM_ALIGNMENT_LONG
+
+/* Alignment of type long double */
+#undef LAM_ALIGNMENT_LONG_DOUBLE
+
+/* Alignment of type long long */
+#undef LAM_ALIGNMENT_LONG_LONG
+
+/* Alignment of type short */
+#undef LAM_ALIGNMENT_SHORT
+
+/* Alignment of type void * */
+#undef LAM_ALIGNMENT_VOID_P
+
+/* Alignment of type wchar_t */
+#undef LAM_ALIGNMENT_WCHAR
+
+/* Alpha LAM version */
+#undef LAM_ALPHA_VERSION
+
+/* LAM architecture string */
+#undef LAM_ARCH
+
+/* Beta LAM version */
+#undef LAM_BETA_VERSION
+
+/* LAM underlying C compiler */
+#undef LAM_CC
+
+/* Whether we need to force prototypes in header files or not */
+#undef LAM_CONFIG_FORCE_PROTOS
+
+/* LAM underlying C++ compiler */
+#undef LAM_CXX
+
+/* How to represent a CXX bool in the C library */
+#undef LAM_CXX_BOOL_TYPE
+
+/* Whether we have nothrow::new or not */
+#undef LAM_CXX_NOTHROW_NEW
+
+/* Whether nothrow::new requires an argument or not */
+#undef LAM_CXX_NOTHROW_NEW_ARG
+
+/* LAM installation prefix -- solely for dependency analysis */
+#undef LAM_DEPENDENCY_PREFIX
+
+/* Whether to zero out memory before using it (for debugging) */
+#undef LAM_DISINFECT
+
+/* LAM underlying fortran compiler */
+#undef LAM_F77
+
+/* FD_SETSIZE for LAM applications */
+#undef LAM_FD_SETSIZE
+
+/* LAM fortran library path */
+#undef LAM_FLIBPATH
+
+/* Whether fortran symbols are all caps or not */
+#undef LAM_FORTRANCAPS
+
+/* Whether fortran symbols have a trailing double underscore or not */
+#undef LAM_FORTRANDOUBLEUNDERSCORE
+
+/* Whether fortran symbols have no trailing underscore or not */
+#undef LAM_FORTRANNOUNDERSCORE
+
+/* Whether fortran symbols have a trailing underscore or not */
+#undef LAM_FORTRANUNDERSCORE
+
+/* Equivalent C type for fortran integer*1 */
+#undef LAM_FORTRAN_C_TYPE_INTEGER1
+
+/* Equivalent C type for fortran integer*2 */
+#undef LAM_FORTRAN_C_TYPE_INTEGER2
+
+/* Equivalent C type for fortran integer*4 */
+#undef LAM_FORTRAN_C_TYPE_INTEGER4
+
+/* Equivalent C type for fortran integer*8 */
+#undef LAM_FORTRAN_C_TYPE_INTEGER8
+
+/* Equivalent C type for fortran real*16 */
+#undef LAM_FORTRAN_C_TYPE_REAL16
+
+/* Equivalent C type for fortran real*4 */
+#undef LAM_FORTRAN_C_TYPE_REAL4
+
+/* Equivalent C type for fortran real*8 */
+#undef LAM_FORTRAN_C_TYPE_REAL8
+
+/* Whether we have LAM_HAVE_ATEXIT or not */
+#undef LAM_HAVE_ATEXIT
+
+/* Whether we have LAM_HAVE_ATOLL or not */
+#undef LAM_HAVE_ATOLL
+
+/* Whether we have bproc support or not */
+#undef LAM_HAVE_BPROC
+
+/* Whether we have orignal bproc api or are missing gethost functions */
+#undef LAM_HAVE_BPROC3_API
+
+/* Whether we have BSD 4.3-style file descriptor passing or not */
+#undef LAM_HAVE_BSD43_FD_PASSING
+
+/* Whether we have BSD pseudo-ttys or not */
+#undef LAM_HAVE_BSD_PTYS
+
+/* Whether or not we have compiled with C++ exceptions support */
+#undef LAM_HAVE_CPP_EXCEPTION_SUPPORT
+
+/* Whether we have a declaration for sbrk() or not */
+#undef LAM_HAVE_DECL_SBRK
+
+/* Do we have some type of file descriptor passing support */
+#undef LAM_HAVE_FD_PASSING
+
+/* Whether we need the stupid FIONBIO #define is in <sys/ioctl.h> */
+#undef LAM_HAVE_FIONBIO
+
+/* Whether we have LAM_HAVE_GETCWD or not */
+#undef LAM_HAVE_GETCWD
+
+/* Whether we have LAM_HAVE_OPENPTY or not */
+#undef LAM_HAVE_OPENPTY
+
+/* Whether we have BSD4.4 FD passing using the POSIX.1g API */
+#undef LAM_HAVE_POSIX_1G_FD_PASSING
+
+/* Do we have POSIX threads */
+#undef LAM_HAVE_POSIX_THREADS
+
+/* Whether we have a prototype for the $func() function or not */
+#undef LAM_HAVE_PROTO_gethostname
+
+/* Whether we have a prototype for the $func() function or not */
+#undef LAM_HAVE_PROTO_snprintf
+
+/* Whether we have LAM_HAVE_PTHREAD_ATFORK or not */
+#undef LAM_HAVE_PTHREAD_ATFORK
+
+/* Whether we have BSD4.4 FD passing using the RFC2292 API */
+#undef LAM_HAVE_RFC2292_FD_PASSING
+
+/* Whether we have the sa_len struct in <sys/socket.h> or not */
+#undef LAM_HAVE_SA_LEN
+
+/* Whether we have SA_RESTART in <signal.h> or not */
+#undef LAM_HAVE_SA_RESTART
+
+/* Whether we have LAM_HAVE_SCHED_YIELD or not */
+#undef LAM_HAVE_SCHED_YIELD
+
+/* Whether we have LAM_HAVE_SNPRINTF or not */
+#undef LAM_HAVE_SNPRINTF
+
+/* Do we have native Solaris threads */
+#undef LAM_HAVE_SOLARIS_THREADS
+
+/* Whether we have LAM_HAVE_STRTOLL or not */
+#undef LAM_HAVE_STRTOLL
+
+/* Whether we have SVR4-stle file descriptor passing or not */
+#undef LAM_HAVE_SVR4_FD_PASSING
+
+/* Whether we have LAM_HAVE_SYSCONF or not */
+#undef LAM_HAVE_SYSCONF
+
+/* Whether we have LAM_HAVE_SYSCTL or not */
+#undef LAM_HAVE_SYSCTL
+
+/* Whether we have SYSV pseudo-ttys or not */
+#undef LAM_HAVE_SYSV_PTYS
+
+/* Whether we have SYSV Semaphores support or not */
+#undef LAM_HAVE_SYSV_SEMAPHORES
+
+/* Whether we have SYSV Shared memory support or not */
+#undef LAM_HAVE_SYSV_SHMEM
+
+/* Whether we built/installed the TotalView queue debugging DLL or not */
+#undef LAM_HAVE_TV_QUEUE_DLL
+
+/* Whether we have __va_copy or not */
+#undef LAM_HAVE_UNDERSCORE_VA_COPY
+
+/* Whether we have union semun in <sys/sem.h> or not */
+#undef LAM_HAVE_UNION_SEMUN
+
+/* Whether we have va_copy or not */
+#undef LAM_HAVE_VA_COPY
+
+/* Whether we have vscanf or not */
+#undef LAM_HAVE_VSCANF
+
+/* Whether we have LAM_HAVE_YIELD or not */
+#undef LAM_HAVE_YIELD
+
+/* Whether we have float4 or not */
+#undef LAM_HAVE_float4
+
+/* Whether we have float8 or not */
+#undef LAM_HAVE_float8
+
+/* Whether we have int2 or not */
+#undef LAM_HAVE_int2
+
+/* Whether we have int4 or not */
+#undef LAM_HAVE_int4
+
+/* Whether we have int8 or not */
+#undef LAM_HAVE_int8
+
+/* Whether we have uint2 or not */
+#undef LAM_HAVE_uint2
+
+/* Whether we have uint4 or not */
+#undef LAM_HAVE_uint4
+
+/* Whether we have uint8 or not */
+#undef LAM_HAVE_uint8
+
+/* Location of the IMPI server */
+#undef LAM_IMPI_SERVER
+
+/* Major LAM version */
+#undef LAM_MAJOR_VERSION
+
+/* Minor LAM version */
+#undef LAM_MINOR_VERSION
+
+/* Whether we need <sys/select.h> or not */
+#undef LAM_NEED_SYS_SELECT_H
+
+/* Type of argument that recvfrom() requires */
+#undef LAM_RECVFROM_LEN_T
+
+/* Release LAM version */
+#undef LAM_RELEASE_VERSION
+
+/* What to use for the rm command */
+#undef LAM_RM
+
+/* What signal to use for LAMs out of band signaling */
+#undef LAM_SIGUSR
+
+/* Size of C type char */
+#undef LAM_SIZEOF_CHAR
+
+/* Size of C type bool */
+#undef LAM_SIZEOF_CXX_BOOL
+
+/* Size of C type int */
+#undef LAM_SIZEOF_CXX_INT
+
+/* Size of C type double */
+#undef LAM_SIZEOF_DOUBLE
+
+/* Size of C type float */
+#undef LAM_SIZEOF_FLOAT
+
+/* Size of fortran COMPLEX */
+#undef LAM_SIZEOF_FORTRAN_COMPLEX
+
+/* Size of fortran DOUBLE COMPLEX */
+#undef LAM_SIZEOF_FORTRAN_DBLCOMPLEX
+
+/* Size of fortran DOUBLE PRECISION */
+#undef LAM_SIZEOF_FORTRAN_DBLPREC
+
+/* Size of fortran INTEGER */
+#undef LAM_SIZEOF_FORTRAN_INT
+
+/* Size of fortran integer*1 */
+#undef LAM_SIZEOF_FORTRAN_INTEGER1
+
+/* Size of fortran integer*2 */
+#undef LAM_SIZEOF_FORTRAN_INTEGER2
+
+/* Size of fortran integer*4 */
+#undef LAM_SIZEOF_FORTRAN_INTEGER4
+
+/* Size of fortran integer*8 */
+#undef LAM_SIZEOF_FORTRAN_INTEGER8
+
+/* Size of fortran REAL */
+#undef LAM_SIZEOF_FORTRAN_REAL
+
+/* Size of fortran real*16 */
+#undef LAM_SIZEOF_FORTRAN_REAL16
+
+/* Size of fortran real*4 */
+#undef LAM_SIZEOF_FORTRAN_REAL4
+
+/* Size of fortran real*8 */
+#undef LAM_SIZEOF_FORTRAN_REAL8
+
+/* Size of C type int */
+#undef LAM_SIZEOF_INT
+
+/* Size of C type long */
+#undef LAM_SIZEOF_LONG
+
+/* Size of C type long double */
+#undef LAM_SIZEOF_LONG_DOUBLE
+
+/* Size of C type long long */
+#undef LAM_SIZEOF_LONG_LONG
+
+/* Size of C type short */
+#undef LAM_SIZEOF_SHORT
+
+/* Size of C type void * */
+#undef LAM_SIZEOF_VOID_P
+
+/* Size of C type wchar_t */
+#undef LAM_SIZEOF_WCHAR
+
+/* Type of argument that getsockopt() requires */
+#undef LAM_SOCK_OPTLEN_T
+
+/* Whether members of the stat structure are int4 or not */
+#undef LAM_STAT_MEMBERS_INT4
+
+/* SVN LAM version */
+#undef LAM_SVN_VERSION
+
+/* Do threads have different pids (pthreads on linux) */
+#undef LAM_THREADS_HAVE_DIFFERENT_PIDS
+
+/* LAM lamd boot timeout */
+#undef LAM_TO_BOOT
+
+/* LAM lamd dlo ACK time */
+#undef LAM_TO_DLO_ACK
+
+/* LAM lamd dlo idle time */
+#undef LAM_TO_DLO_IDLE
+
+/* Whether the 4th argument to semctl (when the val argument) should be passed
+   directly (Darwin 64bit) or through the union (everywhere else) */
+#undef LAM_UNION_SEMUN_VAL_DIRECT
+
+/* Whether to use select() or yield() */
+#undef LAM_USE_SELECT_YIELD
+
+/* Whether we can get munmap through syscall() or not */
+#undef LAM_USE_SYSCALL
+
+/* Overall LAM version number */
+#undef LAM_VERSION
+
+/* Whether the base boot SSI startup protocol should allow promiscuous
+   connections or not. */
+#undef LAM_WANT_BOOT_PROMISC_CONNECTIONS
+
+/* Whether we can MPI::File C++ bindings support or not */
+#undef LAM_WANT_CPPFILE
+
+/* Do we want darwin7malloc support */
+#undef LAM_WANT_DARWIN7MALLOC
+
+/* LAM debug flag */
+#undef LAM_WANT_DEBUG
+
+/* Do we want external malloc support */
+#undef LAM_WANT_EXTERNALMALLOC
+
+/* Whether we want Fortran or not */
+#undef LAM_WANT_FORTRAN
+
+/* Whether we want IMPI support or not */
+#undef LAM_WANT_IMPI
+
+/* Whether mpirun should run the IMPI server or not */
+#undef LAM_WANT_IMPI_SERVER
+
+/* Whether to include support for libltdl or not */
+#undef LAM_WANT_LIBLTDL
+
+/* Whether we can MPI 2 C++ bindings support or not */
+#undef LAM_WANT_MPI2CPP
+
+/* Whether to include stubs for MPI functions that are not yet implemented in
+   LAM */
+#undef LAM_WANT_MPI_STUBS
+
+/* Whether to use a "prefix" memcpy or not */
+#undef LAM_WANT_PREFIX_MEMCPY
+
+/* Whether to build LAMs profiling layer or not */
+#undef LAM_WANT_PROFILE
+
+/* Do we want ptmalloc support */
+#undef LAM_WANT_PTMALLOC
+
+/* Do we want ptmalloc2 support */
+#undef LAM_WANT_PTMALLOC2
+
+/* Whether we want to build ROMIO or not */
+#undef LAM_WANT_ROMIO
+
+/* Whether to install Trillium or not (unnecessary for MPI-only installs) */
+#undef LAM_WANT_TRILLIUM_INSTALL
+
+/* Additional flags that are necessary to link LAM programs */
+#undef LIBLAM_EXTRA_LDFLAGS
+
+/* Additional libraries that are necessary to link LAM programs */
+#undef LIBLAM_EXTRA_LIBS
+
+/* Additional flags that are necessary to link MPI programs */
+#undef LIBMPI_EXTRA_LDFLAGS
+
+/* Additional libraries that are necessary to link MPI programs */
+#undef LIBMPI_EXTRA_LIBS
+
+/* Type of MPI C++ attributes */
+#undef MPI2CPP_ATTR
+
+/* Whether we have BSD-style signals or not */
+#undef MPI2CPP_BSD_SIGNAL
+
+/* Size of C type bool */
+#undef MPI2CPP_SIZEOF_BOOL_T
+
+/* Size of C type int */
+#undef MPI2CPP_SIZEOF_INT
+
+/* Whether we have SYSV-style signals or not */
+#undef MPI2CPP_SYSV_SIGNAL
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Additional CFLAGS to pass through the wrapper compilers */
+#undef WRAPPER_EXTRA_CFLAGS
+
+/* Additional CXXFLAGS to pass through the wrapper compilers */
+#undef WRAPPER_EXTRA_CXXFLAGS
+
+/* Additional FFLAGS to pass through the wrapper compilers */
+#undef WRAPPER_EXTRA_FFLAGS
+
+/* Additional LDFLAGS to pass through the wrapper compilers */
+#undef WRAPPER_EXTRA_LDFLAGS
+
+/* Additional LIBS to pass through the wrapper compilers */
+#undef WRAPPER_EXTRA_LIBS
+
+/* Define to 1 if on AIX 3.
+   System headers sometimes define this.
+   We just want to avoid a redefinition error message.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+
+#include <lam_config_bottom.h>
+#endif /* _LAM_CONFIG_H */

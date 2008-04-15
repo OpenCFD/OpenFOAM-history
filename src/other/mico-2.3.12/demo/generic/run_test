@@ -1,0 +1,32 @@
+#!/bin/sh
+
+PATH=../../idl:../../ir:$PATH
+MICORC=/dev/null
+export MICORC
+
+
+IR_ADDR=inet:`uname -n`:12121
+SERVER_ADDR=inet:`uname -n`:12122
+
+
+# Launch the Interface Repository at a well-known address
+ird -ORBIIOPAddr $IR_ADDR &
+ir_pid=$!
+
+# Feed the IR with test.idl
+sleep 2
+idl --no-codegen-c++ --feed-ir -ORBIfaceRepoAddr $IR_ADDR test.idl
+
+
+# Launch the server
+./server -ORBIIOPAddr $SERVER_ADDR -ORBIfaceRepoAddr $IR_ADDR &
+server_pid=$!
+
+trap "kill $server_pid $ir_pid > /dev/null 2> /dev/null" 0
+
+sleep 2
+
+# Launch the client
+./client -ORBIfaceRepoAddr $IR_ADDR `cat server.ior`
+
+

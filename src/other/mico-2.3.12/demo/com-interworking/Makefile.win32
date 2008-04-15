@@ -1,0 +1,15 @@
+# Compile all
+
+example :
+	cd account2
+	nmake /f Makefile.win32
+	cd ..\COMSide
+	nmake /f Makefile.win32
+	cd ..
+
+clean:
+	cd account2
+	nmake /f Makefile.win32 clean
+	cd ..\COMSide
+	nmake /f Makefile.win32 cleanall
+	cd ..

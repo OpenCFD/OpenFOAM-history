@@ -1,0 +1,8 @@
+
+This directory contains tests which demonstrate interoperability
+between MICO CSIv2 and various vendors products. For more information
+please read README files in tests' directories.
+
+adiron: tests CSIv2 interoperability against Adiron CSIv2 Testbed. For
+        more information about this project, please look at
+        http://www.adiron.com/InterOpTest.html. 

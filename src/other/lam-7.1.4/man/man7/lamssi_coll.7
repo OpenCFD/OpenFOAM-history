@@ -1,0 +1,139 @@
+.TH lamssi_coll 7 "July, 2007" "LAM 7.1.4" "LAM SSI COLL OVERVIEW"
+.SH NAME
+LAM SSI collectives \- overview of LAM's MPI collective SSI modules
+.SH DESCRIPTION
+The "kind" for collectives SSI modules is "coll".  Specifically, the
+string "coll" (without the quotes) is the prefix that should be used
+with the
+.I mpirun
+command line with the
+.I -ssi 
+switch.  For example:
+.TP 4
+mpirun -ssi coll_base_crossover 4 C my_mpi_program
+.PP
+LAM currently has three coll modules:
+.TP 4
+.I lam_basic
+A full implementation of MPI collectives on intracommunicators.  The
+algorithms are the same as were in the LAM 6.5 series.  Collectives on
+intercommunicators are undefined, and will result in run-time errors.
+.TP
+.I impi
+Collective functions for IMPI communicators.  These are mostly
+un-implemented; only the basics exist: 
+.I MPI_BARRIER 
+and
+.IR MPI_REDUCE .
+.TP
+.I shmem
+Shared memory collectives.
+.TP
+.I smp
+SMP-aware collectives (based on the MagPIe algorithms).  The following
+algorithms provide SMP-aware performance on multiprocessors:
+.IR MPI_ALLREDUCE , 
+.IR MPI_ALLTOALL ,
+.IR MPI_ALLTOALLV ,
+.IR MPI_BARRIER , 
+.IR MPI_BCAST ,
+.IR MPI_GATHER ,
+.IR MPI_GATHERV ,
+.IR MPI_REDUCE ,
+.IR MPI_SCATTER ,
+and
+.IR MPI_SCATTERV .
+Note that the reduction algorithms must be specifically enabled by
+marking the operations as associative before they will be used.  All
+other MPI collectives will fall back to their
+.I lam_basic
+equivalents.
+.PP
+More collective modules are likely to be implemented in the future.
+.SH COLL MODULE PARAMETERS
+In the discussion below, the parameters are discussed in terms of 
+.I kind
+and
+.IR value .
+Unlike other SSI module kinds, since coll modules are selected on a
+per-communicator basis, the
+.I kind
+and
+.I value
+may be specified as attributes to a parent communicator.  
+.PP
+Need to write much more here.
+.SS Selecting a coll module
+coll modules are selected on a per-communicator basis.  They are
+selected when the communicator is created, and remain the active coll
+module for the life of that communicator.  For example, different coll
+modules may be assigned to MPI_COMM_WORLD and MPI_COMM_SELF.  In most
+cases LAM/MPI will select the best coll module automatically.  For
+example, when a communicator spans multiple nodes and at least one
+node has multiple MPI processes, the
+.I smp 
+module will automatically be selected.
+.PP
+However, the 
+.I LAM_MPI_SSI_COLL
+keyval can be used to set an attribute on a communicator that is used
+to create a new communicator.  The attribute should have the value of
+the string name of the coll module to use.  If that module cannot be
+used, an MPI exception will occur.  This attribute is only examined
+on the parent communicator when a new communicator is created.
+.SS coll SSI Parameters
+The coll modules accept several parameters:
+.TP 4
+coll_associative
+Because of specific wording in the MPI standard, LAM/MPI can
+effectively not assume that any reduction operator is associative (at
+least, not without additional overhead).  Hence, LAM/MPI relies on the
+user to indicate that certain operations are associative.  If the user
+sets the 
+.I coll_associative
+SSI parameter to 1, LAM/MPI may assume that the reduction operator is
+assocative, and may be able to optimize the overall reduction
+operation.  If it is 0 or undefined, LAM/MPI will assume that the
+reduction operation is
+.B not
+associative, and will use strict linear ordering of reduction
+operations (regardless of data locality).  This attribute is checked
+every time a reduction operator is invoked.  The User's Guide contains
+more information on this topic.
+.TP
+coll_crossover
+This parameter determines the maximum number of processes in a
+communicator that will use linear algorithms.  This SSI parameter is
+only checked during
+.IR MPI_INIT .
+.TP
+coll_reduce_crossover
+During reduction operations, it makes sense to use the number of bytes
+to be transferred rather than the number of processes as a metric
+whether to use linear or logrithmic algorithms.  This parameter
+indicates the maxmimum number of bytes to be transferred by each
+process by a linear algorithm.  This SSI parameter is only checked
+during
+.IR MPI_INIT .
+.SS Notes on the smp coll Module
+The
+.I smp
+coll module is based on the algorithms from the MagPIe project.  It is
+not yet complete; there are still more algorithms that can be optmized
+for SMP-aware execution -- by the time that LAM/MPI was frozen in
+preparation for release, only some of the algorithms had been
+completed.  It is expected that future versions of LAM/MPI will have
+more SMP-optimized algorithms.
+.PP
+The User's Guide contains much more detail about the
+.I smp
+module.  In particular, the 
+.I coll_associative
+SSI parameter must be 1 for the SMP-aware reduction algorithms to be
+used.  If it is 0 or undefined, the corresponding
+.I lam_basic
+algorithms will be used.  The
+.I coll_associative
+attribute is checked at every invocation of the reduction algorithms.
+.SH SEE ALSO
+lamssi(7), mpirun(1), LAM User's Guide

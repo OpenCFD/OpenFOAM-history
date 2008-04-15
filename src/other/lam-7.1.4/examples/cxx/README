@@ -1,0 +1,34 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+ring is a common example of an MPI program; it runs with any number of
+processes, and sends a simple message sequentially through all the
+processes, with the last process returning the message back to process
+zero.  This message repeats the "ring" N times.
+
+This example is taken directly from the MPI 2 C++ package
+distribution; it is a simple C++ implementation of the standard "ring"
+example program.  It uses the C++ MPI bindings to effect message
+passing. 
+
+Use "make" to compile this example.  Make will use mpiCC to compile
+the program:
+
+      mpiCC -o ring ring.cc
+
+This program can be run with any number of MPI processes.  For
+example:
+
+      mpirun C ring

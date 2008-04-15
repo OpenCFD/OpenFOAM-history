@@ -1,0 +1,87 @@
+#
+# MIWCO --- Wireless CORBA support for MICO (OMG document formal/2004-04-02)
+# Copyright (C) 2001 Jaakko Kangasharju
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+RELATIVE = ..\..
+
+!include ..\MakeVars.win32
+LDLIBS    = ..\micocoss$(VERSION).lib ..\..\win32-bin\lib\mico$(VERSION).lib $(CONFLIBS)
+LDFLAGS   = /LIBPATH:.. /LIBPATH:..\..\orb $(LDFLAGS)
+
+HLA_OBJS = HomeLocationAgent_impl.obj hla.obj
+TB_OBJS  = TerminalBridge_impl.obj glue.obj proxy.obj bridge.obj tb.obj
+AB_OBJS  = AccessBridge_impl.obj glue.obj proxy.obj bridge.obj ab.obj
+TAD_OBJS = tadmin.obj
+NAD_OBJS = nadmin.obj
+CB_OBJS  = callback.obj
+
+all: lib prg
+
+lib: MobileTerminal.h MobileTerminal.obj GTP.h GTP.obj MobileTerminalNotification.h MobileTerminalNotification.obj
+
+prg: hla.exe tadmin.exe tb.exe callback.exe nadmin.exe ab.exe
+
+install: prg
+	$(COPY) hla.exe ..\..\win32-bin
+	$(COPY) tadmin.exe ..\..\win32-bin
+	$(COPY) tb.exe ..\..\win32-bin
+	$(COPY) callback.exe ..\..\win32-bin
+	$(COPY) nadmin.exe ..\..\win32-bin
+	$(COPY) ab.exe ..\..\win32-bin
+
+hla.exe: $(HLA_OBJS)
+	$(LD) $(LDFLAGS) $(HLA_OBJS) $(LDLIBS) /subsystem:console /out:hla.exe
+
+tb.exe: $(TB_OBJS)
+	$(LD) $(LDFLAGS) $(TB_OBJS) $(LDLIBS) /subsystem:console /out:tb.exe
+
+ab.exe: $(AB_OBJS)
+	$(LD) $(LDFLAGS) $(AB_OBJS) $(LDLIBS) /subsystem:console /out:ab.exe
+
+callback.exe: $(CB_OBJS)
+	$(LD) $(LDFLAGS) $(CB_OBJS) $(LDLIBS) /subsystem:console /out:callback.exe
+
+tadmin.exe: $(TAD_OBJS)
+	$(LD) $(LDFLAGS) $(TAD_OBJS) $(LDLIBS) /subsystem:console /out:tadmin.exe
+
+nadmin.exe: $(NAD_OBJS)
+	$(LD) $(LDFLAGS) $(NAD_OBJS) $(LDLIBS) /subsystem:console /out:nadmin.exe
+
+MobileTerminal.cc MobileTerminal.h: ..\..\include\coss\MobileTerminal.idl
+	$(IDL) $(IDLFLAGS) --name MobileTerminal \
+		..\..\include\coss\MobileTerminal.idl
+	$(COPY) MobileTerminal.h ..\..\include\coss
+
+MobileTerminalNotification.cc MobileTerminalNotification.h: \
+		..\..\include\coss\MobileTerminalNotification.idl
+	$(IDL) $(IDLFLAGS) --any --name MobileTerminalNotification \
+		..\..\include\coss\MobileTerminalNotification.idl
+	$(COPY) MobileTerminalNotification.h ..\..\include\coss
+
+GTP.cc GTP.h: ..\..\include\coss\GTP.idl
+	$(IDL) $(IDLFLAGS) --name GTP ..\..\include\coss\GTP.idl
+	$(COPY) GTP.h ..\..\include\coss
+
+clean:
+	-$(DELETE)
+	-$(RM) MobileTerminal.h MobileTerminal.cc
+	-$(RM) MobileTerminalNotification.h MobileTerminalNotification.cc
+	-$(RM) GTP.h GTP.cc
+	-$(RM) ..\..\include\coss\MobileTerminal.h
+	-$(RM) ..\..\include\coss\MobileTerminalNotification.h
+	-$(RM) ..\..\include\coss\GTP.h

@@ -1,0 +1,185 @@
+.TH mpicc 1 "July, 2007" "LAM 7.1.4" "LAM TOOLS"
+.SH NAME
+mpicc, mpiCC / mpic++ \- Compile LAM/MPI C/C++ programs.
+.SH SYNOPSIS
+mpicc [-showme|-showme:compile|-showme:link] ...
+.PP
+mpiCC [-showme|-showme:compile|-showme:link] ...
+.PP
+mpic++ [-showme|-showme:compile|-showme:link] ...
+.SH OPTIONS
+.TP
+-showme
+Does not invoke the underlying C/C++ compiler.  Instead, it shows the
+command line that would be executed to compile the C/C++ program.
+.TP
+-showme:compile
+Does not invoke the underlying C/C++ compiler.  Instead, it shows
+the compiler flags that would be supplied to the C/C++ compiler.
+.TP
+-showme:link
+Does not invoke the underlying C/C++ compiler.  Instead, it shows
+the linker flags that would be supplied to the C/C++ compiler.
+.PP
+See cc(1) and CC(1) (or whatever your underlying C/C++ compilers are)
+for all other options.
+.SH DESCRIPTION
+.I mpicc
+and
+.I mpiCC
+.RI ( mpic++
+is a synonym for
+.I mpiCC
+provided for filenames that do not support case-sensitive filenames)
+are convenience wrappers for the local native C and C++ compilers.
+Translation of a LAM program requires the linkage of the LAM specific
+libraries which may not reside in one of the standard search
+directories of ld(1).  It also often requires the inclusion of header
+files what may also not be found in a standard location.
+.I mpicc
+passes its arguments to the local native C compiler along with the -I,
+-L and -l options required by LAM programs.  This includes all
+necessary options for ROMIO and/or C++ bindings support (if ROMIO/C++
+support was included when LAM was compiled).
+.PP
+.I mpiCC
+(and therefore
+.IR mpic++ )
+is similar, but invokes the native C++ compiler instead.
+.PP
+The LAM Team
+.I strongly
+encourages using
+.I mpicc
+and
+.I mpiCC
+instead of attempting to link to the LAM libraries manually.  This
+allows the specific implementation of LAM to change without forcing
+changes to linker directives in users' Makefiles (the specific set of
+underlying LAM libraries has already changed multiple times, and will
+likely change again in future versions).
+.PP
+Indeed, since
+.IR mpicc / mpiCC 
+are very thin wrappers on top of an underlying compiler, there are
+very, very few compelling reasons
+.I not
+to use
+.IR mpicc / mpiCC .
+When it is not possible to use
+.IR mpicc / mpiCC ,
+the
+.I -showme:compile
+and
+.I -showme:link
+arguments should be used instead.  For example:
+.PP
+shell$ cc -c file1.c `mpicc -showme:compile`
+.PP
+shell$ cc -c file2.c `mpicc -showme:compile`
+.PP
+shell$ cc file1.o file2.o `mpicc -showme:link` -o my_mpi_program
+.SH ENVIRONMENT VARIABLES
+.PP 
+By default,
+.I mpicc
+uses the C compiler that was selected when LAM was configured (with
+the --with-cc flag to ./configure, or by setting the environment
+variable CC before ./configure was invoked) as the local native C
+compiler, but this can be overridden by the LAMMPICC environment
+variable (an older name for this environment variable is LAMHCC --
+this also still works, but its use is deprecated).
+.PP
+Likewise,
+.I mpiCC
+uses the C++ compiler that was selected when LAM was configured (with
+the --with-cpp flag to ./configure, or by setting the environment
+variable CXX before invoking ./configure) by default, but this can be
+overridden by the LAMMPICXX environment variable (an older name for
+this environment variable is LAMHCP -- this also still works, but its
+use is deprecated).
+.PP
+If the environment variable
+.I LAMHOME
+is set, 
+.I mpicc
+and
+.I mpiCC
+will use its value as the location of the LAM installation directory
+instead of the value that was compiled into 
+.IR mpicc / mpiCC .
+This means that
+.IR mpicc / mpiCC
+will use the value of
+.I LAMHOME
+as the base to create the -I and -L arguments that are passed to the
+lower-level compiler, not the installation directory that was supplied
+when 
+.IR mpicc / mpiCC 
+were created.  This is almost always a Bad Idea.
+.PP
+The use of
+.I LAMHOME
+is discouraged except for some rare configuration cases in oddly
+networked sites (in which case your system administrator should
+probably set this up), and for advanced users with multiple LAM/MPI
+installations who really know what they are doing; if the
+.I LAMHOME
+environment variable is unintentionally left set, it can lead to 
+tremendous user confusion.  For example, if 
+.I LAMHOME 
+points to LAM installation A, but the user's 
+.I PATH
+points to LAM installation B, then even though B's
+.I mpicc
+will be used, the user program will be compiled and linked against LAM
+installation A.  
+.PP
+The 
+.I LAMHOME
+environment variable is mainly only left in place for backwards
+compatibility; it is not required for normal functioning of LAM/MPI.
+The LAM Team discourages the use of the
+.I LAMHOME
+environment variable, and instead advocates simply setting the
+.I PATH
+properly to switch between multiple LAM/MPI implementations.
+.SH NOTES
+Previous versions of LAM encouraged the use of 
+.I hcc
+and
+.I hcp
+to compile LAM and/or MPI C and C++ applications, respectively.  In
+very old versions of LAM,
+.I hcc
+and
+.I hcp
+did not automatically add
+.I -lmpi
+to the command line.  
+.I hcc
+and
+.I hcp
+were eventually deprecated and replaced with
+.I mpicc
+and
+.I mpiCC
+(or
+.I mpic++
+on case-insensitive filesystems).  The executables
+.I hcc
+and
+.I hcp
+are now simply symbolic links to 
+.I mpicc
+and
+.IR mpic++ ,
+respectively, just in case there's anyone out there that still uses
+those names.  It should be harmless to pass in the additional
+.IR -lmpi ;
+.I mpicc
+and
+.I mpic++
+should silently do the Right Thing (only link in the MPI library once).
+.SH SEE ALSO
+cc(1), CC(1), ld(1), lam-helpfile(5), mpif77(1)

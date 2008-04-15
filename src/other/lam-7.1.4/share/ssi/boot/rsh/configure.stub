@@ -1,0 +1,120 @@
+dnl -*- shell-script -*-
+dnl
+dnl Copyright (c) 2001-2003 The Trustees of Indiana University.  
+dnl                         All rights reserved.
+dnl Copyright (c) 1998-2001 University of Notre Dame. 
+dnl                         All rights reserved.
+dnl Copyright (c) 1994-1998 The Ohio State University.  
+dnl                         All rights reserved.
+dnl 
+dnl This file is part of the LAM/MPI software package.  For license
+dnl information, see the LICENSE file in the top level directory of the
+dnl LAM/MPI source distribution.
+dnl
+dnl $Id: configure.stub,v 1.1 2003/07/28 18:38:11 jsquyres Exp $
+dnl
+
+AC_DEFUN([SSI_CONFIGURE_STUB],[
+#
+# rsh boot configure.stub
+#
+
+#
+# This is in share/boot/inetexec.c -- looks like a remnant of some old
+# flavors of rsh, but we'll keep the code anyway, just in case...
+#
+
+AC_DEFINE(LAM_RSH_NEED_MINUSMINUS, 0, [Whether we need "--" for rsh/ssh])
+
+
+# RSH_COMMAND   -> The actual executable to run.  What is set in
+#                  lam_config.h.  Can either be a full path or 
+#                  just binary name
+# RSH_OPTIONS   -> Any options given to the rsh command
+# RSH_FULL_PATH -> The full path to the RSH_COMMAND.  Used only to 
+#                  make sure SOME instance of RSH_COMMAND 
+#                  can be found
+
+if test "$RSH_COMMAND" != ""; then
+    #
+    # If RSH_COMMAND is already set, then we can assume that someone else
+    # has already done the work for us.  This is true on some of the places
+    # LAM is starting to be ported to, such as bproc.
+    #
+    AC_MSG_CHECKING([for remote shell command])
+    AC_MSG_RESULT([Ignored - already set])
+else
+    RSH_COMMAND=
+    RSH_OPTIONS=
+    RSH_FULL_PATH=
+
+    # figure out the remote shell command
+    # if not explicitly specified by the user then
+    # remsh as remote shell on HP-UX and rsh on all others
+
+    AC_ARG_WITH(rsh, 
+	AC_HELP_STRING([--with-rsh=AGENT],
+		       [use AGENT for the remote shell command]), [
+	# If the user supplied --with-rsh
+	# Seperate the RSH command from the options...
+	set $withval
+	RSH_COMMAND="[$]1"
+	shift
+	RSH_OPTIONS="[$]*"
+	rsh_dir_prefix=`dirname $RSH_COMMAND`
+	
+	if test "$rsh_dir_prefix" = "."; then
+	    # No path given.  Woo hoo!
+	    AC_PATH_PROG(RSH_FULL_PATH, $RSH_COMMAND)
+	    RSH_COMMAND="$RSH_COMMAND $RSH_OPTIONS"
+	else
+	    # Path given.  Expand out to the full path, and make the command.
+	    # Yummy.
+	
+	    rsh_short_command=`basename $RSH_COMMAND`
+	    conf_dir=`pwd`
+	    cd $rsh_dir_prefix
+	    rsh_dir_prefix=`pwd`
+	    cd $conf_dir
+	    
+	    RSH_FULL_PATH="$rsh_dir_prefix/$rsh_short_command"
+	    RSH_COMMAND="$RSH_FULL_PATH $RSH_OPTIONS"
+	fi
+    ], [
+	# If the user did not supply --with-rsh
+	case "$host" in
+	    *hpux*) 
+		RSH_COMMAND="remesh"
+		;;
+	    *) 
+		RSH_COMMAND="rsh"
+		;;
+	esac
+	AC_PATH_PROG(RSH_FULL_PATH, $RSH_COMMAND)
+
+	# If we didn't find $RSH_COMMAND, try for ssh
+
+	if test -z "$RSH_FULL_PATH"; then
+	    RSH_COMMAND="ssh"
+	    AC_PATH_PROG(RSH_FULL_PATH, ssh)
+	fi
+    ])
+	
+    # make sure we have a remote shell command
+
+    if test -z "$RSH_FULL_PATH"; then
+	AC_MSG_WARN([*** Could not find remote shell command])
+	AC_MSG_ERROR([*** Cannot continue.])
+    fi
+    AC_MSG_CHECKING([for remote shell command])
+    AC_MSG_RESULT([$RSH_COMMAND])
+fi
+
+AC_DEFINE_UNQUOTED(LAM_SSI_BOOT_RSH_RSH, "$RSH_COMMAND", 
+    [Command to use for rsh/ssh])
+])
+
+#
+# done with rsh boot configure.stub
+#
+])dnl

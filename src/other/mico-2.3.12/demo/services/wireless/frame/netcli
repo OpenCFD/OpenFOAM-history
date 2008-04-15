@@ -1,0 +1,1 @@
+exec ./client -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -ORBNoIIOPServer

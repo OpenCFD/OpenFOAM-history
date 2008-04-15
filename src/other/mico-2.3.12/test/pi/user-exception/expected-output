@@ -1,0 +1,594 @@
+client: testing client side...
+MyInterceptor3::send_request
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive_reply
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive_reply
+MyInterceptor3::receive_reply
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive_reply
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive_reply
+MyInterceptor3::receive_reply
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive_reply
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive_reply
+MyInterceptor3::receive_reply
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: testing server side...
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+server: start server testing...
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+MyInterceptor1::receive_reply
+MyInterceptor2::receive_reply
+MyInterceptor3::receive_reply
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+server: throw CORBA::NO_PERMISSION()
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+server: throw CORBA::NO_PERMISSION()
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+server: throw CORBA::NO_PERMISSION()
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+server: throw CORBA::NO_PERMISSION()
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+server: throw CORBA::NO_PERMISSION()
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+server: throw CORBA::NO_PERMISSION()
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+server: throw CORBA::NO_PERMISSION()
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+server: throw CORBA::NO_PERMISSION()
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+server: throw CORBA::NO_PERMISSION()
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+server: throw Exc()
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+server: throw Exc()
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+server: throw Exc()
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+server: throw Exc()
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+server: throw Exc()
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+server: throw Exc()
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+server: throw Exc()
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+server: throw Exc()
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+server: throw Exc()
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:Exc:1.0
+MyInterceptor3::receive exception: IDL:Exc:1.0
+client: IDL:Exc:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+server: throw 10
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+server: throw 10
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+server: throw 10
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+server: throw 10
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+server: throw 10
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+server: throw 10
+MyServerInterceptor1::send_exception
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+server: throw 10
+MyServerInterceptor2::send_exception
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+server: throw 10
+MyServerInterceptor3::send_exception
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_reply
+MyServerInterceptor2::send_reply
+MyServerInterceptor3::send_reply
+server: throw 10
+MyInterceptor1::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0

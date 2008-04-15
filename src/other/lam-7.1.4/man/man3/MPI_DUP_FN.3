@@ -1,0 +1,104 @@
+.TH MPI_DUP_FN 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_DUP_FN \-  Built-in MPI function to simple-mindedly copy communicator attributes. 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+int MPI_DUP_FN(MPI_Comm comm, int key, void *extra, 
+               void *attrin, void *attrout, int *flag)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B comm 
+- communicator (handle)
+.PD 1
+.PD 0
+.TP
+.B key 
+- key value (integer)
+.PD 1
+.PD 0
+.TP
+.B extra 
+- extra state
+.PD 1
+.PD 0
+.TP
+.B attrin 
+- in value for attribute
+.PD 1
+
+.SH OUTPUT PARAMETERS
+.PD 0
+.TP
+.B attrout 
+- out value for attribute
+.PD 1
+.PD 0
+.TP
+.B flag 
+- 1 if attribute copied successfully, 0 otherwise (logical)
+.PD 1
+
+
+.SH NOTES
+
+This function is deprecated.  It has been replaced with an MPI-2
+function (see the "See also" section, below), which provides the same
+functionality.  This function is (or effectively is) a wrapper to the
+replacement function, anyway.  User programs should use the MPI-2
+replacement function instead of this function.
+
+Some functions are deprecated because their names did not conform to
+the stricter naming conventions of MPI-2; others are deprecated
+because they have been replaced with more flexible functionality.
+
+.SH SEE ALSO
+MPI_COMM_DUP_FN
+.br
+
+.SH ADDITIONAL
+
+Note that the C typedefs 
+.I MPI_Copy_function
+and
+.I MPI_MPI_Delete_function
+are also deprecated, in favor of their new
+names - 
+.I MPI_Comm_copy_function
+, 
+.I MPI_Comm_delete_function
+\&.
+
+
+Additionally, the MPI constants 
+.I MPI_NULL_COPY_FN
+and
+.I MPI_NULL_DELETE_FN
+are also deprecated in favor of their new names -
+.I MPI_COMM_NULL_COPY_FN
+and 
+.I MPI_COMM_NULL_DELETE_FN
+\&.
+
+
+.SH MORE INFORMATION
+
+For more information, please see the official MPI Forum web site,
+which contains the text of both the MPI-1 and MPI-2 standards.  These
+documents contain detailed information about each MPI function (most
+of which is not duplicated in these man pages).
+
+.I http://www.mpi-forum.org/
+
+
+.SH ACKNOWLEDGEMENTS
+
+The LAM Team would like the thank the MPICH Team for the handy program
+to generate man pages ("doctext" from
+.I ftp://ftp.mcs.anl.gov/pub/sowing/sowing.tar.gz
+), the initial
+formatting, and some initial text for most of the MPI-1 man pages.
+.SH LOCATION
+dupfn.c

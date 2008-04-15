@@ -1,0 +1,13 @@
+
+/*
+ * Two identical identifiers on the same scope
+ */
+
+struct A 
+{
+  long x;
+};
+
+exception A
+{
+};

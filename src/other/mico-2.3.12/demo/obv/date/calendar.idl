@@ -1,0 +1,12 @@
+
+#include "date.idl"
+
+/*
+ * A simple calendar
+ */
+
+interface Calendar {
+  void insert  (in date when, in string what);
+  boolean find_date (in date when, out string what);
+  boolean find_note (in string what, out date when);
+};

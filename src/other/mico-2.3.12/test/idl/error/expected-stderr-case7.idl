@@ -1,0 +1,1 @@
+case7.idl:8: oneway operation 'foo' can not have result, out-parameters or raises-expressions

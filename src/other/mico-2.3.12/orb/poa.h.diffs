@@ -1,0 +1,24 @@
+*** poa.h.compiled	Mon Jul  7 09:45:53 2003
+--- poa.h	Mon Jul  7 09:46:00 2003
+***************
+*** 740,748 ****
+      virtual void poa_manager_callback( POAManager::State newstate, CORBA::Boolean etherealize_objects, CORBA::Boolean wait_for_completion ) = 0;
+      virtual Servant preinvoke( CORBA::Object_ptr for_obj ) = 0;
+      virtual void postinvoke() = 0;
+      virtual void register_ODM_factory( ::ObjectDomainMapping::Factory_ptr fry ) = 0;
+      virtual ::ObjectDomainMapping::Manager_ptr get_ODM() = 0;
+! 
+    protected:
+      POA() {};
+    private:
+--- 740,749 ----
+      virtual void poa_manager_callback( POAManager::State newstate, CORBA::Boolean etherealize_objects, CORBA::Boolean wait_for_completion ) = 0;
+      virtual Servant preinvoke( CORBA::Object_ptr for_obj ) = 0;
+      virtual void postinvoke() = 0;
++ #ifdef USE_CSL2
+      virtual void register_ODM_factory( ::ObjectDomainMapping::Factory_ptr fry ) = 0;
+      virtual ::ObjectDomainMapping::Manager_ptr get_ODM() = 0;
+! #endif // USE_CSL2
+    protected:
+      POA() {};
+    private:

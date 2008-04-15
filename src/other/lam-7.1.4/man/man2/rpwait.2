@@ -1,0 +1,34 @@
+.TH RPWAIT 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rpwait \- Wait for a child LAM process to terminate.
+.SH C SYNOPSIS
+int rpwait (int *nodeid, int *pid, int *status);
+.SH FORTRAN SYNOPSIS
+subroutine RPWT (nodeid, pid, status, ierr)
+.br
+integer nodeid, pid, status, ierr
+.SH DESCRIPTION
+The 
+.I rpwait()
+function enables a LAM process to wait for a child process, started
+by the calling process with rploadgo(2), rpgo(2) or rpcreate(2), to exit.
+The child process must have been created with the RTF_WAIT runtime flag.
+.PP
+The arguments of
+.I rpwait()
+are all value returned.
+After the function returns,
+the arguments hold information on one exited child process.
+There is no function to wait on a specific process.
+The
+.I nodeid
+argument points to the node identifier on which the child process was running.
+The
+.I pid
+argument points to the child's process identifier.
+The
+.I status
+argument points to the exit status code, passed by the child process
+to kexit(2).
+.SH SEE ALSO
+kexit(2), lpdetach(2), rpcreate(2), rpgo(2), rploadgo(2)

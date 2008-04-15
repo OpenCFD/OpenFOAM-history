@@ -1,0 +1,38 @@
+#!/bin/sh
+
+echo ------------- Starting Java server -------------
+
+java Server &
+java_pid=$!
+sleep 3
+
+
+
+echo running C++ Client
+./client  -ORBNoCodeSets `cat account.ref`
+
+echo running java Client
+java Client `cat account.ref`
+
+
+
+sleep 3
+echo ------------- Starting C++ server --------------
+
+server &
+cpp_pid=$!
+sleep 3
+
+./client   `cat account.ref`
+
+echo running java Client
+java Client `cat account.ref`
+
+
+trap "kill $java_pid $cpp_pid" 0
+
+
+
+
+
+

@@ -1,0 +1,195 @@
+.TH MPI_Init_thread 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_Init_thread \-  Initialize the MPI execution environment 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+int
+MPI_Init_thread(int *pargc, char ***pargv, int requested, int *pprovided)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B pargc 
+- Pointer to the number of arguments 
+.PD 1
+.PD 0
+.TP
+.B pargv 
+- Pointer to the argument vector
+.PD 1
+.PD 0
+.TP
+.B requested 
+- Desired level of thread support
+.PD 1
+.PD 0
+.TP
+.B pprovided 
+- Given level of thread support
+.PD 1
+
+.SH NOTES
+
+LAM currently supports 
+.I MPI_THREAD_SINGLE
+, 
+.I MPI_THREAD_SERIALIZED
+,
+and 
+.I MPI_THREAD_FUNNELED
+\&.
+.I MPI_THREAD_MULTIPLE
+is not yet
+supported.  The use of 
+.I MPI_INIT_THREAD
+is recommended instead of
+.I MPI_INIT
+if an MPI program is going to be multi-threaded.  However,
+the 
+.I LAM_MPI_THREAD_LEVEL
+environment variable can be used to the
+same effect.  See MPI_Init(3) for more details.
+
+There is currently no distinction between 
+.I MPI_THREAD_SINGLE
+and
+.I MPI_THREAD_FUNNELED
+\&.
+An application using 
+.I MPI_THREAD_FUNNELED
+promises to never call MPI from a different thread than the one that
+invoked 
+.I MPI_INIT
+(or 
+.I MPI_INIT_THREAD
+).  LAM does no checking to
+ensure that this is true.  As such, no locks are placed around MPI
+calls to ensure that only one thread is making MPI calls at a time
+(since the application has promised that only one thread will be
+making MPI calls).
+
+Using 
+.I MPI_THREAD_SERIALIZED
+will cause LAM to place locks around all
+MPI calls such that only one thread will be able to enter the MPI
+library at a time; beware of this fact for portability with other MPI
+implementations.  Even with multiple threads, deadlock is still
+possible when using 
+.I MPI_THREAD_SERIALIZED
+-- applications still need
+to be aware of this and code appropriately.
+
+Other than this restriction, this function behaves identically to
+.I MPI_INIT
+(see MPI_Init(3)).
+
+Note that both 
+.I MPI_INIT
+and 
+.I MPI_INIT_THREAD
+are allowed to changed
+the requested thread level based on lower-level device and SSI module
+initializations.  For example, if a user application invokes
+.I MPI_Init
+, some SSI modules may require threads and therefore upgrade
+the thread support level to something higher than 
+.I MPI_THREAD_SINGLE
+\&.
+
+
+.SH ERRORS
+
+If an error occurs in an MPI function, the current MPI error handler
+is called to handle it.  By default, this error handler aborts the
+MPI job.  The error handler may be changed with 
+.I MPI_Errhandler_set
+;
+the predefined error handler 
+.I MPI_ERRORS_RETURN
+may be used to cause
+error values to be returned (in C and Fortran; this error handler is
+less useful in with the C++ MPI bindings.  The predefined error
+handler 
+.I MPI::ERRORS_THROW_EXCEPTIONS
+should be used in C++ if the
+error value needs to be recovered).  Note that MPI does 
+.I not
+guarantee that an MPI program can continue past an error.
+
+All MPI routines (except 
+.I MPI_Wtime
+and 
+.I MPI_Wtick
+) return an error
+value; C routines as the value of the function and Fortran routines
+in the last argument.  The C++ bindings for MPI do not return error
+values; instead, error values are communicated by throwing exceptions
+of type 
+.I MPI::Exception
+(but not by default).  Exceptions are only
+thrown if the error value is not 
+.I MPI::SUCCESS
+\&.
+
+
+Note that if the 
+.I MPI::ERRORS_RETURN
+handler is set in C++, while
+MPI functions will return upon an error, there will be no way to
+recover what the actual error value was.
+.PD 0
+.TP
+.B MPI_SUCCESS 
+- No error; MPI routine completed successfully.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_ARG 
+- Invalid argument.  Some argument is invalid and is not
+identified by a specific error class.  This is typically a NULL
+pointer or other such error.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- This error class is associated with an error code
+that indicates that an attempt was made to call 
+.I MPI_INIT
+a second
+time.  
+.I MPI_INIT
+may only be called once in a program.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- Other error; use 
+.I MPI_Error_string
+to get more
+information about this error code.
+.PD 1
+
+.SH SEE ALSO
+MPI_Init, MPI_Finalize, lamboot, mpirun, lamhalt, lamssi
+.br
+
+.SH MORE INFORMATION
+
+For more information, please see the official MPI Forum web site,
+which contains the text of both the MPI-1 and MPI-2 standards.  These
+documents contain detailed information about each MPI function (most
+of which is not duplicated in these man pages).
+
+.I http://www.mpi-forum.org/
+
+
+.SH ACKNOWLEDGEMENTS
+
+The LAM Team would like the thank the MPICH Team for the handy program
+to generate man pages ("doctext" from
+.I ftp://ftp.mcs.anl.gov/pub/sowing/sowing.tar.gz
+), the initial
+formatting, and some initial text for most of the MPI-1 man pages.
+.SH LOCATION
+initthr.c

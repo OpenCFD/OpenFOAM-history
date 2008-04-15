@@ -1,0 +1,2 @@
+#!/bin/sh
+cat ref|./client -ORBBindAddr ssl:inet:localhost:7788 -ORBSSLCAfile ca_cert.pem -ORBSSLcert c_cert.pem -ORBSSLkey c_key.pem -ORBSSLverify 1 $@

@@ -1,0 +1,14 @@
+
+Examples showing how to use MICO in GUI applications.
+
+x11:
+  shows how to use MICO with X11. run shellscript 'xhello', type a string
+  into the clients entry field and press return to transmit it to the server.
+
+qtmico:
+  shows how to use MICO with QT. similar to x11 demo, but there are two
+  shellscripts: qthello1 does not use micod, while qtdemo2 uses micod.
+
+gtkmico:
+  shows how to use MICO with GTK. Run shellscript 'gtkhello' for
+  a demo.

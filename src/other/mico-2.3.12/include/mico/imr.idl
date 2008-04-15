@@ -1,0 +1,67 @@
+/* -*- c++ -*- */
+
+#pragma prefix "omg.org"
+
+module CORBA {
+
+    /*
+     * Implementation Repository Entry
+     */
+    interface ImplementationDef {
+
+	enum ActivationMode {
+	    ActivatePOA
+	};
+
+	typedef sequence<octet> ObjectTag;
+
+	struct ObjectInfo {
+	    string repoid;
+	    ObjectTag tag;
+	};
+
+	typedef sequence<ObjectInfo> ObjectInfoList;
+
+	attribute ActivationMode mode;
+	attribute ObjectInfoList objs;
+	readonly attribute string name;
+	attribute string command;
+	readonly attribute string tostring;
+    };
+
+    /*
+     * Implementation Repository
+     */
+    interface ImplRepository {
+	typedef sequence<ImplementationDef> ImplDefSeq;
+
+	ImplementationDef restore (in string asstring);
+	ImplementationDef create (in ImplementationDef::ActivationMode mode,
+				  in ImplementationDef::ObjectInfoList objs,
+				  in string name,
+				  in string command);
+	void destroy (in ImplementationDef impl_def);
+	ImplDefSeq find_by_name (in string name);
+	ImplDefSeq find_by_repoid (in string repoid);
+	ImplDefSeq find_by_repoid_tag (in string repoid,
+				       in ImplementationDef::ObjectTag tag);
+	ImplDefSeq find_all ();
+    };
+
+    /*
+     * POA Mediator
+     */
+
+    interface POAMediator {
+      string create_impl (in string svid, in string ior);
+      void activate_impl (in string svid);
+      void deactivate_impl (in string svid);
+
+      // admin interface
+      boolean force_activation (in ImplementationDef impl);
+      boolean hold (in ImplementationDef impl);
+      boolean stop (in ImplementationDef impl);
+      boolean continue (in ImplementationDef impl);
+      void shutdown_server();
+    };
+};

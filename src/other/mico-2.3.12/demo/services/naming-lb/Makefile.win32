@@ -1,0 +1,47 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+all:  Client.exe Server.exe
+RELATIVE  = ..\..\..
+!include ..\..\MakeVars.win32
+
+CXXFLAGS  = $(COS_CXXFLAGS) -I..\..\include $(CXXFLAGS)
+LDLIBS    =  $(LDLIBS) $(COS_LDLIBS)
+LDFLAGS   = $(COS_LDFLAGS) $(LDFLAGS)
+DEPS      = $(COS_DEPS) $(DEPS)
+
+INSTALL_DIR     = naming-loadbalance
+INSTALL_SRCS    = Makefile Printer.idl Printer_impl.h Printer_impl.cc Client.cc Server.cc
+INSTALL_SCRIPTS = printer_test
+
+Client.exe: Printer.h Printer.obj Client.obj 
+	$(LD)  $(LDFLAGS) Printer.obj Client.obj $(LDLIBS) /out:$@
+
+Server.exe: Printer.h Printer.obj Printer_impl.obj Server.obj 
+	$(LD)  $(LDFLAGS) Printer.obj Printer_impl.obj Server.obj $(LDLIBS) /out:$@
+
+Printer.h Printer.cc : Printer.idl $(IDLGEN)
+	$(IDL) Printer.idl
+
+clean:
+	-$(RM) /f /q 2> nul  .depend Printer.cc Printer.h *.o core Client Server *~ *.exe *.obj *.pdb 0*
+	-$(DELETE)

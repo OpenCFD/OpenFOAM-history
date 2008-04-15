@@ -1,0 +1,38 @@
+Found struct S2
+Hello
+--------------------
+Found struct S2
+Hello
+--------------------
+Found struct S2
+Hello
+--------------------
+Found struct S1
+54321
+F
+--------------------
+Found struct S2
+Hello
+--------------------
+Found struct S1
+42
+C
+--------------------
+--------------------
+Found struct S1
+42
+C
+--------------------
+Found struct S1
+54321
+F
+--------------------
+Found struct S1
+42
+C
+--------------------
+TCKind(0)=9
+TCKind(1)=10
+TCKind(2)=3
+TCKind(3)=9
+TCKind(4)=2

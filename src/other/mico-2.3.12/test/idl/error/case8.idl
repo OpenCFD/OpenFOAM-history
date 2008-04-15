@@ -1,0 +1,14 @@
+
+/*
+ * case labels come from wrong enum
+ */
+
+enum E2 {
+  C,
+  D
+};
+
+union U switch( enum E1 { A, B } ) {
+  case ::U::A: long a;
+  case ::U::C: char b;
+};

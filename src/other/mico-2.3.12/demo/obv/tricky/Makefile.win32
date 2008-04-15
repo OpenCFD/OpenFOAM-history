@@ -1,0 +1,27 @@
+all:  client.exe server.exe
+
+RELATIVE=..\..\..
+!include ../../MakeVars.win32
+
+INSTALL_DIR     = obv/tricky
+INSTALL_SRCS    = Makefile client.cc server.cc tricky.idl \
+		  tricky_impl.cc tricky_impl.h
+INSTALL_SCRIPTS = tricky
+
+server.exe: tricky.h tricky_impl.h tricky.obj tricky_impl.obj server.obj $(DEPS)
+	$(LD) $(LDFLAGS) tricky.obj tricky_impl.obj server.obj $(LDLIBS) /out:server.exe
+
+client.exe: tricky.h tricky_impl.h tricky.obj tricky_impl.obj client.obj $(DEPS)
+	$(LD) $(LDFLAGS) tricky.obj tricky_impl.obj client.obj $(LDLIBS) /out:client.exe 
+
+
+tricky.h tricky.cc : tricky.idl $(IDLGEN)
+	$(IDL) tricky.idl
+
+run:
+	tricky
+
+clean:
+	-$(RM) tricky.cc tricky.h calendar.cc calendar.h
+	-$(DELETE)
+

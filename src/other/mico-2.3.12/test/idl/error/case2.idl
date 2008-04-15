@@ -1,0 +1,13 @@
+
+/*
+ * Can not inherit from an incomplete interface definition.
+ */
+
+interface A;
+
+interface B : A
+{};
+
+interface A 
+{
+};

@@ -1,0 +1,17 @@
+# Configuration file for Domain mapping
+
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/        /Access
+#[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/        /Audit
+
+
+# Access Domain for Bank Factory
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/BankPOA/ /Access/Bank
+
+# Access Domain for Account Objects
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/AccountPOA/ /Access/Accounts
+
+
+#[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/BankPOA/ /Audit/d1
+#[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/AccountPOA/ /Audit/d1
+
+# Final comments

@@ -1,0 +1,161 @@
+#!/bin/sh
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:../../../coss/lifecycle:../../../coss/relship:../../../coss/trader:$PATH
+export PATH
+ADDR=inet:`uname -n`:12456
+IRADDR=inet:`uname -n`:12500
+DOCUMENT=inet:`uname -n`:13002
+REFERENCE=inet:`uname -n`:13300
+CONTAINMENT=inet:`uname -n`:13400
+NODE=inet:`uname -n`:13500
+TEST=inet:`uname -n`:13600
+TRAVERSAL=inet:`uname -n`:13700
+CRITERIA=inet:`uname -n`:13800
+FACTORY=inet:`uname -n`:13900
+TRADER=inet:`uname -n`:14000
+OPERATION=inet:`uname -n`:14100
+NAMING=inet:`uname -n`:14200
+RANDOMD=inet:`uname -n`:15000
+
+if [ "$1x" = "x" ]; then
+    TYPE="-n"
+else
+    TYPE=$1
+fi
+
+# register server
+printf "Starting randomd ..."
+randomd -ORBIIOPAddr $RANDOMD --generate &
+echo $! >> pids
+sleep 2
+echo done.
+
+printf "Starting traversald ..."
+#echo -ORBIIOPAddr $TRAVERSAL -ORBBindAddr $RANDOMD
+traversald -ORBIIOPAddr $TRAVERSAL -ORBBindAddr $RANDOMD &
+#read c
+echo $! >> pids
+sleep 2
+echo done.
+
+printf "Starting lifecriteriad ..."
+#echo -ORBIIOPAddr $CRITERIA -ORBBindAddr $RANDOMD 
+lifecriteriad -ORBIIOPAddr $CRITERIA -ORBBindAddr $RANDOMD &
+#read c
+echo $! >> pids
+sleep 2
+echo done.
+
+printf "Starting operationd ..."
+#echo -ORBIIOPAddr $OPERATION
+operationd -ORBIIOPAddr $OPERATION &
+#read c
+echo $! >> pids
+sleep 2
+echo done.
+
+if [ "$TYPE" = "-n" ]; then
+	printf "Starting naming ..."
+	#echo -ORBIIOPAddr $NAMING
+	nsd -ORBIIOPAddr $NAMING &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting factoryfinderd ..."
+	#echo -ORBIIOPAddr $FACTORY -ORBNamingAddr $NAMING $TYPE
+	factoryfinderd -ORBIIOPAddr $FACTORY -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting noded ..."
+	#echo -ORBIIOPAddr $NODE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE 
+	lifenoded -ORBIIOPAddr $NODE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting containmentd ..."
+	#echo -ORBIIOPAddr $CONTAINMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE
+	lifecontainmentd -ORBIIOPAddr $CONTAINMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting referenced ..."
+	#echo -ORBIIOPAddr $REFERENCE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE
+	lifereferenced -ORBIIOPAddr $REFERENCE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting DocumentsServer ..."
+	#echo -ORBIIOPAddr $DOCUMENT -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING
+	./DocumentsServer -ORBIIOPAddr $DOCUMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+else
+	printf "Starting traderd ..."
+	#echo -ORBIIOPAddr $TRADER
+	traderd -ORBIIOPAddr $TRADER &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting factoryfinderd ..."
+	#echo -ORBIIOPAddr $FACTORY -ORBTradingAddr $TRADER $TYPE
+	factoryfinderd -ORBIIOPAddr $FACTORY -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting noded ..."
+	#echo -ORBIIOPAddr $NODE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD  -ORBTradingAddr $TRADER $TYPE 
+	lifenoded -ORBIIOPAddr $NODE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD  -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting containmentd ..."
+	#echo -ORBIIOPAddr $CONTAINMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBTradingAddr $TRADER $TYPE
+	lifecontainmentd -ORBIIOPAddr $CONTAINMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting referenced ..."
+	#echo -ORBIIOPAddr $REFERENCE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBTradingAddr $TRADER $TYPE
+	lifereferenced -ORBIIOPAddr $REFERENCE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting DocumentsServer ..."
+	#echo -ORBIIOPAddr $DOCUMENT -ORBBindAddr $RANDOMD  -ORBTradingAddr $TRADER
+	./DocumentsServer -ORBIIOPAddr $DOCUMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD  -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+fi
+printf "Starting TestServer ..."
+./TestServer -ORBIIOPAddr $TEST -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD &
+echo $! >> pids
+sleep 2
+echo done.
+

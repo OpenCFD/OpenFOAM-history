@@ -1,0 +1,11 @@
+%
+% This file contains all the test cases executed at runtime. Each line in
+% this file corresponds to one CORBA invocation. The actual parameters are
+% represented as a sequence of short and long values as they would be
+% marshalled in an IIOP data stream.  I.e., the values "66 77" below
+% denote the actual parameters for struct S of test.idl
+%
+foo 11
+foo 22
+bar 33 44
+complex 55 66 77

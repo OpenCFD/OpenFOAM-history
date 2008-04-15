@@ -1,0 +1,42 @@
+Short example with access.
+There are 3 persons: "manager" (bank manager), "owner" and his "wife".
+They have appropriate sertificates: manager.pem, owner.pem, wife.pem
+
+User Rights:
+
+
+AccessId:manager        "m"
+GroupId:owner & wife    "u"
+
+Object Access Policies:
+
+bank->create()       "m"    in /Access/Domain1
+bank->open()         "ug"   in /Access/Domain1
+hello->hello()       "s"    in /Access/Domain1
+
+account->deposit()   "ug"   in /Access/Accounts
+account->withdraw()  "u"    in /Access/Accounts
+account->balance()   "ug"   in /Access/Accounts
+
+hello->hello()        ""     in /Access   has no required rights in root domain,
+                                          public use
+
+Rights combinator   - Any
+
+SecPolicyCombinator - Union
+
+
+To check how it works run server - rss
+Then clients                     - rcs
+
+"manager" can create account only, also he can say hello in /Access, but can't
+say hello in /Access/Domain1.
+"owner" and "wife" can open account, deposit/withdraw money, see the balance,
+
+Files:
+config.cnf - describes poa -> domain mapping,
+access.cnf - describes object -> domain mapping,
+rights.cnf - describes user rights
+
+P.S.
+Please look at the code in client.cc and content of config.cnf - changed!

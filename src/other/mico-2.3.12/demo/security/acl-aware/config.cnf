@@ -1,0 +1,9 @@
+# Configuration file for poa mapping
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/        /Audit
+
+#[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/        /Access
+
+# This is the manager's domain to create an account
+#[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/BankPOA/ /Access/Domain1 
+
+#[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/AccountPOA/ /Access/Accounts

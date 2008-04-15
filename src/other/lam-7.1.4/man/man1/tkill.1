@@ -1,0 +1,53 @@
+.TH TKILL 1 "July, 2007" "LAM 7.1.4" "LAM TOOLS"
+.SH NAME
+tkill \- Terminate LAM on one node.
+.SH SYNOPSIS
+tkill
+[-dhvN] [-f killfile]
+.SH OPTIONS
+.TP 15
+.B \-d
+Turn on debugging mode.  This implies -v.
+.TP
+.B \-h
+Print the command help menu.
+.TP
+.B \-v
+Be verbose.
+.TP
+.B \-N
+Pretend; do not take action.
+.TP
+.B \-f killfile
+Use killfile as the name of the kill file.
+.SH DESCRIPTION
+The
+.I tkill
+tool terminates the LAM session started by hboot(1) on the local node.
+.I tkill
+makes use of a kill file created by the LAM kernel, which contains
+the process identifiers of every LAM process in ASCII format.
+A SIGHUP (see signal(3)) signal is sent to every process listed
+in the kill file.
+.I tkill
+waits a short period of time for each process to die.
+By adding the debug option, the user can see the final disposition
+of each process.
+The mission is accomplished if all processes end up dead.
+.PP
+In LAM, the first process to be killed is always the kernel.
+When the kernel receives its termination signal, it propagates
+the signal to all of its constituent processes.
+Therefore,
+.I tkill
+will ordinarily be racing the kernel to kill all other processes.
+This redundant aspect of
+.I tkill
+allows it to be used as a general purpose tool in association with hboot(1).
+.SH FILES
+.TP 30
+/tmp/lam-$USER@hostname
+the kill file, created by the kernel, where $USER is the userid,
+and hostname is the name of the local machine
+.SH SEE ALSO
+hboot(1), lam-helpfile(5)

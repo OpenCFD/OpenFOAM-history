@@ -1,0 +1,162 @@
+MICOStream - A simple stream service for MICO
+
+1 Introduction
+
+MICOStream provides abstractions for the integration
+of continous media in CORBA. To achieve efficiency
+the ORB is "bypassed" by a stream connection between
+client and server. MICOStream is implemented using
+the transport mechanisms integrated in MICO. 
+MICOStream provides a minimal abstraction necessary
+for streams. It can be seen as a base service for
+other services to rely on. In contrast to actual
+approaches of integrating streams in CORBA (such
+as the Control and Management ofAudio/Video Stream RFP
+(telecom/97-05-07)) MICOStream provides no abstractions
+for devices or Quality of Service. The only supported
+data types are sequences of octets. 
+
+2 Communication Model
+
+A stream consists of two flows. A flow is a unidirectional
+connection between two communication end points (CEP).
+Data written to a flow is delivered in FIFO order and
+buffered if necessary. 
+
+Connection establishment is initiated by the client
+(active CEP) which connects to a passive CEP. The
+passive CEP has to be bound to an address first to
+await connections from clients.
+
+After the connection is established both sides can use
+read or write primitives to transfer and receive data
+from the flows of the stream. Read or write primitives
+can be issued synchron or asynchron. 
+
+The connection is closed by a disconnect by either side.
+
+3 Interfaces
+
+module MICOStream
+{
+ 
+// Streams only transmit octet streams
+typedef sequence<octet> StreamData;
+ 
+exception NotBound{};
+exception NotConnected{};
+ 
+// common operations
+interface Transport
+{
+  StreamData poll()
+             raises(NotConnected);
+ 
+  StreamData read()
+             raises(NotConnected);
+ 
+  void       receive(in StreamData chunk);
+ 
+  void       write(in StreamData chunk)
+             raises(NotConnected);
+ 
+  void       write_async(in StreamData chunk)
+             raises(NotBound, NotConnected);
+ 
+};
+ 
+interface ActiveCEP : Transport
+{
+  void       connect(in string bind_addr)
+             raises(NotBound);
+ 
+  void       disconnect();
+ 
+};
+ 
+interface PassiveCEP : Transport
+{
+  string     bind_addr()
+             raises(NotBound);
+ 
+  void       bind(in string bind_addr)
+             raises(NotBound);
+ 
+  void       disconnect();
+ 
+};
+ 
+};
+
+The Transport interface realizes all functionality common
+to active and passive CEPs:
+
+
+  StreamData poll()
+    Non blocking read. If data is buffered, it is
+    returned completely after the poll. If no data
+    is buffered, an empty sequence is returned.      
+ 
+  StreamData read()
+    The same as poll, but if no data is buffered, read
+    blocks.
+ 
+  void       receive(in StreamData chunk);
+    Is call if data arrives. The default implementation
+    of receive appends the data to the buffer. If an application
+    need asynchron notification upon data arrival, it can subtype
+    the stream end point (ActiveCEP or PassiveCEP) and overload
+    receive. 
+
+  void       write(in StreamData chunk)
+    Writes the data to the stream. If data can not be written at once,
+    write blocks, till the data is completely written. There are
+    no implicit copies of the data involved in the write call.
+ 
+  void       write_async(in StreamData chunk)
+    Copies the data to a local buffer and returns immediatly. 
+    The data is written to the stream asynchron.
+
+The ActiveCEP interface realizes the interface for a stream
+communication on client side. A client instatiates an ActiveCEP
+and connects it by the connect call to a PassiveCEP and can
+communicate with the Transport interface.
+
+  void       connect(in string bind_addr)
+    Connects the ActiveCEP with a PassiveCEP. The bind address
+    of the PassiveCEP can be determined by the bind_addr operation.
+ 
+  void       disconnect();
+    Disconnects the connection.
+
+The PassiveCEP interface realizes the server side interface of a
+stream. The ActiveCEP is bound to an address an awaits calls. After
+a clients is connected data can be transferred but the operations
+of the Transport interface. 
+
+  string     bind_addr()
+    return the address, the PassiveCEP is bound to as a string.
+    The string contains MICO address abstractions. All of MICO's
+    supported addresses and protocols may be used, e.g. a TCP/IP
+    address is given by "inet:hostname:portnumber"
+ 
+  void       bind(in string bind_addr)
+    Binds the CEP to the address specified in the string. If
+    the address is not valid, the CEP is bound to a free port
+    on the host with the TCP/IP protocol (i.e. "inet:0.0:0")
+ 
+  void       disconnect();
+    Closes the connection
+};
+
+5 Status and Bugs
+
+This is an alpha version of MICOStream. It has not been thoroughly
+tested. The exception support is quite sloppy. If a connection
+is disconnected it has to be disconnected on client side first!
+
+6 Author
+
+Christian Becker (becker@vsb.informatik.uni-frankfurt.de) 
+
+For comments or bug reports: mico@informatik.uni-frankfurt.de

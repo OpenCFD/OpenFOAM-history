@@ -1,0 +1,24 @@
+This is an attempt to test a thread enabled nsd. The script junk_test.sh 
+   1) Launches nsd
+   2) Launches micod
+   3) Registers a server, junk_server that generates unique numbers for 
+      assign names to NamingContexts. junk_server can also be used to
+      create objects that can be inserted into NamingContexts (a separate
+      test).
+   4) Launches 4 copies of junk_client_2 that randomly create and destroy 
+      NamingContexts within the nsd.  These clients print a message when 
+      OBJECT_NOT_EXIST or CosNaming::NamingContext::NotFound are thrown.
+      We believe that these occur when the clients are working on the same
+      branches of the tree and one client destroys a NamingContext and
+      another client does a list before the 1st client can unbind the 
+      NamingContext.
+
+nsd is launched with a persistent db defined. If the lines 
+rm nsd.db
+rm db/*
+lines are removed from junk_test.sh, sequential runs of the script will 
+build on the same tree.
+
+
+Aside effect of this test is shows that junk_client_2 has a memory leak. We
+couldn't find the cause of the leak.

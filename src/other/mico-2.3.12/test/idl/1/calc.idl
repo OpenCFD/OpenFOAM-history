@@ -1,0 +1,4 @@
+
+interface Calc {
+    void add();
+};

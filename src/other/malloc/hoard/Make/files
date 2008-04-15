@@ -1,0 +1,3 @@
+hoard-371/src/libhoard.cpp
+
+LIB = $(FOAM_LIBBIN)/libhoard

@@ -1,0 +1,23 @@
+
+RELATIVE = ..\..\..
+
+include ..\..\..\MakeVars.win32
+
+CXXFLAGS = -I. -I..\..\..\include $(CXXFLAGS)
+LDFLAGS  = /LIBPATH:..\..\..\orb $(LDFLAGS) 
+LDLIBS    = mico$(VERSION).lib $(CONFLIBS)
+
+all: client.exe server.exe
+
+client.exe:	bench.obj client.obj
+	$(LD) $(LDFLAGS) bench.obj client.obj $(LDLIBS) /OUT:$@
+
+server.exe:	bench.obj server.obj
+	$(LD)  $(LDFLAGS) bench.obj server.obj $(LDLIBS)  /OUT:$@
+
+bench.cc bench.h : bench.idl
+	$(IDL) bench.idl                                            
+
+clean:
+	$(RM) -f server.exe client.exe *.obj bench.h bench.cc ref server.log .depend *~
+

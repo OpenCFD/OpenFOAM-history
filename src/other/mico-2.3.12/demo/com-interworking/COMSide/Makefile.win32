@@ -1,0 +1,90 @@
+
+!include <ntwin32.mak>
+
+!ifndef MIDL
+MIDL            = midl
+!endif
+
+RELATIVE = ..\..\..
+!include ..\..\MakeVars.win32
+
+IDL          = idl
+MIDLFLAGS    = /Oi /ms_ext /c_ext /cpp_cmd $(CC)
+IDLFLAGS     = --no-codegen-c++ --codegen-midl	
+
+# Mico
+# version
+# Path of win32-bin 
+WIN32_BIN    = ..\..\..\win32-bin
+#
+CXXFLAGS     = /I. /I$(WIN32_BIN)\include /I$(WIN32_BIN)\include\windows -GX
+LDFLAGS      = $(WIN32_BIN)\lib\mico$(VERSION).lib wsock32.lib /nologo /debug /subsystem:console
+
+.cxx.obj:
+    $(CC) $(cdebug) $(cflags) $(cvarsdll) $(CXXFLAGS) /c $<
+
+.c.obj:
+    $(CC) $(cdebug) $(cflags) $(cvarsdll) $(CXXFLAGS) /c $<
+
+all:  account.dll clientCOM.exe serverCOM.exe
+
+# Clean up everything
+cleanall: clean
+        @-$(RM) *.exe
+
+# Clean up everything but the .EXEs
+clean:
+        @-$(RM) *.obj
+        @-$(RM) account.dll
+        @-$(RM) account.h
+        @-$(RM) account.lib
+        @-$(RM) account.exp
+        @-$(RM) dlldata.c
+        @-$(RM) account_?.c
+	-$(DELETE)
+
+#Run IDL compiler to translate CORBA IDL into Microsoft IDL
+account.midl : ..\account2\account.idl
+	$(IDL) $(IDLFLAGS) ..\account2\account.idl
+
+#Run MIDL compiler to generate the header file and the proxy DLL files.
+account.h dlldata.c account_p.c account_i.c : account.midl
+    $(MIDL) $(MIDLFLAGS) account.midl
+
+#Build the files for the proxy DLL.
+dlldata.obj : dlldata.c
+    $(CC) $(cdebug) $(cflags) -DREGISTER_PROXY_DLL $(cvarsdll) /c dlldata.c
+
+account_i.obj : account_i.c
+
+account_p.obj : account_p.c account.h
+
+#Link the proxy DLL.
+account.dll: account_p.obj account_i.obj dlldata.obj account.def
+    $(link) $(linkdebug) -DLL -OUT:account.dll -DEF:account.def \
+    account_p.obj account_i.obj dlldata.obj rpcrt4.lib uuid.lib kernel32.lib
+
+#Build the files for the server application.
+caccount.obj: caccount.cxx account.h
+
+error.obj: error.cxx
+
+serverCOM.obj: serverCOM.cxx account.h account_i.c
+
+#Link the server application.
+#serverCOM.exe: caccount.obj error.obj account_i.obj serverCOM.obj
+#        $(link) $(linkdebug) $(conlflags) -OUT:serverCOM.exe $(LDFLAGS) ..\account2\account.obj \
+#        caccount.obj error.obj account_i.obj serverCOM.obj  rpcrt4.lib $(ole2libsdll)
+
+#Link the server application.
+serverCOM.exe: caccount.obj error.obj account_i.obj serverCOM.obj
+        $(link) -OUT:serverCOM.exe $(LDFLAGS) ..\account2\account.obj \
+        caccount.obj error.obj account_i.obj serverCOM.obj  rpcrt4.lib $(ole2libsdll)
+
+#Build the files for the client application.
+clientCOM.obj: clientCOM.cxx account.h account_i.c
+
+#Link the client application.
+clientCOM.exe: clientCOM.obj error.obj account_i.obj
+        $(link) $(linkdebug) $(conlflags) -OUT:clientCOM.exe \
+        clientCOM.obj error.obj account_i.obj rpcrt4.lib $(ole2libsdll)

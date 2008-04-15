@@ -1,0 +1,63 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+!include ..\MakeVars.win32
+LDFLAGS  = /LIBPATH:..\orb $(LDFLAGS)
+CXXFLAGS = $(CXXFLAGS) /I. /I..\include /I..\include\windows  \
+           /DBUILD_MICO_DLL
+
+AUX_SRCS=dynany_impl.cc
+STATIC_AUX_OBJS = $(AUX_SRCS:.cc=.obj)
+SHARED_AUX_OBJS = $(AUX_SRCS:.cc=.obj)
+
+!ifdef HAVE_TCL
+TCL_SRCS = tclmico.cc
+STATIC_TCL_OBJS = $(TCL_SRCS:.cc=.obj)
+SHARED_TCL_OBJS = $(TCL_SRCS:.cc=.obj)
+STATIC_LIBS = micotcl.lib
+CXXFLAGS = /I$(TCL_PATH)\include $(CXXFLAGS)
+CCFLAGS = /I$(TCL_PATH)\include $(CCFLAGS)
+#LDFLAGS = $(TCL_PATH)\lib\t $(LDFLAGS)
+!endif
+
+# normal rules
+
+all: lib prg
+
+lib: 
+
+prg:  $(STATIC_LIBS)
+     copy micotcl.lib ..\win32-bin\lib
+
+
+# static
+
+micotcl.lib: $(STATIC_TCL_OBJS)
+	$(AR) $(ARFLAGS) /out:$@ $(STATIC_TCL_OBJS)
+
+# cleaning
+
+clean:
+	-$(RM) *.o *.a *~ *.rpo *.objid *.moc *.exe *.obj *.pdb
+	-$(RM) .depend TAGS core nohup.out *.def *.dmp *.lib
+	-$(RM) dynany.h dynany.cc *.orig 
+

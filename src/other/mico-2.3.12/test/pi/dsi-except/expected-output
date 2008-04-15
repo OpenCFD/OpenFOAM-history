@@ -1,0 +1,40 @@
+Running.
+client: send_request
+server(HelloInterceptor3): receive_request_service_contexts
+server(HelloInterceptor2): receive_request_service_contexts
+server(HelloInterceptor1): receive_request_service_contexts
+server(HelloInterceptor1): receive_request
+server(HelloInterceptor2): receive_request
+server(HelloInterceptor3): receive_request
+server: Hello World
+server(HelloInterceptor1): send_reply
+server(HelloInterceptor2): send_reply
+server(HelloInterceptor3): send_reply
+client: receive_reply
+client: send_request
+server(HelloInterceptor3): receive_request_service_contexts
+server(HelloInterceptor2): receive_request_service_contexts
+server(HelloInterceptor1): receive_request_service_contexts
+server(HelloInterceptor1): receive_request
+server(HelloInterceptor2): receive_request
+server(HelloInterceptor3): receive_request
+server: Hello World
+server: throw NO_PERMISSION exception from hello operation
+server(HelloInterceptor1): send_exception
+server(HelloInterceptor2): send_exception
+server(HelloInterceptor3): send_exception
+client: receive_exception
+client: caught: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+client: send_request
+server(HelloInterceptor3): receive_request_service_contexts
+server(HelloInterceptor2): receive_request_service_contexts
+server(HelloInterceptor1): receive_request_service_contexts
+server(HelloInterceptor1): receive_request
+server(HelloInterceptor2): receive_request
+server(HelloInterceptor3): receive_request
+server(HelloInterceptor3): throw NO_RESOURCES exception
+server(HelloInterceptor1): send_exception
+server(HelloInterceptor2): send_exception
+server(HelloInterceptor3): send_exception
+client: receive_exception
+client: caught: IDL:omg.org/CORBA/NO_RESOURCES:1.0

@@ -1,0 +1,20 @@
+
+/*
+ * A simple valuetype representing a date.
+ */
+
+valuetype date {
+  factory create (in unsigned short dd,
+		  in unsigned short mm,
+		  in unsigned short yyyy);
+
+  boolean equal (in date other);
+  short compare (in date other);
+
+  public unsigned short day;
+  public unsigned short month;
+  public unsigned short year;
+};
+
+
+

@@ -1,0 +1,16 @@
+
+/*
+ * Reference to z in x::x should not be resolved to y::z
+ */
+
+module y {
+  typedef short z;
+  interface yi {
+  };
+};
+
+module x {
+  interface xi : y::yi {
+    z parent();
+  };
+};

@@ -1,0 +1,181 @@
+.TH MPI_Win_create 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_Win_create \-  Specifies an window accessible by remote processes 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+int
+MPI_Win_create(void *base, MPI_Aint size, int disp_unit,
+               MPI_Info info, MPI_Comm comm, MPI_Win *newwin)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B base 
+- initial address of window (choice) 
+.PD 1
+.PD 0
+.TP
+.B size 
+- size of window in bytes (nonnegative integer) 
+.PD 1
+.PD 0
+.TP
+.B disp_unit 
+- local unit size for displacements, in bytes (positive integer) 
+.PD 1
+.PD 0
+.TP
+.B info 
+- info argument (handle) 
+.PD 1
+.PD 0
+.TP
+.B comm 
+- communicator (handle) 
+.PD 1
+.PD 0
+.TP
+.B newwin 
+- window object returned by the call (handle) 
+.PD 1
+
+.SH NOTES
+
+Common choices for disp_unit are 1 (no scaling), and (in C syntax)
+sizeof(type), for a window that consists of an array of elements of
+type type. The later choice will allow one to use array indices in RMA
+calls, and have those scaled correctly to byte displacements, even in
+a heterogeneous environment. ( End of advice to users.)  The info
+argument provides optimization hints to the runtime about the expected
+usage pattern of the window.
+
+The various processes in the group of comm may specify completely
+different target windows, in location, size, displacement units and
+info arguments. As long as all the get, put and accumulate accesses to
+a particular process fit their specific target window this should pose
+no problem. The same area in memory may appear in multiple windows,
+each associated with a different window object. However, concurrent
+communications to distinct, overlapping windows may lead to erroneous
+results.
+
+.SH NOTES FOR FORTRAN
+
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+)
+have an additional argument 
+.I ierr
+at the end of the argument list.
+.I ierr
+is an integer and has the same meaning as the return value of
+the routine in C.  In Fortran, MPI routines are subroutines, and are
+invoked with the 
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type
+.I INTEGER
+in Fortran.
+.SH USAGE WITH IMPI EXTENSIONS
+
+The IMPI standard only supports MPI-1 functions.  Hence, this function
+is currently not designed to operate within an IMPI job.
+
+.SH ERRORS
+
+If an error occurs in an MPI function, the current MPI error handler
+is called to handle it.  By default, this error handler aborts the
+MPI job.  The error handler may be changed with 
+.I MPI_Errhandler_set
+;
+the predefined error handler 
+.I MPI_ERRORS_RETURN
+may be used to cause
+error values to be returned (in C and Fortran; this error handler is
+less useful in with the C++ MPI bindings.  The predefined error
+handler 
+.I MPI::ERRORS_THROW_EXCEPTIONS
+should be used in C++ if the
+error value needs to be recovered).  Note that MPI does 
+.I not
+guarantee that an MPI program can continue past an error.
+
+All MPI routines (except 
+.I MPI_Wtime
+and 
+.I MPI_Wtick
+) return an error
+value; C routines as the value of the function and Fortran routines
+in the last argument.  The C++ bindings for MPI do not return error
+values; instead, error values are communicated by throwing exceptions
+of type 
+.I MPI::Exception
+(but not by default).  Exceptions are only
+thrown if the error value is not 
+.I MPI::SUCCESS
+\&.
+
+
+Note that if the 
+.I MPI::ERRORS_RETURN
+handler is set in C++, while
+MPI functions will return upon an error, there will be no way to
+recover what the actual error value was.
+.PD 0
+.TP
+.B MPI_SUCCESS 
+- No error; MPI routine completed successfully.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_COMM 
+- Invalid communicator.  A common error is to use a
+null communicator in a call (not even allowed in 
+.I MPI_Comm_rank
+).
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_ARG 
+- Invalid argument.  Some argument is invalid and is not
+identified by a specific error class.  This is typically a NULL
+pointer or other such error.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- Other error; use 
+.I MPI_Error_string
+to get more
+information about this error code.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_INTERN 
+- An internal error has been detected.  This is
+fatal.  Please send a bug report to the LAM mailing list (see
+.I http://www.lam-mpi.org/contact.php
+). 
+.PD 1
+
+.SH SEE ALSO
+MPI_Put(3), MPI_Get(3), MPI_Accumulate(3), MPI_Win_start(3), MPI_Win_complete(3), MPI_Win_fence(3), MPI_Win_free(3), MPI_Win_get_group(3), MPI_Win_get_group(3), MPI_Win_wait(3)
+.br
+
+.SH MORE INFORMATION
+
+For more information, please see the official MPI Forum web site,
+which contains the text of both the MPI-1 and MPI-2 standards.  These
+documents contain detailed information about each MPI function (most
+of which is not duplicated in these man pages).
+
+.I http://www.mpi-forum.org/
+.SH LOCATION
+wcreate.c

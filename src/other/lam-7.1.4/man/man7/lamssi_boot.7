@@ -1,0 +1,257 @@
+.TH lamssi_boot 7 "July, 2007" "LAM 7.1.4" "LAM SSI BOOT OVERVIEW"
+.SH NAME
+LAM SSI boot \- overview of LAM's boot SSI modules
+.SH DESCRIPTION
+The "kind" for boot SSI modules is "boot".  Specifically, the 
+string "boot" (without the quotes) is the prefix that can be used as
+the prefix to arguments when passing values to boot modules at run
+time.  For example:
+.TP 4
+lamboot -ssi boot rsh hostfile
+Specifies to use the "rsh" boot module, and lamboot across all the
+nodes listed in the file
+.IR hostfile .
+.PP
+LAM currently has several boot modules: bproc, globus, rsh (which
+includes ssh), slurm, and tm.
+.SH ADDITIONAL INFORMATION
+The LAM/MPI User's Guide contains much detail about all of the boot
+modules.  All users are strongly encouraged to read it.  This man page
+is a summary of the available information.
+.SH SELECTING A BOOT MODULE
+Only one boot module may be selected per command execution.  Hence,
+the selection of which module occurs once when a given command
+initializes.  Once the module is chosen, it is used for the duration
+of the program run.
+.PP
+In most cases, LAM will automatically select the "best" module at
+run-time.  LAM will query all available modules at run time to obtain
+a list of priorities.  The module with the highest priority will be
+used.  If multiple modules return the same priority, LAM will select
+one at random.  Priorities are in the range of 0 to 100, with 0 being
+the lowest priority and 100 being the highest.  At run time, each
+module will examine the run-time environment and return a priority
+value that is appropriate.  
+.PP
+For example, when running a PBS job, the
+.I tm
+module will return a sufficiently high priority value such that it
+will be selected and the other available modules will not.
+.PP
+Most modules allow run time parameters to override the priorities that
+they return that allow changing the order (and therefore ultimate
+selection) of the available boot modules.  See below.
+.PP
+Alternatively, a specific module may be selected by the user by
+specifying a value for the
+.I boot
+parameter (either by environment variable or by the
+.I -ssi
+command line parameter).  In this case, no other modules will be
+queried by LAM.  If the named module returns a valid priority, it will
+be used.  For example:
+.TP 4
+lamboot -ssi boot rsh hostfile
+Tells LAM to only query the
+.I rsh
+boot module and see if it is available to run.
+.PP
+If the boot module that is selected is unable to run (e.g., attempting
+to use the tm boot module when not running in a PBS job), an
+appropriate error message will be printed and execution will abort.
+.SH AVAILABLE MODULES
+As with all SSI modules, it is possible to pass parameters at run
+time.  This section discusses the built-in LAM boot modules, as well
+as the run-time parameters that they accept.  
+.PP
+In the discussion below, parameters to boot modules are discussed in
+terms of
+.I name
+and
+.IR value .
+The
+.I name
+and
+.I value
+may be specified as command line arguments to the
+.IR lamboot , 
+.IR lamgrow , 
+.IR recon ,
+and
+.I lamwipe
+commands with the
+.I -ssi
+switch, or they may be set in environment variables of the form 
+.RI LAM_MPI_SSI_ name = value .
+Note that using the
+.I -ssi
+command line switch will take precendence over any previously-set
+environment variables.
+.SS bproc Boot Module
+The bproc boot module uses native bproc functionality (e.g., the
+.I bproc_execmove
+library call) to launch jobs on slaves nodes from the head node.
+Checks are made before launching to ensure that the nodes are
+available and are "owned" by the user and/or the user's group.
+Appropriate error messages will be displayed if the user is unable to
+execute on the target nodes.
+.PP
+Hostnames should be specified using bproc notation: -1 indicates the
+head node, and integer numbers starting with 0 represent slave nodes.
+The string "localhost" will automatically be converted to "-1".
+.PP
+The default behavior is to mark the bproc head node
+as "non-scheduledable", meaning that the expansion of "N" and "C" when
+used with
+.I mpirun
+and
+.I lamexec
+will exclude the bproc head node.  For example, "mpirun C
+my_mpi_program" will run copies of
+.I my_mpi_program
+on all lambooted slave nodes, but not the bproc head node.
+.PP
+Note that the bproc boot module is
+.I only
+usable from the bproc head node.
+.PP
+The 
+.I bproc
+boot module only has one tunable parameter:
+.TP 4
+boot_bproc_priority 
+Using the priority argument can override LAM's automatic run-time boot
+module selection algorithms.  This parameter only has effect when the
+.I tm
+module is eligible to be run (i.e., when running on a bproc cluster).
+.PP
+See the bproc notes in the user documentation for more details.
+.SS globus Boot Module
+The globus boot module uses the globus-job-run command to launch
+executables on remote nodes.  It is currently limited to only allowing
+jobs that can use the fork job manager on the Globus gatekeeper.
+Other job managers are not yet supported.
+.PP
+LAM will effectively never select the 
+.I globus 
+boot module by default because it has an extremely low default
+priority; it must be manually selected with the boot SSI parameter or
+have its priority raised.  Additionally, LAM must be able to find the
+globus-job-run command in your
+.IR PATH .
+.PP
+The boot schema requires hosts to be listed as the Globus contact
+string.  For example:
+.PP
+"host1:port1:/O=xxx/OU=yyy/CN=aaa bbb ccc"
+.PP
+Note the use of quotes because the CN includes spaces -- the entire
+contact name must be enclosed in quotes.  Additionally, since
+globus-job-run does not invoke the user's "dot" files on the remote
+nodes, no PATH or environment is setup.  Hence, the attribute
+.I lam_install_path 
+must be specified for each contact string in the hostfile so that LAM
+knows where to find its executables on the remote nodes.  For example:
+.PP
+"host1:port1:/O=xxx/OU=yyy/CN=aaa bbb ccc" lam_install_path=/home/lam
+.PP
+The 
+.I globus
+boot module only has one tunable parameter:
+.TP 4
+boot_globus_priority
+Using the priority argument can override LAM's automatic run-time boot
+module selection algorithms.  
+.SS rsh Boot Module
+The rsh boot module uses rsh or ssh (or any other command line agent
+that acts like rsh/ssh) to launch executables on remote nodes.  It
+requires that executables can be started on remote nodes without being
+prompted for a password, and without outputting anything to stderr.
+.PP
+The
+.I rsh
+boot module is always available, and unless overridden, always
+assigns itself a priority of 0.
+.PP
+The 
+.I rsh
+module accepts a few run-time parameters:
+.TP 4
+boot_rsh_agent
+Used to override the compiled-in default remote agent program that was
+selected when LAM is compiled.  For example, this parameter can be set
+to use "ssh" if LAM was compiled to use "rsh" by default.  Previous
+versions of LAM/MPI used the LAMRSH environment variable for this
+purpose.  While the LAMRSH environment variable still works, its use
+is deprecated in favor of the
+.I boot_rsh_agent
+SSI module argument.
+.TP 4
+boot_rsh_priority
+Using the priority argument can override LAM's automatic run-time boot
+module selection algorithms.
+.TP 4
+boot_rsh_username
+If the user has a different username on the remote machine, this
+parameter can be used to pass the 
+.I -l
+argument to the underlying remote agent.  Note that this is a
+coarse-grained control -- this one username will be used for all
+remote nodes.  If more fine-grained control is required, the username
+should be specified in the boot schema file on a per-host basis.
+.SS slurm Boot Module
+The 
+.I slurm
+boot module uses the 
+.I srun
+command to launch the LAM daemons in a SLURM execution environment
+(i.e., it detects that it is running under SLURM and automatically
+sets its priority to 50).  It can be used in two different modes:
+batch (where a script is submitted to SLURM and it is run on the first
+node in the node allocation) and allocate (where the
+.I -A
+option is used to srun to obtain an interactive allocation).  The
+.I slurm
+boot module does
+.I not
+support running in a script that is launched by SLURM on all nodes in
+an allocation.
+.PP
+No boot schema file is required when using the 
+.I slurm
+boot module; LAM will automatically determine the host and CPU count
+from SLURM itself.
+.PP
+The 
+.I slurm
+boot module only has one tunable parameter:
+.TP 4
+boot_slurm_priority
+Using the priority argument can override LAM's automatic run-time boot
+module selection algorithms.  This parameter only has effect when the 
+.I slurm
+module is eligible to be run (i.e., when running in a SLURM
+allocation).
+.SS tm Boot Module
+The 
+.I tm 
+boot module uses the Task Management (TM) interface to launch
+executables on remote nodes.  Currently, only OpenPBS and PBSPro are
+the only two systems that implement the TM interface.  Hence, when LAM
+detects that it is running in a PBS job, it will automatically set the
+.I tm 
+priority to 50.  When not running in a PBS job, the
+.I tm
+module will not be available.
+.PP
+The 
+.I tm
+boot module only has one tunable parameter:
+.TP 4
+boot_tm_priority
+Using the priority argument can override LAM's automatic run-time boot
+module selection algorithms.  This parameter only has effect when the 
+.I tm
+module is eligible to be run (i.e., when running in a PBS job).
+.SH SEE ALSO
+lamssi(7), mpirun(1), LAM User's Guide

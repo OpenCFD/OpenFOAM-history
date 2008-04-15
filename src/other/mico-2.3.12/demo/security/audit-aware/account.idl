@@ -1,0 +1,17 @@
+// -*- c++ -*-
+
+interface Account {
+    void deposit( in unsigned long amount );
+    void withdraw( in unsigned long amount );
+    long balance();
+};
+
+interface Bank {
+    Account create ();
+    Account open ();
+};
+
+interface Hello {
+	void hello_world();
+};
+

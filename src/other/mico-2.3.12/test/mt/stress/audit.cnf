@@ -1,0 +1,10 @@
+#
+# Audit configuration file
+#
+
+/Audit
+{
+(
+ server:Any * [PrincipalAuth, Invocation, SessionAuth, Authorization, Invocation]
+)
+}

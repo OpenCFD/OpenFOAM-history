@@ -1,0 +1,27 @@
+
+Some demos for Objects by Value.
+
+date:
+	A quite simple example introducing a "date" valuetype that
+	packages date, month and year values.
+
+tree:
+	A more complex example that builds a binary tree from abstract
+	valuetypes: keys are abstract types that support an equality
+	and a comparison operator, while nodes have a common abstract
+	base.
+
+abstract:
+	Demonstrates the usage of abstract interfaces, which can be
+	implemented both by a valuetype or a concrete interface. See
+	abstract/README.
+
+custom:
+	Demonstrates custom marshalling; a "custom" valuetype can provide
+	its own marshalling and unmarshalling methods to allow for a more
+	compressed or specific representation.
+
+tricky:
+	Demonstrates some tricky special cases of valuetype usage
+	(parameter sharing, cyclic graphs, "skipped" values).
+

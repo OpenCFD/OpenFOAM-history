@@ -1,0 +1,19 @@
+
+- remove remaining asserts() and throw exceptions instead
+- CORBA::Status should be void
+- add right arithmetic operators for fixed type
+- _tc_* constants for system exceptions are missing
+- Avoid array assignments in generated code, because this does not work
+  for C++ compilers != GNU C++.
+- make a toplevel make-target "check" that runs tests in all
+  sub-directories. It would be nice to have a uniform way of
+  running the tests/demo. The shell scripts in each directory
+  are called differently.
+- re-structure C++ backend of IDL compiler: it would make sense
+  to introduce a class for each IDL type that generates code
+  for that type.
+- GIOP 1.2
+- make C++ mapping of exceptions compliant
+- Standard exception minor codes
+- DynValue
+- orb.idl

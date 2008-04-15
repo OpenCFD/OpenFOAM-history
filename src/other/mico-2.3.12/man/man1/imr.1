@@ -1,0 +1,94 @@
+.\"
+.\" MICO --- a CORBA 2.0 implementation
+.\" Copyright (C) 1997 Kay Roemer & Arno Puder
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Send comments and/or bug reports to:
+.\"                mico@informatik.uni-frankfurt.de
+.\"
+.TH IMR 1 "April 8 1997"
+.SH NAME
+imr \- MICO implementation repository tool
+.SH SYNOPSIS
+.BR imr " " list
+.br
+.BR imr " " info " " "..."
+.br
+.BR imr " " create " " "..."
+.br
+.BR imr " " delete " " "..."
+.br
+.BR imr " " activate " " "..."
+.br
+.SH DESCRIPTION
+.BR imr
+is used to list all entries in the implementation repository, to show detailed
+information for one entry, to create a new entry, and to delete an entry.
+.SH "OPERATION MODES"
+.SS "Listing All Entries"
+.TP
+.BR imr " " list
+will print a listing of the names of all entries in the implementation
+repository.
+.SS "Details For One Entry"
+.TP
+.BR imr " " info " " <name>
+will show you detailed information for the entry named
+.BR <name> .
+.SS "Creating New Entries"
+.TP
+.BR imr " " create " " <name> " " <mode> " " <command> " " <repoid1> " " ...
+will create a new entry with name
+.BR <name> .
+.BR <mode>
+is one of
+.BR persistent ", " shared ", " unshared ", " permethod ", " library .
+.BR <command>
+is the shell command that should be used to start the server or the file name
+of a loadable module for
+.BR library
+activation mode.
+Note that all paths have to be absolute since
+.BR micod 's
+current
+directory is probably different from your current directory. Furthermore
+you have to make sure that the server is located on the same machine as
+.BR micod ,
+otherwise you have to use
+.BR rsh .
+.BR <repoid1> ", " <repoid2>
+and so on are the repository ids for the IDL interfaces implemented by
+the server.
+.SS "Deleting Entries"
+.TP
+.BR imr " " delete " " <name>
+will delete the entry named
+.BR <name> .
+.SS "Activation implementation"
+.TP
+.BR imr " " activate " " <name> " " "[<micod-address>]"
+will force activation of the implementation
+.BR <name> .
+.SH FILES
+~/.micorc
+.SH "SEE ALSO"
+.IR "MICO Reference Manual" ", " rsh(1) ", " micod(8) ", " imr(1) ", "
+.IR ird(8) ", " micorc(5) ", " idl(1)
+.SH COPYRIGHT
+Copyright (C) 1997, Kay Roemer & Arno Puder
+.SH AUTHOR
+Kay Roemer & Arno Puder
+

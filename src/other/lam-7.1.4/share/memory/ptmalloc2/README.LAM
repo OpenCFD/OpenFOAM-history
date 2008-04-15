@@ -1,0 +1,39 @@
+ptmalloc2 used by LAM/MPI 
+-------------------------
+
+This package is originally derived from ptmalloc2 by Wolfram Gloger
+(http://www.malloc.de/).  Original copyright notices appear in the
+ptmalloc2-COPYRIGHT file in this directory.
+
+Minor changes have been made to ptmalloc2 to incorporate it into
+LAM/MPI.  This version of malloc (and friends) is necessary for (among
+other reasons) the gm rpi module for the following reasons:
+
+1. The gm library does not like the following behavior:
+
+   char *a = malloc(...);
+   gm_register_memory(a, ...);
+   free(a);
+
+   i.e., freeing registered memory.  However, since the gm rpi module
+   pins arbitrary user buffers, it must also [effectively] intercept
+   calls to free() and un-register the memory before it is actually
+   freed.
+
+2. The malloc implementation must be thread-safe, so ptmalloc2 was used
+   -- a derrivative of dlmalloc that offers reasonable concurrency and
+   thread safety.
+
+The changes made to this package to incorporate it into the gm rpi
+module are as follows:
+
+- Use automake/libtool to build a convenience library.
+- Pass in flags from the top-level configure (e.g., which threads
+  package to use).
+- Provide generic hooks that are invoked during munmap() and sbrk()
+  that do the de-registration before freeing the pages.
+
+
+Enjoy.
+
+The LAM/MPI Team

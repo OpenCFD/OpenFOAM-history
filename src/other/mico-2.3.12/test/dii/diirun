@@ -1,0 +1,17 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+ADDR=inet:`uname -n`:12456
+
+rm -f diiserver.ior
+./diiserver &
+server_pid=$!
+sleep 1
+
+trap "kill $server_pid > /dev/null 2> /dev/null" 0
+for i in 0 1 2 3 4 5 6 7 8 9 ; do if test -r diiserver.ior ; then break ; else sleep 1 ; fi ; done
+
+# run client
+./diiclient

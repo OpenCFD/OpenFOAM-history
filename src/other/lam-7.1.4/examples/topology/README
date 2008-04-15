@@ -1,0 +1,26 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+This sample program makes a catesian and graph topology with 4 MPI
+processes.
+
+Use make to compile these programs.  Make will use mpic++ to compile
+it:
+
+       mpic++ -o cxx_topology cxx_topology.cc
+
+This program is designed to be run with 4 MPI processes:
+
+       mpirun -np 4 cxx_topology

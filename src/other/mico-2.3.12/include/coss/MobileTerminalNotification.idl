@@ -1,0 +1,44 @@
+//File: MobileTerminalNotification.idl
+
+#ifndef _MOBILE_TERMINAL_NOTIFICATION_IDL_
+#define _MOBILE_TERMINAL_NOTIFICATION_IDL_
+
+#include <coss/MobileTerminal.idl>
+
+#pragma prefix "omg.org"
+
+module MobileTerminalNotification {
+
+	struct HandoffDepartureEvent {
+		MobileTerminal::TerminalId	terminal_id;
+		MobileTerminal::AccessBridge	new_access_bridge;
+	};
+
+	struct HandoffArrivalEvent {
+		MobileTerminal::TerminalId	terminal_id;
+		MobileTerminal::AccessBridge	old_access_bridge;
+	};
+
+	struct AccessDropoutEvent {
+		MobileTerminal::TerminalId	terminal_id;
+	};
+
+	struct AccessRecoveryEvent {
+		MobileTerminal::TerminalId	terminal_id;
+	};
+
+	struct TerminalHandoffEvent {
+		MobileTerminal::AccessBridge	new_access_bridge;
+	};
+
+	struct TerminalDropoutEvent {
+		MobileTerminal::TerminalId	terminal_id;
+	};
+
+	struct TerminalRecoveryEvent {
+		MobileTerminal::TerminalId	terminal_id;
+	};
+
+};
+
+#endif

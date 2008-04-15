@@ -1,0 +1,17 @@
+#ifndef __examples_corba_DataObject__
+#define __examples_corba_DataObject__
+
+module examples {
+
+    module corba {
+
+	struct DataObject {
+	    long i;
+	    string s;
+	};
+
+    };
+
+};
+
+#endif

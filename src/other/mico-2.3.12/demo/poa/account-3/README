@@ -1,0 +1,47 @@
+
+Persistent POA Example
+----------------------
+
+This example demonstrates usage of a persistent POA. Objects in a persistent
+POA can by definition outlive the process they're created in. A mechanism is
+provided to save the objects' state to persistent storage (for example, a
+file on disk) and to restore the information when the object is reactivated.
+
+The implementation of Bank and Account hasn't changed much compared with
+the previous example (Account-2). We have added a "name" parameter to
+Bank::create() so that each Account has a Name that we will use as a
+file name to store the Account on disk lateron. We have also added a
+Bank::shutdown() operation to demonstrate transparent reactivation of
+the servant by micod.
+
+More changes have been done in AccountManager, the ServantManager imple-
+mentation. Now, when asked to incarnate a new servant, the Manager sees
+if the object's state from a previous activation can be read from disk.
+Upon etherealize, the object's balance is written to disk.
+
+Unfortunately, all we get in our implementation of etherealize() is a
+PortableServer::Servant value. We know that it actually points to an
+Account_impl object, but we cannot directly call any of Account_impl's
+methods to save the state, and we also cannot narrow the pointer to an
+Account_impl (save with advanced C++ features). We must therefore keep
+a map mapping Servant values to Account implementations.
+
+The server process uses a total of three POAs: first, the Root POA.
+Second, the persistent "Accounts" POA. Third, the "Bank" POA. The
+Bank must also be registered in a persistent POA so that the Object
+reference kept by the client does not become invalid between server
+activations. We could of course register the Bank in the "Accounts"
+POA, but then we'd have to distinguish between the Bank and all the
+Accounts in our ServantManager. There's no penalty for using multiple
+POAs -- the concept has been introduced to make our life easier after
+all.
+
+Note that the Bank, though registered in the "Bank" POA, creates all
+its Account references in the "Account" POA.
+
+The "account" shell script first starts the POA Daemon (which is contained
+in micod) and adds a "poa" entry to the Implementation Repository. The first
+instance is started up manually using `imr activate', so that the server has
+the chance to write the Bank's IOR into a file. Lateron, the server is restar-
+ted by the MICO Daemon whenever the server is not running.
+

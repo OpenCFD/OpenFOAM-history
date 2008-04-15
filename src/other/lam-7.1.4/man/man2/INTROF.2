@@ -1,0 +1,118 @@
+.TH INTROF 2 "July, 2007" "LAM 7.1.4" "LAM FORTRAN LIBRARY"
+.SH NAME
+INTROF - introduction to LAM Fortran programming routines
+.SH LIST OF FUNCTIONS
+.nf
+.ta \w'#MPIL_UNIVERSE_SIZE 'u +\w'MPIL_Trace_on.2 'u
+\fIName	Appears	Description\fR
+\fI	on Page\fR
+.sp 1
+*FTTIME	FTTIME.3	Get timer value in seconds.
+#F4LTOT	TTOL.3	Convert REAL*4 (local to LAM).
+#F4MLTT	TTOL.3	Convert REAL*4 array (local to LAM).
+#F4MTTL	TTOL.3	Convert REAL*4 array (LAM to local).
+#F4TTOL	TTOL.3	Convert REAL*4 (LAM to local).
+#F8LTOT	TTOL.3	Convert REAL*8 (local to LAM).
+#F8MLTT	TTOL.3	Convert REAL*8 array (local to LAM).
+#F8MTTL	TTOL.3	Convert REAL*8 array (LAM to local).
+#F8TTOL	TTOL.3	Convert REAL*8 (LAM to local).
+#GALL	GNODES.3	Get all nodeids.
+#GCASTS	GNODES.3	Get all castids.
+#GCOMPS	GNODES.3	Get all compute nodeids.
+#GJONES	GNODES.3	Get all neighbouring nodeids.
+#GNODES	GNODES.3	Get array of type matching nodeids.
+#GOTBS	GNODES.3	Get all OTB nodeids.
+*IGNALL	IGNTP.2	Get total number of nodes.
+*IGNCMP	IGNTP.2	Get number of compute nodes.
+*IGNDID	IGNTP.2	Get local node ID.
+*IGNDTP	IGNTP.2	Get local node type.
+*IGNJON	IGNTP.2	Get number of neighbouring nodes.
+*IGNOTB	IGNTP.2	Get number of OTB nodes.
+*IGNTP	IGNTP.2	Get number of type matching nodes.
+*IGORGN	IGNTP.2	Get origin node ID.
+*IGRTP	IGNTP.2	Get remote node type.
+#I2LTOT	TTOL.3	Convert INTEGER*2 (local to LAM).
+#I2MLTT	TTOL.3	Convert INTEGER*2 array (local to LAM).
+#I2MTTL	TTOL.3	Convert INTEGER*2 array (LAM to local).
+#I2TTOL	TTOL.3	Convert INTEGER*2 (LAM to local).
+#I4LTOT	TTOL.3	Convert INTEGER*4 (local to LAM).
+#I4MLTT	TTOL.3	Convert INTEGER*4 array (local to LAM).
+#I4MTTL	TTOL.3	Convert INTEGER*4 array (LAM to local).
+#I4TTOL	TTOL.3	Convert INTEGER*4 (LAM to local).
+#KENTR	KENTR.2	Register self process.
+#KXIT	KXIT.2	Terminate self with cleanup.
+#NPROB	NPROB.2	Probe receivable messages.
+#NRCV	NSND.2	Receive network message.
+#NSND	NSND.2	Send network message.
+#PRCV	PSND.2	Receive message (physical layer).
+#PRCVC	PSND.2	Close receiver physical channel.
+#PRCVO	PSND.2	Open receiver physical channel.
+#PSND	PSND.2	Send message (physical layer).
+#PSNDC	PSND.2	Close sender physical channel.
+#PSNDO	PSND.2	Open sender physical channel.
+#RPLDGO	RPLDGO.2	Load and run a program on a node.
+#RPWT	RPWT.2	Wait for a child process to exit.
+#lamf_rfclose	lamf_rfopen.2	Close file.
+#lamf_rfopen	lamf_rfopen.2	Open file.
+#lamf_rfread	lamf_rfread.2	Read file.
+#TRCV	TSND.2	Receive message (transport layer).
+#TRROR	TRROR.3	Print most recent error message.
+#TSND	TSND.2	Send message (transport layer).
+#lamf_rfwrite	lamf_rfread.2	Write file.
+#MPI_SPAWN	MPI_Spawn.2	Create processes.
+.sp 1
+LAM/MPI Extensions
+.sp 1
+\fIName	Appears	Description\fR
+\fI	on Page\fR
+.sp 1
+#MPIL_COMM_GPS	MPIL_Comm_id.2	Get LAM coordinates for MPI process.
+#MPIL_COMM_ID	MPIL_Comm_id.2	Get communicator ID.
+#MPIL_COMM_PARENT	MPIL_Spawn.2	Get parent intercommunicator.
+#MPIL_SIGNAL	MPIL_Signal.2	Deliver a signal.
+#MPIL_SPAWN	MPIL_Spawn.2	Create processes.
+#MPIL_TRACE_ON	MPIL_Trace_on.2	Enable trace collection.
+#MPIL_TRACE_OFF	MPIL_Trace_on.2	Disable trace collection.
+#MPIL_TYPE_ID	MPIL_Comm_id.2	Get datatype ID.
+#MPIL_UNIVERSE_SIZE	MPIL_Spawn.2	Get number of nodes.
+.DT
+.fi
+.SH NOTES
+All names marked by a "#" are subroutine calls 
+and have as their last parameter
+.I ierror
+which returns the error code in case of an unsuccessful call. 
+It is therefore recommended to check for the value
+of
+.I ierror
+immediately after subroutine calls. 
+All names marked by a "*" are function calls
+and return some useful value other than
+.IR ierror .
+.PP 
+Simple rules for creating FORTRAN subroutine/function names
+from C functions are listed below.
+.PP
+Mappings from substrings in C functions
+onto shorter substrings or single letters in FORTRAN wrappers:
+.PP
+.ta 10 20 30
+.nf
+C	-->	FORTRAN
+TRY		T
+GET		G
+NODE		ND
+TYPE		TP
+.fi
+.PP
+All functions that return an integer or short integer
+are prefixed with the letter "I".
+All functions that return a single precision or double precision floating
+point value are prefixed with the letter "F".
+This is to minimize the necessity of declaring functions.
+However functions that return a short integer or a double precision floating
+point number still have to be declared.
+.PP
+If after applying the above two rules, the FORTRAN name still exceeds six
+characters in length, it is compressed to six by dropping the least
+essential vowels.

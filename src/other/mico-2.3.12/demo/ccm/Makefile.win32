@@ -1,0 +1,22 @@
+!include ..\..\MakeVars.win32
+
+all: subs
+
+subs:
+	cd hello
+	nmake /nologo /f Makefile.win32
+	cd ..\events
+	nmake /nologo /f Makefile.win32
+	cd ..\philo
+	nmake /nologo /f Makefile.win32
+	cd ..
+clean:
+	cd hello
+	nmake /nologo /f Makefile.win32 clean
+	cd ..\events
+	nmake /nologo /f Makefile.win32 clean
+	cd ..\philo
+	nmake /nologo /f Makefile.win32 clean
+	cd ..
+
+

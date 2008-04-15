@@ -1,0 +1,8 @@
+Running.
+HelloManager::incarnate
+object id: `HelloWorld'
+Hello World
+orb->shutdown();
+HelloManager::etherealize
+object id: `HelloWorld'
+server finished

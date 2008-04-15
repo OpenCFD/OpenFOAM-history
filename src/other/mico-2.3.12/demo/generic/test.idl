@@ -1,0 +1,19 @@
+/*
+ * This file contains the test IDL file. We make the following assumptions:
+ *  - only short, long and structs can be used for parameter types
+ *  - only input parameters are allowed
+ *  - all operation names must be unique
+ *  - the name of the interface is irrelevant
+ */
+
+struct S {
+    short x;
+    long  y;
+};
+
+
+interface Test {
+    void foo (in short x);
+    void bar (in long x, in short y);
+    void complex (in long l, in S s);
+};

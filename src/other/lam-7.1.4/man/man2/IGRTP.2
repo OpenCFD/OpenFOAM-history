@@ -1,0 +1,128 @@
+.TH GETRENT 2 "July, 2007" "LAM 7.1.4" "LAM NETWORK LIBRARY"
+.hy 0
+.SH NAME
+getrent, getrentc, getroute, getroute2, getrtype 
+\- Get LAM route information.
+.SH C SYNOPSIS
+.hy 1
+.nf
+#include <net.h>
+#include <rreq.h>
+#include <events.h>
+
+int getrent (struct route *rent);
+int getrentc (struct route *rent);
+int getroute (struct nmsg *nhead);
+int getroute2 (struct nmsg *nhead);
+int getrtype (int nodeid);
+.fi
+.SH FORTRAN SYNOPSIS
+.nf
+integer function IGRTP (nodeid)
+integer nodeid
+.fi
+.SH DESCRIPTION
+These functions return information obtained from the local route daemon,
+a modular component of the LAM daemon.
+.I getrent()
+and
+.I getrentc()
+accept a pointer to a route structure, defined in <rreq.h>:
+.LP
+.nf
+.ta .5i 1i 1.5i
+	struct route {
+		int	r_nodeid;
+		int	r_event;
+		int	r_link;
+		int	r_event2;
+		int	r_link2;
+		int	r_nodetype;
+	};
+.fi
+.LP
+The structure fields hold the following information.
+.PP
+.TP 12
+r_nodeid
+destination node ID
+.TP
+r_event
+forwarding event, representing the best suggested route to the
+destination node
+.TP
+r_link
+forwarding link associated with r_event, if r_event is a datalink
+output process
+.TP
+r_event2
+secondary forwarding event, representing a non-reconvergent route
+(primarily used for multicasting) with respect to other destinations
+.TP
+r_link2
+forwarding link associated with r_event2, if r_event2 is a datalink
+output process
+.TP
+r_nodetype
+node type of destination node (see getntype(2))
+.PP
+.I getrent()
+sends a request for route information to the route daemon.
+The
+.I r_nodeid
+field must be set by the caller to the nodeid of the
+destination node whose route table entry is required.
+All other fields are filled by the function.
+.PP
+.I getrentc()
+has the exact functionality of
+.IR getrent() ,
+except that it caches the recently accessed route table entries.
+Later access to the same entries are faster.
+.I getrentc()
+first checks the cache for the route entry of the given nodeid.
+If the entry is found, the requested information is returned.
+Otherwise,
+.I getrent()
+is called, returning a copy of the route table entry from the route daemon.
+This entry is then stored in the cache.
+.PP
+The remaining functions are wrappers for
+.IR getrentc() .
+.I getroute()
+accepts a network message descriptor with the destination node and
+event fields set and fills in the forwarding fields.
+.I getroute2()
+is similar to
+.I getroute()
+except that the secondary routing information is used.
+.PP
+.I getrtype()
+accepts a node identifier and returns the type of that node.
+.SH C RETURN VALUE
+Upon successful completion of
+.IR getrent() ,
+.IR getrentc() ,
+.IR getroute() ,
+or
+.IR getroute2() ,
+0 is returned.
+Otherwise, \-1 is returned and global error variable
+.I errno
+is set accordingly.
+.I getrtype()
+returns a valid node type when successful.
+NOTNODETYPE (defined in <net.h>) is returned if an error occurs.
+When an error occurs, these functions set the global variable
+.I errno
+to the appropriate error code.
+.SH FORTRAN RETURN VALUE
+.I IGRTP()
+returns a valid node type when successful.
+NOTNODETYPE (see CONSTANTS(5)) is returned if an error occurs.
+.SH ERRORS
+.TP 12
+EBADNODE
+The supplied node identifier does not exist.
+.SH SEE ALSO
+getntype(2), rrsetrents(2), CONSTANTS(5)

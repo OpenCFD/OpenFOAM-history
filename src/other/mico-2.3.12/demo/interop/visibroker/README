@@ -1,0 +1,16 @@
+
+Interoperability test with VisiBroker Developer for Java 3.1
+============================================================
+
+- make sure you have set the VisiBroker environment variables
+  properly (e.g. by sourcing vbroker.sh) and osagent is
+  running
+- do "make" in this directory
+- run server object "account_svr". Server will write its IOR
+  to a file called "account.ref"
+- run Java client with "vbj Client"
+- Client should print "The balance is 450"
+- to run the applet version, run "run_applet". The "Current
+  balance" field should display the current balance of the
+  account server object (450 in this case)
+- or you can just run the shell script account...

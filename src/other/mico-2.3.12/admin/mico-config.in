@@ -1,0 +1,64 @@
+#!/bin/sh -f
+
+usage()
+{
+        cat <<EOF
+Usage: mico-config [OPTIONS]
+Options:
+        [--prefix]
+        [--version]
+	[--target]
+	[--build]
+	[--host]
+	[--cxx]
+	[--cxxflags]
+	[--picflags]
+        [--libs]
+	[--cosslibs]
+EOF
+        exit $1
+}
+
+if test $# -eq 0; then
+        usage 1 1>&2
+fi
+
+
+for arg
+do
+  case "$arg" in
+  --prefix)
+    echo "@prefix@"
+    ;;
+  --version)
+    echo "@MICO_VERSION@"
+    ;;
+  --target)
+    echo "@target@"
+    ;;
+  --build)
+    echo "@build@"
+    ;;
+  --host)
+    echo "@host@"
+    ;;
+  --cxx)
+    echo "@CXX@"
+    ;;
+  --cxxflags)
+    echo "-I@prefix@/include @CPPFLAGS@ @CXXFLAGS@ @EHFLAGS@"
+    ;;
+  --picflags)
+    echo "@PICFLAGS@"
+    ;;
+  --libs)
+    echo "@DLFLAGS@ -L@prefix@/lib -lmico@MICO_VERSION@ @LDFLAGS@ @BASE_LIBS@"
+    ;;
+  --cosslibs)
+    echo "@DLFLAGS@ -L@prefix@/lib -lmicocoss@MICO_VERSION@ -lmico@MICO_VERSION@ @LDFLAGS@ @BASE_LIBS@"
+    ;;
+  --help)
+    usage
+    ;;
+  esac
+done

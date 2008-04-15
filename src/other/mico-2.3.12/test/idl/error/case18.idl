@@ -1,0 +1,11 @@
+
+/*
+ * No available value for explicit default case label
+ */
+
+union U switch(boolean) {
+  case TRUE: long x;
+  case FALSE: long y;
+  default: long z;
+};
+

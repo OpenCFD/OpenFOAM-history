@@ -1,0 +1,69 @@
+#include <mico/CCM.idl>
+
+module DiningPhilosophers {
+  exception InUse {};
+
+  interface Fork {
+    void get () raises (InUse);
+    void release ();
+  };
+
+  component ForkManager {
+    provides Fork the_fork;
+  };
+
+  home ForkHome manages ForkManager {};
+};
+
+module DiningPhilosophers {
+  enum PhilosopherState {
+    EATING, THINKING, HUNGRY, STARVING, DEAD
+  };
+
+  eventtype StatusInfo {
+    public string name;
+    public PhilosopherState state;
+    public unsigned long ticks_since_last_meal;
+    public boolean has_left_fork;
+    public boolean has_right_fork;
+  };
+};
+
+module DiningPhilosophers {
+  component Observer {
+    consumes StatusInfo info;
+  };
+
+  home ObserverHome manages Observer {};
+};
+
+module DiningPhilosophers {
+  component Philosopher {
+    attribute string name;
+    uses Fork left;
+    uses Fork right;
+    publishes StatusInfo info;
+  };
+
+  home PhilosopherHome manages Philosopher {
+    factory new (in string name);
+  };
+};
+
+local interface MyFork :
+	DiningPhilosophers::CCM_ForkManager,
+	DiningPhilosophers::CCM_Fork
+{
+};
+
+local interface MyPhilosopher :
+	DiningPhilosophers::CCM_Philosopher,
+	Components::SessionComponent
+{
+};
+
+local interface MyObserver :
+	DiningPhilosophers::CCM_Observer,
+	Components::SessionComponent
+{
+};

@@ -1,0 +1,25 @@
+#include "orb.idl"
+
+#ifndef __java_lang_StackTraceElement__
+#define __java_lang_StackTraceElement__
+
+
+module java {
+module lang {
+
+    valuetype StackTraceElement {
+    
+        private long lineNumber;
+        private ::CORBA::WStringValue declaringClass;
+        private ::CORBA::WStringValue fileName;
+        private ::CORBA::WStringValue methodName;
+    
+    };
+
+#pragma ID StackTraceElement "RMI:java.lang.StackTraceElement:CD38F9930EA8AAEC:6109C59A2636DD85"
+
+};
+};
+
+#endif
+

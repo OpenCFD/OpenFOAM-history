@@ -1,0 +1,15 @@
+#!/bin/sh
+
+IRADDR=inet:`uname -n`:44459
+
+../../ir/ird -ORBIIOPAddr $IRADDR &
+pid=$!
+
+trap "kill $pid" 0
+
+sleep 1
+
+../../idl/idl --no-codegen-c++ --feed-ir -ORBIfaceRepoAddr $IRADDR account.idl
+../../idl/idl --no-codegen-c++ --feed-ir -ORBIfaceRepoAddr $IRADDR browser.idl
+
+./diiproxy -ORBIfaceRepoAddr $IRADDR

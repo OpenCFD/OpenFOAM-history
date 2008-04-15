@@ -1,0 +1,2 @@
+kill -15 `cat ird.pid`
+rm -f ir-db.idl ird.pid

@@ -1,0 +1,54 @@
+This is implementation of COSS LifeCycle Service for MICO
+based of Trading Service.
+
+For more information about this service see 
+ftp://www.omg.org/pub/docs/formal/97-12-13.ps
+
+for run demo type in directory $MICODIR/doc/examples/services/lifecycle:
+	
+	make
+	./rundemo
+	
+	
+and for programmers information on how you can use this please 
+look at simple-test.cc in same directory.
+
+
+Daemons
+-------
+
+factoryfinderd and genericfactory
+
+On these servers run object implementation for first level
+of the LifeCycle Service. Both of this servers need Trading Service to work
+properly. 
+
+
+lifenoded
+---------
+
+This server start NodeFactory which produce CompoundLifeCycle::Node
+object. It may export itself to Trading Service.
+
+
+lifecontainmentd and lifereferenced.
+----------------------------
+
+On these servers run object implementation for third level 
+of the LifeCycle Service. Both of this servers may export themself to Trading
+Service.
+
+
+lifecritariad.
+--------------
+
+This server start PropagationCriteriaFactory which produce Traversal Criteria
+object for Life Cycle Operation (copy,move,remove)
+
+
+operationd. 
+-----------
+
+This server start ComoundLifeCycle::OperationsFactory which produce Operations
+object. Operations object is used to copy, move or remove graphs of
+LifeCycle object implementations.

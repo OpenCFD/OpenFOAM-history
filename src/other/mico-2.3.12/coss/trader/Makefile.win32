@@ -1,0 +1,78 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1998 by Torben Weis
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+RELATIVE = ..\..
+
+!include ..\MakeVars.win32
+LDLIBS    = micocoss$(VERSION).lib mico$(VERSION).lib
+LDFLAGS  = /LIBPATH:.. /LIBPATH:..\..\win32-bin\lib $(LDFLAGS)
+IDLFLAGS = --no-poa --boa  --c++-skel $(IDLFLAGS)
+CFLAGS   = -DHAVE_CONFIG_H -I. -I..\..\cpp -I..\..\include $(CFLAGS)
+
+# generated files
+#GENERATED = lex.cc yacc.cc yacc.h yacc.output
+
+
+LIB_SRCS = CosTrading.cc CosTradingRepos.cc
+SRV_SRCS  = main.cc link.cc parse.cc parse_tree.cc yacc.cc lex.cc lookup.cc \
+  misc.cc register.cc typerepo_impl.cc proxy.cc kany.cc trader_main.cc \
+  CosTrading_skel.cc CosTradingRepos_skel.cc \
+  ..\..\cpp\alloca.obj
+
+SHARED_LIB_OBJS = $(LIB_SRCS:.cc=.obj)
+SRV_OBJS = $(SRV_SRCS:.cc=.obj)
+
+# normal rules
+
+all: lib prg
+
+lib: $(SHARED_LIB_OBJS)
+
+prg: traderd.exe
+install:
+     $(COPY) traderd.exe ..\..\win32-bin
+
+traderd.exe: $(SRV_OBJS) 
+	$(LINK)  $(LDFLAGS) $(SRV_OBJS) $(LDLIBS) /out:traderd.exe
+
+
+CosTrading.h CosTrading.cc CosTrading_skel.cc: ..\..\include\coss\CosTrading.idl 
+	$(IDL) $(IDLFLAGS) --any --name CosTrading ..\..\include\coss\CosTrading.idl
+	$(COPY) CosTrading.h ..\..\include\coss
+
+CosTradingRepos.h CosTradingRepos.cc CosTradingRepos_skel.cc: ..\..\include\coss\CosTradingRepos.idl 
+	$(IDL) $(IDLFLAGS) --name CosTradingRepos ..\..\include\coss\CosTradingRepos.idl
+	$(COPY) CosTradingRepos.h ..\..\include\coss
+
+# cleaning
+
+clean:
+	-$(DELETE)
+	-$(RM) CosTrading.h
+	-$(RM) CosTrading.cc
+	-$(RM) CosTradingRepos.h
+	-$(RM) CosTradingRepos.cc
+	-$(RM) ..\..\include\coss\CosTrading.h
+	-$(RM) ..\..\include\coss\CosTradingRepos.h
+	-$(RM) CosTrading_skel.cc
+	-$(RM) CosTradingRepos_skel.cc
+
+

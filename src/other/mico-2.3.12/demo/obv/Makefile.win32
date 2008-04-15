@@ -1,0 +1,22 @@
+
+all: path subs
+RELATIVE = ..\..
+!include ../MakeVars.win32
+
+DIRS=abstract custom date tree tricky
+
+path:
+    set path=%path%;..\..\..\win32-bin;$(MPATH)
+
+subs:
+	for %i in ( $(DIRS) ); do cmd /c "cd %i & $(MAKE) /f Makefile.win32 "
+
+run:
+	for %i in ( $(DIRS) ); do cmd /c "cd %i & $(MAKE) /f Makefile.win32 run"
+
+clean:
+	for %i in ( $(DIRS) ); do cmd /c "cd %i & $(MAKE) /f Makefile.win32 clean"
+	-$(DELETE)
+
+install:
+	for %i in ( $(ALLDIRS) ); do cmd /c "cd %i & $(MAKE) /nologo /f Makefile.win32 "

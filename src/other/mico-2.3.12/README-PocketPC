@@ -1,0 +1,62 @@
+
+MICO on PocketPC
+----------------
+
+MICO is known to run on Compaq's handheld iPAQ under Linux, thanks to
+a full fledged GCC development environment for this platform. Getting
+MICO run under Microsoft's PocketPC is a bit more of a challenge. This
+README describes how to integrate MICO into your MFC based PocketPC
+applications.
+
+MICO has been tested with Microsoft's Embedded Visual-C++ which can be
+freely obtained at:
+
+http://www.microsoft.com/mobile/downloads/emvt30.asp
+
+
+Here is a step-by-step procedure how to integrate MICO into your
+PocketPC MFC application:
+
+- define a new MFC based PocketPC project
+- use the AppWizard to create a little null-application
+- untar MICO to some directory. This directory will be referred to
+  <mico-home> in the following
+- add search paths for MICO include files. Inside the IDE,
+  go to Tools/Options, then select tab "Directories". Add
+  the following search paths for include files (note: order
+  _is_ significant):  <mico-home>\include\pocketpc
+                      <mico-home>\include
+- add a #define: go to Project/Settings, then go to tab "C/C++".
+  In the category list select "Preprocessor". Add the define
+  _POCKET_PC in the entry field "Preprocessor definitions".
+- deselect pre-compiled headers: in the same tab as before,
+  select category "Precompiled headers", then click on
+  "Not using precompiled headers"
+- add the MICO-ORB files to your project: go to Project/Add to
+  Project/Files and add the following files to your project:
+      <mico-home>\orb\ir_ppc.cpp
+      <mico-home>\orb\orb_ppc.cpp
+      <mico-home>\orb\os-pps.cpp
+
+That's it!
+
+Please note that this only 'imports' the MICO-ORB into your project.
+Obviously there is no IDL-Compiler running on the PocketPC device. The
+code that MICO's IDL-Compiler produces is portable across all
+supported platforms. This means that you can build the MICO package
+under Linux, run the IDL-Compiler to generate the stub and skeleton
+files and then add those generated files to your MFC project.
+
+There are still plenty of things to do to make it nice:
+
+- write some makefiles so that MICO can be build from command
+  line.
+- get rid of all the warnings (and actually taking a closer
+  look at the severity of those warnings).
+- look for places in the code marked with NOT_IMPLEMENTED
+  and provide a PocketPC implementation
+- enhance the build process to generate a DLL that several
+  PocketPC applications can share.
+
+Feel free to work on those TODOs. Please send feedback over the MICO
+mailing list.

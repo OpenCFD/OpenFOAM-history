@@ -1,0 +1,31 @@
+!include ..\..\..\MakeVars.win32
+!include ..\MakeVars.win32
+
+all: client.exe server.exe
+
+client.exe: hello.obj client.obj
+	$(LINK) $(LINKFLAGS) client.obj hello.obj /subsystem:console /libpath:..\..\..\win32-bin\lib \
+		micoccm$(VERSION).lib micocoss$(VERSION).lib mico$(VERSION).lib /out:client.exe
+
+server.exe: hello_impl.obj hello_ccm.obj hello.obj
+	$(LINK) $(LINKFLAGS) hello.obj hello_impl.obj hello_ccm.obj /subsystem:console \
+		/libpath:..\..\..\win32-bin\lib $(CCMLIBS) /out:server.exe
+
+client.obj: client.cc hello.h
+hello.obj: hello.cc
+hello_impl.obj: hello_impl.cc hello_ccm.h hello.h
+hello_ccm.obj: hello_ccm.cc
+
+hello_ccm.cc hello_ccm.h: hello.idl
+	mico-ccm --standalone hello.idl
+
+hello.cc hello.h: hello.idl
+	$(IDL) $(IDLFLAGS) hello.idl
+
+clean:
+	-$(RM) client.exe server.exe
+	-$(RM) *.obj
+	-$(RM) hello_ccm.cc hello_ccm.idl
+	-$(RM) hello.cc hello.hello.h
+
+	

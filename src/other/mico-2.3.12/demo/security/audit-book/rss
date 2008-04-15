@@ -1,0 +1,5 @@
+#!/bin/sh
+
+ADDR=ssl:inet:`uname -n`:12466
+
+./server -ORBIIOPAddr $ADDR -ORBSSLcert ServerCert.pem -ORBSSLkey ServerKey.pem -ORBSSLverify 0  -AccessControl off -AuditType file -AuditArchName server.log 

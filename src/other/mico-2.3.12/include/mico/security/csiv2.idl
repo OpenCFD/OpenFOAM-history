@@ -1,0 +1,123 @@
+//
+//  MICO CSIv2 --- an Open Source CSIv2 implementation
+//  Copyright (C) 2002 ObjectSecurity Ltd.
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Library General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Library General Public License for more details.
+//
+//  You should have received a copy of the GNU Library General Public
+//  License along with this library; if not, write to the Free
+//  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+//  Send comments and/or bug reports to:
+//                 micosec@objectsecurity.com
+//
+
+//  Written by Karel Gardas, <kgardas@objectsecurity.com>
+
+
+#ifndef __CSIv2_IDL__
+#define __CSIv2_IDL__
+
+#include <mico/pi.idl>
+#include <mico/security/csi.idl>
+#include <mico/security/csiiop.idl>
+#include <mico/security/gssup.idl>
+
+module CSIv2 {
+    local interface SecurityManager;
+
+    local interface CMSetup {
+	attribute unsigned short auth_layer;
+	attribute unsigned short attr_layer;
+    };
+
+    exception InvalidMechanism {
+    };
+
+    local interface TSS : CMSetup {
+	attribute SecurityManager security_manager;
+	IOP::ServiceContext accept_context(in PortableInterceptor::ServerRequestInfo info, out boolean exc);
+	CSI::CompleteEstablishContext establish_context(in CSI::EstablishContext ctx)
+	    raises (InvalidMechanism);
+	void accept_transport_context();
+	// from server request interceptor
+	void receive_request_service_contexts (in PortableInterceptor::ServerRequestInfo info);
+	void receive_request (in PortableInterceptor::ServerRequestInfo info);
+	void send_reply (in PortableInterceptor::ServerRequestInfo info);
+	void send_exception (in PortableInterceptor::ServerRequestInfo info);
+	void send_other (in PortableInterceptor::ServerRequestInfo info);
+    };
+
+    local interface CSS : CMSetup {
+	attribute SecurityManager security_manager;
+	void write_sas_context(in PortableInterceptor::ClientRequestInfo info, in CSIIOP::CompoundSecMechList list);
+	// from client request interceptor
+	void send_request(in PortableInterceptor::ClientRequestInfo info);
+	void receive_reply(in PortableInterceptor::ClientRequestInfo info);
+	void receive_exception(in PortableInterceptor::ClientRequestInfo info);
+	void receive_other(in PortableInterceptor::ClientRequestInfo info);
+    };
+
+    exception GSSAuthError {
+	GSSUP::ErrorCode reason;
+    };
+
+    exception TrustIdentityError {
+    };
+
+    typedef string DistinguishedName;
+    typedef sequence<DistinguishedName> DistinguishedNameList;
+
+    struct UserIdentity {
+	string user_name;
+	string identity_name;
+    };
+    typedef sequence<UserIdentity> UserIdentityList;
+
+    local interface SecurityManager {
+	attribute TSS tss;
+	attribute CSS css;
+	attribute boolean csiv2;
+	attribute IOP::CodecFactory codec_factory;
+	readonly attribute IOP::Codec codec;
+	attribute DistinguishedNameList tls_user_list;
+	attribute UserIdentityList user_id_list;
+	attribute string client_identity;
+	
+	CSI::GSSToken get_gss_init_token(in CSI::GSS_NT_ExportedName name);
+	void auth_token(in CSI::GSSToken token)
+	    raises (GSSAuthError);
+	CSI::GSSToken error_token(in GSSUP::ErrorCode reason);
+	CORBA::OctetSeq ior_component_data();
+	CSI::GSS_NT_ExportedName client_identity_token();
+	void verify_client_identity(in CSI::IdentityToken identity, in boolean use_auth_layer)
+	    raises(TrustIdentityError);
+    };
+
+    local interface ServerRequestInterceptor : PortableInterceptor::ServerRequestInterceptor {
+	readonly attribute TSS tss;
+    };
+
+    local interface ClientRequestInterceptor : PortableInterceptor::ClientRequestInterceptor {
+	readonly attribute CSS css;
+    };
+
+    local interface IORInterceptor : PortableInterceptor::IORInterceptor {
+    };
+//
+//  As pi.idl says, this must be mapped by hand
+//
+//      local interface InterceptorInitializer : PortableInterceptor::ORBInitializer {
+//      };
+};
+
+
+#endif // __CSIv2_IDL__

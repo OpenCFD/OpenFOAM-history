@@ -1,0 +1,30 @@
+
+We use UDP multicasts to realize a simple fault tolerance example.
+Serveral servers bind to the same multicast address and port
+number. You can also use broadcast addresses, but some OSes have
+a bug in the UDP code that prevents this from working (when you
+first bind a UDP socket to a broadcast address and then connect
+it to some address the socket is erronously rebound to the local
+machines address). Here are some addresses you can try:
+
+224.0.0.1       - "all hosts on this subnet" multicast address
+255.255.255.255 - "all hosts on this subnet" broadcast address
+127.255.255.255 - localhost broadcast address
+141.2.2.255     - "all hosts on net 141.2.2.0" broadcast address;
+                  use ifconfig to find out your own net broadcast
+                  address
+
+The servers are implemented using a POA with the PERSISTENT and USER_ID
+policies so that all the servers generate objects with exactly the same
+object references. This is necessary so that a single request broadcast
+by the client can be properly executed by all the servers. The client
+ignores all but the first reply.
+
+The example client prints a sequence of 1's and 2's. Each digit
+represents a method invocation, the value of the digit is the server
+that first responded to the invocation.
+
+Note that UDP can drop, duplicate, or reorder requests. This means you
+should use UDP only on a LAN, where dropped, duplicated, or reordered
+request are very unlikely.
+

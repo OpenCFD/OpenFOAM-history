@@ -1,0 +1,21 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+OPT="-ORBCSIv2"
+ADDR="ssl:inet:localhost:0"
+SERVER_SEC_OPT="-ORBSSLCAfile ca_cert.pem -ORBSSLcert s_cert.pem -ORBSSLkey s_key.pem -ORBSSLverify 1"
+CLIENT_SEC_OPT="-ORBSSLCAfile ca_cert.pem -ORBSSLcert c_cert.pem -ORBSSLkey c_key.pem -ORBSSLverify 1"
+
+# run Server
+rm -f hello.ref
+./server -ORBIIOPAddr $ADDR $OPT -ORBTLSDName "/CN=Rudolf Schreiner/emailAddress=ras@objectsecurity.com" -ORBTLSDName "/CN=Karel Gardas/emailAddress=kgardas@objectsecurity.com" $SERVER_SEC_OPT -ORBCSIv2Realm '@objectsecurity.com' -ORBGSSServerUser karel,cobalt &
+server_pid=$!
+
+trap "kill $server_pid > /dev/null 2> /dev/null" 0
+for i in 0 1 2 3 4 5 6 7 8 9 ; do if test -r hello.ref ; then break ; else sleep 1 ; fi ; done
+
+# run client
+./client $CLIENT_SEC_OPT
+

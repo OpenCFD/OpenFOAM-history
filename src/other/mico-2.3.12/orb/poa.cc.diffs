@@ -1,0 +1,42 @@
+*** orig/poa.cc	Tue Jan 21 07:57:48 2003
+--- poa.cc	Tue Jan 21 07:52:13 2003
+***************
+*** 4568,4591 ****
+  
+  ::CORBA::Boolean _Marshaller__seq_PortableServer_POA::demarshal( ::CORBA::DataDecoder &dc, StaticValueType v ) const
+  {
+!   ::CORBA::ULong len;
+!   if( !dc.seq_begin( len ) )
+!     return FALSE;
+!   ((_MICO_T *) v)->length( len );
+!   for( ::CORBA::ULong i = 0; i < len; i++ ) {
+!     if( !_marshaller_PortableServer_POA->demarshal( dc, &(*(_MICO_T*)v)[i]._for_demarshal() ) )
+!       return FALSE;
+!   }
+!   return dc.seq_end();
+  }
+  
+  void _Marshaller__seq_PortableServer_POA::marshal( ::CORBA::DataEncoder &ec, StaticValueType v ) const
+  {
+!   ::CORBA::ULong len = ((_MICO_T *) v)->length();
+!   ec.seq_begin( len );
+!   for( ::CORBA::ULong i = 0; i < len; i++ )
+!     _marshaller_PortableServer_POA->marshal( ec, &(*(_MICO_T*)v)[i].inout() );
+!   ec.seq_end();
+  }
+  
+  ::CORBA::TypeCode_ptr _Marshaller__seq_PortableServer_POA::typecode()
+--- 4568,4580 ----
+  
+  ::CORBA::Boolean _Marshaller__seq_PortableServer_POA::demarshal( ::CORBA::DataDecoder &dc, StaticValueType v ) const
+  {
+!   assert(0);
+!   return FALSE;
+  }
+  
+  void _Marshaller__seq_PortableServer_POA::marshal( ::CORBA::DataEncoder &ec, StaticValueType v ) const
+  {
+!   assert(0);
+  }
+  
+  ::CORBA::TypeCode_ptr _Marshaller__seq_PortableServer_POA::typecode()

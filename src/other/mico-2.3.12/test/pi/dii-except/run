@@ -1,0 +1,25 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+IR_ADDR=inet:`uname -n`:12121
+SERVER_ADDR=inet:`uname -n`:12122
+
+# Launch the Interface Repository at a well-known address
+../../../ir/ird -ORBIIOPAddr $IR_ADDR &
+ir_pid=$!
+
+# Feed the IR with z.idl
+sleep 2
+../../../idl/idl --no-codegen-c++ --feed-ir -ORBIfaceRepoAddr $IR_ADDR z.idl
+
+./server -ORBIIOPAddr $SERVER_ADDR -ORBIfaceRepoAddr $IR_ADDR &
+server_pid=$!
+
+trap "kill $server_pid $ir_pid > /dev/null 2> /dev/null" 0
+
+sleep 2
+
+# Launch the client
+./client -ORBIfaceRepoAddr $IR_ADDR

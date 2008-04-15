@@ -1,0 +1,15 @@
+Manager
+Manager started
+Manager: Account OK
+Couldn't deposit!
+Couldn't withdraw!
+Couldn't get balance!
+Balance is -1.
+Owner
+Owner/Wife started
+Couldn't open an account!
+oops: account is nil
+Wife
+Owner/Wife started
+Couldn't open an account!
+oops: account is nil

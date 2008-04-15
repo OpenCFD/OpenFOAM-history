@@ -1,0 +1,16 @@
+
+Interoperability test with Orbix 2.1c
+=====================================
+
+The files in this directory demonstrate the interoperability between
+Orbix version 2.1c and MICO. Follow the instructions in the Orbix
+documentation to run a persistent grid server object. The files are
+located in corba2/demo/grid_iiop in the Orbix distribution. Start the
+Orbix demo and keep the persistent grid server running.
+
+After typing "make" in this directory you should get a corresponding
+MICO client for the grid example called "grid_client". Run it to
+connect to the Orbix persistent server. Note that the MICO client must
+have access to a file called /tmp/gridiiop.ref where the persistent
+Orbix server stores its IOR.
+

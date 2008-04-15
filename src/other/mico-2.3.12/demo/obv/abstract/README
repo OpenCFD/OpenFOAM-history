@@ -1,0 +1,13 @@
+
+Abstract interfaces cannot exist on their own. They can be implemented either
+as a valuetype or as an interface. Methods can then operate on an abstract
+interface without knowing if the parameter is actually a (local) valuetype
+or a (potentially remote) object.
+
+This example shows a "Describable" abstract interface, which has the single
+method "get_description". This method is then implemented in both the
+concrete interface "Account" and the valuetype "Currency" -- both are
+describable and can produce a description of themselves as a string.
+
+The "Example" interface can therefore display both Accounts and Currencies,
+since they both implement the abstract base.

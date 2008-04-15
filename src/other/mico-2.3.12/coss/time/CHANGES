@@ -1,0 +1,14 @@
+4. December 2002 	Sorin Mustaca (msorin@ravantivirus.com)
+	Wrote first makefile for Windows platform
+	Added in include/mico/config-win32.h HAVE_FTIME in order to enable compilation on Win32 platforms
+
+13. August 	Added pragma prefix to idl file
+		Fixed error in USESECURE
+		Fixed error with INACCURACY in TimeService_UTO.cc
+		Changed doubled number in testUTO.tcl
+
+5. August 	Wrote short english explanation in LaTeX
+
+4. August	Solved problem with NameService
+
+22. July	First Release

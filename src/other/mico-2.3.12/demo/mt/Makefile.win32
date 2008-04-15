@@ -1,0 +1,13 @@
+
+all: subs
+RELATIVE=..\..
+!include ../MakeVars.win32
+
+DIRS=callback prodcons-1
+
+subs:
+	for %i in ( $(DIRS) ); do cmd /c "cd %i & $(MAKE) /f Makefile.win32 "
+
+clean:
+	for %i in ( $(DIRS) ); do cmd /c "cd %i & $(MAKE)  /f Makefile.win32 clean"
+

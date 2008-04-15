@@ -1,0 +1,157 @@
+#
+#  MICO --- an Open Source CORBA implementation
+#  Copyright (c) 1997-2001 by The Mico Team
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  For more information, visit the MICO Home Page at
+#  http://www.mico.org/
+#
+# path to root
+RELATIVE = ..
+
+!include ..\MakeVars.win32
+
+PCH =
+!ifdef FAST_PCH
+PCH = /DFAST_PCH /YX"orb_pch.h"
+!endif
+
+all: install
+INC =  /I. /I..\include /I..\include\windows 
+CXXFLAGS = $(INC) /DBUILD_MICO_DLL $(PCH) $(CXXFLAGS)
+
+EH_SRCS = except2.cc
+UNI_SRCS = uni_base64.cc uni_unicode.cc uni_fromuni.cc uni_touni.cc
+PI_SRC = pi.cc pi_impl.cc typecode_seq.cc
+MT_SRCS = os-thread.cc operation.cc message.cc mt_dispatcher.cc mt_manager.cc 
+TIME_SRC = timebase.cc
+
+###ras
+CSL2_SRCS = security\security.cc \
+      security\securitylevel1.cc \
+      security\securitylevel1_impl.cc \
+      security\securitylevel2.cc \
+      security\securitylevel2_impl.cc \
+      security\audit_impl.cc \
+      security\SecurityAdmin.cc \
+      security\SecurityAdmin_impl.cc \
+      security\AuditClientIntercept.cc \
+      security\AuditOptions.cc \
+      security\AuditServIntercept.cc \
+      security\ODMConfig.cc \
+      security\DomainManager.cc \
+      security\odm.cc \
+      security\odm_impl.cc \
+      security\DomainManager_impl.cc \
+      security\AccessConfig.cc \
+      security\RightsConfig.cc \
+      security\AuditConfig.cc
+
+#karel
+CSIV2_SRCS = security\csi_base.cc security\csi.cc security\csiiop.cc \
+  security\gssup.cc security\csiv2.cc security\csiv2_impl.cc
+
+!ifdef HAVE_MEMCHECK
+SRCS = $(SRCS) memcheck.cc memleaks.cc
+
+!ifdef USE_MEMTRACE
+SRCS = $(SRCS) memtrace.cc
+!endif
+
+!endif
+
+IR_SRCS = ir.cc ir_base.cc ..\ir\ir_impl.cc ..\ir\ir_skel.cc 
+IMR_SRCS = imr.cc ..\daemon\imr_impl.cc
+
+SRCS = $(SRCS) os-windows.cc dii.cc typecode.cc any.cc codec.cc buffer.cc context.cc \
+  except.cc dispatch.cc string.cc object.cc address.cc ior.cc \
+  orb.cc dsi.cc transport.cc transport\tcp.cc transport\udp.cc transport\unix.cc \
+  iop.cc util.cc basic_seq.cc fast_array.cc \
+  ssl.cc watm.cc fixed.cc intercept.cc codeset.cc queue.cc static.cc \
+  current.cc policy_impl.cc service_info.cc ioptypes.cc ssliop.cc \
+  value.cc valuetype.cc valuetype_impl.cc dynany_impl.cc \
+  policy2.cc tckind.cc orb_excepts.cc policy.cc poa.cc poa_base.cc \
+  poa_impl.cc dynany.cc $(UNI_SRCS) $(EH_SRCS) $(PI_SRC) $(TIME_SRC) \
+  mtdebug.cc setterm.cc
+
+!ifdef HAVE_THREADS
+SRCS = $(SRCS) $(MT_SRCS)
+!endif
+
+!ifdef USE_CSL2
+SRCS = $(SRCS) $(CSL2_SRCS)
+!endif
+
+!ifdef USE_CSIV2
+SRCS = $(SRCS) $(CSIV2_SRCS)
+!endif
+
+DLL_SRCS = $(SRCS) $(IMR_SRCS) $(IR_SRCS)
+
+CCMLIB = 
+
+!ifdef USE_CCM
+CCMLIB = ..\win32-bin\lib\ir$(VERSION).lib
+#DLL_SRCS = $(DLL_SRCS) ../ir/ir3.cc ../ir/ir3_skel.cc 
+!else
+!endif
+
+DLL_OBJS = $(DLL_SRCS:.cc=.obj)
+
+install: mico$(VERSION).lib mico$(VERSION).dll
+	$(MAKE) /f makefile.win32 copy
+
+!ifdef FAST_PCH
+orb_pch.pch: orb_pch.cc orb_pch.h
+	$(CXX) $(INC) /DFAST_PCH /GS /nologo /GX /GR /TP /Zi /MDd /Yc"orb_pch.h" $(SSL_FLAGS) $(CSIV2_FLAGS) $(PTHREADS_FLAGS) /c orb_pch.cc
+
+mico$(VERSION).lib mico$(VERSION).dll : orb_pch.pch mico$(VERSION).def 
+!else
+mico$(VERSION).lib mico$(VERSION).dll : mico$(VERSION).def 
+!endif
+	$(LINK) $(LINKDLLFLAGS) $(DLL_OBJS) \
+		$(SYSLIBS) $(CCMLIB) /out:mico$(VERSION).dll \
+		/def:mico$(VERSION).def /implib:mico$(VERSION).lib 
+	$(MAKE) /f makefile.win32 copy
+
+copy:
+	$(COPY) mico$(VERSION).dll ..\win32-bin
+	$(COPY) mico$(VERSION).lib ..\win32-bin\lib
+	$(COPY) gendef.exe ..\win32-bin
+
+mico$(VERSION).def: $(DLL_OBJS) gendef.exe
+	gendef.exe mico$(VERSION).def mico$(VERSION) $(DLL_OBJS)
+
+gendef.exe:	gendef.cc
+	cl /nologo /O2 /EHsc /TP gendef.cc
+	copy /y gendef.exe ..\win32-bin
+
+clean:
+	-$(RM) *.txt
+	-$(DELETE)	
+	-$(RM) transport\*.obj	
+	-$(RM) security\*.obj
+	-$(RM) transport\*.def
+	-$(RM) transport\*.dmp
+	-$(RM) security\*.dmp
+	-$(RM) security\*.def
+	-$(RM) ..\ir\*.def
+	-$(RM) ..\ir\*.obj
+	-$(RM) ..\daemon\*.def
+	-$(RM) ..\daemon\*.dmp
+	
+dllclean:
+	-$(RM) *.def *.dll *.lib

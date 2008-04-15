@@ -1,0 +1,6 @@
+
+This directory contains the examples from Jon Siegel's book "CORBA 3
+Fundamentals and Programming". The source code was graciously provided
+by Jon Siegel <siegel@omg.org>. Simply type "make" to compile the
+example. Use the shell script "run_demo" to execute the resulting
+binaries.

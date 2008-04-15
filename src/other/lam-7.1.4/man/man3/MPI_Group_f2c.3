@@ -1,0 +1,70 @@
+.TH MPI_Group_f2c 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_Group_f2c \-  Convert a group handle from its Fortran representation to its C representation 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+MPI_Group
+MPI_Group_f2c(MPI_Fint f_handle)
+.fi
+.SH INPUT PARAMETER
+.PD 0
+.TP
+.B f_handle 
+- Fortran group handle
+.PD 1
+
+.SH RETURN VALUE
+.PD 0
+.TP
+.B group 
+- C group handle
+.PD 1
+
+.SH NOTES FOR FORTRAN
+
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+)
+have an additional argument 
+.I ierr
+at the end of the argument list.
+.I ierr
+is an integer and has the same meaning as the return value of
+the routine in C.  In Fortran, MPI routines are subroutines, and are
+invoked with the 
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type
+.I INTEGER
+in Fortran.
+
+.SH ERRORS
+
+This function does not return the normal 
+.I MPI_SUCCESS
+integer value
+upon success.  Instead, it returns a handle to the converted object.
+If an error occurs, the appropriate NULL handle will be returned.
+
+.SH SEE ALSO
+MPI_Group_c2f(3)
+.br
+
+.SH MORE INFORMATION
+
+For more information, please see the official MPI Forum web site,
+which contains the text of both the MPI-1 and MPI-2 standards.  These
+documents contain detailed information about each MPI function (most
+of which is not duplicated in these man pages).
+
+.I http://www.mpi-forum.org/
+.SH LOCATION
+handles.c

@@ -1,0 +1,16 @@
+
+all: subs
+RELATIVE = ..\..
+!include ..\MakeVars.win32
+DIRS=naming naming-lb events property-daemon stream-bench trader
+# relship 
+subs:
+	for %i in ( $(DIRS) ); do cmd /c "cd %i & $(MAKE)  /f Makefile.win32  "
+
+clean:
+	for %i in ( $(DIRS) ); do cmd /c "cd %i & $(MAKE) /f Makefile.win32  clean"
+
+install:
+	$(IDIRCMD) $(INSTDIR)\doc\mico\examples\services
+	$(ISRCCMD) Makefile $(INSTDIR)\doc\mico\examples\services
+	$(ISRCCMD) README $(INSTDIR)\doc\mico\examples\services

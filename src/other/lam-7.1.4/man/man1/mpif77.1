@@ -1,0 +1,140 @@
+.TH mpif77 1 "July, 2007" "LAM 7.1.4" "LAM TOOLS"
+.SH NAME
+mpif77 \- Compile LAM FORTRAN programs.
+.SH SYNOPSIS
+mpif77 [-showme|-showme:compile|-showme:link] ...
+.SH OPTIONS
+.TP
+-showme 
+Does not invoke the underlying FORTRAN compiler.  Instead, it shows
+the full command line that would be executed to compile the FORTRAN
+program.
+.TP
+-showme:compile
+Does not invoke the underlying FORTRAN compiler.  Instead, it shows
+the compiler flags that would be supplied to the FORTRAN compiler.
+.TP
+-showme:link
+Does not invoke the underlying FORTRAN compiler.  Instead, it shows
+the linker flags that would be supplied to the FORTRAN compiler.
+.PP
+See f77(1) (or whatever your underlying FORTRAN compiler is) for all
+other options.
+.SH DESCRIPTION
+.I mpif77
+is a convenience wrapper for the local native FORTRAN compiler.
+Translation of a LAM program requires the linkage of the LAM essential
+services libraries which may not reside in one of the standard search
+directories of ld(1).
+.I mpif77
+passes its arguments along to the local native FORTRAN compiler along
+with the -L and -l options required by LAM/MPI programs.  This
+includes all necessary options for ROMIO and/or C++ bindings support
+(if ROMIO/C++ support was included when LAM was compiled).
+.PP
+The LAM Team
+.I strongly
+encourages using
+.I mpif77
+instead of attempting to link to the LAM libraries manually.  This
+allows the specific implementation of LAM to change without forcing
+changes to linker directives in users' Makefiles (the specific set of
+underlying LAM libraries has already changed multiple times, and will
+likely change again in future versions).
+.PP
+Indeed, since
+.IR mpif77
+is a very thin wrapper on top of an underlying compiler, there are
+very, very few compelling reasons
+.I not
+to use
+.IR mpif77 .
+When it is not possible to use
+.IR mpif77 ,
+the
+.I -showme:compile
+and
+.I -showme:link
+arguments should be used instead.  For example:
+.PP
+shell$ f77 -c file1.f `mpif77 -showme:compile`
+.PP
+shell$ f77 -c file2.f `mpif77 -showme:compile`
+.PP
+shell$ f77 file1.o file2.o `mpif77 -showme:link` -o my_mpi_program
+.SH ENVIRONMENT VARIABLES
+.PP
+By default,
+.I mpif77
+uses the FORTRAN compiler that was selected when LAM was configured
+(with the --with-fc flag to ./configure) as the local native FORTRAN
+compiler, but this can be overridden by the LAMMPIF77 environment
+variable (an older name for this environment variable is LAMHF77 --
+this also still works, but its use is deprecated).
+.PP
+If the environment variable
+.I LAMHOME
+is set, 
+.I mpif77
+will use its value as the location of the LAM installation directory
+instead of the value that was compiled into 
+.IR mpif77 .
+This means that
+.I mpif77
+will use the value of
+.I LAMHOME
+as the base to create the -I and -L arguments that are passed to the
+lower-level compiler, not the installation directory that was supplied
+when 
+.I mpif77
+was created.  This is almost always a Bad Idea.
+.PP
+The use of
+.I LAMHOME
+is discouraged except for some rare configuration cases in oddly
+networked sites (in which case your system administrator should
+probably set this up), and for advanced users with multiple LAM/MPI
+installations who really know what they are doing; if the
+.I LAMHOME
+environment variable is unintentionally left set, it can lead to 
+tremendous user confusion.  For example, if 
+.I LAMHOME 
+points to LAM installation A, but the user's 
+.I PATH
+points to LAM installation B, then even though B's
+.I mpif77
+will be used, the user program will be compiled and linked against LAM
+installation A.  
+.PP
+The 
+.I LAMHOME
+environment variable is mainly only left in place for backwards
+compatibility; it is not required for normal functioning of LAM/MPI.
+The LAM Team discourages the use of the
+.I LAMHOME
+environment variable, and instead advocates simply setting the
+.I PATH
+properly to switch between multiple LAM/MPI implementations.
+.SH NOTES
+Previous versions of LAM encouraged the use of 
+.I hf77
+to compile LAM and/or MPI Fortran applications.  In very old versions
+of LAM,
+.I hf77
+did not automatically add
+.I -lmpi
+to the command line.  
+.I hf77
+was eventually deprecated and replaced with
+.IR mpif77 .
+The executable
+.I hf77
+is now simply a symbolic link to 
+.I mpif77
+just in case there's anyone out there that still uses that name.  It
+should be harmless to pass in the additional
+.IR -lmpi ;
+.I mpif77
+should silently do the Right Thing (only link in the MPI library once).
+.SH SEE ALSO
+f77(1), ld(1), lam-helpfile(5), mpicc(1)

@@ -1,0 +1,12 @@
+
+/*
+ * Illegal form of recursion.
+ */
+
+struct S
+{
+  union U switch(long)
+  {
+    case 1: S s;
+  } u;
+};

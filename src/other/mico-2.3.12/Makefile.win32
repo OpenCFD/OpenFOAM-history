@@ -1,0 +1,141 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and/or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+
+!include MakefileConfig.win32
+
+all: dirs helper system path install
+
+dirs:
+	-@mkdir .\win32-bin
+    -@mkdir .\win32-bin\lib
+
+sslsystem: 
+	 admin\checkSSL.bat 
+
+pthreadsystem:
+	@rem use here the same parameters as in the makefile of PTHREADS: VC,VCE,VSE
+	admin\checkPTHREADS.bat VC
+
+!include MakeVars.win32
+
+
+
+LIBDIRS = orb idl 
+PRGDIRS = orb cpp idl ir coss tools
+!if defined(USE_CCM)
+PRGDIRS = $(PRGDIRS) ccm
+!endif
+
+TOINSTALLDIRS=ir coss tools
+ALLDIRS = orb cpp idl ir coss tools
+# daemon - is not compilable yet in Windows
+
+
+demo: demo/Makefile.win32 
+    cd demo
+    $(MAKE) /f Makefile.win32
+    cd ..
+
+path:
+	@echo Starting the build process
+	PATH = %PATH%;$(MPATH)
+!if defined(HAVE_THREADS)
+	@echo PTHREADS_LIB = $(PTHREADS_LIB)
+	@echo PTHREADS_PATH = $(PTHREADS_PATH)
+!endif
+!if defined(HAVE_SSL)
+	@echo SSL_LIBS = $(SSL_LIBS)
+	@echo SSL_PATH = $(SSL_PATH)
+!endif
+
+system:    sslsystem pthreadsystem
+    cd ir
+	    	$(MAKE) /f Makefile.win32 lib
+    cd ..\orb
+	    	$(MAKE)  /f Makefile.win32 mico$(VERSION).dll
+    cd ..\idl
+            $(MAKE)  /f Makefile.win32 lib
+    cd ..\cpp
+            $(MAKE)  /f Makefile.win32 prg
+    cd ..\idl
+            $(MAKE)  /f Makefile.win32 prg
+    cd ..\ir
+            $(MAKE)  /f Makefile.win32 prg
+    cd ..\daemon
+            $(MAKE)  /f Makefile.win32 prg
+    cd ..\coss
+            $(MAKE)  /f Makefile.win32 all
+!if defined(USE_CCM)
+    cd ..\ccm
+            $(MAKE) /f Makefile.win32 all
+!endif
+    cd ..\tools
+        $(MAKE)  /f Makefile.win32 all
+    cd ..
+
+install: system
+    @echo Installing new binaries
+    for %i in ( $(TOINSTALLDIRS) ) ; do cmd /c "cd %%i & $(MAKE)  /f Makefile.win32 install"
+
+clean:
+    @for %i in ( $(PRGDIRS) demo daemon ) ; do cmd /c "cd %%i & $(MAKE)  /f Makefile.win32 clean"
+!ifdef HAVE_THREADS
+    @cd contrib\pthreads
+	@$(MAKE) clean
+	@cd ..\..
+!endif
+	@-$(RM) admin\cntfiles.exe
+	@echo #SSL is by default disabled but it will be checked every time you build > makevars.win32.ssl
+
+
+distclean: 
+	@$(MAKE) /f Makefile.win32 clean
+	@-$(RM) win32-bin\*.dll 
+	@-$(RM) win32-bin\*.exe
+	@-$(RM) win32-bin\lib\*.lib
+!ifdef HAVE_THREADS
+    @cd contrib\pthreads
+	@nmake clean
+	@cd ..\..
+!endif
+
+cleanbin:
+	@echo cleaning only binaries
+	@-$(RM) win32-bin\*.dll 
+	@-$(RM) win32-bin\*.exe
+	@-$(RM) win32-bin\lib\*.lib
+	@-$(RM) orb\mico$(VERSION).lib orb\mico$(VERSION).d??
+	@-$(RM) ir\ir$(VERSION).lib ir\ir$(VERSION).d?? ir\ird.exe
+	@-$(RM) idl\idl$(VERSION).lib idl\idl$(VERSION).d??
+	@-$(RM) cpp\*.exe
+	@-$(RM) ccm\*.exe ccm\*.lib
+	@-$(RM) coss\*.d?? coss\*.lib
+
+helper: admin\cntfiles.exe
+
+
+
+admin\cntfiles.exe: admin\cntfiles.cpp
+		 cl.exe /DNDEBUG  /Ox admin\cntfiles.cpp /Foadmin\cntfiles.obj /link /OUT:admin\cntfiles.exe
+
+	

@@ -1,0 +1,49 @@
+Copyright (c) 2001-2002 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+Copyright (c) 2001-2002 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+This directory contains the source for the lamd.  Each of the
+subdirectories is one of the pseudo-daemons within the lamd.
+
+There are two ways to run the "lam daemon" - as a bunch of seperate
+processes (easy debugging) or as one process (the lamd).  Each
+directory contains a file containing main() used for the first case.
+The lamd directory contains the main() for the all-in-one option.
+
+bforward	-- bufferd remote forwarder
+bufferd		-- buffer server
+dli_inet	-- Internet datalink input
+dlo_inet	-- Internet datalink output
+echod		-- echo server
+filed		-- file system server
+flatd		-- tagged storage server
+iod		-- UNIX stdio transfer daemon
+haltd		-- halt the lamd
+kenyad		-- process management server
+kernel		-- kernel
+lamd		-- wrapper code to hide running as one big process
+loadd		-- file load server
+router		-- route server
+traced		-- trace server

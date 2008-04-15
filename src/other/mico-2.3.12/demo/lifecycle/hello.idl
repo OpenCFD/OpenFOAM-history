@@ -1,0 +1,7 @@
+#include <coss/CosLifeCycle.idl>
+
+interface Hello : ::CosLifeCycle::LifeCycleObject
+    {
+	attribute string hello_string;
+	string hello (in string s);
+    };

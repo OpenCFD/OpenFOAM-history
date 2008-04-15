@@ -1,0 +1,20 @@
+
+struct Link;
+typedef sequence<Link> DescendantSeq;
+
+union uLink;
+typedef sequence<uLink> uDescendantSeq;
+
+struct Link {
+  short some_value;
+  DescendantSeq descendants;
+  uDescendantSeq udescendants;
+};
+
+union uLink switch (boolean) {
+case TRUE:
+  DescendantSeq descendants;
+case FALSE:
+  uDescendantSeq udescendants;
+};
+

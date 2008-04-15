@@ -1,0 +1,45 @@
+# -*- shell-script -*-
+#
+# Copyright (c) 2001-2004 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+#
+# $Id: configure.stub,v 1.2 2004/02/15 14:15:01 jsquyres Exp $
+#
+
+
+AC_DEFUN([SSI_CONFIGURE_STUB],[
+
+#
+# boot slurm configure.stub
+#
+AC_ARG_WITH([slurm], 
+	    [AC_HELP_STRING([--with-slurm],
+			    [obsolete synonym for --with-boot-slurm])])
+AC_ARG_WITH([boot-slurm], 
+	    [AC_HELP_STRING([--with-boot-slurm],
+			    [directory where the slurm software was installed])])
+
+if test "$with_slurm" = "no" -o "$with_boot_slurm" = "no" ; then
+    AC_MSG_ERROR([*** Disabled by user])
+fi
+
+#
+# See if we have inet_ntop() (some environments, like Cygwin, don't).
+#
+
+AC_CHECK_FUNC(inet_ntop, [], 
+    [AC_MSG_WARN([Do not have inet_ntop()])
+     AC_MSG_ERROR([Cannot continue])])
+
+#
+# done with boot slurm configure.stub
+#
+])dnl

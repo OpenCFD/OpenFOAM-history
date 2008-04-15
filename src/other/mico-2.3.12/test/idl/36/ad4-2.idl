@@ -1,0 +1,33 @@
+
+module AvStd
+{
+    typedef unsigned long Natural;
+    typedef long Integer;
+};
+
+module AvConft
+{
+    typedef AvStd::Natural id;
+};
+
+module AvTim
+{
+    struct TimeDelay {
+       AvStd::Integer sec;
+       AvStd::Integer usec;
+    };
+};
+
+module AvTim
+{
+    typedef AvTim::TimeDelay Time;
+};
+
+module AvConft
+{
+    struct Conflict {
+        AvTim::Time start_of_conflict;
+        //AvTim::TimeDelay start_of_conflict;
+    };
+};
+

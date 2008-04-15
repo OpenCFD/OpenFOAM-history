@@ -1,0 +1,6 @@
+interface HelloWorld {
+    exception Goodbye { string reason; };
+
+    string hello (in string name);
+    void error (in string name) raises (Goodbye);
+};

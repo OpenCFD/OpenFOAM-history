@@ -1,0 +1,3 @@
+interface Demo {
+    string date (in long timeout);
+};

@@ -1,0 +1,77 @@
+#!/bin/sh
+#clear
+#echo Starting in `pwd`
+
+#set -x
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:../../../idl:../../../cpp:$PATH
+export PATH
+ADDR=inet:`uname -n`:12456
+IRADDR=inet:`uname -n`:12500
+NSDADDR=inet:`uname -n`:12501
+BANK=inet:`uname -n`:13000
+PERSON=inet:`uname -n`:13001
+
+if test X"$MICODIR" = X; then
+  MICODIR=../../..
+fi
+MICOINC=$MICODIR/include
+
+IDLPAR="-I$MICOINC"
+
+#printf Starting NSD ...
+#nsd -ORBIIOPAddr $NSDADDR &
+#ns_pid=$!
+##sleep 1
+#echo $ns_pid > nsd.pid
+#echo done.
+
+printf "Starting IRD ..."
+ird --db=ir-db -ORBIIOPAddr $IRADDR 2>/dev/null &
+ird_pid=$!
+sleep 2
+echo $ird_pid > ird.pid
+echo done.
+
+if [ ! -f ir-db.idl ]
+then
+
+printf "Send ir_base.idl to IR ..."
+idl $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/mico/ir_base.idl
+echo "done."
+
+printf "Send ir.idl to IR ..."
+idl $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/mico/ir.idl
+echo "done."
+
+printf "Send CosObjectIdentity.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosObjectIdentity.idl
+echo "done."
+
+printf "Send CosRelationships.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosRelationships.idl
+echo "done."
+
+printf "Send CosGraphs.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosGraphs.idl
+echo "done."
+
+printf "Send CosContainment.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosContainment.idl
+echo "done."
+
+printf "Send CosReference.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosReference.idl
+echo "done."
+
+printf "Send Documents.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir Documents.idl
+echo "done."
+
+printf "Send Test.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir Test.idl
+echo "done."
+
+fi
+
+

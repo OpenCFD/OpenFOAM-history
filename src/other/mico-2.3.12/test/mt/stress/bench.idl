@@ -1,0 +1,15 @@
+
+interface bench {
+    typedef sequence<long> LongSeq;
+
+    void perform();
+    oneway void perform_oneway();
+
+    void perform_with_context() context("a*");
+    void perform_oneway_with_context() context("a*");
+
+    // seq based operations
+    LongSeq long_seq(in LongSeq x);
+
+    void shutdown();
+};

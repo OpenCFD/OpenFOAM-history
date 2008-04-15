@@ -1,0 +1,30 @@
+#!/bin/sh
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:../../../coss/trader:$PATH
+export PATH
+MICORC=/dev/null
+export MICORC
+
+
+ADDR=inet:`uname -n`:12456
+RC="-ORBImplRepoAddr $ADDR -ORBTradingAddr $ADDR"
+RC2="-ORBImplRepoAddr $ADDR"
+
+# run BOA daemon
+echo "starting BOA daemon ..."
+micod -ORBIIOPAddr $ADDR &
+micod_pid=$!
+
+trap "kill $micod_pid" 0
+
+sleep 1
+
+# register server
+echo "register trading service ..."
+imr create Trading shared `which traderd` IDL:omg.org/CosTrading/Lookup:1.0 $RC2
+
+sleep 1
+
+# run client
+echo "and run client ..."
+./client $RC

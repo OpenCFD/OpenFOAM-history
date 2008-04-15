@@ -1,0 +1,78 @@
+.TH APPSCHEMA 5 "July, 2007" "LAM 7.1.4" "LAM FILE FORMATS"
+.SH NAME
+appschema \- LAM application schema format
+.SH SYNTAX
+.nf
+#
+# comments
+#
+[<where>] [-np #] [-s <where>] [-wd <dir>] [-x <env>] <program> [<args>]
+[<where>] [-np #] [-s <where>] [-wd <dir>] [-x <env>] <program> [<args>]
+ \.\.\.
+.fi
+.SH DESCRIPTION
+The application schema is an ASCII file containing a description of
+the programs which constitute an application.  It is used by mpirun(1),
+.IR MPI_Comm_spawn ,
+and
+.I MPI_Comm_spawn_multiple
+to start an MPI application (the MPI_Info key "file" can be used to
+specify an app schema to 
+.I MPI_Comm_spawn
+and
+.IR MPI_Comm_spawn_multiple ).  
+All tokens after the program name will be passed as command line
+arguments to the new processes.  Ordering of the other elements on the
+command line is not important.
+.PP
+The meaning of the options is the same as in mpirun(1).  See the
+mpirun(1) man page for a lengthy discussion of the nomenclature used
+for <where>.  Note, however, that if -wd is used in the application
+schema file, it will override any -wd value specified on the command
+line.
+.PP
+For each program line, processes will be created on LAM nodes
+according to the presence of
+.I <where>
+and the process count option (\fI-np\fR).
+.TP 14
+only \fI<where>\fR
+One process is created on each node.
+.TP
+only \fI-np\fR
+The specified number of processes are scheduled across all LAM
+nodes/CPUs.
+.TP
+both
+The specified number of processes are scheduled across the specified
+nodes/CPUs. 
+.TP
+neither
+One process is created on the local node.
+.SS Program Transfer
+By default, LAM searches for executable programs on the target node
+where a particular instantiation will run.
+If the file system is not shared, the target nodes are homogeneous, and the
+program is frequently recompiled, it can be convenient to have LAM
+transfer the program from a source node (usually the local node) to
+each target node.
+The \fI-s\fR option specifies this behaviour and identifies the single
+source node.
+.SH EXAMPLE
+.nf
+#
+# Example application schema
+# Note that it may be necessary to specify the entire pathname for
+# "master" and "slave" if you get "File not found" errors from
+# mpirun(1).  
+#
+# This schema starts a "master" process on CPU 0 with the argument
+# "42.0", and then 10 "slave" processes (that are all sent from the
+# local node) scheduled across all available CPUs.
+#
+c0 master 42.0
+C -np 10 -s h slave
+.fi
+.SH SEE ALSO
+mpirun(1), MPI_Comm_spawn(2), MPI_Comm_Spawn_multiple(2),
+MPIL_Spawn(2), introu(1)

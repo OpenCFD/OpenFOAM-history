@@ -1,0 +1,84 @@
+.TH KSTATE 2 "July, 2007" "LAM 7.1.4" "LAM LOCAL LIBRARY"
+.SH NAME
+kstate \- Get synchronization status of a LAM process.
+.SH SYNOPSIS
+#include <kreq.h>
+.sp
+int kstate (int pid, struct kstatus *status);
+.SH DESCRIPTION
+The function
+.I kstate()
+enables a LAM process to inquire about the synchronization status of
+any process on the local node, including itself.
+The argument
+.I pid
+is the identifier of the process to be stated.
+The special identifier 0 indicates the calling process.
+Information returned from the daemon will be stored in the structure
+addressed by the
+.I status
+argument.
+The structure is defined in <kreq.h> as shown below.
+.PP
+.nf
+	struct kstatus {
+		int	ks_state;
+		int	ks_priority;
+		int	ks_event;
+		int	ks_type;
+		int	ks_signal;
+		int	ks_flags;
+		int	ks_length;
+		int	ks_fyi[KNFYI];
+	};
+.fi
+.PP
+Upon return from
+.IR kstate() ,
+the individual fields are filled with the information described below.
+.TP 15
+ks_state
+scheduling status (see below)
+.TP
+ks_priority
+synchronization priority (see kenter(2))
+.TP
+ks_event
+currently blocked or last used message event
+.TP
+ks_type
+currently blocked or last used message type
+.TP
+ks_signal
+pending signals to be delivered
+.TP
+ks_flags
+internal process management flags
+.TP
+ks_length
+currently blocked or last used message length
+.TP
+ks_fyi
+application specific information
+.PP
+The process states, defined in <kreq.h>, are described below.
+.TP 15
+KSREADY
+ready to run
+.TP
+KSRECV
+blocked on krecv(2) to receive a message
+.TP
+KSSEND
+blocked on ksend(2) to send a message
+.SH ERRORS
+.TP 15
+ENOTPROCESS
+The process whose process identifier was passed to
+.I kstate()
+is not a LAM process.
+.TP
+ENOTATTACHED
+The calling process is not a LAM process.
+.SH SEE ALSO
+rpstate(2)

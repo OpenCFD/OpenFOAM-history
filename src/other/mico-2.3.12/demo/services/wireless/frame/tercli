@@ -1,0 +1,1 @@
+exec ./client -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -ORBNoIIOPServer -ORBTerminalId %04%80%d6%0a%a6%08terminal -ORBMTBAddr inet:$1:12003 -ORBInitRef HomeLocationAgent=`cat home.ref`

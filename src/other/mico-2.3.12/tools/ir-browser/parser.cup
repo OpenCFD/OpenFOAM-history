@@ -1,0 +1,323 @@
+/*
+ *  MICO --- a CORBA 2.0 implementation
+ *  Copyright (C) 1997 Kay Roemer & Arno Puder
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  Send comments and/or bug reports to:
+ *                 mico@informatik.uni-frankfurt.de
+ */
+
+import java.util.*;
+import java_cup.runtime.*;
+import ConceptualGraph;
+import sym;
+import scanner;
+
+parser code{:
+
+	private String		toBeParsed;
+	private String		stringAnswer;
+	private ConceptualGraph	conceptualGraphAnswer;
+	private Vector		vectorAnswer;
+	private boolean		booleanAnswer;
+	private int		intAnswer;
+
+	private int		errNum = 0;
+	private String		errMsg;
+
+
+	public void setToBeParsed( String input )
+	{
+		toBeParsed = input;
+	}
+
+	public String getAnswerString()
+	{
+		return stringAnswer;
+	}
+
+	public String getAnswerKey()
+	{
+		return stringAnswer;
+	}
+
+	public ConceptualGraph getAnswerConceptualGraph()
+	{
+		return conceptualGraphAnswer;
+	}
+
+	public Vector getAnswerVector()
+	{
+		return vectorAnswer;
+	}
+
+	public boolean getAnswerBoolean()
+	{
+		return booleanAnswer;
+	}
+
+	public int getAnswerInt()
+	{
+		return (new Integer (stringAnswer)).intValue();
+		//return intAnswer;
+	}
+
+	public int getErrNum()
+	{
+		return errNum;
+	}
+
+	public String getErrMsg()
+	{
+		return errMsg;
+	}
+
+	public void setAnswerString( String s)
+	{
+		stringAnswer = s;
+	}
+
+	public void setAnswerKey( String s)
+	{
+		stringAnswer = s;
+	}
+
+	public void setAnswerConceptualGraph( ConceptualGraph cg )
+	{
+		conceptualGraphAnswer = cg;
+	}
+
+	public void setAnswerVector( Vector v)
+	{
+		vectorAnswer = v;
+	}
+
+	public void setAnswerBoolean( boolean b )
+	{
+		booleanAnswer = b;
+	}
+
+	public void setAnswerInt( int i )
+	{
+		intAnswer = i;
+	}
+
+	public void setError( int err, String msg )
+	{
+		errNum = err;
+		errMsg = msg;
+	}
+:};
+
+init with {: scanner.init( toBeParsed );
+             errNum=0; 
+          :};
+scan with {: return scanner.next_token(); :};
+
+terminal ERROR;
+terminal ANSWER_OK;
+terminal ANSWER_YES;
+terminal ANSWER_NO;
+terminal ANSWER_GRAPH;
+terminal ANSWER_FLAG;
+terminal ANSWER_KEY;
+terminal ANSWER_STR;
+terminal TOKEN_UNDEF;
+
+terminal Integer  VALUE;
+terminal          COMMA;
+terminal          CONNECTS;
+terminal          SUBGRAPH_OPEN;
+terminal          SUBGRAPH_CLOSE;
+terminal          RELATION_OPEN;
+terminal          RELATION_CLOSE;
+terminal          CONCEPT_OPEN;
+terminal          CONCEPT_CLOSE;
+terminal          COLON;
+terminal          EQUAL;
+terminal String   WORD;
+
+non terminal                 grammar;
+non terminal                 simple_command;
+non terminal String          string;
+non terminal Vector          word_list;
+non terminal ConceptualGraph cg;
+non terminal ConceptualGraph con_connects_to;
+non terminal ConceptualGraph rel_graph;
+non terminal ConceptualGraph con_subgraph;
+non terminal ConceptualGraph rel_subgraph;
+non terminal ConceptNode     concept_node;
+non terminal RelationNode    relation_node;
+
+
+
+start with grammar;
+
+grammar ::= 
+        | 
+        grammar simple_command 
+        | 
+        TOKEN_UNDEF 
+        {:
+          System.exit(0);
+        :}
+        ;
+
+simple_command ::= 	ANSWER_OK
+        |
+        ANSWER_GRAPH EQUAL
+        {:
+             ((parser)CUP$parser$parser).setAnswerConceptualGraph( null );
+        :}
+        |
+        ANSWER_GRAPH EQUAL cg:c
+        {:
+           ((parser)CUP$parser$parser).setAnswerConceptualGraph( c );
+        :}
+	|
+	ANSWER_KEY EQUAL string:s
+	{:
+             ((parser)CUP$parser$parser).setAnswerKey( s );
+	:}
+        |
+        ANSWER_FLAG EQUAL ANSWER_YES
+        {:
+             ((parser)CUP$parser$parser).setAnswerBoolean( true );
+        :}
+        |
+        ANSWER_FLAG EQUAL ANSWER_NO
+        {:
+             ((parser)CUP$parser$parser).setAnswerBoolean( false );
+        :}
+        |
+        ANSWER_STR EQUAL string:s
+        {:
+             ((parser)CUP$parser$parser).setAnswerString( s );
+        :}
+        |
+        ERROR VALUE:v COLON string:s
+        {:
+           	 ((parser)CUP$parser$parser).setError( v.intValue(), s );
+        :}
+        ; 
+
+string ::= WORD:w
+        {:
+           RESULT = new String( w );
+        :}
+        ;
+
+word_list ::= WORD:w
+        {:
+           Vector wl = new Vector();
+           wl.addElement( w );
+           RESULT = wl;
+        :}
+        |
+        word_list:wl COMMA WORD:w
+        {:
+           wl.addElement( w );
+           RESULT = wl;
+        :}
+        ;
+
+cg ::= concept_node:cn con_connects_to:cct
+        {:
+        	cct.setNode( cn );
+        	RESULT = cct;
+        :}
+        ;
+
+con_connects_to ::=
+        {:
+           ConceptualGraph c = new ConceptualGraph( null, null, null );
+           RESULT = c;
+        :}
+        | 
+        CONNECTS rel_graph:rg
+        {:
+           ConceptualGraph c = new ConceptualGraph( null, null, null );
+           c.setWidth( rg );
+           RESULT = c;
+        :}
+        |
+        SUBGRAPH_OPEN rel_subgraph:rsg SUBGRAPH_CLOSE
+        {:
+           ConceptualGraph c = new ConceptualGraph( null, null, null );
+           RESULT = c;
+           RESULT.setWidth( rsg );
+        :}
+        ;
+
+rel_graph ::= relation_node:rn CONNECTS cg:c
+        {:
+           RESULT = new ConceptualGraph(rn, c, null );
+        :}
+        |
+        relation_node:rn SUBGRAPH_OPEN con_subgraph:csg SUBGRAPH_CLOSE
+        {:
+           RESULT = new ConceptualGraph( rn, csg, null );
+        :}
+        ;
+
+con_subgraph ::= CONNECTS cg:c
+        {:
+           RESULT = c;
+        :}
+        |
+        CONNECTS cg:c COMMA con_subgraph:csg
+        {:
+          c.setDepth( csg );
+          RESULT = c;
+        :}
+        ;
+
+rel_subgraph ::= CONNECTS rel_graph:rg
+        {:
+           RESULT = rg;
+        :}
+        |
+        CONNECTS rel_graph:rg COMMA rel_subgraph:rsg
+        {:
+           rg.setDepth( rsg );
+           RESULT = rg;
+        :}
+        ;
+
+concept_node ::= CONCEPT_OPEN WORD:w CONCEPT_CLOSE
+        {:
+           RESULT = new ConceptNode( w, new Vector() );
+        :}
+        |
+        CONCEPT_OPEN WORD:w COLON VALUE:v CONCEPT_CLOSE
+        {:
+           ConceptNode con = new ConceptNode( w, new Vector() );
+           con.setValue( (long) v.intValue() );
+           RESULT = con;
+        :}
+        |
+        CONCEPT_OPEN WORD:w COLON word_list:wl CONCEPT_CLOSE
+        {:
+           ConceptNode con = new ConceptNode( w, wl );
+           RESULT = con;
+        :}
+        ;
+
+relation_node ::= RELATION_OPEN WORD:w RELATION_CLOSE
+        {:
+           RESULT = new RelationNode( w );
+        :}
+        ;

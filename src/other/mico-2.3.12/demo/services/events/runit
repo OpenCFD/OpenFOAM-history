@@ -1,0 +1,70 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+PATH=../../../daemon:../../../coss/naming:../../../coss/events:../../../imr:../../../ir:$PATH
+export PATH
+
+rm -f NameService-root.inf
+
+ADDR=inet:`uname -n`:12456
+RC="-ORBImplRepoAddr $ADDR -ORBNamingAddr $ADDR"
+
+# run BOA daemon
+echo "starting BOA daemon ..."
+micod --forward -ORBIIOPAddr $ADDR &
+micod_pid=$!
+
+sleep 1
+
+# register server
+echo "register name service ..."
+imr create NameService poa `which nsd` \
+ IDL:omg.org/CosNaming/NamingContext:1.0#NameService $RC
+
+echo "run event service ..."
+eventd $RC &
+eventd_pid=$!
+
+# read
+# echo "register event service ..."
+# imr create Event shared "`which eventd` $RC" \
+# IDL:omg.org/SimpleEventChannelAdmin/EventChannelFactory:1.0 $RC
+
+# sleep 1
+# activate the event server to make itself register with the
+# name service so the client can find it ...
+# imr info Event $RC
+# echo "activating Event Service implementation"
+# imr activate Event $RC
+sleep 4
+
+echo "run event demo server #1 ..."
+./server $RC &
+server1_pid=$!
+sleep 2
+
+echo "run event demo server #2 ..."
+./server2 $RC &
+server2_pid=$!
+sleep 2
+
+trap "kill $micod_pid $eventd_pid $server1_pid $server2_pid" 0
+
+echo "run event demo server #3 ..."
+./server3 $RC &
+sleep 2
+
+# run client
+echo "and run client #1 ..."
+./client $RC
+
+echo "and run client #2 ..."
+sleep 5
+./client $RC
+
+echo "and run client #3 ..."
+sleep 5
+./client2 $RC
+

@@ -1,0 +1,115 @@
+.TH MPI_TYPE_DUP_FN 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_TYPE_DUP_FN \-  Built-in MPI function to simple-mindedly copy datatype attributes. 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+int MPI_TYPE_DUP_FN(MPI_Datatype dtype, int key, 
+                   void *extra, void *attrin, void *attrout, 
+                   int *flag)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B dtype 
+- communicator (handle)
+.PD 1
+.PD 0
+.TP
+.B key 
+- key value (integer)
+.PD 1
+.PD 0
+.TP
+.B extra 
+- extra state
+.PD 1
+.PD 0
+.TP
+.B attrin 
+- in value for attribute
+.PD 1
+
+.SH OUTPUT PARAMETERS
+.PD 0
+.TP
+.B attrout 
+- out value for attribute
+.PD 1
+.PD 0
+.TP
+.B flag 
+- 1 if attribute copied successfully, 0 otherwise (logical)
+.PD 1
+
+.SH NOTES
+
+This function blindly byte-copies attributes on datatypes.  It is the
+default atrribute-copying function for datatypes.  This function will
+always return 
+.I MPI_SUCCESS
+, and 
+.I flag
+will always be set to 1.
+
+The actual copy is performed by the code
+
+.nf
+*((void **) attrout) = attrin;
+.fi
+
+
+If this simple assignment is not sufficient for your attributes, you
+will need to reassign the attribute-copying function on relevant
+keyvals on datatypes with the 
+.I MPI_Type_keyval_create
+function.
+
+.SH NOTES FOR FORTRAN
+
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+)
+have an additional argument 
+.I ierr
+at the end of the argument list.
+.I ierr
+is an integer and has the same meaning as the return value of
+the routine in C.  In Fortran, MPI routines are subroutines, and are
+invoked with the 
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type
+.I INTEGER
+in Fortran.
+
+.SH SEE ALSO
+MPI_Type_keyval_create
+.br
+
+.SH MORE INFORMATION
+
+For more information, please see the official MPI Forum web site,
+which contains the text of both the MPI-1 and MPI-2 standards.  These
+documents contain detailed information about each MPI function (most
+of which is not duplicated in these man pages).
+
+.I http://www.mpi-forum.org/
+
+
+.SH ACKNOWLEDGEMENTS
+
+The LAM Team would like the thank the MPICH Team for the handy program
+to generate man pages ("doctext" from
+.I ftp://ftp.mcs.anl.gov/pub/sowing/sowing.tar.gz
+), the initial
+formatting, and some initial text for most of the MPI-1 man pages.
+.SH LOCATION
+dupfn.c

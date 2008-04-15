@@ -1,0 +1,41 @@
+
+valuetype vt {
+  public short x;
+};
+
+valuetype base {
+  public short y;
+};
+
+valuetype derived : truncatable base {
+  public vt z;
+};
+
+valuetype node {
+  public node next;
+};
+
+interface iface {
+  /*
+   *   derived_var d = ...;
+   *   ...
+   *   iface->skipped_value (d, d->z());
+   * even when the server doesnt have a factory for derived it
+   * must be able to extract d->z() for the second parameter.
+   */
+  void skipped_value (in base b, in vt v);
+
+  /*
+   *   vt_var v = ...;
+   *   ...
+   *   iface->shared_parameter (v, v);
+   * on the server side this must result in v1 == v2 (same pointer).
+   */
+  void shared_parameter (in vt v1, in vt v2);
+
+  /*
+   * the transmitted valuetype graph must be isomorphic to the
+   * original valuetype graph. check this using a cyclic list.
+   */
+  void cyclic (in node n);
+};

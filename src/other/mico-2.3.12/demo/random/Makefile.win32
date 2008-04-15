@@ -1,0 +1,16 @@
+# Makefile for a little mico client that reads random numbers from a
+# Corba-server. See client.cc for details.
+RELATIVE=..\..
+all:  client.exe
+
+!include ..\MakeVars.win32
+
+client.exe: random.h random.obj client.obj 
+	$(LD)  $(LDFLAGS) random.obj client.obj $(LDLIBS) /out:$@
+
+random.h random.cc : random.idl $(IDLGEN)
+	$(IDL) --no-poa --boa random.idl
+
+clean:
+	-$(RM) /f /q 2> nul  random.cc random.h *.o core client *~ .depend *.exe *.obj *.pdb
+	-$(DELETE)	

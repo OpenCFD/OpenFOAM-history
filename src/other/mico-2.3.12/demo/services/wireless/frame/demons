@@ -1,0 +1,1 @@
+exec nsd -ORBDebug All=/tmp/mico.nsd.log -ORBIIOPAddr inet:localhost:12001 -ORBIIOPVersion 1.2 -ORBGIOPVersion 1.2

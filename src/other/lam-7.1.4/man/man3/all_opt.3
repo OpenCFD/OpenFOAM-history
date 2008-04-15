@@ -1,0 +1,270 @@
+.TH ALL_OPT 3 "July, 2007" "LAM 7.1.4" "LAM INTERNALS"
+.SH NAME
+all_opt \- general purpose command\-line options parsing (LAM)
+.SH SYNOPSIS
+.nf
+.ta .75i 1.75i 2.5i
+#include <all_opt.h>
+
+char *ao_argv0(OPT *aod);
+OPT *ao_init(void);
+char *ao_chosen(OPT *od, const char *opt);
+void ao_free(OPT *od);
+int ao_intparam(OPT *od, const char *opt,
+                int inst, int idx, int *inum);
+int ao_ninsts(OPT *od, const char *opt);
+int ao_nparams(OPT *od, const char *opt, int inst);
+int ao_ntaken(OPT *od);
+char *ao_param(OPT *od, const char *opt, int inst, int idx);
+int ao_parse(OPT *od, int *argc, char **argv);
+int ao_setflags(OPT *aod, int flags);
+int ao_setopt(OPT *od, const char *opt,
+              const char *mutex, int nparams, int flags);
+int ao_setopt1(OPT *od, const char *opt,
+               const char *mutex, int nparams, int flags);
+int ao_tail(OPT *od, int *tailc, char ***tailv);
+int ao_taken(OPT *od, const char *opt);
+int ao_unused(OPT *aod, int *unusedc, char ***unusedv);
+.fi
+.SH DESCRIPTION
+The
+.I all_opt
+package provides general purpose command\-line option parsing.  It
+parses multi\-letter option strings with varying numbers of parameters
+and invocations.  Options can be made mandatory as well as grouped
+into mutually exclusive sets.
+.I all_opt
+can handle multiple command\-line parsing invocations by maintaining a
+separate option descriptor for each one.
+.PP
+An option descriptor is created and initialized by the
+.I ao_init()
+function.
+It returns a pointer to a new descriptor, typedef
+.I OPT
+(defined in <all_opt.h>).  This descriptor pointer is used as the
+first argument to all the other functions.  When no longer needed, a
+descriptor can be destroyed by calling
+.IR ao_free() .
+.PP
+Once a descriptor is created, the user declares each valid
+command\-line option string by calling
+.IR ao_setopt() .
+The function's arguments are:
+.IR ad ,
+the option descriptor;
+.IR opt ,
+the option string being declared;
+.IR mutex ,
+an option string in the set of mutually exclusive options (or NULL
+if not used);
+.IR nparams ,
+the number of parameters expected to follow this option (or AOVARNUM
+if variable); and
+.IR flags ,
+a bit\-mapped field of flags controlling other characteristics of
+the option.
+The
+.I flags
+value is constructed by ORing flags from the following list:
+.TP 10
+AOINT
+All arguments following the option are integers.
+.TP
+AOMUST
+The option is mandatory and must be taken.
+If the option is part of a mutually exclusive set, all options
+in the set must also have this flag set.
+.PP
+.I ao_setopt1()
+is a convenience function that interprets the
+.I opt
+argument as a string of single letter options and calls
+.I ao_setopt()
+for each letter with the other arguments given.
+.PP
+The option string "#" is reserved to represent the special case of
+the "\-#" option (i.e. a dash followed by an integer).
+The integer can be either decimal, octal, or hexadecimal.
+This option implies that the
+.I AOINT
+flag is set and that the
+.I nparams
+argument is 1.
+.PP
+Optional flags may be set on the descriptor with
+.IR ao_setflags() .  
+Currently, the only flag that is supported is:
+.TP 10
+AOPRESERVE_ARGV
+When this flag is set, the
+.I argc
+and
+.I argv
+that are passed into 
+.I ao_parse()
+(see below) are not modified.  Instead, a copy is made of 
+.I argv
+and its results are stored internally in the descriptor.  All
+operations are then performed on that internal copy.  Using this flag
+also enables the use of the
+.I ao_unused()
+function, which will return the unused tokens after parsing (i.e.,
+tokens that were not recognized options and were not part of the
+tail).
+.PP
+After all valid options are declared, the command line arguments are
+parsed by calling
+.IR ao_parse() .
+The
+.I argc
+and
+.I argv
+parameters are those passed to main().
+Note that
+.I argc
+is passed by reference.
+Option strings in the command\-line (prefixed with the dash character '\-')
+and any parameters following them, are parsed and deleted from the
+.IR argc ,
+.I argv
+structure, leaving in it any additional strings that are neither
+options nor parameters.
+Options can be invoked multiple times,
+.I ao_parse()
+maintains a count of these instances as well as potential parameters 
+for each option.
+A "\-\-" argument notifies
+.I ao_parse()
+to avoid processing the arguments that follow it.
+These unprocessed arguments at the tail end of the command\-line
+can be retrieved by calling
+.IR ao_tail() .
+.I ao_parse()
+checks the command\-line for invalid options and parameters, and
+verifies that mutual exclusion is satisfied and mandatory options 
+are taken.
+Once the command\-line options are parsed, the user can make queries
+to check which options were actually taken and what parameters were
+supplied.
+.SS Option Queries
+The function
+.I ao_ntaken()
+returns the number of options taken, i.e. that appeared on the command\-line.
+.I ao_taken()
+checks if the given option
+.I opt
+was taken, returning 1 (true) or 0 (false).
+The
+.I ao_chosen()
+function simplifies the task of locating the single option taken in
+a mutually exclusive set.
+The set is identified by setting
+.I opt
+to any of member options in it.
+.I ao_chosen()
+returns the option taken or NULL if none was chosen.
+.PP
+.I ao_ninsts()
+returns the number of times (instances) an option was invoked
+on the command\-line.
+This number can be helpful if an option accepts parameters.
+It allows the user to request the different parameters of each instance.
+Instances are numbered sequentially starting with 0.
+If the option accepts a variable number of parameters,
+.I ao_nparams()
+returns the number of parameters provided for an option's given
+instance number
+.IR inst .
+Parameters are identified by sequential index values starting with 0.
+If the option takes integer parameters, 
+.I ao_intparam()
+can be used to retrieve a specific parameter given its instance number
+.I inst
+and its index value
+.IR idx .
+The parameter is returned by reference in the
+.I inum
+variable.
+If the option parameters are strings,
+.I ao_param()
+is used to return a specific parameter given its instance and index values.
+.PP
+The tail end of the command\-line, formed by all arguments to the right
+of the "\-\-" special option, can be retrieved by calling
+IR ao_tail() .
+The tail is returned in the standard
+.IR argc ,
+.I argv
+format through the
+.I tailc
+and
+.I tailv
+parameters passed by reference.
+.SH EXAMPLE
+The following example code demonstrates how
+.I all_opt
+can be used to parse command\-lines.
+The hypothetical tool accepts two mutually exclusive options: "foo", "bar".
+The "foo" option requires 2 string parameters and can only be invoked once.
+For simplicity, error checking is not done.
+.PP
+.nf
+.ta .75i 1.5i 2.25i 3i
+#include <all_opt.h>
+
+main(int argc, char *argv[])
+{
+	OPT	*ad;
+	char	*opt;
+
+	ad = ao_init();
+	ao_setopt(ad, "foo", NULL, 2, 0);
+	ao_setopt(ad, "bar", "foo", 0, 0);
+
+	ao_parse(ad, &argc, argv);
+
+	opt = ao_chosen(ad, "foo");
+
+	if (strcmp(opt, "foo") == 0) {
+
+		if (ao_ninsts(ad, "foo") > 1) { /* error */ }
+
+		printf("foo chosen: %s %s\\n",
+			ao_param(ad, "foo", 0, 0),
+			ao_param(ad, "foo", 0, 1));
+	} else {
+		printf("bar taken %d times\\n",
+			ao_ninsts(ad, "bar"));
+	}
+
+	ao_free(ad);
+}
+.fi
+.RE
+.SH RETURN VALUES
+In case of an error,
+.I ao_init()
+returns a NULL descriptor,
+.I ao_chosen()
+and
+.I ao_param()
+return NULL strings,
+and
+.IR ao_intparam() ,
+.IR ao_parse() ,
+.IR ao_setopt() ,
+.IR ao_setopt1() ,
+and
+.I ao_tail()
+return \-1.
+In addition, the global variable
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP 16
+EUSAGE
+The command\-line violates the option rules.
+.TP
+EBADASCIINUMB
+A string representing an integer has an invalid format.

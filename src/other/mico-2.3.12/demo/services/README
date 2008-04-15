@@ -1,0 +1,27 @@
+
+Examples that demonstrate using CORBA services
+
+naming:
+  example how to use the naming service. run shellscript 'account_test'.
+
+naming-lb:
+  simple load-balancing example using the naming service.  
+  run shellscript 'printer_test'.
+
+trader:
+  example how to use the trading service. Run shellscript 'run'.
+
+events:
+  example how to use events servrice. run shellscript 'runit'.
+
+stream-bench:
+  stream benchmark, run shellscript 'bench'.
+
+stream-sound:
+  simple audio conferencing example using streams. runs only on Suns.
+
+property-daemon:
+  property service demo.
+
+relship:
+  relationship service demo.

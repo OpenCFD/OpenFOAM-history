@@ -1,0 +1,13 @@
+#!/bin/sh
+
+ADDR=inet:`uname -n`:14444
+MICORC=/dev/null
+export MICORC
+
+./server -ORBIIOPAddr $ADDR &
+server_pid=$!
+sleep 1
+
+trap "kill $server_pid" 0
+
+./client -ORBBindAddr $ADDR

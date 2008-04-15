@@ -1,0 +1,85 @@
+.TH LAM_KSIGBLOCK 2 "July, 2007" "LAM 7.1.4" "LAM LOCAL LIBRARY"
+.hy 0
+.SH NAME
+lam_ksigblock, lam_ksigsetmask, lam_ksigretry, lam_ksigsetretry, lam_kpause
+\- Manipulate LAM signal handling policy.
+.SH SYNOPSIS
+.hy 1
+.nf
+#include <lam_ksignal.h>
+
+int lam_ksigblock (int mask);
+int lam_ksigsetmask (int mask);
+int lam_ksigretry (int mask);
+int lam_ksigsetretry (int mask);
+int lam_kpause ();
+
+int lam_ksigmask (int signum);
+.fi
+.SH DESCRIPTION
+As part of the signal handling package, LAM maintains two system
+masks, a block mask and a retry mask.
+Each contains a bit for every defined signal.
+The block mask will prevent a signal from being handled if its
+corresponding bit is set.
+The retry mask indicates whether a system call to the daemon should be
+retried after an given signal is handled.
+Signals are defined in <lam_ksignal.h> and described in lam_ksignal(2).
+.PP
+.I lam_ksigblock()
+sets the block mask to block each signal whose corresponding bit
+in the mask argument is set, as well as those whose bits were set
+in the original block mask.
+.I lam_ksigsetmask()
+explictly sets the system block mask to the mask argument.
+All signals set in the mask argument become blocked - all others
+become unblocked.
+Both routines return the previous value of the block mask.
+.PP
+All signals begin as unblocked, and privileged signals cannot be blocked.
+A blocked signal is not ignored - it is impeded.
+If the block should be removed for a signal that was pending, the
+signal handler will immediately be called.
+Several impeded signals will fuse together as one and not be
+handled distinctly.
+.PP
+Since some LAM daemon functions cause the calling process to block
+there is an excellent chance that a system call will be interrupted
+by a signal.
+When this happens, the blocking function returns with the error EINTR.
+If the bit corresponding to the delivered signal is set in the
+retry mask, the daemon request will be automatically
+retried after the signal handler returns.
+.PP
+.I lam_ksigretry()
+resets the retry mask to 
+retry each signal whose corresponding bit in the mask argument 
+is set, as well as those whose bits were set in the original retry mask.
+.I lam_ksigsetmask()
+explictly sets the system retry mask to the mask argument.
+All signals set in the mask argument will be retried - all others
+will not be retried.
+Both routines return the previous value of the retry mask.
+Initially, all signals will be retried except SIGRELEASE,
+which cannot be retried.
+.PP
+The macro
+.IR lam_ksigmask(signum) ,
+defined in <lam_ksignal.h>, converts a signal number
+into a mask with only the corresponding bit set.
+.PP
+.I lam_kpause()
+causes the calling process to wait until any signal is delivered.
+.SH RETURN VALUE
+.IR lam_ksigblock() ,
+.IR lam_ksigsetmask() ,
+.I lam_ksigretry()
+and
+.I lam_ksigsetretry()
+all return the previous mask value.
+.I lam_kpause()
+always returns \-1 and the global variable
+.I errno
+is always set to EINTR.
+.SH SEE ALSO
+lam_ksignal(2), MPIL_Signal(2)

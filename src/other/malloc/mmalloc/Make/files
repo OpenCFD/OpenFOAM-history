@@ -1,0 +1,8 @@
+calloc.c
+free.c
+malloc.c
+morecore.c
+realloc.c
+valloc.c
+
+LIB = $(FOAM_LIBBIN)/libmmalloc

@@ -1,0 +1,52 @@
+.TH NPROBE 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+nprobe \- Report if a LAM bufferd network message is ready to be received.
+.SH C SYNOPSIS
+#include <net.h>
+.HP
+int nprobe (struct nmsg *header);
+.SH FORTRAN SYNOPSIS
+.HP
+subroutine NPROB (nevent, ntype, nlength, nflags, nready, ierror)
+.RE
+integer nevent, ntype, nlength, nflags, nready, ierror
+.SH DESCRIPTION
+If a synchronizing message exists, information about its type, length,
+and flags is returned.
+.PP
+The
+.I nprobe()
+function accepts a pointer to a network message descriptor, defined in
+<net.h>.
+See nsend(2).
+Only the
+.I nh_event
+and
+.I nh_type
+fields of the network message descriptor must be filled before calling
+.IR nprobe() .
+The
+.I nh_type
+and
+.I nh_length
+fields are altered after a successful probe as if nrecv(2) had been called.
+.PP
+Since
+.I nprobe()
+can only examine buffered messages, it cannot be used when buffers
+are bypassed.
+.SH C RETURN VALUE
+Upon successful completion,
+1 is returned if a synchronizing message is waiting to be received, and
+0 is returned if no synchronizing message is waiting.
+If an error occurred,
+\-1 is returned and the global variable,
+.I errno
+is set to indicate the error.
+.SH FORTRAN RETURN VALUE
+Upon successful completion, the
+.I nready
+argument is set to 1 if a synchronizing message is waiting to be received, and
+0 if no synchronizing message is waiting.
+.SH SEE ALSO
+bfctl(1), nsend(2)

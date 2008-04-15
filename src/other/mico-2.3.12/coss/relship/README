@@ -1,0 +1,97 @@
+This is implementation of COSS Relationship Service for MICO
+with a few small extensions.
+
+For more information about this service see 
+ftp://www.omg.org/pub/docs/formal/97-12-16.ps
+
+for run demo type in directory $MICODIR/doc/examples/services/relship:
+	
+	make
+	./rundemo
+	
+	
+and for programmers information on how you can use this please 
+look at simple-test.cc in same directory.
+
+
+Daemons
+-------
+
+randomd and proxyd.
+-------------------
+
+randomd implements RandomGenerator interface so it is use 
+for generating pseudo-random numbers for IdentifiableObject
+interface. For people which require most advance generator
+they can use this as proxy for CORBA service described 
+at http://www.random.org and run it with proxyd.
+
+example:
+
+randomd --generate -ORBIIOPAddr inet:miracle:15000
+
+start random daemon on host miracle on port 15000
+with tcpip and with option --generate which tell this 
+daemon to generate own pseudo-random numbers.
+
+
+randomd --proxy 10000 -ORBIIOPAddr inet:miracle:15000
+
+start random daemon on same location as in previos example
+but now it can be use as cache for true random numbers 
+from www.random.org - but for doing it we must start 
+proxyd too.
+
+proxyd -ORBBindAddr inet:miracle:15000 -f random.ior
+
+start proxyd and it binds to randomd on miracle on port
+15000 and binds to object supported random interface 
+(see random demo in MICO or mico/include/random.idl)
+which ior is stored in file random.ior
+(and can be otained from www.random.org)
+
+Now you can start simple client to obtain random number from 
+randomd. It can looks like:
+
+
+#include <unistd.h>
+#include <CORBA-SMALL.h>
+#include <mico/RandomGenerator.h>
+
+
+int main (int argc, char* argv[]) {
+
+  CORBA::ORB_var orb = CORBA::ORB_init (argc, argv, "mico-local-orb");
+
+  CORBA::Object_var obj = orb->bind ("IDL:RandomGenerator:1.0");
+  RandomGenerator_var generator = RandomGenerator::_narrow (obj);
+  if (CORBA::is_nil (generator)) {
+    cerr << "can't bind to randomd.\n";
+    exit (1);
+  }
+
+  for (;;) {
+    try {
+      cout << generator->rand () << "\n";
+    } catch (RandomGenerator::NoSuchNumber& ex) {
+      //sleep (1);
+    }
+  }
+
+}
+ 
+
+
+containmentd and referenced.
+----------------------------
+
+On these servers run object implementation for third level 
+of the Relationship Service.
+
+
+traversald and noded.
+---------------------
+
+On these servers run (on traversald) TraversalFactory, all Traversal
+and TraversalCriteras + GenericCriteriaFactory which is my extension
+to this service (on noded) run NodeFactory and all created Nodes. 

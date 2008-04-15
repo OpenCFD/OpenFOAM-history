@@ -1,0 +1,4 @@
+
+interface foo {
+    oneway void bar( in short x );
+};

@@ -1,0 +1,73 @@
+% -*- latex -*-
+%
+% Copyright (c) 2001-2004 The Trustees of Indiana University.  
+%                         All rights reserved.
+% Copyright (c) 1998-2001 University of Notre Dame. 
+%                         All rights reserved.
+% Copyright (c) 1994-1998 The Ohio State University.  
+%                         All rights reserved.
+% 
+% This file is part of the LAM/MPI software package.  For license
+% information, see the LICENSE file in the top level directory of the
+% LAM/MPI source distribution.
+%
+% $Id: introduction.tex,v 1.11 2003/05/27 18:20:57 brbarret Exp $
+%
+
+\chapter{Introduction to LAM/MPI}
+\label{sec:introduction}
+
+This chapter provides a summary of the MPI standard and the
+LAM/MPI implementation of that standard.
+
+\section{About MPI}
+
+The Message Passing Interface
+(MPI)~\cite{geist96:_mpi2_lyon,mpi_forum93:_mpi}, is a set of API
+functions enabling programmers to write high-performance parallel
+programs that pass messages between processes to make up an
+overall parallel job.  MPI is the culmination of decades of research
+in parallel computing, and was created by the MPI Forum~-- an open
+group representing a wide cross-section of industry and academic
+interests.  More information, including the both volumes of the
+official MPI standard, can be found at the MPI Forum web
+site.\footnote{\url{http://www.mpi-forum.org/}}
+
+MPI is suitable for ``big iron'' parallel machines such as the IBM SP,
+SGI Origin, etc., but it also works in smaller environments such as a
+group of workstations.  Since clusters of workstations are readily
+available at many institutions, it has become common to use them as a
+single parallel computing resource running MPI programs.
+%
+The MPI standard was designed to support portability and platform
+independence.  As a result, users can enjoy cross-platform development
+capability as well as transparent heterogenous communication.  For
+example, MPI codes which have been written on the RS-6000 architecture
+running AIX can be ported to a SPARC architecture running Solaris with
+little or no modifications.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{About LAM/MPI}
+
+LAM/MPI is a high-performance, freely available, open source
+implementation of the MPI standard that is researched, developed, and
+maintained at the Open Systems Lab at Indiana University.  LAM/MPI
+supports all of the MPI-1 Standard and much of the MPI-2 standard.
+More information about LAM/MPI, including all the source code and
+documentation, is available from the main LAM/MPI web
+site.\footnote{\url{http://www.lam-mpi.org/}}
+
+LAM/MPI is not only a library that implements the mandated MPI API,
+but also the LAM run-time environment: a user-level, daemon-based
+run-time environment that provides many of the services required by
+MPI programs.  Both major components of the LAM/MPI package are
+designed as component frameworks~-- extensible with small modules that
+are selectable (and configurable) at run-time.  This component
+framework is known as the System Services Interface (SSI).  The SSI
+component architectures are fully documented
+in~\cite{sankaran03:_check_restar_suppor_system_servic,squyres03:_boot_system_servic_inter_ssi,squyres03:_mpi_collec_operat_system_servic,squyres03:_reques_progr_inter_rpi_system,squyres03:_system_servic_inter_ssi_lam_mpi,lamteam03:_lam_mpi_install_guide,lamteam03:_lam_mpi_user_guide}.
+
+
+

@@ -1,0 +1,1 @@
+exec tb -WATMGIOPAddr inet:$1:12003 -WATMGTPAddr inet:$2:21100 -WATMBridgeName Terminal -POAImplName MobilitySupport -ORBTerminalId %04%80%d6%0a%a6%08terminal -ORBInitRef HomeLocationAgent=`cat home.ref` -ORBDebug All -ORBNoIIOPServer -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -ORBConfFile ./micorc -ORBRequestLimit 1 >tb.ref

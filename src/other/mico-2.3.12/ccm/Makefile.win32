@@ -1,0 +1,122 @@
+#
+# MICO --- a CORBA 2.0 implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and/or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+!include ..\MakeVars.win32
+
+LINK_BUG_OBJS= #..\orb\util.obj
+# ..\orb\typecode.obj
+
+# ----------------------------------------------------------------------
+
+RELATIVE = ..
+CXXFLAGS = $(CXXFLAGS) /I. /I..\include  /I..\idl /I..\ir  /I..\include\windows
+
+SRCS = CCM.cc CCMContainer.cc ccmload.cc componentserver.cc mico-ccm.cc mico-ccmd.cc
+
+IROBJS = ..\ir\ir_skel.obj ..\ir\ir_impl.obj ..\ir\ir3.obj ..\ir\ir3_skel.obj
+
+STATIC_OBJS =
+
+DLL_SRCS = CCM.cc CCMContainer.cc
+DLL_OBJS = $(DLL_SRCS:.cc=.obj)
+
+all: lib prg
+
+#lib: micoccm$(VERSION).dll
+#	copy micoccm$(VERSION).lib ..\win32-bin\lib
+#	copy micoccm$(VERSION).dll ..\win32-bin
+
+lib: micoccm$(VERSION).lib
+	copy micoccm$(VERSION).lib ..\win32-bin\lib
+
+prg: lib mico-ccm.exe mico-ccmd.exe componentserver.exe ccmload.exe
+	copy mico-ccm.exe ..\win32-bin
+	copy mico-ccmd.exe ..\win32-bin
+	copy componentserver.exe ..\win32-bin
+	copy ccmload.exe ..\win32-bin
+
+# Map-classes can't be passed between dlls (or dlls and apps)
+# so map-based GetOpt has to be linked explicitely
+
+CCM.h CCM.cc: ..\include\mico\CCM.idl
+	$(IDL) ..\include\mico\CCM.idl
+	copy CCM.h ..\include\mico
+
+mico-ccm.exe: mico-ccm.obj micoccm$(VERSION).lib 
+	$(LINK) $(LINKFLAGS) mico-ccm.obj  $(IROBJS) $(LINK_BUG_OBJS)\
+		/subsystem:console  micoccm$(VERSION).lib ..\coss\micocoss$(VERSION).lib \
+		../idl/idl$(VERSION).lib ../orb/mico$(VERSION).lib ole32.lib \
+		/out:mico-ccm.exe
+
+mico-ccmd.exe: mico-ccmd.obj micoccm$(VERSION).lib 
+	$(LINK) $(LINKFLAGS) mico-ccmd.obj $(STATIC_OBJS) $(DLL_OBJS) $(LINK_BUG_OBJS)\
+		/subsystem:console  micoccm$(VERSION).lib ..\coss\micocoss$(VERSION).lib \
+		../idl/idl$(VERSION).lib ../orb/mico$(VERSION).lib ole32.lib \
+		/out:mico-ccmd.exe
+
+componentserver.exe: componentserver.obj micoccm$(VERSION).lib 
+	$(LINK) $(LINKFLAGS) componentserver.obj  $(DLL_OBJS) $(LINK_BUG_OBJS)\
+		/subsystem:console  micoccm$(VERSION).lib ..\coss\micocoss$(VERSION).lib \
+		../idl/idl$(VERSION).lib ../orb/mico$(VERSION).lib ole32.lib \
+		/out:componentserver.exe
+
+ccmload.exe: ccmload.obj micoccm$(VERSION).lib 
+	$(LINK) $(LINKFLAGS) ccmload.obj  $(DLL_OBJS) $(LINK_BUG_OBJS)\
+		/subsystem:console  micoccm$(VERSION).lib ..\coss\micocoss$(VERSION).lib \
+		../idl/idl$(VERSION).lib ../orb/mico$(VERSION).lib ole32.lib \
+		/out:ccmload.exe
+
+#micoccm$(VERSION).dll: $(DLL_OBJS) win32dll.def
+#	copy ..\orb\mico$(VERSION).dll . 
+#	$(LINK) $(LINKDLLFLAGS) $(DLL_OBJS) /subsystem:console ../orb/mico$(VERSION).lib /out:$@ ole32.lib /def:win32dll.def
+
+micoccm$(VERSION).lib: $(DLL_OBJS)
+	$(AR) $(DLL_OBJS) ../orb/mico$(VERSION).lib /out:$@ ole32.lib
+
+#idl$(VERSION).dll: $(DLL_OBJS) win32dll.def
+#	copy ..\orb\mico$(VERSION).dll .
+#	$(LINK) $(LINKDLLFLAGS) $(DLL_OBJS) /subsystem:console ../orb/mico$(VERSION).lib /out:idl$(VERSION).dll \
+#			ole32.lib /def:win32dll.def
+#	$(RM) mico$(VERSION).dll
+
+win32dll.def: $(DLL_OBJS) ../orb/win32def.exe win32dll.dmp
+	..\orb\win32def.exe "micoccm$(VERSION)" "MICO is CORBA" win32dll.dmp > win32dll.def
+
+win32dll.dmp: $(DLL_OBJS)
+	dumpbin /symbols $(DLL_OBJS) > win32dll.dmp
+
+#../orb/win32def.exe: ../orb/win32def.cc
+#	cl /TP ../orb/win32def.cc /o../orb/win32def.exe
+#	$(RM) /f win32def.exe
+
+clean:
+	-$(RM) CCM.cc
+	-$(RM) *.obj
+	-$(RM) *.exe
+	-$(RM) *.def
+	-$(RM) *.dmp
+	-$(RM) *.dll
+	-$(RM) *.lib
+	-$(RM) *.exp
+	-$(RM) *.pdb
+	-$(RM) *.pch
+	-$(RM) *~

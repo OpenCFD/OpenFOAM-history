@@ -1,0 +1,81 @@
+#
+#  MICO --- an Open Source CORBA implementation
+#  Copyright (c) 1997-2001 by The Mico Team
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#  For more information, visit the MICO Home Page at
+#  http://www.mico.org/
+#
+!ifndef MANUALLY_SET_CONFIG_ON
+MANUALLY_SET_CONFIG_ON = 1
+
+#################################################################################################################
+# MANUALLY SET Configuration
+#
+# WARNING: TOUCH THIS FILE ONLY IF YOU KNOW WHAT YOU ARE DOING. IF YOU ARE NOT SURE, LEAVE IT LIKE IT IS.
+##################################################################################################################
+
+# Current Version(clear if you want old behaviour)
+VERSION		= 2312
+
+# define if you want a release build
+RELEASE_BUILD	= 1
+
+#this contains MICO added paths. Do not modify it in any way.
+MPATH           = 
+
+# define this if you want to use Precompiled headers.
+# You better have enough space on device because you need more than 30Mb 
+#FAST_PCH = 1
+
+
+# Adapted by Sorin Mustaca <sorin@home.ro>
+# Download and compile the OpenSSL sources. Execute the script install_openssl.bat to copy the DLLs into win32-bin
+# and the libraries in win32-bin\lib. 
+# If both the libs and headers are found, then MICO will be automatically SSL-enabled.
+# 
+#NOTE: CSIv2 will be automatically enabled if you have SSL
+
+#this file is generate by the checkssl.bat script
+!include makevars.win32.ssl
+
+
+# PTHREADS adaptation by Sorin Mustaca <sorin@home.ro>
+#
+# MICO is able to be compiled and run in multi-threaded environment on
+# top of Win32 OS by using posix threads "emulation" layer which is
+# provided by POSIX Threads for Win32 project. For more information
+# about this project and for sources of pthreads library please look at
+# http://sources.redhat.com/pthreads-win32/ 
+#
+# In order to compile MICO with pthreads first compile the library you
+# want to use: PthreadsVC(no exception), PthreadsVCE(C++ EH) and/or
+# PthreadsVSE(MSVC Structured EH). Please read 'README' file from
+# pthreads package before doing any modification here. If you have
+# pthreads library compiled and ready, install the dlls into win32-bin
+# and the libs into win32-bin\lib  (or let the build system do it automatically)
+# If the libs are found, then MICO will be automatically compiled as MT-enabled.
+#
+# If you prefer one of the builds and not the automatic choice, then uncomment here
+# this line
+
+!include makevars.win32.pth
+
+
+# uncomment following line if you want to compile MICO with MicoCCM support
+#USE_CCM = 1
+
+!endif

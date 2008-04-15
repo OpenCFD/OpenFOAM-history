@@ -1,0 +1,4 @@
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=ServerTest/emailAddress=server@test]/ /ObjectSecurity
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=ServerTest/emailAddress=server@test]/MyPOA/ /ObjectSecurity/Domain1
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=ServerTest/emailAddress=server@test]/RootPOA/ /ObjectSecurity/Domain
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=ServerTest/emailAddress=server@test]/RootPOA/MyPOA/MyPOA2/account /ObjectSecurity/Domain2

@@ -1,0 +1,79 @@
+.TH MPI_Finalized 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_Finalized \-  Indicates whether 
+.I MPI_Finalize
+has completed. 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+int MPI_Finalized(int *flag)
+.fi
+.SH OUTPUT PARAMETER
+
+.PD 0
+.TP
+.B flag 
+- Flag is true (1) if 
+.I MPI_Finalize
+has been called and false (0)
+otherwise.
+.PD 1
+
+.SH NOTES
+
+Note that this function does not indicate whether 
+.I MPI_INIT
+has been
+called.  It only indicates whethere 
+.I MPI_FINALIZE
+has been called.
+
+This function always returns 
+.I MPI_SUCCESS
+\&.
+
+
+.SH NOTES FOR FORTRAN
+
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+)
+have an additional argument 
+.I ierr
+at the end of the argument list.
+.I ierr
+is an integer and has the same meaning as the return value of
+the routine in C.  In Fortran, MPI routines are subroutines, and are
+invoked with the 
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type
+.I INTEGER
+in Fortran.
+
+.SH MORE INFORMATION
+
+For more information, please see the official MPI Forum web site,
+which contains the text of both the MPI-1 and MPI-2 standards.  These
+documents contain detailed information about each MPI function (most
+of which is not duplicated in these man pages).
+
+.I http://www.mpi-forum.org/
+
+
+.SH ACKNOWLEDGEMENTS
+
+The LAM Team would like the thank the MPICH Team for the handy program
+to generate man pages ("doctext" from
+.I ftp://ftp.mcs.anl.gov/pub/sowing/sowing.tar.gz
+), the initial
+formatting, and some initial text for most of the MPI-1 man pages.
+.SH LOCATION
+finalized.c

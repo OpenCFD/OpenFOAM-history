@@ -1,0 +1,19 @@
+
+/*
+ * Reference to L in interface D is ambiguous.
+ */
+
+interface B1
+{
+  const long L = 1;
+};
+
+interface B2
+{
+  const long L = 12;
+};
+
+interface D : B1, B2
+{
+  typedef float A[ L ];
+};

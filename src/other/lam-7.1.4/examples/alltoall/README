@@ -1,0 +1,50 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+The alltoall program is a canonical example of MPI usage.  It sends a
+message from each MPI rank to each other MPI rank.
+
+Note that we carefully distinguish between the order of sending and
+receiving.  It is *not* sufficient to have a single loop where each
+rank does a simple "MPI_Send(...); MPI_Recv(...);" -- doing so can
+lead to deadlock.  This is a subtlety in the MPI standard --
+MPI_Send() *may* or *may not* block.  In LAM, MPI_Send() will block if
+a message is too long; it will wait until the message has been started
+to be received on the target rank.  Under that size, MPI_Send() will
+[most likely] return immediately regardless of what the target rank is
+doing.
+
+Note that this is not a LAM-specific issue; every MPI implementation
+is coded in this way -- that MPI_Send tries to complete immediately,
+but above a certain threshold (usually related a combination of
+message size and the cumulative size of unreceived messages to that
+target), MPI_Send may block until the target rank starts receiving. */
+
+Finally, notice that this program is actually a poor example of the
+all-to-all communication pattern -- there is some degree of
+serialization in the sending of messages.  For example, rank N has to
+wait for rank 0 to send to it before it can continue.  That is, rank 0
+causes a daisy-chain of reactions that allow the rest of the ranks to
+continue -- each rank will not "start" until rank 0 contacts it.
+
+Use "make" to compile this example.  Make will use mpicc to compile
+the program:
+
+        mpicc -o alltoall alltoall.c 
+
+This program must be run on 2 or more MPI processes.  For example, if
+your LAM universe has more than two CPUs listed, you can simply use:
+
+        mpirun C alltoall

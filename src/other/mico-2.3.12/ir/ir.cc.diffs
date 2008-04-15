@@ -1,0 +1,53 @@
+*** ../../ir/orig/ir.h	Wed Jan 22 08:22:55 2003
+--- ir.h	Wed Jan 22 08:20:16 2003
+***************
+*** 88,94 ****
+  typedef ObjOut< AliasDef > AliasDef_out;
+  
+  class InterfaceDef;
+! typedef InterfaceDef *InterfaceDef_ptr;
+  typedef InterfaceDef_ptr InterfaceDefRef;
+  typedef ObjVar< InterfaceDef > InterfaceDef_var;
+  typedef ObjOut< InterfaceDef > InterfaceDef_out;
+--- 88,94 ----
+  typedef ObjOut< AliasDef > AliasDef_out;
+  
+  class InterfaceDef;
+! //typedef InterfaceDef *InterfaceDef_ptr;
+  typedef InterfaceDef_ptr InterfaceDefRef;
+  typedef ObjVar< InterfaceDef > InterfaceDef_var;
+  typedef ObjOut< InterfaceDef > InterfaceDef_out;
+***************
+*** 106,112 ****
+  typedef ObjOut< LocalInterfaceDef > LocalInterfaceDef_out;
+  
+  class ValueDef;
+! typedef ValueDef *ValueDef_ptr;
+  typedef ValueDef_ptr ValueDefRef;
+  typedef ObjVar< ValueDef > ValueDef_var;
+  typedef ObjOut< ValueDef > ValueDef_out;
+--- 106,112 ----
+  typedef ObjOut< LocalInterfaceDef > LocalInterfaceDef_out;
+  
+  class ValueDef;
+! //typedef ValueDef *ValueDef_ptr;
+  typedef ValueDef_ptr ValueDefRef;
+  typedef ObjVar< ValueDef > ValueDef_var;
+  typedef ObjOut< ValueDef > ValueDef_out;
+***************
+*** 178,184 ****
+  typedef ObjOut< AttributeDef > AttributeDef_out;
+  
+  class OperationDef;
+! typedef OperationDef *OperationDef_ptr;
+  typedef OperationDef_ptr OperationDefRef;
+  typedef ObjVar< OperationDef > OperationDef_var;
+  typedef ObjOut< OperationDef > OperationDef_out;
+--- 178,184 ----
+  typedef ObjOut< AttributeDef > AttributeDef_out;
+  
+  class OperationDef;
+! //typedef OperationDef *OperationDef_ptr;
+  typedef OperationDef_ptr OperationDefRef;
+  typedef ObjVar< OperationDef > OperationDef_var;
+  typedef ObjOut< OperationDef > OperationDef_out;

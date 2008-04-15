@@ -1,0 +1,6 @@
+#!/bin/sh
+
+ADDR=ssl:inet:`uname -n`:12456
+
+./client -ORBBindAddr $ADDR -ORBSSLcert ClientCert.pem -ORBSSLkey ClientKey.pem -ORBSSLverify 0
+

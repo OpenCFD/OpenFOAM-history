@@ -1,0 +1,71 @@
+Interoperability test Mico and Jacorb
+Copyright Thomas Fricke 1998
+============================================================
+
+This example has been derived from both the simple Jacorb 
+example1 and the Mico demo/account2 to demonstrate the 
+interoperation of Mico and Jacorb.
+
+============================================================
+
+This example is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+============================================================
+
+With this example it is possible to demonstrate interoperation 
+between both the most complete free Corba implementations, 
+Mico and Jacorb.
+
+You will need both jacorb and mico. The demo hast been tested with
+jacorb 0.9e and mico 2.1.1. The example will not work using
+Mico 2.0.0 ! Edit the Makefile and replace the variables
+by the appropriate values of your installation.
+
+============================================================
+
+To install this example:
+
+- place this directory in mico/demo/interop
+
+- make sure you have set both the Mico and Jacorb environment 
+  variables properly (e.g. by sourcing mico/.../mico-setup.csh
+  and JacORB_0.9e/setenv.csh 
+
+- do "make" in this directory
+
+- run the account script
+
+Output should be the same as in account.out, except the 
+IP numbers and the port.
+
+============================================================
+
+Notice the line in account
+
+./client  -ORBNoCodeSets `cat account.ref`
+
+which connects the Corba 2.1 compliant Mico 2.1.1 with the 2.0
+compliant Jacorb. This means that the mico client does not
+generate characterset information, which is not understood by
+some 2.0 servers, including jacorb 0.9e.
+
+The run_applet (the same as in the visibroker example) should
+work the same way as described there, both with a Java or
+C++ server.
+
+============================================================
+
+Thanks to Gerald Brose and Kay Roemer (and the whole Mico Team) 
+for the support and bringing the stuff to the net!

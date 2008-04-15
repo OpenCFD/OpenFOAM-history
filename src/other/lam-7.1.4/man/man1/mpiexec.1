@@ -1,0 +1,273 @@
+.TH MPIEXEC 1 "July, 2007" "LAM 7.1.4" "LAM COMMANDS"
+.SH NAME
+mpiexec \- Run MPI programs on LAM nodes.
+.SH SYNOPSIS
+.hy 0
+.HP
+mpiexec [global_args] local_args1 [: local_args2 [...]]
+.HP
+mpiexec [global_args] -configfile filename
+.SH OPTIONS
+.PP
+Global arguments apply to all commands that will be launched by 
+.IR mpiexec .
+They come at the beginning of the command line.
+.TP 10
+.B -boot
+Boot the LAM run-time environment before running the MPI program.  If
+.B -machinefile
+is not specified, use the default boot schema.  When the MPI processes
+finish, the LAM run-time environment will be shut down.
+.TP
+.B -boot-args args
+Pass arguments to the back-end
+.I lamboot
+command when booting the LAM run-time environment.  Implies
+.IR -boot .
+.TP
+.B -d
+Enable lots of debugging output.  Implies
+.BR -v .
+.TP
+.B -machinefile hostfile
+Enable "one shot" MPI executions; boot the LAM run-time environment
+with the boot schema specified by hostfile (see bhost(5)), run the
+MPI program, and then shut down the LAM run-time environment.  Implies
+.BR -boot .
+.TP
+.B -prefix lam/install/path
+Use the LAM installation specified in 
+/lam/install/path/.  Not compatible with LAM/MPI versions prior to 7.1.  
+.TP
+.B -ssi key value
+Set the SSI parameter key to the value value.
+.TP
+.B -tv
+Launch the MPI processes under the TotalView debugger.
+.TP
+.B -v
+Be verbose
+.PP
+One or more sets of local arguments must be specified (or a config
+file; see below).  Local arguments essentially include everything
+allowed in an appschema(5) as well as the following options specified
+by the MPI-2 standard (note that the options listed below must be
+specified
+.I before
+appschema arguments):
+.TP 10
+.B -n numprocs
+Number of copies of the process to start.  
+.TP
+.B -host hostname
+Specify the hostname to start the MPI process on.  The hostname must
+be resolvable by the 
+.I lamnodes
+command after the LAM run-time environment is booted (see
+lamnodes(1)).
+.TP
+.B -arch architecture
+Specify the architecture to start the MPI process on.  
+.I mpiexec
+essentially uses the provided architecture as a pattern match
+against the output of the GNU
+.I config.guess
+utility on each machine in the LAM run-time environment.  Any subset
+will match.  See EXAMPLES, below.
+.TP
+.B -wdir directory
+Set the working directory of the executable.
+.TP
+.B -soft
+Not yet supported.
+.TP
+.B -path
+Not yet supported.
+.TP
+.B -file
+Not yet supported.
+.TP
+.B other_arguments
+When 
+.I mpiexec 
+first encounters an argument that it doesn't recognize (such as an
+appschema(5) argument, or the MPI executable name), the remainder of
+the arguments will be passed back to
+.I mpirun
+to actually start the process.  As such, all of 
+.IR mpiexec 's
+arguments that are described above must come 
+.B before 
+appschema arguments and/or the MPI executable name.  Similarly, all
+arguments after the MPI executable name will be transparently passed
+as command line argument to the MPI process and will be will be
+effectively ignored by
+.IR mpirun .
+.SH DESCRIPTION
+.PP
+.I mpiexec
+is loosely defined in the Miscellany chapter of the MPI-2 standard
+(see http://www.mpi-forum.org/).  It is meant to be a portable
+mechanism for starting MPI processes.  The MPI-2 standard recommends
+several command line options, but does not mandate any.  LAM's
+.I mpiexec
+currently supports several of these options, but not all.
+.PP
+LAM's 
+.I mpiexec
+is actually a perl script that is a wrapper around several underlying
+LAM commands, most notably
+.IR lamboot ,
+.IR mpirun ,
+and
+.IR lamhalt .
+As such, the functionality provided by
+.I mpiexec
+can always be performed manually.  Unless otherwise specified in
+arguments that are passed back to
+.IR mpirun ,
+.I mpiexec
+will use the per-CPU scheduling as described in mpirun(1) (i.e.,
+the "cX" and "C" notation).
+.PP
+.I mpiexec
+can either use an already-existing LAM universe (i.e., a booted LAM
+run-time environment), similar to 
+.IR mpirun ,
+or can be used for "one-shot" MPI executions where it boots the LAM
+run-time environment, runs the MPI executable(s), and then shuts down
+the LAM run-time environment.  
+.PP
+.I mpiexec
+can also be used to launch MPMD MPI jobs from the command line.
+.I mpirun
+also supports launching MPMD MPI jobs, but the user must make a text
+file appschema(5) first.
+.PP
+Perhaps one of
+.IR mpiexec 's
+most useful features is the command-line ability to launch different
+executables on different architectures using the
+.I -arch
+flag (see EXAMPLES, below).  Essentially, the string argument that is
+given to 
+.I -arch
+is used as a pattern match against the output of the GNU
+.I config.guess
+utility on each node.  If the user-provided architecture string
+matches any subset of the output of
+.IR config.guess ,
+it is ruled a match.  Wildcards are not possible.  The GNU 
+.I config.guess
+utility is available both in the LAM/MPI source code distribution (in
+the config subdirectory) and at
+ftp://ftp.gnu.org/gnu/config/config.guess.  
+.PP
+Some sample outputs from
+.I config.guess include:
+.TP 10
+sparc-sun-solaris2.8
+Solaris 2.8 running on a SPARC platform.
+.TP
+i686-pc-linux-gnu
+Linux running on an i686 architecture.
+.TP
+mips-sgi-irix6.5
+IRIX 6.5 running on an SGI/MIPS architecture.
+.PP
+You might want to run the
+.I laminfo
+command on your available platforms to see what string
+.I config.guess
+reported.  See laminfo(1) for more details (e.g., the
+.B -arch
+flag to 
+.IR laminfo ).
+.SS Configfile option
+It is possible to specify any set of local parameters in a
+configuration file rather than on the command line using the 
+.I -configfile
+option.  This option is typically used when the number of command line
+options is too large for some shells, or when automated processes
+generate the command line arguments and it is simply more convenient
+to put them in a file for later processing by
+.BR mpiexec .
+.PP
+The config file can contain both comments and one or more sets of
+local arguments.  Lines beginning with "#" are considered comments and
+are ignored.  Other lines are considered to be one or more groups of
+local arguments.  Each group must be separated by either a newline or
+a colon (":").  For example:
+.PP
+.nf
+  # Sample mpiexec config file
+  # Launch foo on two nodes
+  -host node1.example.com foo : -host node2.example.com foo
+  # Launch two copies of bar on a third node
+  -host node3.example.com -np 2 bar
+.fi
+.SH ERRORS
+In the event of an error, 
+.I mpiexec
+will do its best to shut everything down and return to the state
+before it was executed.  For example, if
+.I mpiexec
+was used to boot a LAM run-time environment, 
+.I mpiexec
+will do its best to take down whatever successfully booted of the
+run-time environment (to include invoking
+.I lamhalt
+and/or
+.IR lamwipe ).
+.SH EXAMPLES
+.PP
+The following are some examples of how to use
+.IR mpiexec .
+Note that all examples assume the CPU-based scheduling (which does 
+.I NOT
+map to physical CPUs) as described in mpirun(1).
+.TP 10
+mpiexec -n 4 my_mpi_program
+Launch 4 copies of 
+.I my_mpi_program
+in an already-existing LAM universe.
+.TP
+mpiexec -n 4 my_mpi_program arg1 arg2
+Similar to the previous example, but pass "arg1" and "arg2" as command
+line arguments to each copy of my_mpi_program.
+.TP
+mpiexec -ssi rpi gm -n 4 my_mpi_program
+Similar to the previous example, but pass "-ssi rpi gm" back to 
+.I mpirun
+to tell the MPI processes to use the Myrinet (gm) RPI for MPI message
+passing.
+.TP
+mpiexec -n 4 program1 : -n 4 program2
+Launch 4 copies of 
+.I program1
+and 4 copies of
+.I program2
+in an already-existing LAM universe.  All 8 resulting processes will
+share a common MPI_COMM_WORLD.
+.TP
+mpiexec -machinefile hostfile -n 4 my_mpi_program
+Boot the LAM run-time environment with the nodes listed in the
+hostfile, run 4 copies of my_mpi_program in the resulting LAM
+universe, and then shut down the LAM universe.
+.TP
+mpiexec -machinefile hostfile my_mpi_program
+Similar to above, but run my_mpi_program on all available CPUs in the
+LAM universe.
+.TP 
+mpiexec -arch solaris2.8 sol_program : -arch linux linux_program
+Run as many copies of sol_program as there are CPUs on Solaris
+machines in the current LAM universe, and as many copies of
+linux_program as there are CPUs on linux machines in the current LAM
+universe.  All resulting processes will share a common
+MPI_COMM_WORLD.  
+.TP 
+mpiexec -arch solaris2.8 sol2.8_prog : -arch solaris2.9 sol2.9_program
+Similar to the above example, except distinguish between Solaris 2.8
+and 2.9 (since they may have different shared libraries, etc.).
+.SH SEE ALSO
+appschema(5), bhost(5), lamboot(1), lamexec(1), mpirun(1)

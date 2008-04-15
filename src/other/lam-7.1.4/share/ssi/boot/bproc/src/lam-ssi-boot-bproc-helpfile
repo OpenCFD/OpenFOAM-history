@@ -1,0 +1,37 @@
+# -*- text-*-
+#
+# Copyright (c) 2001-2003 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+# 
+# $HEADER$
+# 
+# $Id: lam-ssi-boot-bproc-helpfile,v 1.2 2003/03/21 17:42:33 brbarret Exp $
+#
+# ASCII help messages for LAM
+#
+-*-verify-nodes:nodes-not-up-*-
+# Called when the verify_nodes() API call detects one or more nodes
+# are not up (i.e., bproc reports that they are not up).
+# %1 = list of nodes not up (one per line)
+LAM has detected that one or more nodes specified in the boot schema
+are not available, and has aborted.  Bproc is reporting that the
+following nodes are not up:
+
+%1
+-*-verify-nodes:no-permission-*-
+# Called when verify nodes sees that you are not the user nor in the group for
+# the node.
+# %1 = list of nodes not up (one per line)
+LAM has detected that one or more nodes specified in the boot schema
+are not available, and has aborted.  Bproc is reporting that the
+following nodes are not owned by you or your group:
+
+%1

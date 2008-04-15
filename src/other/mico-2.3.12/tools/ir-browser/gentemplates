@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# generate CGTemplates.java from templates.kb
+#
+
+if test $# -lt 1; then
+    echo "usage: $0 <template-file>" 1>&2
+    exit 1
+fi
+
+tmpl=`cat $1 2>/dev/null | sed -e 's/"/\\\\\\\"/g' | tr -d '\n'`
+if test $? != 0; then
+    echo "cannot open $1" 1>&2
+    exit 1
+fi
+cat >/tmp/gentemplates.$$ <<EOF
+s/@templates@/$tmpl/
+EOF
+sed -f /tmp/gentemplates.$$
+rm -f /tmp/gentemplates.$$

@@ -1,0 +1,108 @@
+Security unaware audit example
+The source code is the same as in acl-unaware
+			
+1. Audit Configuration File.
+Example of configuration file - audit.cnf
+Content of file:
+
+/Audit
+{
+(
+ server:Any * [PrincipalAuth, SessionAuth]
+)
+}
+
+/Audit/d1
+{
+
+(
+ server:Any IDL:Account:1.0 [Authorization]
+ Initiator = [ /C=RU/ST=Moscow/L=Moscow/O=ObjectSecurity/OU=Domain1/CN=manager/emailAddress=manager@domain.ru ]
+ DayOfWeek = [Wed ]
+ Time = [2001/05/29:11:15:00-2001/05/30:16:00:00]
+ SuccessFailure = [ false]
+)
+
+(server:All IDL:Bank:1.0 [Invocation]
+ Initiator = [/C=RU/ST=Moscow/L=Moscow/O=ObjectSecurity/OU=Domain1/CN=manager/emailAddress=manager@domain.ru]
+ DayOfWeek = [Wed]
+)
+
+}
+
+
+In this example we have root /Audit and branch /Audit/d1
+In root directory common policy is described - most general audit, that will apply
+more widely (root default policy).
+
+In /Audit/d1 we have more specific audit policy.
+
+Let's look at root policy description.
+First we describe name of branch - root name in our case. Than in "{}" sets of filters
+are followed. Every set of filters surrounded with (). Every set of filters can be
+applied to all or concrete interface.
+Prefix "server" means that we suppose server side audit. (We can use only "server"
+value for now).
+"Any" means "SecAnySelector" - value of Audit Combinator. Another possible value -
+"All" means "SecAllSelectors" - value of Audit Combinator. These values determine
+the way of filtering.
+Than interface name followed, in our case "*" means all interfaces.
+In "[]" - list of Audit Events we're interested in.
+Possible values:
+"All", "PrincipalAuth", "SessionAuth", "Authorization", "Invocation".
+Comment:
+--------
+For concrete interfaces we can audit only 2 events: "Invocation" and
+"Authorization", because "PrincipalAuth" and "SessionAuth" are not concrete interface
+based events.
+--------
+Since we didn't set up possible values for our set of filters (except events) for our
+root policy, this policy will match all events of this type.
+
+
+Let's look at branch /Audit/d1
+Here we specified two sets of filters for different interfaces "IDL:Account:1.0" and
+IDL:Bank:1.0.
+Possible keywords: "Initiator", "DayOfWeek", "Time", "SuccessFailure", "Operation".
+Syntax for filter: <keyword> = [<value>]
+Possible values:
+1. keyword "Initiator" - value = credentials attribute "AuditId".
+2. keyword "DayOfWeek" - value = {Mon, Tue, Wed, Thu, Fri, Sat, Sun}
+3. keyword "SuccessFailure" - value = {false, true}
+4. keyword "Time" - value = yyyy/mm/dd:hh:mm:ss-yyyy/mm/dd:hh:mm:ss, i.e. time interval
+(without blanks!)
+5. keyword Operation - value = any interface operation or such "pseudo operations"
+like "_connect", "_disconnect", "_principalauth".
+
+In this section we can also describe "default policy" using "*" for all other interfaces
+we didn't include in our sets of filters, similar like for audit root.
+In this case if event and its parameters doesn't match these sets of filters, "default
+policy" of this branch will be tested and if without success, then we'll go up to the
+tree etc., until root is reached.
+
+Note:
+-----
+Don't forget to map appropriate POAs to appropriate branches of Audit Tree in ODM
+Configuration file. In our case we have in file config.cnf:
+
+....
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/        /Access
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/        /Audit
+....
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/MyPOA/ /Access/Domain1 
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/MyPOA/ /Audit/d1
+....
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/AccountPOA/ /Access/Accounts
+[/C=UK/ST=Server State/L=Cambridge/O=ObjectSecurity Ltd./OU=RD/CN=Server Test/emailAddress=server@test]/RootPOA/AccountPOA/ /Audit/d1
+
+
+Note2:
+------
+I removed "Policy Combinator" because we don't need it in audit case (according to spec).
+
+
+Note3:
+------
+For now it is possible use comments beginning with "#" only outside any brackets.
+I'll fix it nearest days, same with access control. Also api example is serverapi.cc and start script rssapi.
+

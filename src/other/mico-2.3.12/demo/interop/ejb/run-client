@@ -1,0 +1,5 @@
+#!/bin/sh
+
+
+echo "running client ..."
+./client -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -ORBInitRef NameService=corbaloc::1.2@localhost:1050/NameService

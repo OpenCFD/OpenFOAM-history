@@ -1,0 +1,12 @@
+#!/bin/sh
+
+ADDR=ssl:inet:`uname -n`:12466
+
+./server -ORBIIOPAddr $ADDR -ORBSSLcert ServerCert.pem -ORBSSLkey ServerKey.pem -ORBSSLverify 0  -AccessControl off -AuditType file -AuditArchName server.log &
+server_pid=$!
+
+trap "kill $server_pid > /dev/null 2> /dev/null" 0
+sleep 2
+
+./client -ORBBindAddr $ADDR  -ORBSSLcert ClientCert.pem -ORBSSLkey ClientKey.pem -ORBSSLverify 0
+

@@ -1,0 +1,21 @@
+The wCORBA project testing systems
+
+This directory contains the programs used to test the Wireless CORBA
+implementation MIWCO in the wCORBA project.  Descriptions of each are
+found below.  Scripts for starting the various MIWCO applications are
+in the frame directory, which contains its own README file.
+
+hello:
+	A simple Hello-world-type application.  The client invokes two
+	operations, the first of which requires a line of input on the
+	server, and the second of which throws an exception.
+
+dublin:
+	A simple time server system.  The server waits for a specified
+	time before returning the current time.  This was used as a
+	demo system at the Dublin OMG meeting in November 2001 (with
+	Combat-based graphical clients).
+
+frame:
+	A scriptable version of the dublin system.  Further
+	documentation is in its own README.

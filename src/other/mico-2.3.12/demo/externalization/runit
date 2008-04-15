@@ -1,0 +1,96 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+PATH=../../daemon:../../coss/naming:../../imr:../../ir:../../coss/relship:../../coss/lifecycle:../../coss/trader:../../coss/externalization:$PATH
+
+if [ "x$1" = "x" ]; then
+	TYPE="-n"
+else
+	TYPE=$1
+fi
+
+ADDR=inet:`uname -n`:12123
+IRADDR=inet:`uname -n`:12500
+STREAM=inet:`uname -n`:13800
+FACTORY=inet:`uname -n`:13900
+TRADER=inet:`uname -n`:14000
+NAMING=inet:`uname -n`:14100
+RANDOMD=inet:`uname -n`:14200
+
+./daemons-start
+# register server
+printf "Starting randomd ..."
+randomd -ORBIIOPAddr $RANDOMD --generate &
+echo $! >> pids
+sleep 1
+echo done.
+
+printf "Starting streamfactory ..."
+#echo -ORBIIOPAddr $STREAM
+streamd -ORBIIOPAddr $STREAM &
+#read c
+echo $! >> pids
+sleep 2
+echo done.
+
+if [ "$TYPE" = "-n" ]; then
+	printf "Starting naming ..."
+	#echo -ORBIIOPAddr $NAMING
+	nsd -ORBIIOPAddr $NAMING &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting factoryfinderd ..."
+	#echo -ORBIIOPAddr $FACTORY -ORBNamingAddr $NAMING $TYPE
+	factoryfinderd -ORBIIOPAddr $FACTORY -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting test server ..."
+	#echo -ORBIIOPAddr $ADDR -ORBNamingAddr $NAMING $TYPE
+	./server -ORBIIOPAddr $ADDR -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBNamingAddr $NAMING $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+else
+	printf "Starting traderd ..."
+	#echo -ORBIIOPAddr $TRADER
+	traderd -ORBIIOPAddr $TRADER &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting factoryfinderd ..."
+	#echo -ORBIIOPAddr $FACTORY -ORBTradingAddr $TRADER $TYPE
+	factoryfinderd -ORBIIOPAddr $FACTORY -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+	printf "Starting test server ..."
+	#echo -ORBIIOPAddr $ADDR -ORBTradingAddr $TRADER $TYPE
+	./server -ORBIIOPAddr $ADDR -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD -ORBTradingAddr $TRADER $TYPE &
+	#read c
+	echo $! >> pids
+	sleep 2
+	echo done.
+
+fi
+
+
+# trap "kill -9 `cat pids`; rm -f pids" 0
+
+sleep 2
+./client $ADDR -ORBBindAddr $STREAM -ORBBindAddr $FACTORY 
+kill -9 `cat pids`
+rm -f pids
+./daemons-stop

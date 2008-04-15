@@ -1,0 +1,132 @@
+/* src/lam-ssi-rpi-usysv-config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* -*- c -*-
+ *
+ * Copyright (c) 2001-2003 The Trustees of Indiana University.  
+ *                         All rights reserved.
+ * Copyright (c) 1998-2001 University of Notre Dame. 
+ *                         All rights reserved.
+ * Copyright (c) 1994-1998 The Ohio State University.  
+ *                         All rights reserved.
+ * 
+ * This file is part of the LAM/MPI software package.  For license
+ * information, see the LICENSE file in the top level directory of the
+ * LAM/MPI source distribution.
+ *
+ * LAM/MPI configuation header file.
+ * SSI rpi: usysv module
+ */
+
+#ifndef LAM_SSI_RPI_USYSV_CONFIG_H
+#define LAM_SSI_RPI_USYSV_CONFIG_H
+
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Use powerpc instructions to force write ordering */
+#undef LAM_ASSEMBLY_TYPE_POWERPC
+
+/* LAM underlying C compiler */
+#undef LAM_CC
+
+/* Whether we have SYSV Semaphores support or not */
+#undef LAM_HAVE_SYSV_SEMAPHORES
+
+/* Whether we have SYSV Shared memory support or not */
+#undef LAM_HAVE_SYSV_SHMEM
+
+/* Whether we have union semun in <sys/sem.h> or not */
+#undef LAM_HAVE_UNION_SEMUN
+
+/* Alpha LAM SSI rpi usysv version */
+#undef LAM_SSI_RPI_USYSV_ALPHA_VERSION
+
+/* Beta LAM SSI rpi usysv version */
+#undef LAM_SSI_RPI_USYSV_BETA_VERSION
+
+/* CVS LAM SSI rpi usysv version */
+#undef LAM_SSI_RPI_USYSV_CVS_VERSION
+
+/* Whether the usysv rpi is the default rpi or not */
+#undef LAM_SSI_RPI_USYSV_DEFAULT
+
+/* Major LAM SSI rpi usysv version */
+#undef LAM_SSI_RPI_USYSV_MAJOR_VERSION
+
+/* Minor LAM SSI rpi usysv version */
+#undef LAM_SSI_RPI_USYSV_MINOR_VERSION
+
+/* Release LAM SSI rpi usysv version */
+#undef LAM_SSI_RPI_USYSV_RELEASE_VERSION
+
+/* Overall LAM SSI rpi usysv version number */
+#undef LAM_SSI_RPI_USYSV_VERSION
+
+/* Whether the 4th argument to semctl (when the val argument) should be passed
+   directly (Darwin 64bit) or through the union (everywhere else) */
+#undef LAM_UNION_SEMUN_VAL_DIRECT
+
+/* LAM debug flag */
+#undef LAM_WANT_DEBUG
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Whether to use shared pthread locks instead of sysv semaphores for the
+   shared memory area */
+#undef PTHREAD_FREELOCK
+
+/* The size of a `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if on AIX 3.
+   System headers sometimes define this.
+   We just want to avoid a redefinition error message.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+
+#endif /* _LAM_SSI_RPI_USYSV_CONFIG_H */

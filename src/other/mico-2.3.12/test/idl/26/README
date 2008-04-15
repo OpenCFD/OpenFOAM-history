@@ -1,0 +1,37 @@
+
+There are some cases where _narrow() needs to make remote invocations. 
+Because this is expensive you can tell the IDL whether or not to
+generate code that makes remote invocations using
+--do-not-query-server-for-narrow. The following discussion explains
+when you can use --do-not-query-server-for-narrow.
+
+
+Consider the following scenario: you have a server which maintains
+references to an interface called "base". This server is defined by
+the files base.idl, base_impl.[h|cc] and server.cc. Once the server is
+compiled and linked, it is started.
+
+At a later point in time someone decides to define a new interface
+"derived" which inherits from "base". The client makes use of both
+base and derived and therefore needs all the files in this directory.
+
+What happens if the server, which is still running, is getting a
+reference to "derived"? It should pose no problems according to the
+CORBA subtyping rules. But how does the server know that "derived"
+IS-A "base"?
+
+One way would be to stop the server, re-link it with the
+implementation of derived and then get it up and running again.
+Sometimes it is not desirable to stop the server. In that case the
+only way for the server to know about "derived" IS-A "base" is to
+ask the client that generated the "derived" object.
+
+Since this means a significant time overhead (each failed _narrow()
+will do a query to the server), you can omit this behaviour by using
+the --do-not-query-server-for-narrow command line option. The code
+generated for _narrow() only queries the server if you do not use the
+--do-not-query-server-for-narrow switch. Beware that incorrect use
+will result in failing _narrow() although it shouldn't.
+
+BTW: the content of this README should be moved to the docs...
+

@@ -1,0 +1,48 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+The ring program is a canonical example of MPI usage.  It sends a
+simple message around in a ring pattern:
+
+       Rank 0 sends to rank 1
+       Rank 1 sends to rank 2
+       Rank 2 sends to rank 3
+       ...
+       Rank N-1 sends to rank N
+       Rank N sends to rank 0
+       Rank 0 sends to rank 1
+       etc.
+
+The message that is sent around the ring is a single integer.  If the
+integer is zero, each rank quits after it has passed the message on.
+Rank zero is special -- it will receive the message and decrement the
+integer before it passes the message on.  This scheme guarantees that
+the application completes in an orderly fashion in finite time.
+
+Rank zero is also special in that it both starts and finishes the
+ring.  Rank 0 sends the initial message (which is hardwired to "5" in
+this example) to rank 1 to start the whole process.  Rank 0 then also
+has to consume the final "0" message from rank N so as not to leave a
+message "hanging" out on the network when all the ranks quit.
+
+Use "make" to compile this example.  Make will use mpicc to compile
+the program:
+
+        mpicc -o ring ring.c 
+
+This program can be run with any number of MPI processes (including
+1).  For example:
+
+        mpirun C ring

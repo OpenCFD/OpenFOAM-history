@@ -1,0 +1,88 @@
+.TH BFSTATE 1 "July, 2007" "LAM 7.1.4" "LAM COMMANDS"
+.SH NAME
+bfstate \- Report status of LAM buffers.
+.SH SYNOPSIS
+bfstate [-ghlp] [-B #msgs] node(s)
+.SH OPTIONS
+.TP 12
+.B \-g
+Include information on system messages.
+.TP
+.B \-h
+Print the command help menu.
+.TP
+.B \-l
+Print buffer levels and limits.
+.TP
+.B \-p
+Display individual packet information.
+.TP
+.B \-B #msgs
+Limit the number of messages reported.
+.SH DESCRIPTION
+Most MPI users will probably not need to use the
+.I bfstate
+command; see mpimsg(1).  This command is only installed if LAM/MPI was
+configured with the
+.I --with-trillium
+switch.
+.PP
+The
+.I bfstate
+command displays information on LAM network message buffers on any node
+in the multicomputer.
+For each message,
+.I bfstate
+outputs the following information:
+.TP 10
+NODE
+node containing the message
+.TP
+DEST
+destination node of the message
+.TP
+EVENT
+message event (see nsend(2))
+.TP
+TYPE
+message type
+.TP
+LENGTH
+message length in bytes
+.PP
+The
+.I \-l
+option prints the following summary on each node's buffer system, after
+all messages for that node have been displayed.
+.IP - 2
+maximum size of the internal buffer pool
+.IP -
+amount of space currently used in the pool.
+.PP
+Individual message buffers hold network message packets, which may
+be only part of a complete user message.
+Normally,
+.I bfstate
+summarizes packets into complete messages.
+If all packets for a message are not on the same node, no information
+is displayed.
+The
+.I \-p
+option disables this behaviour and one line on information is displayed
+for each packet.
+The
+.I \-B
+option changes the maximum number of packet buffers acquired
+(and hence displayable) from the node.
+.SH EXAMPLES
+.TP 4
+bfstate n12-14
+Display the status of all network message buffers on nodes 12 through 14.
+.SH DIAGNOSTICS
+If no buffered messages are found, only the title line is displayed and
+information from the
+.I \-l
+option, if present.
+.SH SEE ALSO
+bfctl(1),
+mpimsg(1)

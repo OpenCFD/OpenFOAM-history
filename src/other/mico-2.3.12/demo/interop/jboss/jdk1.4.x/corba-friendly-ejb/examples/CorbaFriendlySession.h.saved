@@ -1,0 +1,176 @@
+/*
+ *  MICO --- an Open Source CORBA implementation
+ *  Copyright (c) 1997-2001 by The Mico Team
+ *
+ *  This file was automatically generated. DO NOT EDIT!
+ */
+
+#include <CORBA.h>
+#include <mico/throw.h>
+
+#ifndef __examples_CORBAFRIENDLYSESSION_H__
+#define __examples_CORBAFRIENDLYSESSION_H__
+
+
+
+
+namespace examples
+{
+
+class CorbaFriendlySession;
+typedef CorbaFriendlySession *CorbaFriendlySession_ptr;
+typedef CorbaFriendlySession_ptr CorbaFriendlySessionRef;
+typedef ObjVar< CorbaFriendlySession > CorbaFriendlySession_var;
+typedef ObjOut< CorbaFriendlySession > CorbaFriendlySession_out;
+
+}
+
+
+
+#include "javax/ejb/EJBObject.h"
+#include "javax/ejb/Handle.h"
+#include "javax/ejb/EJBHome.h"
+#include "java/lang/Object.h"
+#include "javax/ejb/RemoveException.h"
+#include "javax/ejb/RemoveEx.h"
+#include "javax/ejb/EJBMetaData.h"
+#include "javax/ejb/HomeHandle.h"
+#include "java/lang/Throwable.h"
+#include "/usr/local/reverbel/mico-snapshot-030404/include/mico/valuetype.h"
+#include "java/lang/StackTraceElement.h"
+#include "org/omg/boxedRMI/java/lang/seq1_StackTraceElement.h"
+#include "java/lang/Exception.h"
+#include "/usr/local/reverbel/mico-snapshot-030404/include/mico/orb.h"
+#include "/usr/local/reverbel/mico-snapshot-030404/include/mico/basic_seq.h"
+#include "/usr/local/reverbel/mico-snapshot-030404/include/mico/ir_base.h"
+#include "/usr/local/reverbel/mico-snapshot-030404/include/mico/ir.h"
+#include "/usr/local/reverbel/mico-snapshot-030404/include/mico/policy.h"
+#include "examples/corba/DataObject.h"
+#include "org/omg/boxedIDL/examples/corba/DataObject.h"
+#include "org/omg/boxedRMI/org/omg/boxedIDL/examples/corba/seq1_DataObject.h"
+
+
+
+namespace examples
+{
+
+
+/*
+ * Base class and common definitions for interface CorbaFriendlySession
+ */
+
+class CorbaFriendlySession : 
+  virtual public ::javax::ejb::EJBObject
+{
+  public:
+    virtual ~CorbaFriendlySession();
+
+    #ifdef HAVE_TYPEDEF_OVERLOAD
+    typedef CorbaFriendlySession_ptr _ptr_type;
+    typedef CorbaFriendlySession_var _var_type;
+    #endif
+
+    static CorbaFriendlySession_ptr _narrow( CORBA::Object_ptr obj );
+    static CorbaFriendlySession_ptr _narrow( CORBA::AbstractBase_ptr obj );
+    static CorbaFriendlySession_ptr _duplicate( CorbaFriendlySession_ptr _obj )
+    {
+      CORBA::Object::_duplicate (_obj);
+      return _obj;
+    }
+
+    static CorbaFriendlySession_ptr _nil()
+    {
+      return 0;
+    }
+
+    virtual void *_narrow_helper( const char *repoid );
+
+    virtual ::org::omg::boxedIDL::examples::corba::DataObject* echo( ::org::omg::boxedIDL::examples::corba::DataObject* arg0 ) = 0;
+    virtual ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* echoSequence( ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* arg0 ) = 0;
+
+  protected:
+    CorbaFriendlySession() {};
+  private:
+    CorbaFriendlySession( const CorbaFriendlySession& );
+    void operator=( const CorbaFriendlySession& );
+};
+
+// Stub for interface CorbaFriendlySession
+class CorbaFriendlySession_stub:
+  virtual public CorbaFriendlySession,
+  virtual public ::javax::ejb::EJBObject_stub
+{
+  public:
+    virtual ~CorbaFriendlySession_stub();
+    ::org::omg::boxedIDL::examples::corba::DataObject* echo( ::org::omg::boxedIDL::examples::corba::DataObject* arg0 );
+    ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* echoSequence( ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* arg0 );
+
+  private:
+    void operator=( const CorbaFriendlySession_stub& );
+};
+
+#ifndef MICO_CONF_NO_POA
+
+class CorbaFriendlySession_stub_clp :
+  virtual public CorbaFriendlySession_stub,
+  virtual public ::javax::ejb::EJBObject_stub_clp
+{
+  public:
+    CorbaFriendlySession_stub_clp (PortableServer::POA_ptr, CORBA::Object_ptr);
+    virtual ~CorbaFriendlySession_stub_clp ();
+    ::org::omg::boxedIDL::examples::corba::DataObject* echo( ::org::omg::boxedIDL::examples::corba::DataObject* arg0 );
+    ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* echoSequence( ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* arg0 );
+
+  protected:
+    CorbaFriendlySession_stub_clp ();
+  private:
+    void operator=( const CorbaFriendlySession_stub_clp & );
+};
+
+#endif // MICO_CONF_NO_POA
+
+}
+
+
+#ifndef MICO_CONF_NO_POA
+
+
+
+namespace POA_examples
+{
+
+class CorbaFriendlySession : 
+  virtual public POA_javax::ejb::EJBObject
+{
+  public:
+    virtual ~CorbaFriendlySession ();
+    examples::CorbaFriendlySession_ptr _this ();
+    bool dispatch (CORBA::StaticServerRequest_ptr);
+    virtual void invoke (CORBA::StaticServerRequest_ptr);
+    virtual CORBA::Boolean _is_a (const char *);
+    virtual CORBA::InterfaceDef_ptr _get_interface ();
+    virtual CORBA::RepositoryId _primary_interface (const PortableServer::ObjectId &, PortableServer::POA_ptr);
+
+    virtual void * _narrow_helper (const char *);
+    static CorbaFriendlySession * _narrow (PortableServer::Servant);
+    virtual CORBA::Object_ptr _make_stub (PortableServer::POA_ptr, CORBA::Object_ptr);
+
+    virtual ::org::omg::boxedIDL::examples::corba::DataObject* echo( ::org::omg::boxedIDL::examples::corba::DataObject* arg0 ) = 0;
+    virtual ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* echoSequence( ::org::omg::boxedRMI::org::omg::boxedIDL::examples::corba::seq1_DataObject* arg0 ) = 0;
+
+  protected:
+    CorbaFriendlySession () {};
+
+  private:
+    CorbaFriendlySession (const CorbaFriendlySession &);
+    void operator= (const CorbaFriendlySession &);
+};
+
+}
+
+
+#endif // MICO_CONF_NO_POA
+
+extern CORBA::StaticTypeInfo *_marshaller_examples_CorbaFriendlySession;
+
+#endif

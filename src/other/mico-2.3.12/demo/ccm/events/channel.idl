@@ -1,0 +1,18 @@
+
+#include <mico/CCM.idl>
+#include "message.idl"
+
+component EventChannel {
+  consumes Message incoming;
+  publishes Message outgoing;
+};
+
+local interface MyEventChannel :
+  Components::SessionComponent,
+  CCM_EventChannel
+{
+};
+
+home EventChannelHome manages EventChannel
+{
+};

@@ -1,0 +1,2 @@
+#!/bin/sh
+cat ref|./client -ORBBindAddr inet:localhost:6677 -ORBCSIv2 -ORBCSSNoAttr -ORBGSSClientUser karel,cobalt $@

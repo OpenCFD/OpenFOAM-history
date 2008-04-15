@@ -1,0 +1,69 @@
+#!/bin/sh
+
+PATH=../../../daemon:../../../coss/naming:../../../coss/property:../../../imr:../../../ir:$PATH
+MICORC=/dev/null
+export MICORC
+
+
+ADDR=inet:`uname -n`:9901
+
+#
+# Run BOA demon
+#
+
+echo '>'
+echo '> Run "BOA Demon"'
+
+micod -ORBIIOPAddr $ADDR  &
+CATCHED_PIDS=$!
+trap "kill $CATCHED_PIDS" 0
+
+sleep 2
+
+#
+# Register Naming Service
+#
+
+echo '> Register "Naming Service"'
+
+imr -ORBImplRepoAddr $ADDR create NameService poa `which nsd` \
+ IDL:omg.org/CosNaming/NamingContext:1.0#NameService
+
+#
+# Run Property Service Demon
+#
+
+echo '> Run "Property Service Demon"'
+
+propertyd -ORBImplRepoAddr $ADDR -ORBNamingAddr $ADDR  &
+CATCHED_PIDS=$CATCHED_PIDS' '$!
+trap "kill $CATCHED_PIDS" 0
+
+sleep 2
+
+#
+# Create Properties
+#
+
+echo '>' Create Properties
+
+./set_properties -ORBImplRepoAddr $ADDR -ORBNamingAddr $ADDR
+
+#
+# Read Properties
+#
+
+echo '>' Read Properties
+echo '>'
+
+./get_properties -ORBImplRepoAddr $ADDR -ORBNamingAddr $ADDR
+
+# echo '>'
+# echo '>' CATCHED_PIDS=$CATCHED_PIDS
+# echo '>'
+# echo '> Press Return to kill "BOA Demon" and "Property Service Demon"'
+# read
+echo '>'
+echo '> Terminating "BOA Demon" and "Property Service Demon" ...'
+echo '>'
+

@@ -1,0 +1,53 @@
+.TH KENTER 2 "July, 2007" "LAM 7.1.4" "LAM LOCAL LIBRARY"
+.SH NAME
+kenter \- Enter process into LAM session.
+.SH C SYNOPSIS
+int kenter (char *name, int priority);
+.SH FORTRAN SYNOPSIS
+subroutine KENTR (name, priority, ierr)
+.br
+character name*(*)
+.br
+integer priority, ierr
+.SH DESCRIPTION
+.I kenter() 
+is the first function a LAM process must call to subsequently
+use LAM services.
+By calling underlying functions,
+.I kenter()
+accomplishes three important tasks.
+It initializes all relevant LAM data structures, particularly
+those for communication with the LAM daemon (see kinit(2)).
+It registers with the local LAM daemon and sets the message
+synchronizing priority (see kattach(2)).
+It also establishes a readable name by which the process can be remotely
+monitored and controlled (see lpattach(2)).
+.PP
+The
+.I name
+argument should be the name of the program (argv[0] is recommended)
+and becomes a convenient recognition string in the output of the
+state(1) command.
+It is not used for any type of synchronization.
+.SS Process Scheduling
+LAM processes are scheduled by the host operating system.
+The
+.I priority
+argument determines which process will be synchronized first when
+many are blocked on the same message event and type (see ksend(2)).
+The highest priority process is always favoured.
+.PP
+The LAM daemon works like a server.
+By not replying to a message passing request, it can effectively
+block a process from running.
+The daemon will also attempt to preempt a running process when delivering
+a LAM signal (see kdoom(2)).
+.SH ERRORS
+.TP 20
+ENOKERNEL
+LAM is not running on the local node.
+.TP
+ENOKDESCRIPTORS
+The LAM daemon ran out of process descriptors.
+.SH SEE ALSO
+kinit(2), kattach(2), lpattach(2)

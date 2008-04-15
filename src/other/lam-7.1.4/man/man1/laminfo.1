@@ -1,0 +1,344 @@
+.TH LAMINFO 1 "July, 2007" "LAM 7.1.4" "LAM TOOLS"
+.SH NAME
+laminfo \- Display configuration information about LAM/MPI
+.SH SYNOPSIS
+laminfo [-arch] [-config] [-help|-h] [-param type module]
+        [-parsable|-pretty] [-path item] [-version item scope]
+.SH OPTIONS
+.TP 14
+.B \-all
+Show all configuration information
+.TP
+.B \-arch
+Show architecture that LAM was configured for
+.TP
+.B \-config
+Show some information about LAM configuration
+.TP
+.B \-help
+Show help message
+.TP
+.B \-param
+Show SSI parameter(s) for a given SSI type and module
+.TP
+.B \-parsable
+Show output in an easily parsable format
+.TP
+.B \-path item
+Print a given configuration path
+.TP
+.B \-pretty
+Show output in a prettyprint format (default)
+.TP
+.B \-version
+Print some or part of a version number of a given item
+.SH DESCRIPTION
+The 
+.I laminfo
+command is used to display information about a LAM/MPI installation.
+Particularly with the SSI run-time module selection system, the
+.I laminfo
+command can be useful to scripts and resource managers to determine
+the capabilities of the installed LAM/MPI in order to pass run-time
+parameters to MPI programs.
+.PP
+Output can be displayed in a "pretty" format (i.e., suitable for human
+reading) and also in a parsable format (i.e., suitable for easy
+parsing by scripts or other automated mechanisms).  There are no other
+LAM API functions to retrieve this data (in any language); the
+.I laminfo
+command is the best mechanism to obtain any configuration information
+about LAM/MPI.  The parsable output was designed such that common
+utilities such as 
+.IR grep , 
+.IR awk , 
+.IR cut ,
+and
+.I sed
+can easily be used to extract relevant information.
+.PP
+Running
+.I laminfo
+with no arguments will display a subset of configuration parameters in
+the "pretty" format (see the EXAMPLES section, below).  Several
+command line options are available to limit exactly which information
+is displayed.  These options, when used in conjunction with the
+parsable output, can provide automated mechanisms specific information
+about the capabilities of LAM/MPI.
+.PP
+.SS GENERAL PARAMETERS
+The
+.I \-pretty
+and
+.I \-parsable 
+switches are used to select whether to display the output in "pretty"
+or machine-parsable format, respectively.  If neither is specified,
+.I \-pretty
+is the default.
+.PP
+The
+.I \-arch
+switch will display the architecture that LAM/MPI was configured and
+compiled on.
+.PP
+The 
+.I \-config
+switch will display a set of configuration information about the MPI
+capabilities of LAM/MPI, such as whether there are C, C++, and Fortran
+MPI bindings available, whether there is MPI profiling support for C,
+C++, and Fortran, whether ROMIO support is available, whether IMPI
+support is available, whether debugging support is available (mostly
+for LAM/MPI maintainers), and whether LAM/MPI is "purify clean"
+(meaning that it is suitable for use with memory checking debuggers).
+Most of these are options to the LAM/MPI configure script, and are
+configure/compile-time selections that cannot be changed once LAM has
+been installed.  While there is no fine-grained control to
+individually request each of these pieces of information, using
+.I -config
+in conjunction with
+.I -parsable
+and commands such as
+.I grep
+can return any individual piece of information.
+.SS PARAM PARAMETERS
+The
+.I \-param switch can be used to show available SSI parameters and
+their default values.  The type and module arguments can be used to
+specify a particular SSI type and/or module, or use the special
+keyword "all" to indicate all available SSI types/modules
+(respectively).
+.PP
+Available SSI types are:
+.TP 12
+all
+Show all SSI types
+.TP
+base
+Intrinsic LAM/MPI parameters
+.TP
+boot
+Boot modules (e.g., lamboot)
+.TP
+coll
+MPI collectives
+.TP
+cr
+Checkpoint / restart
+.TP
+RPI
+MPI point-to-point.
+.PP
+The names of the modules that are available are dependant upon which
+modules are available for any given type.  See EXAMPLES, below, for
+example usage.
+.SS PATH PARAMETERS
+The 
+.I \-path
+switch returns various paths that were compiled into LAM/MPI.  These
+were all decided when LAM was configured, and cannot be changed at
+run-time.  However, knowing the location of these directories can be
+useful in order to find LAM data files, binaries, include files,
+etc. The
+.I \-path
+switch takes a parameter:
+.IR item .  
+Possible values for 
+.I item
+are:
+.TP 12
+prefix
+Display the prefix directory for LAM/MPI
+.TP
+bindir
+Display the directory where the LAM/MPI executables were installed
+.TP
+libdir
+Display the directory where the LAM/MPI libraries were installed
+.TP
+incdir
+Display the directory where the LAM/MPI include files were installed
+.TP
+pkglibdir
+Display the directory where the LAM/MPI dynamic libraries were
+installed
+.TP
+sysconfdir
+Display the directory where the LAM/MPI help and configuration files
+were installed
+.PP
+Note that although LAM's GNU
+.I configure
+script defaults to certain values for all of these directories based
+on the prefix (e.g., bindir is typically $prefix/bin), they can all be
+overriden by command line switches to
+.IR configure ,
+and should therefore never be assumed.  Use
+.I laminfo
+to determine what values were selected at configure time.
+.SS VERSION PARAMETERS
+Since each SSI module in LAM/MPI is an independant entity in itself,
+it may have an entirely different version number than LAM/MPI itself.
+Indeed, each SSI module has three version numbers: the version of the
+base SSI API that it supports, the version of the component type API
+that it supports, and its own version number.  Most users will only
+care about the last one (the module's own version number).
+.PP
+The 
+.I \-path
+switch takes two parameters: 
+.I item
+and
+.IR scope .
+.PP
+The
+.I item
+can be the main LAM version itself, any of the SSI types, or a
+specific SSI module.  There are currently four kinds of SSI modules
+that can be queried:
+.IR boot ,
+.IR coll ,
+.IR rpi ,
+and
+.IR cr .
+Hence, the version numbers that can be obtained from the
+.I \-version
+switch are:
+.TP 12
+lam
+The version of LAM/MPI
+.TP
+boot
+The three versions of each boot SSI module
+.TP
+boot:name
+The three versions of a specific boot SSI module
+.TP
+coll
+The three versions of each coll SSI module
+.TP
+coll:name
+The three versions of a specific coll SSI module
+.TP
+rpi
+The three versions of each rpi SSI module
+.TP
+rpi:name
+The three versions of a specific rpi SSI module
+.TP
+cr
+The three versions of each cr SSI module
+.TP
+cr:name
+The three versions of a specific cr SSI module
+.PP
+The
+.I scope 
+argument describes what part of the version number to display.  This
+allows either the full version number to be displayed, or any specific
+individual component of the version number.  Valid values for
+.I scope
+are:
+.TP 12
+full
+Display the full version number (i.e., all components).  A sequence of
+rules are used to run all the components together into a single
+string.  Generally: major and minor are always displayed, but other
+components are only displayed if they are not zero.
+.TP
+major
+Display the major version number
+.TP
+minor
+Display the minor version number
+.TP
+release
+Display the release version number
+.TP
+alpha
+Display the alpha version number.  In the
+.I full 
+scope, if nonzero, this number will be preceeded by "a".
+.TP
+beta
+Display the beta version number.  In the
+.I full
+scope, if nonzero, this number will be preceeded by "b".
+.TP
+cvs
+Display whether LAM was installed from a CVS checkout.  In pretty
+mode, this will be the string "cvs" if true, or blank if false.  In
+parsable mode, this will be 1 if true, 0 if false.
+.SH EXAMPLES
+.TP 4
+laminfo
+With no parameters, 
+.I laminfo
+displays a default set of information about the LAM/MPI installation.
+This information includes:
+.IP - 4
+Version of LAM/MPI
+.IP -
+Installation prefix directory
+.IP -
+Architecture that LAM/MPI is installed for
+.IP -
+User who configured LAM/MPI
+.IP -
+Time/datestamp when LAM/MPI was configured
+.IP -
+Host that LAM/MPI was configured on
+.IP -
+Whether MPI bindings are provided for C, C++, Fortran
+.IP -
+Whether MPI profiling is available for C, C++, Fortran
+.IP -
+Whether ROMIO support is included
+.IP -
+Whether IMPI support is included
+.IP -
+Whether debug support is included (mainly for LAM/MPI maintainers;
+specifically indicates whether --with-debug was used to configure
+LAM)
+.IP -
+Whether LAM/MPI is "purify clean" (suitable for memory-checking
+debuggers; specifically indicates whether --with-purify was used to
+configure LAM)
+.IP -
+List all boot, coll, and rpi SSI modules that are available, and their
+corresponding versions
+.TP
+laminfo -parsable
+Display the same default set of information but in a machine-readable
+format.
+.TP
+laminfo -all
+Display all information that is available to 
+.IR laminfo .
+.TP
+laminfo -param all all
+Show all SSI parameters (and their corresponding default values) for
+all available SSI types and modules.
+.TP
+laminfo -param rpi all
+Show all SSI parameters (and their corresponding default values) for
+all rpi SSI modules.
+.TP
+laminfo -param rpi tcp
+Show all SSI parameters (and their corresponding default values) for
+the tcp rpi SSI module.
+.TP
+laminfo -param rpi tcp -parsable
+Show all SSI parameters (and their corresponding default values) for
+the tcp rpi SSI module in a machine-readable format.
+.TP
+laminfo -path bindir -path sysconfdir -parsable
+Display the directories where the LAM/MPI executables and
+help/configuration files were installed in a machine-readable format.
+.TP
+laminfo -version lam full -parsable
+Display the full version of LAM/MPI in a machine-readable format.
+.TP
+laminfo -version rpi:tcp full
+Show the full version of the TCP RPI SSI module.
+.SH SEE ALSO
+lamssi(7), mpirun(1), lamboot(1), lamwipe(1)

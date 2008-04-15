@@ -1,0 +1,45 @@
+dnl -*- shell-script -*-
+dnl
+dnl Copyright (c) 2001-2003 The Trustees of Indiana University.  
+dnl                         All rights reserved.
+dnl Copyright (c) 1998-2001 University of Notre Dame. 
+dnl                         All rights reserved.
+dnl Copyright (c) 1994-1998 The Ohio State University.  
+dnl                         All rights reserved.
+dnl 
+dnl This file is part of the LAM/MPI software package.  For license
+dnl information, see the LICENSE file in the top level directory of the
+dnl LAM/MPI source distribution.
+dnl
+dnl $Id: configure.stub,v 1.1 2003/07/28 19:13:03 jsquyres Exp $
+dnl
+
+AC_DEFUN([SSI_CONFIGURE_STUB],[
+
+#
+# coll impi configure.stub
+#
+
+#
+# See if IMPI support is being compiled in
+#
+
+WANT_IMPI=no
+
+AC_ARG_WITH(impi, 
+    AC_HELP_STRING([--with-impi],
+		   [compile with IMPI support]),
+    [WANT_IMPI="$withval"])
+AC_MSG_CHECKING([if want IMPI support])
+if test "$WANT_IMPI" != "yes"; then
+    AC_MSG_RESULT([no])
+    if test "$LAM_WANT_DIST" = "no"; then
+	AC_MSG_ERROR([Cannot continue])
+    fi
+fi
+AC_MSG_RESULT([yes])
+
+#
+# done with coll impi configure.stub
+#
+])dnl

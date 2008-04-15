@@ -1,0 +1,1 @@
+exec ./server -ORBDebug All -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -POAImplName Demo -ORBIIOPAddr inet:$1:3104

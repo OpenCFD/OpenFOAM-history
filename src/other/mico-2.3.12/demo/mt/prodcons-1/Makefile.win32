@@ -1,0 +1,15 @@
+
+all:  prodcons.exe
+
+RELATIVE=../../..
+!include ../../MakeVars.win32
+
+INSTALL_DIR     = mt/prodcons-1
+INSTALL_SRCS    = Makefile prodcons.cc
+
+prodcons.exe: prodcons.cc prodcons.obj 
+	$(LD) $(LDFLAGS)  prodcons.obj $(LDLIBS) -OUT:prodcons.exe
+
+clean:
+	-$(RM) /Q *.obj  prodcons.exe 
+	-$(DELETE)

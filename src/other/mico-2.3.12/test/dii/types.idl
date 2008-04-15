@@ -1,0 +1,37 @@
+// -*- c++ -*-
+
+enum _Enum {
+    enum1, enum2, enum3
+};
+
+struct _Struct {
+    long l;
+    string s;
+};
+
+exception Except {
+    long l;
+    string s;
+};
+
+union ExplicitUnion switch (long) {
+case 1: long l;
+case 2: string s;
+default: boolean b;
+};
+
+union ImplicitUnion switch (long) {
+case 1: long l;
+case 2: string s;
+};
+
+interface _Interface {
+};
+
+typedef fixed<4,2> FixedExample;
+
+typedef long BaseArray[5];
+
+typedef _Struct ConstrArray[5];
+
+typedef sequence<_Struct> ConstrSeq;

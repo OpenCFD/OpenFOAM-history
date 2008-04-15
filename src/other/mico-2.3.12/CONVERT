@@ -1,0 +1,156 @@
+
+How to convert code to MICO 2.2.7
+---------------------------------
+
+MICO 2.2.7 includes some major changes for CORBA compliance that require
+changes in user code. The changes are related to:
+- CORBA compliant exception handling
+- Any insertion and extraction operators
+- variable length inout parameters
+
+
+1. Exception handling
+---------------------
+
+MICO now supports CORBA compliant exception handling. You can still
+revert to old style exception handling by configuring MICO with
+--disable-std-eh:
+
+  ./configure --disable-std-eh
+
+However, we strongly recommend that you change your code to use CORBA
+compliant exception handling. See section "Exceptions" in the
+documentation for details.
+
+The easiest way to convert code that uses old style exception handling
+code to CORBA compliant exception handling is to change each occurence of
+
+  } catch (XXX_var &yyy) {
+
+to
+
+  } catch (XXX_catch &yyy) {
+
+This code will work both with old style exception handling and CORBA
+compliant exception handling.
+
+There is a script (mico/admin/ehconvert.sh) that does this conversion
+automatically. It takes a list of files to convert on the command line:
+
+  ./ehconvert.sh foo.cc bar.cc
+
+
+2. Any insertion and extraction operators
+-----------------------------------------
+
+When using >>= operators to extract
+
+  - strings
+  - wide strings
+  - object references
+  - typecodes
+
+from an Any ownership of the extracted value is maintained by the Any,
+i.e. no copy is returned (as in MICO before 2.2.7). The user must
+not free the extracted value. Note that the extracted value is only
+valid as long as the Any (the value was extracted from) is not changed
+or destroyed. Here are some examples:
+
+  CORBA::Any a;
+
+  // wrong, String_var will free extracted value
+  CORBA::String_var s;
+  a >>= s;
+
+  // wrong, must not free extrated value
+  char *s;
+  a >>= s;
+  ...
+  CORBA::string_free (s);
+
+  // ok
+  char *s;
+  a >>= s;
+  // do not free 's' ...
+
+Or for object references assuming there is an interface I:
+
+  CORBA::Any a;
+
+  // wrong
+  I_var i;
+  a >>= i;
+
+  // wrong
+  I_ptr i;
+  a >>= i;
+  ...
+  CORBA::release (i);
+
+  // ok
+  I_ptr i;
+  a >>= i;
+  // do not free 'i'
+
+Please refer to section "Untyped Values" in the documentation.
+
+Furthermore the return type of all <<= operators is now void (instead
+of CORBA::Boolean as in MICO before 2.2.7). Existing code that checks
+the return value has to be changed accordingly. Here is an example:
+
+  CORBA::Any a;
+  CORBA::Long l;
+
+  if (a <<= l) {
+    // something 1
+  } else {
+    // something 2
+  }
+
+should be changed to:
+
+  CORBA::Any a;
+  CORBA::Long l;
+
+  a <<= l;
+  // something 1
+
+
+3. Variable length inout parameters
+-----------------------------------
+
+If you want to change the value of a variable length inout parameter
+in a method implementation you have to free the old value first, i.e.
+the old value is no longer automatically freed (as in MICO before 2.2.7).
+Variable length inout parameters are:
+
+  - string
+  - wide string
+  - object references
+  - valuetypes
+
+Here is an example:
+
+  // IDL
+  interface I {
+    void m (inout string s, inout I i);
+  }
+
+  // C++
+
+  // wrong, must free old values
+  void I_impl::m (char *&s, I_ptr &i) {
+    s = CORBA::string_dup ("foo");
+    i = new I_impl;
+  }
+
+  // ok
+  void I_impl::m (char *&s, I_ptr &i) {
+    CORBA::string_free (s);
+    s = CORBA::string_dup ("foo");
+    CORBA::release (i);
+    i = new I_impl;
+  }
+
+Note that this applies only to inout parameters, not to out parameters.
+

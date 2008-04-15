@@ -1,0 +1,1 @@
+exec ./cliser -ORBDebug All -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -POAImplName Demo -ORBIIOPAddr inet:$1:34342 -ORBInitRef MobileTerminalBridge=`cat tb.ref` -ORBTerminalId %04%80%d6%0a%a6%08terminal -ORBMTBAddr inet:$1:12003 -ORBInitRef HomeLocationAgent=`cat home.ref`

@@ -1,0 +1,259 @@
+.\"
+.\" MICO --- a CORBA 2.0 implementation
+.\" Copyright (C) 1997 Kay Roemer & Arno Puder
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Send comments and/or bug reports to:
+.\"                mico@informatik.uni-frankfurt.de
+.\"
+.TH IDL 1 "Oct 15 1997"
+.SH NAME
+idl \- MICO IDL tool
+.SH SYNOPSIS
+.BR idl
+.BR "[<options>]" " " "[<file>]"
+.br
+.SH DESCRIPTION
+The
+.BR idl
+tool is used for translating IDL-specifications to C++ as well as
+feeding IDL-specifications into the interface repository.  The
+.BR idl
+tool takes its input either from a file or an interface repository
+and generates code for C++ or CORBA-IDL. If the input is taken from a
+file, the
+.BR idl
+tool can additionally feed the specification into the interface
+repository.
+.SH OPTIONS
+.TP
+.BR "--help"
+Gives an overview of all supported command line options.
+.TP
+.BR "--version"
+Prints the version of MICO.
+.TP
+.BR "--config"
+Prints some important MICO configuration infos.
+.TP
+.BR "-D<define>"
+Defines a preprocessor macro. This option is equivalent to the
+.BR -D
+switch of most Unix C-compilers.
+.TP
+.BR "-B<prefix>"
+This option specifies the prefix to the include directory where to
+find the include files of the compiler itself.
+.TP
+.BR "-I<path>"
+Defines a search path for #include directives. This option
+is equivalent to the
+.BR -I
+switch of most Unix C-compilers.
+When generating #include directives, the IDL compiler relativizes
+the included file against the best match among the defined search paths.
+.TP
+.BR --codegen-c++
+Tells
+.BR idl
+to generate code for C++ as defined by the
+language mapping IDL to C++. The
+.BR idl
+tool will generate two
+files, one ending in
+.I .h
+and one in
+.I .cc
+with the same basenames. This option is the default.
+.TP
+.BR --no-codegen-c++
+Turns off the code generation for C++.
+.TP
+.BR --no-exceptions
+Tells
+.BR idl
+to disable exception handling in the generated code.
+Code for the exception classes is still generated but throwing exceptions
+will result in an error message and abort the program. This option can only
+be used in conjunction with
+.BR --codegen-c++
+This option is off by default.
+.TP
+.BR --codegen-idl
+Turns on the code generation for CORBA--IDL. The
+.BR idl
+tool will generate a file which contains the IDL specification which can
+again be fed into the
+.BR idl
+tool.  The basename of the file is specified with the
+.BR --name
+option.
+.TP
+.BR --no-codegen-idl
+Turns off the code generation of CORBA-IDL. This option is the
+default.
+.TP
+.BR --c++-suffix=<suffix>
+If
+.BR --codegen-c++
+is selected, then this option determines the suffix for the C++
+implementation file. The default is
+.BR 'cc'
+.TP
+.BR --c++-impl
+This option will cause the generation of some default C++
+implementation classes for all interfaces contained in the IDL
+specification. This option requires
+.BR --codegen-c++
+.TP
+.BR --c++-skel
+Generate a separate file with suffix
+.BR _skel.cc
+that contains code only needed by servers (i.e., the skeletons).
+By default this code is emitted in the standard C++ implementation files.
+This option requires
+.BR --codegen-c++
+.TP
+.BR --hh-prefix=<hh-prefix>
+If
+.BR --codegen-c++
+is selected, then this option causes the IDL compiler to generate the include
+statement for the C++ header file with the path prefix hh-prefix. The default
+is not to prefix a path.
+.TP
+.BR --hh-suffix=<suffix>
+If
+.BR --codegen-c++
+is selected, then this option determines the suffix for the C++
+header file. The default is
+.BR 'h'
+.TP
+.BR --use-quotes
+If selected, #include directives are generated as
+.BR #include\ "..."
+instead of
+.BR #include\ <...>
+.TP
+.BR --no-paths
+If selected, #include directives are generated without any path components.
+.TP
+.BR --include-prefix <include-prefix>
+This option causes the IDL compiler to substitute any occurrence of the
+include path specified by the closest preceeding -I option with include-prefix
+when generating #include directives.
+.TP
+.BR --include-postfix <include-postfix>
+This option causes the IDL compiler to insert include-postfix between
+any occurrence of the include path specified by the closest preceeding -I
+option and the remaining subdirectory and file name when generating #include
+directives.
+.TP
+.BR --emit-repoids
+This option will cause
+.BR #pragma
+directives to be emitted, which associate the repository id
+of each IDL construct. This option can only be used in
+conjunction with the option
+.BR --codegen-idl
+.TP
+.BR --do-not-query-server-for-narrow
+If this option is used, the IDL compiler will omit special code for
+.BR _narrow()
+methods which inhibits the querying of remote servers at runtime. In
+certain circumstances this is permissible, resulting in more efficient
+runtime behaviour. See 
+.BR test/idl/26/README
+for further comments.
+.TP
+.BR --feed-ir
+The CORBA-IDL which is specified as a command line option is fed
+into the interface repository. This option requires the
+.BR ird
+daemon to be running.
+.TP
+.BR --feed-included-defs
+This option can only be used in conjunction with
+.BR --feed-ir
+. If this option is used, IDL definitions located in included files
+are fed into the interface repository as well. The default is to feed
+only the definitions of the main IDL file into the IR.
+.TP
+.BR --repo-id=<id>
+The code generation is done from the information contained in the
+interface repository instead from a file. This option
+requires the
+.BR ird
+daemon to be running. The parameter
+.BR <id>
+is a repository identifier and must denote a CORBA module.
+.TP
+.BR --name=<prefix>
+This option controls the prefix of the file names if a code
+generation is selected. This option is mandatory if the input is
+taken from the interface repository. If the input is taken from a
+file, the prefix is derived from the basename of the file name.
+.TP
+.BR --pseudo
+Generates code for "pseudo interfaces". No stubs, skeletons or code
+for marshalling data to and from "any" variables is produced. Only
+supported for C++ code generation.
+.TP
+.BR --any
+Activates support for insertion and extraction operators of user
+defined IDL types for Any. Can only be used in conjunction
+with
+.BR --codegen-c++
+This option implies
+.BR --typecode
+.TP
+.BR --typecode
+Generates code for TypeCodes of user defined IDL types. Can only be
+used in conjunction with
+.BR --codegen-c++
+.TP
+.BR --boa
+Generates skeletons that use the Basic Object Adapter (BOA).
+.TP
+.BR --no-boa
+Turns off code generation of skeletons for the BOA. This is
+the default.
+.TP
+.BR --poa
+Generates skeletons that use the Portable Object Adapter (POA).
+This is the default.
+.TP
+.BR --no-poa
+Turns off code generation of skeletons for the POA.
+.TP
+.BR --gen-included-defs
+Generate code that was included using the 
+.BR #include
+directive.
+.TP
+.BR --gen-full-dispatcher
+Usually the skeleton class generated for an interface contains only
+the dispatcher for the operations and attributes defined in this
+interface. With this option, the dispatcher will also include
+operations and attributes inherited from all base interfaces.
+.SH FILES
+~/.micorc
+.SH "SEE ALSO"
+.IR "MICO Reference Manual" ", " rsh(1) ", " micod(8) ", " imr(1) ", "
+.IR ird(8) ", " micorc(5)
+.SH COPYRIGHT
+Copyright (C) 1997, Kay Roemer & Arno Puder
+.SH AUTHOR
+Kay Roemer & Arno Puder

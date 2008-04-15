@@ -1,0 +1,23 @@
+
+all:  client.exe server.exe
+
+RELATIVE = ..\..\..
+
+!include ..\..\MakeVars.win32
+INSTALL_DIR     = poa\hello-1
+INSTALL_SRCS    = Makefile client.cc server.cc hello.idl
+INSTALL_SCRIPTS = hello
+
+server.exe: hello.h hello.obj server.obj 
+	$(LD)  $(LDFLAGS) hello.obj server.obj $(LDLIBS) /out:server.exe
+
+client.exe: hello.h hello.obj client.obj 
+	$(LD)  $(LDFLAGS) hello.obj client.obj $(LDLIBS) /out:client.exe 
+
+
+hello.h hello.cc : hello.idl $(IDLGEN)
+	$(IDL) hello.idl
+
+clean:
+	-$(RM) /f /q 2> nul  hello.cc hello.h *.o core client server *~ .depend *.exe *.obj *.pdb
+	-$(DELETE)

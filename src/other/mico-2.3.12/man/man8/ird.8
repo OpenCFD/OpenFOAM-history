@@ -1,0 +1,70 @@
+.\"
+.\" MICO --- a CORBA 2.0 implementation
+.\" Copyright (C) 1997 Kay Roemer & Arno Puder
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Send comments and/or bug reports to:
+.\"                mico@informatik.uni-frankfurt.de
+.\"
+.TH IRD 8 "April 8 1997"
+.SH NAME
+ird \- MICO interface repository server
+.SH SYNOPSIS
+.BR ird
+.BR "[<options>]"
+.br
+.SH DESCRIPTION
+.BR ird
+implements the interface repository, the part of CORBA where runtime
+type information is stored.
+.BR ird
+is terminated by pressing
+.BR ctrl-c
+or by sending it the
+.BR SIGTERM
+signal.
+.SH OPTIONS
+.TP
+.BR "--help"
+Gives an overview of all supported command line options.
+.TP
+.BR --db=<database-file>
+Specifies the file name where
+.BR ird
+should save the contents of the interface repository when exiting.  When
+.BR ird
+is restarted afterwards it will read the file given
+by the
+.BR --db
+option to restore the contents of the interface
+repository. Notice that the contents of this database file is just
+plain ASCII representing a CORBA IDL specification.
+.TP
+.BR --ior=<ior-file>
+The stringified IOR of the Interface Repository is written to
+.BR ior-file.
+If
+.BR -
+is used as ior-file, the IOR is written to standard output.
+.SH FILES
+~/.micorc
+.SH "SEE ALSO"
+.IR "MICO Reference Manual" ", " rsh(1) ", " micod(8) ", " imr(1) ", "
+.IR micorc(5) ", " idl(1)
+.SH COPYRIGHT
+Copyright (C) 1997, Kay Roemer & Arno Puder
+.SH AUTHOR
+Kay Roemer & Arno Puder

@@ -1,0 +1,99 @@
+MIWCO Testing Scripts
+
+The testing system should now be generic enough to run on other
+arrangements than my own without modifications.  Every script (well,
+not every but there is no harm in assuming that) takes as its first
+argument the machine name it is running on.  The script demotb also
+takes a second argument, which is the machine name ab0 is running on.
+
+Please note that it is not possible to run everything on a single
+machine; MIWCO optimizes the GTP link away when invoking within a
+machine.  It is, however, sufficient to have two machines, one of
+which plays the role of the terminal and one which plays all other
+roles.
+
+Well, the above is possible with dummy network interfaces, since the
+optimization is not very clever.  My setup on my Linux-based machine
+has the lines
+172.16.6.19	terminal
+172.16.7.25	network
+in /etc/hosts, then I do
+insmod -o dummy0 /lib/modules/2.4.20/kernel/drivers/net/dummy.o
+insmod -o dummy1 /lib/modules/2.4.20/kernel/drivers/net/dummy.o
+and finally
+ifconfig dummy0 network
+ifconfig dummy1 terminal
+and then the names 'network' and 'terminal' can be used as if they
+were separate hosts.  Note that you still need to run netproxy and
+terproxy in different directories, since they look for demo.ref in
+their current directory.
+
+The scripts to be started on each machine are (do these in this order):
+HLA-containing machine
+	demons
+	demohla
+AB-containing machine $i ($i takes values between 0 and 9; running ab0
+			  is mandatory)
+	demons
+	demoevd
+	ab$i
+	netcons
+Terminal
+	demons
+	demoevd
+	demotb
+	tercons
+	terproxy
+	terser
+The scripts netser and netproxy can in theory be started anywhere.
+The same with the program frame.
+
+The arguments to the frame program are all addresses in the order of
+terproxy, netproxy, and all the Access Bridges.  It is assumed that
+the first ab in the list is on port 21100, the next one on 21101, and
+so on.  The scripts ab0 and ab1 are examples for writing an ab script;
+you can write these up to ab9.  If all the scripts are on different
+machines, there is in theory no need to alter the GIOP address ports.
+
+Some of the programs require that various IORs are present.  Both
+*proxy scripts look for the server's (terser for netproxy and netser
+for terproxy) IOR in a file 'demo.ref' in their current directory.
+The server will write its IOR to file 'demo.ior' in its working
+directory so you'll need to copy this file to be found by the proxy.
+This means that the starting order of the applications must be netser,
+terproxy, terser, netproxy.  Both terser and terproxy also need the
+Terminal Bridge's IOR in a file called tb.ref in their working
+directory.  The frame program looks for the Bridge IORs in its working
+directory, so just copy the ones that are output by the Bridge
+scripts.
+
+If you do not want to run a homeless terminal (I'm not even certain
+the test system works in that case), the demotb script needs to know
+the HLA's object reference.  The demohla script outputs its object
+reference to a file called home.ref.  You'll need to copy this file
+under that name to any directory where you are running the ter*
+scripts.
+
+The frame program reads commands from its standard input.  The command
+language is simple:
+delay <n>
+      wait for <n> seconds
+invoke <side> <n>
+      invoke from <side> ('net' or 'term') with delay <n>
+handoff <side> <from> <to>
+      handoff initiated from <side> ('net' or 'term') from AB <from>
+      (this only with 'net' handoff) to AB <to>
+recovery <ab>
+      do connection break and recovery at <ab>; if not connected, do
+      recovery or initial access at <ab> depending on whether the
+      previous connection is remembered or not
+break
+      break current connection (recovery can be used for
+      reestablishment)
+The Access Bridges are named with numbers from 0 to 9 (corresponding
+to scripts ab[0-9]).  The gremlin program outputs random commands in
+this language to its standard output.  It takes two arguments; the
+first one is the seed used to initialise the random number generator
+(if <=0 or not present, current time is used) and the second is the
+number of commands to be output (if <=0 or not present, LONG_MAX is
+used).

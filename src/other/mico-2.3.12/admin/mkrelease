@@ -1,0 +1,111 @@
+#!/bin/sh
+
+RELEASEDIR=mico-release
+SRCDIR=`pwd`
+VERSION=`cat VERSION`
+MANIFEST=`pwd`/MANIFEST
+MKDIRS=`pwd`/admin/mkinstalldirs
+MKBOOK=`pwd`/admin/mkbook
+DATE=`date +"%b %e, %Y"`
+TAR=tar
+
+for i in `echo $PATH | tr : ' '`; do
+  if test -f $i/gtar; then
+    TAR=gtar
+  fi
+done
+
+
+mktarfiles () {
+    for i in `grep -v ./doc/ < ${MANIFEST} | cut -f1 -d\ `; do
+	echo mico/$i
+    done
+    echo mico/./doc/doc.ps
+    echo mico/./FAQ
+}
+
+# copy tarred sources
+
+echo "installing sources ..."
+(
+    cd ..
+    mkdir ${RELEASEDIR}
+    mktarfiles > /tmp/mkrelease.$$
+    $TAR cfT - /tmp/mkrelease.$$ | gzip > ${RELEASEDIR}/mico-${VERSION}.tar.gz
+    zip ${RELEASEDIR}/mico-${VERSION}.zip -q -@ < /tmp/mkrelease.$$
+    rm -f /tmp/mkrelease.$$
+)
+
+# doc files
+
+echo "installing doc files ..."
+(
+    cp CHANGES ../${RELEASEDIR}
+    cp FAQ ../${RELEASEDIR}
+    cd doc
+    for i in `find . -name '*.html'` `find . -name '*.gif'` \
+	`find . -name '*.ps'` `find . -name '*.css'`; do
+	${MKDIRS} ../../${RELEASEDIR}/`dirname $i` 2>&1 >/dev/null
+	cp -f $i ../../${RELEASEDIR}/`dirname $i`/
+    done
+    # Make the booklet version
+    cd ../../${RELEASEDIR}
+    ${MKBOOK} doc.ps doc-book.ps
+    gzip -f doc.ps
+    gzip -f doc-book.ps
+    # Make the downloadable HTML version
+    cd ${SRCDIR}/doc
+    echo "The initial page to the MICO documentation is ./doc/doc.html" \
+           > README
+    cd ..
+    # tar cf ../${RELEASEDIR}/doc-html.tar doc/README doc/doc/. doc/icons/.
+    # gzip -f ../${RELEASEDIR}/doc-html.tar
+    rm -f doc/README
+)
+
+# java stuff
+
+echo "installing java applets ..."
+(
+    # Skip that for now. The IR-Browser now works with JDK 1.1.5
+    # but we want the online demo still to be runnable unter 1.0.2
+    #echo skipping...
+    #exit
+    cp -f tools/ir-browser/*.class ../${RELEASEDIR}/
+    cp -rf tools/ir-browser/gifs ../${RELEASEDIR}/ 
+)
+
+echo "installing java cup runtime ..."
+(
+    # Skip that for now. The IR-Browser now works with JDK 1.1.5
+    # but we want the online demo still to be runnable unter 1.0.2
+    #echo skipping...
+    #exit
+    JAVACUPDIR=
+    for i in `echo $CLASSPATH | tr : \ `; do
+	if test -d $i/java_cup; then
+	    JAVACUPDIR=$i
+	fi
+    done
+    if test -z $JAVACUPDIR; then
+	echo "java cup not found in CLASSPATH, skipping installation ..."
+    else
+	mkdir ../$RELEASEDIR/java_cup
+	cp -rf $JAVACUPDIR/java_cup/runtime ../$RELEASEDIR/java_cup/
+    fi
+)
+
+# version ...
+
+echo "fixing version info ..."
+(
+    cd ../${RELEASEDIR}
+    sed -e s/@VERSION@/${VERSION}/g \
+	-e s/@DATE@/"$DATE"/g \
+	< FrameDescription.html > FD.html
+    mv FD.html FrameDescription.html
+    sed -e s/!--REMOVEME--//g < index.html > i.html
+    mv i.html index.html
+)
+
+echo "done."

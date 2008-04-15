@@ -1,0 +1,61 @@
+.TH MPI_Win_Lock 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_Win_Lock \-  Starts an RMA access epoch 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+int MPI_Win_lock(int lock_type, int rank, int assert, MPI_Win win)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B lock_type 
+- either MPI_LOCK_EXCLUSIVE or MPI_LOCK_SHARED (state)
+.PD 1
+.PD 0
+.TP
+.B rank 
+- rank of locked window (nonnegative integer)
+.PD 1
+.PD 0
+.TP
+.B assert 
+- program assertion (integer)
+.PD 1
+.PD 0
+.TP
+.B win 
+- window object (handle)
+.PD 1
+
+.SH NOTES
+
+This function is currently not implemented in LAM/MPI.  It will return
+an MPI_ERR_OTHER run time error.
+
+.SH NOTES FOR FORTRAN
+
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+)
+have an additional argument 
+.I ierr
+at the end of the argument list.
+.I ierr
+is an integer and has the same meaning as the return value of
+the routine in C.  In Fortran, MPI routines are subroutines, and are
+invoked with the 
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type
+.I INTEGER
+in Fortran.
+.SH LOCATION
+wlock.c

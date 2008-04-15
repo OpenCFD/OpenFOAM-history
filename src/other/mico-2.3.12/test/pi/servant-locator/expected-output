@@ -1,0 +1,18 @@
+Running.
+client: send_request
+server: receive_request_service_contexts
+server: locator preinvoke: oid: `hello', operation: `hello'
+server: receive_request: hello executed on: IDL:HelloWorld:1.0
+server: Hello World
+server: locator postinvoke: oid: `hello', operation: `hello
+server: send_reply
+client: receive_reply
+client: send_request
+server: receive_request_service_contexts
+server: locator preinvoke: oid: `hello', operation: `hello'
+server: receive_request: hello executed on: IDL:HelloWorld:1.0
+server: Hello World
+server: locator postinvoke: oid: `hello', operation: `hello
+server: send_exception
+client: receive_exception
+client: caught: IDL:omg.org/CORBA/NO_PERMISSION:1.0

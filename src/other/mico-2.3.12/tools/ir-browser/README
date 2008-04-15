@@ -1,0 +1,11 @@
+
+This directory contains an interface repository browser with
+capabilities to invoke methods on the browsed interfaces. The browser
+gui is written in java, so a gateway is needed to connect the C++ ORB
+to java. This gateway is called "diiproxy". This gateway will be
+replaced in a future version with Java's ORB implementation.
+
+The shellscript "runproxy" will run "diiproxy" and the IR server. The
+IR server is then fed with some idl's so you have something to browse.
+The browser can then be run by "appletviewer dii.html" or by loading
+the file dii.html into your java-aware WebBrowser.

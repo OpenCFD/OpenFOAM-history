@@ -1,0 +1,60 @@
+
+This is a more complex example. It implements the Dining Philosophers.
+
+If you do not know that scenario, it's simple. Philosophers sit around
+a round (circular) table. Between each pair is a fork, so there is an
+equal number of philosophers and forks. Philosophers think until they
+become hungry, then they need both forks (the one on their left and the
+one on their right side) in order to eat. Obviously, this can cause
+some conflicts, because there are not enough forks for all philosophers
+to eat at the same time.
+
+The goal is to implement philosopher components that do not die from
+starvation.
+
+The classic deadlock scenario is that if philosophers are programmed to
+pick up the left fork, and then to wait for the right fork to become
+available, it can happen that each philosopher picks up its left fork
+at the same time, so that nobody can eat.
+
+To avoid deadlocking, philosophers must sometimes release the fork that
+they are holding if the other fork is not available.
+
+However, this can result in the classic livelock scenario, where all
+philosophers simultaneously pick up the left fork, recognize that the
+right one is not available, drop their left fork again, and then the
+cycle repeats. This is not a deadlock because something is happening,
+but the philosophers are still starving, hence the word "livelock".
+
+In this example, philosophers and forks are components, there is an
+additional component for a registration that deals out unique names to
+each philosopher. Philosophers have two receptacles for their left and
+right fork, plus a receptacle for the registration. They publish their
+current state (forks they hold and how hungry they are) as an event;
+another Observer component displays these events.
+
+The Philosopher component overloads ccm_activate and ccm_passivate to
+be notified of its activation. Upon activation, it registers with the
+MICO Dispatcher to be called regularly. All the interesting work is
+done in this Timer callback.
+
+There, the philosopher becomes more hungry, then tries to aquire both
+forks and eats if he has both. To prevent deadlocks, philosophers
+sometimes drop one fork if they cannot get the other. To prevent
+livelocks, each philosopher has its own random metabolic rate.
+
+The "client" in this example is more a configurator. It contacts each
+home to create the registration, an observer, the required philosopher
+and fork instances, and then interconnects them. Once this is done,
+the client exits, and all components continue to run in their
+respective server.
+
+You can start the demo by running ./philo. You may also give a number of
+philosophers on the command line, the default is 3.
+
+There is also a more fancy graphical observer, `tkobserver'. It requires
+Tcl/Tk and must be compiled separately (there's a rule in the Makefile
+that you might need to edit for its path names and version numbers). The
+The client checks whether the graphical client is available (by looking
+for an entry in the Naming Service), and if yes, configures it as a
+consumer for the philosophers' StatusInfo events.

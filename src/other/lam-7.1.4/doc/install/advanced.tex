@@ -1,0 +1,95 @@
+% -*- latex -*-
+%
+% Copyright (c) 2001-2004 The Trustees of Indiana University.  
+%                         All rights reserved.
+% Copyright (c) 1998-2001 University of Notre Dame. 
+%                         All rights reserved.
+% Copyright (c) 1994-1998 The Ohio State University.  
+%                         All rights reserved.
+% 
+% This file is part of the LAM/MPI software package.  For license
+% information, see the LICENSE file in the top level directory of the
+% LAM/MPI source distribution.
+%
+% $Id: advanced.tex,v 1.7 2003/05/25 20:02:56 jsquyres Exp $
+%
+
+
+\chapter{Advanced Resources}
+\label{sec:advanced}
+
+This section is intended to provide background information on some of
+the more advanced features of LAM/MPI necessary to obtain the best
+performance for each network.  More detailed information is available
+in the LAM/MPI User's Guide, but this section should provide enough
+detail to set reasonable configure-time defaults.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Short / Long Protocols}
+\label{sec:advanced:tslproto}
+
+LAM MPI may use one of two different protocols for its underlying
+message passing, depending on the module selected and the size of the
+message being transferred.
+
+\rpi{tcp} (and therefore \rpi{sysv}, and \rpi{usysv}), \rpi{gm}, and
+\rpi{ib} use a short/long message protocol. If a message is ``short,''
+it is sent together with a header in one transfer to the destination
+process.  If the message is ``long,'' then a header (possibly with
+some data) is sent to the destination.  The sending process then waits
+for an acknowledgment from the receiver before sending the rest of the
+message data.  The receiving process sends the acknowledgment when a
+matching receive is posted.
+
+For \rpi{tcp}, the crossover point should be at most the maximum
+buffer size for a TCP socket.  The default value, 64 KB, is supported
+on every platform that LAM runs on.  On some platforms, it may be
+possible to allocate a larger buffer, and doing so may result in
+improved performance.  On gigabit Ethernet systems, for example, a
+larger buffer will almost always improve performance.  Using a utility
+such as NetPIPE~\cite{Netpipe96} can assist in finding good values for
+a particular platform.
+
+The \rpi{gm} and \rpi{ib} modules both call the short protocol
+``tiny,'' but the general idea is the same.
+
+The crossover message size between these protocols is configurable at
+both build and run-time for each module.  See
+Section~\ref{sec:configure:options:ssi}
+(page~\pageref{sec:configure:options:ssi}) to change the crossover
+sizes.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Shared Memory RPI Modules}
+\label{sec:advanced:shm}
+
+When using the \rpi{sysv} and \rpi{usysv} RPI modules, processes
+located on the same node communicate via shared memory.  The module
+allocates one System V shared segment per node shared by all processes of
+an MPI application that are on the same node.
+%
+This segment is logically divided into three areas.  The total size
+of the shared segment (in bytes) allocated on each node is:
+
+\[ 
+(2 \times C) + (N \times (N-1) \times (S + C)) + P
+\]
+
+where $C$ is the cache line size, $N$ is the number of processes on the
+node, $S$ is the maximum size of short messages, and $P$ is the size
+of the pool for large messages.  
+
+The makeup and usage of this shared memory pool is discussed in detail
+in the User's Guide.  Skipping all the details, it may be necessary to
+increase the number of System V semaphores and/or shared memory on a
+machine, and/or change the shared memory parameters available via
+LAM's \cmd{configure} script.  See
+Section~\ref{sec:configure:options:ssi:shmem} for more details.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

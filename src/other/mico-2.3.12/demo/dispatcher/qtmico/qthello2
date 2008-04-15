@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# with micod
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:$PATH
+MICORC=/dev/null
+export MICORC
+
+ADDR=inet:`uname -n`:17657
+
+micod -ORBIIOPAddr $ADDR &
+pid=$!
+
+trap "kill $pid" 0
+
+imr create Hello shared `pwd`/server IDL:Hello:1.0 \
+  -ORBImplRepoAddr $ADDR
+./client $ADDR

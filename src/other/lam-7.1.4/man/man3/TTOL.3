@@ -1,0 +1,233 @@
+.TH TTOL 3 "July, 2007" "LAM 7.1.4" "LAM NETWORK LIBRARY"
+.SH NAME
+ttol, ltot, mttol, mltot \- LAM data representation translation suite
+.SH C SYNOPSIS
+.nf
+#include <portable.h>
+#include <t_types.h>
+
+void ttoli4 (int4 *pvar1, int4 *pvar2);
+void ltoti4 (int4 *pvar1, int4 *pvar2);
+void ttoli2 (int2 *pvar1, int2 *pvar2);
+void ltoti2 (int2 *pvar1, int2 *pvar2);
+void ttolf4 (float4 *pvar1, float4 *pvar2);
+void ltotf4 (float4 *pvar1, float4 *pvar2);
+void ttolf8 (float8 *pvar1, float8 *pvar2);
+void ltotf8 (float8 *pvar1, float8 *pvar2);
+
+void mttoli4 (int4 *array, int num);
+void mltoti4 (int4 *array, int num);
+void mttoli2 (int2 *array, int num);
+void mltoti2 (int2 *array, int num);
+void mttolf4 (float4 *array, int num);
+void mltotf4 (float4 *array, int num);
+void mttolf8 (float8 *array, int num);
+void mltotf8 (float8 *array, int num);
+.fi
+.SH FORTRAN SYNOPSIS
+.nf
+subroutine F4LTOT (lvar, tvar)
+subroutine F4TTOL (tvar, lvar)
+real*4 lvar, tvar
+
+subroutine F8LTOT (lvar, tvar)
+subroutine F8TTOL (tvar, lvar)
+real*8 lvar, tvar
+
+subroutine I4LTOT (lvar, tvar)
+subroutine I4TTOL (tvar, lvar)
+integer*4 lvar, tvar
+
+subroutine I2LTOT (lvar, tvar)
+subroutine I2TTOL (tvar, lvar)
+integer*2 tvar, lvar
+
+subroutine F4MLTT (array, num)
+subroutine F4MTTL (array, num)
+real*4 array(*)
+integer num
+
+subroutine F8MLTT (array, num)
+subroutine F8MTTL (array, num)
+real*8 array(*)
+integer num
+
+subroutine I4MLTT (array, num)
+subroutine I4MTTL (array, num)
+integer*4 array(*)
+integer num
+
+subroutine I2MLTT (array, num)
+subroutine I2MTTL (array, num)
+integer*2 array(*)
+integer num
+.fi
+.SH DESCRIPTION
+The number and order of bytes in a word may differ between nodes
+in any LAM network.
+The representation of floating point numbers may also vary.
+To transfer message and file data correctly, both sender and
+receiver in a LAM network must agree on the amount of data being
+exchanged and its representation.
+A simple solution to these two problems is to define a standard representation
+and require senders and receivers to convert their
+data from/to the local representation to/from the standard format.
+Conversion is not necessary if the communicating processes are on the same
+node, but it keeps the code portable.
+.PP
+The LAM header file <portable.h>
+defines fixed size C types for each supported architecture.
+Fortran already has the ability to declare variable precision.
+.TP 10
+int4
+4-byte wide signed integer
+.TP
+uint4
+4-byte wide unsigned integer
+.TP
+int2
+2-byte wide signed integer
+.TP
+uint2
+2-byte wide unsigned integer
+.TP
+float4
+4-byte wide floating point number
+.TP
+float8
+8-byte wide floating point number
+.PP
+Programmers wishing to write portable LAM code that can run on
+heterogeneous architectures are urged to use these data types for
+all variables that are communicated across node boundaries.
+To gain computing speed, programmers may wish to transfer the communicated
+data to the appropriate native data type on the local CPU in order to
+benefit from its faster access of word-sized variables.
+Following this approach solves the data size problem.
+.PP
+The LAM header file <t_types.h>
+defines functions that convert the order of bytes between the
+local representation, regardless of what that is, and a standard
+(LAM) representation.
+The functions are meant to be used in conjunction with the data
+types defined in <portable.h>.
+If no conversion is necessary, the functions will have no effect.
+These functions are implemented as macros and should
+not be accessed through pointers to functions.
+.PP
+When sending messages between heterogeneous nodes,
+both the message body (i.e. what is in the
+.I nh_msg
+field of the network message structure; see nsend(2)) and the message
+data pouch (i.e. what is in the
+.I nh_data
+field of the network message structure) must be converted.
+Other fields in the message envelope are automatically converted when
+the message is passed.
+Data conversion functions should be used by both the sending and
+receiving processes.
+Data should be converted from local to LAM representation before
+sending, and from LAM to local representation after receiving.
+.PP
+As an alternative to the byte-order translation functions, the programmer
+can set various bits in the
+.I nh_flags
+field to convert the
+.I nh_msg
+and/or the
+.I nh_data
+data in other than the default manner (see nsend(2)).
+The default assumption is that
+.I nh_data
+is an array of 8 int4 integers and that
+.I nh_msg
+contains raw bytes.
+.PP
+File data should be converted from local to LAM representation before
+writing, and from LAM to local representation after reading.
+.PP
+The conversion functions are:
+.TP 10
+.I ttoli4()
+Convert an int4 from LAM to local representation.
+.TP
+.I ltoti4()
+Convert an int4 from local to LAM representation.
+.TP
+.I ttoli2()
+Convert an int2 from LAM to local representation.
+.TP
+.I ltoti2()
+Convert an int2 from local to LAM representation.
+.TP
+.I ttolf4()
+Convert a float4 from LAM to local representation.
+.TP
+.I ltotf4()
+Convert a float4 from local to LAM representation.
+.TP
+.I ttolf8()
+Convert a float8 from LAM to local representation.
+.TP
+.I ltotf8()
+Convert a float8 from local to LAM representation.
+.TP
+.I mttoli4()
+Convert an array of int4s from LAM to local representation.
+.TP
+.I mltoti4()
+Convert an array of int4s from local to LAM representation.
+.TP
+.I mttoli2()
+Convert an array of int2s from LAM to local representation.
+.TP
+.I mltoti2()
+Convert an array of int2s from local to LAM representation.
+.TP
+.I mttolf4()
+Convert an array of float4s from LAM to local representation.
+.TP
+.I mltotf4()
+Convert an array of float4s from local to LAM representation.
+.TP
+.I mttolf8()
+Convert an array of float8s from LAM to local representation.
+.TP
+.I mltotf8()
+Convert an array of float8s from local to LAM representation.
+.PP
+The single element conversion functions accept two arguments:
+.TP 10
+.I pvar1
+pointer to a variable of the required type holding the
+original data to be converted
+.TP
+.I pvar2
+pointer to a variable of the required type where the resulting
+converted data is returned
+.PP
+The original data is not modified.
+The two pointers may be the same if the conversion is to be done "in place".
+The multiple element conversion functions accept two arguments:
+.TP 10
+.I array
+pointer to the base of an array of data elements of the
+required type
+.TP
+.I num
+the number of data elements in the array
+.PP
+Before the call, the array holds the data to be converted.
+After the function returns, the array holds the converted data.
+The array conversion functions can only convert data "in place".
+.SS Incompatible Word Lengths
+Some CPUs do not support all data type sizes.
+As an example, Cray machines can access 4-byte and 8-byte integers
+and 8-byte floating point numbers, but do not access 2-byte integers
+or 4-byte floating point numbers.
+Until another solution is offered, when such machines are used in a
+LAM network it is advised to constrain the data type choices to
+those available on all CPUs (i.e. to follow the least common denominator
+approach).
+.SH SEE ALSO
+nsend(2)

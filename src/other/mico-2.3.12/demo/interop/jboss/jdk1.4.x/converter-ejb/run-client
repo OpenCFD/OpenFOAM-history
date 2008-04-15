@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "Running client..."
+./client -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -ORBInitRef NameService=corbaloc::1.2@localhost:3528/JBoss/Naming/root

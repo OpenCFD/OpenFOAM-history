@@ -1,0 +1,1 @@
+./server -ORBIIOPAddr ssl:inet:`uname -n`:12466 -ORBSSLcert ServerCert.pem -ORBSSLkey ServerKey.pem -ORBSSLverify 0 -ODMConfig ODM.cnf -AccessConfig access.cnf -AuditConfig audit.cnf -RightsConfig rights.cnf -AuditType file -AuditArchName server.log -AccessControl no

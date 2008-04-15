@@ -1,0 +1,18 @@
+// -*- c++ -*-
+
+struct _Struct {
+    long l;
+    string s;
+};
+
+enum _Enum {
+    el1, el2, el3
+};
+
+typedef sequence<short> _Sequence;
+
+union _Union switch (_Enum) {
+case el1: long l;
+case el2: boolean b;
+default: short s;
+};

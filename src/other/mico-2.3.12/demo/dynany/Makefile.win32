@@ -1,0 +1,45 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+all:  dynany.exe dynanytest.exe
+
+!include ..\MakeVars.win32
+CXXFLAGS  = $(AUX_CXXFLAGS) $(CXXFLAGS)
+LDLIBS    = $(LDLIBS)
+LDFLAGS   = $(AUX_LDFLAGS) $(LDFLAGS)
+DEPS      = $(AUX_DEPS) $(DEPS)
+
+INSTALL_DIR     = dynany
+INSTALL_SRCS    = Makefile test.idl dynany.cc dynanytest.cc
+INSTALL_SCRIPTS =
+
+dynany.exe: test.obj dynany.obj 
+	$(LD)  $(LDFLAGS) test.obj dynany.obj $(LDLIBS) /out:$@
+
+dynanytest.exe: test.obj dynanytest.obj 
+	$(LD)  $(LDFLAGS) test.obj dynanytest.obj $(LDLIBS) /out:$@
+
+test.h test.cc : test.idl $(IDLGEN)
+	$(IDL) --no-poa --boa --any test.idl
+
+clean:
+	$(RM) /f /q 2> nul  test.cc test.h *.o core dynany dynanytest .depend *.exe *.obj *.pdb

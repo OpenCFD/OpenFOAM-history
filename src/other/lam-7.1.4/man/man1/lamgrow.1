@@ -1,0 +1,90 @@
+.TH LAMGROW 1 "July, 2007" "LAM 7.1.4" "LAM COMMANDS"
+.SH NAME
+lamgrow \- Extend a LAM multicomputer.
+.SH SYNOPSIS
+.hy 0
+.HP
+lamgrow [-hvd] [-cpu num] [-n nodeid] [-no-schedule] [-ssi key value] hostname
+.hy 1
+.SH OPTIONS
+.TP 14
+.B \-cpu num
+Indicate how many CPUs are available to LAM on the new node.
+.TP
+.B \-d
+Turn on debugging output.  This implies -v.
+.TP
+.B \-h
+Print useful information on this command.
+.TP
+.B \-n nodeid
+Assign this ID to the new node.
+.TP
+.B \-no-schedule
+Indicate that C and N expansion in
+.I mpirun
+and
+.I lamexec 
+should not schedule on this node.
+.TP
+.B -ssi key value
+Send arguments to various SSI modules.  See the "SSI" section, below.
+.TP
+.B \-v
+Be verbose.
+.TP
+.B hostname
+Extend LAM with this host.
+.SH DESCRIPTION
+An existing LAM universe, initiated by lamboot(1), can be enlarged to
+include more nodes with
+.IR lamgrow .
+One new node is added for each invocation.  At a minimum, the host
+name that will run the new node is given on the command line.  If a
+different userid is required to access the host, it is specified with
+the appropriate boot SSI options (see lamssi_boot(7)).
+.PP
+The new node can be assigned any unused, non-negative identifier.  If
+no identifier is specified, the highest node identifier in the current
+LAM universe plus one is used.  Note that lamboot(1) always assigns
+node identifiers consecutively from 0.
+.PP
+.I lamgrow
+can be run from any node in the current LAM universe.  Specifically --
+it cannot be run from the intended new host.  Two invocations of
+.I lamgrow
+should not run concurrently, and the command attempts to detect this
+situation. The name of the host specified in
+.IR lamgrow
+should not be the one which is already present in the user's LAM universe 
+and the command attempts to detect this situation too. 
+.PP
+Resource managers will be the most common user of
+.IR lamgrow .
+When hosts become idle and a user has expressed a desire to the manager
+that extra cycles should be exploited, the manager could invoke
+.I lamgrow
+and then launch the specified application process(es) on the new node.
+.SH EXAMPLES
+.TP 4
+lamgrow -v newhost
+Start LAM on newhost and add it to the existing LAM universe.  Choose
+the next available node identifier and report about important steps as
+they are done.
+.TP
+lamgrow -n 30 newhost
+Start LAM on newhost with node ID 30 and add it to the existing LAM
+universe.  Operate silently.
+.SH FILES
+.TP 34
+laminstalldir/etc/lam-conf.lamd
+default configuration file for LAM nodes, where "laminstalldir" is the
+directory where LAM/MPI was installed.
+.SH BUGS
+It is not currently possible to specify a configuration file other
+than lam-conf.lamd on the remote node, even though this is possible
+with
+.IR lamboot .
+.SH SEE ALSO
+lamboot(1), lamhalt(1), hboot(1), lamwipe(1), tkill(1), bhost(5),
+conf(5), lamssi_boot(7)

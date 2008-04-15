@@ -1,0 +1,22 @@
+
+all:  client.exe server.exe
+
+RELATIVE = ..\..\..
+!include ..\..\MakeVars.win32
+INSTALL_DIR     = poa\inherit
+INSTALL_SRCS    = Makefile client.cc server.cc inherit.idl
+INSTALL_SCRIPTS = inherit
+
+server.exe: inherit.h inherit.obj server.obj 
+	$(LD)  $(LDFLAGS) inherit.obj server.obj $(LDLIBS) /out:server.exe
+
+client.exe: inherit.h inherit.obj client.obj 
+	$(LD)  $(LDFLAGS) inherit.obj client.obj $(LDLIBS) /out:client.exe 
+
+
+inherit.h inherit.cc : inherit.idl $(IDLGEN)
+	$(IDL) --poa-ties inherit.idl
+
+clean:
+	-$(RM) /f /q 2> nul  inherit.cc inherit.h *.o core client server *~ .depend *.exe *.obj *.pdb
+	-$(DELETE)

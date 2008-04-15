@@ -1,0 +1,10 @@
+/*
+ * This file is part of the load-balancing example
+ *
+ * This is the IDL interface of printer server objects.
+ */
+
+interface Printer
+{
+  void print (in string message);
+};

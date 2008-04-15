@@ -1,0 +1,54 @@
+# -*- text-*-
+#
+# Copyright (c) 2001-2002 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+# 
+# $HEADER$
+# 
+# $Id: lam-ssi-rpi-gm-helpfile,v 1.2 2003/05/07 15:40:47 jsquyres Exp $
+#
+# ASCII help messages for LAM
+#
+-*-rpi-gm:gm-dma-malloc-fail-*-
+# Called in the gm RPI when it cannot allocate enough dynamic memory
+# %1 = failing rank
+# %2 = how much it tried to allocate
+It seems that rank %1 was not able to allocate additional
+DMA-accessible memory for Myrinet. DMA-accessible memory is memory
+which the Myrinet cards can access. Typically, OS's have fixed limits
+on how the total amount of DMA memory can be allocated at one
+time. Long MPI messages require that a large amount of DMA-accessible
+memory be allocated. If possible, try using smaller messages or
+adjusting the OS's DMA limit. :-(
+
+GM failed to allocate a DMA block of %2 bytes.
+-*-rpi-gm:couldnt-get-port-*-
+# Called when we couldn't get a GM port.
+LAM was not able to obtain a GM port.  This typically means:
+
+    - All the ports on this machine are being used
+    - A failure occured on an opened port
+
+You may wish to run the gm_board_info program that comes with
+Myricom's GM distribution to check the status of the local myrinet
+board.
+-*-rpi-gm:failed-to-init-*-
+# Called them the ssi_rpi_gm_gm_setup() fails
+LAM was not able to intialize its gm module properly (although it
+was able to obtain a gm port).  This should not normally happen.
+Typical causes include:
+
+    - Other gm processes using all available DMA memory
+    - Other gm processes using all available send/receive gm tokens 
+
+You may wish to run the gm_board_info program that comes with
+Myricom's GM distribution to check the status of the local myrinet
+board.

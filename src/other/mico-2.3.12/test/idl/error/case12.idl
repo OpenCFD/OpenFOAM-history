@@ -1,0 +1,9 @@
+
+/*
+ * Duplicate label in union.
+ */
+
+union U switch(long) {
+  case 1: long a;
+  case 1: char b;
+};

@@ -1,0 +1,9 @@
+LIBRARY      ACCOUNT
+
+DESCRIPTION  'COM-CORBA Interworking example'
+
+EXPORTS
+        DllGetClassObject   PRIVATE
+        DllCanUnloadNow     PRIVATE
+        DllRegisterServer   PRIVATE
+        DllUnregisterServer PRIVATE

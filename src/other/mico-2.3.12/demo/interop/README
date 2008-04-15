@@ -1,0 +1,11 @@
+
+Here we demonstrate the interoperability between MICO and some
+commercial ORBs via IIOP. Each sub-directory contains a little README
+which tells how to run the demo. Beware that we have tested
+interoperability with a specific version of each ORB. The demo might
+not work with newer releases of these ORBs.
+
+orbix     : Interoperability test with Orbix 2.1c
+visibroker: Interoperability test with VisiBroker Developer for Java 3.1
+jdk       : Interoperability test with JDK 1.3
+jacorb    : Interoperability test with JacORB 0.9e

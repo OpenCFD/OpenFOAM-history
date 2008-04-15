@@ -1,0 +1,10 @@
+
+/*
+ * Duplicate member in enum.
+ */
+
+enum E {
+  A,
+  B,
+  A
+};

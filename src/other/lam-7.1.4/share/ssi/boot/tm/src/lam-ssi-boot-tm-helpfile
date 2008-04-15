@@ -1,0 +1,27 @@
+# -*- text-*-
+#
+# Copyright (c) 2001-2003 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+# 
+# $HEADER$
+# 
+# $Id: lam-ssi-boot-tm-helpfile,v 1.1 2003/03/24 05:08:25 jsquyres Exp $
+#
+# ASCII help messages for LAM
+#
+-*-parse-options:lamgrow-makes-no-sense-*-
+# Called when lamgrow is invoked with the tm module
+# No parameters are passed
+Invoking "lamgrow" in a batch environment such as PBS currently does
+not make any sense -- LAM only has the nodes that TM has allocated,
+and therefore cannot grow the LAM universe.
+
+Aborting.

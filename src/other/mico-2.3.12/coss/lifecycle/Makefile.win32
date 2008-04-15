@@ -1,0 +1,137 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+RELATIVE = ..\..
+
+!include ..\MakeVars.win32
+LDLIBS    = micocoss$(VERSION).lib mico$(VERSION).lib $(CONFLIBS)
+LDFLAGS  = /LIBPATH:.. /LIBPATH:..\..\win32-bin\lib $(LDFLAGS)
+IDLFLAGS = --poa --no-boa  $(IDLFLAGS)
+
+# generated files
+OMG_SRCS =  CosLifeCycle.cc \
+	    CosCompoundLifeCycle.cc \
+	    CosLifeCycleReference.cc \
+	    CosLifeCycleContainment.cc \
+
+IMPL_SRCS =	    FactoryFinder_impl.cc \
+	    GenericFactory_impl.cc \
+	    LifeRole_impl.cc \
+	    LifeContainment_impl.cc \
+	    LifeNode_impl.cc \
+	    LifePropagationCriteriaFactory_impl.cc \
+	    LifeReference_impl.cc \
+	    LifeRelationship_impl.cc \
+	    LifeTraversalCriteria_impl.cc \
+	    Operations_impl.cc
+
+#DAEMONS_SRCS = factoryfinderd.cc genericfactory.cc lifecontainmentd.cc lifereferenced.cc lifenoded.cc \
+#  operationd.cc lifecriteriad.cc
+
+SRCS = $(OMG_SRCS) $(IMPL_SRCS)
+
+STATIC_OBJS = $(SRCS:.cc=.obj)
+SHARED_OBJS = $(SRCS:.cc=.obj)
+
+# normal rules
+
+all: lib prg
+
+lib:  $(SHARED_OBJS)
+prg:	factoryfinderd.exe genericfactory.exe lifecontainmentd.exe lifereferenced.exe lifenoded.exe \
+	operationd.exe lifecriteriad.exe
+install: prg
+	$(COPY) factoryfinderd.exe ..\..\win32-bin
+	$(COPY) genericfactory.exe ..\..\win32-bin
+	$(COPY) lifecontainmentd.exe ..\..\win32-bin
+	$(COPY) lifereferenced.exe ..\..\win32-bin
+	$(COPY) lifenoded.exe ..\..\win32-bin
+	$(COPY) operationd.exe ..\..\win32-bin
+	$(COPY) lifecriteriad.exe ..\..\win32-bin
+
+factoryfinderd.exe: factoryfinderd.obj
+	$(LINK) $(LDFLAGS) factoryfinderd.obj $(LDLIBS) /out:factoryfinderd.exe
+
+genericfactory.exe: genericfactory.obj
+	$(LINK) $(LDFLAGS) genericfactory.obj $(LDLIBS) /out:genericfactory.exe
+
+lifecontainmentd.exe: lifecontainmentd.obj
+	$(LINK) $(LDFLAGS) lifecontainmentd.obj $(LDLIBS) /out:lifecontainmentd.exe
+
+lifereferenced.exe: lifereferenced.obj
+	$(LINK) $(LDFLAGS) lifereferenced.obj $(LDLIBS) /out:lifereferenced.exe
+
+lifenoded.exe: lifenoded.obj
+	$(LINK) $(LDFLAGS) lifenoded.obj $(LDLIBS) /out:lifenoded.exe
+
+operationd.exe: operationd.obj
+	$(LINK) $(LDFLAGS) operationd.obj $(LDLIBS) /out:operationd.exe
+
+lifecriteriad.exe: lifecriteriad.obj
+	$(LINK) $(LDFLAGS) lifecriteriad.obj $(LDLIBS) /out:lifecriteriad.exe
+
+CosLifeCycle.h CosLifeCycle.cc: \
+		..\..\include\mico\CosLifeCycle.idl 
+	$(IDL) $(IDLFLAGS) ..\..\include\mico\CosLifeCycle.idl
+	$(COPY) CosLifeCycle.h ..\..\include\coss
+
+CosCompoundLifeCycle.h CosCompoundLifeCycle.cc: \
+		..\..\include\coss\CosCompoundLifeCycle.idl
+	$(IDL) $(IDLFLAGS) ..\..\include\coss\CosCompoundLifeCycle.idl
+	$(COPY) CosCompoundLifeCycle.h ..\..\include\coss
+
+CosLifeCycleContainment.h CosLifeCycleContainment.cc: \
+		..\..\include\coss\CosLifeCycleContainment.idl
+	$(IDL) $(IDLFLAGS) --name CosLifeCycleContainment \
+		..\..\include\coss\CosLifeCycleContainment.idl
+	$(COPY) CosLifeCycleContainment.h ..\..\include\coss
+
+CosLifeCycleReference.h CosLifeCycleReference.cc: \
+		..\..\include\coss\CosLifeCycleReference.idl
+	$(IDL) $(IDLFLAGS) --name CosLifeCycleReference \
+		..\..\include\coss\CosLifeCycleReference.idl
+	$(COPY) CosLifeCycleReference.h ..\..\include\coss
+
+# cleaning
+
+clean:
+	-$(DELETE)
+	-$(RM) CosLifeCycle.h
+	-$(RM) CosLifeCycle.cc
+	-$(RM) ..\..\include\coss\CosLifeCycle.h
+	-$(RM) CosCompoundLifeCycle.h
+	-$(RM) CosCompoundLifeCycle.cc
+	-$(RM) ..\..\include\coss\CosCompoundLifeCycle.h
+	-$(RM) CosLifeCycleContainment.h
+	-$(RM) CosLifeCycleContainment.cc
+	-$(RM) ..\..\include\coss\CosLifeCycleContainment.h
+	-$(RM) CosLifeCycleReference.h
+	-$(RM) CosLifeCycleReference.cc
+	-$(RM) ..\..\include\coss\CosLifeCycleReference.h
+
+install:
+	$(COPY) factoryfinderd.exe ..\..\win32-bin
+	$(COPY) lifenoded.exe ..\..\win32-bin
+	$(COPY) lifecontainmentd.exe ..\..\win32-bin
+	$(COPY) lifereferenced.exe ..\..\win32-bin
+	$(COPY) genericfactory.exe ..\..\win32-bin
+	$(COPY) operationd.exe ..\..\win32-bin
+	$(COPY) lifecriteriad.exe ..\..\win32-bin

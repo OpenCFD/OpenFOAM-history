@@ -1,0 +1,65 @@
+!include ..\..\..\MakeVars.win32
+!include ..\MakeVars.win32
+
+all: channel.dll consumer.dll producer.dll client.exe
+
+channel.dll: channel_impl.obj channel_ccm.obj channel.obj message_impl.obj message.obj
+	del channel.dll
+	$(LINK) $(LDFLAGS) channel_impl.obj channel_ccm.obj channel.obj message_impl.obj message.obj \
+	micoccm$(VERSION).lib mico$(VERSION).lib /dll /out:channel.dll
+
+consumer.dll: consumer_impl.obj consumer_ccm.obj consumer.obj message_impl.obj message.obj
+	del consumer.dll
+	$(LINK) $(LDFLAGS) consumer_impl.obj consumer_ccm.obj consumer.obj message_impl.obj message.obj \
+	micoccm$(VERSION).lib mico$(VERSION).lib /dll /out:consumer.dll
+
+producer.dll: producer_impl.obj producer_ccm.obj producer.obj message_impl.obj message.obj
+	del producer.dll
+	$(LINK) $(LDFLAGS) producer_impl.obj producer_ccm.obj producer.obj message_impl.obj message.obj \
+	micoccm$(VERSION).lib mico$(VERSION).lib /dll /out:producer.dll
+
+client.exe: client.obj channel.obj consumer.obj producer.obj message_impl.obj message.obj
+	$(LINK) $(LDFLAGS) client.obj channel.obj consumer.obj producer.obj message_impl.obj message.obj \
+		micoccm$(VERSION).lib micocoss$(VERSION).lib mico$(VERSION).lib /out:client.exe
+
+channel_impl.obj: channel_impl.cc channel.h message_impl.h message.h
+consumer_impl.obj: consumer_impl.cc consumer.h message_impl.h message.h
+producer_impl.obj: producer_impl.cc producer.h message_impl.h message.h
+message_impl.obj: message_impl.cc message_impl.h message.h
+consumer_ccm.obj: consumer_ccm.cc
+producer_ccm.obj: producer_ccm.cc
+consumer.obj: consumer.cc
+producer.obj: producer.cc
+message.obj: message.cc
+client.obj: client.cc
+
+channel_ccm.cc channel_ccm.h: channel.idl
+	$(CCMGEN) -I..\..\..\include --session channel.idl
+
+consumer_ccm.cc consumer_ccm.h: consumer.idl
+	$(CCMGEN) -I..\..\..\include --session consumer.idl
+
+producer_ccm.cc producer_ccm.h: producer.idl
+	$(CCMGEN) -I..\..\..\include --session producer.idl
+
+channel.cc channel.h: channel.idl
+	$(IDL) $(IDLFLAGS) channel.idl
+
+consumer.cc consumer.h: consumer.idl
+	$(IDL) $(IDLFLAGS) consumer.idl
+
+producer.cc producer.h: producer.idl
+	$(IDL) $(IDLFLAGS) producer.idl
+
+message.cc message.h: message.idl
+	$(IDL) $(IDLFLAGS) message.idl
+
+
+clean:
+	-del channel.dll consumer.dll producer.dll client
+	-del channel_ccm.cc channel_ccm.h channel.cc channel.h
+	-del consumer_ccm.cc consumer_ccm.h consumer.cc consumer.h
+	-del producer_ccm.cc producer_ccm.h producer.cc producer.h
+	-del message.cc message.h
+	-del *.obj *~ core *.ior .depend
+	

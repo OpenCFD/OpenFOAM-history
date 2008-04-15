@@ -1,0 +1,191 @@
+
+Prerequisits
+============
+
+Unix
+----
+
+Before trying to compile Mico make sure you have installed the
+following software packages:
+
+   o gnu make version 3.7 or newer (required)
+   o C++ compiler and library (required).
+     We recommend gcc 3.2.x or newer.
+   o flex 2.5.3 or newer (optional)
+   o bison 1.25 or newer (optional)
+   o JDK 1.1.5 (SUN's Java developers kit) (optional)
+   o JavaCUP 0.10g (parser generator for Java) (optional)
+   o OpenSSL 0.9.6 or 0.9.7 (optional)
+
+flex and bison are only necessary if you change their input files
+(files having the suffix .l and .y) or if you want to compile the
+graphical user interface. The last two items (JDK and JavaCUP) are
+only needed for the graphical interface repository browser, not for
+Mico itself. So you can get along without installing the Java stuff.
+
+
+Win32 (Windows 95/98/ME/NT/2000/XP)
+-----------------------------------
+
+On Win32, you have several options for compiling Mico. The most common
+option is to use Microsoft's Visual C++ compiler. In this case, please
+read no further but refer to the file README-WIN32 for instructions on
+how to compile Mico using Visual C++.
+
+You can also compile Mico on Win32 using Cygwin, which is a port of
+many Unix tools, including the gcc compiler, to Windows (for more
+details, see http://sources.redhat.com/cygwin/). Just open Cygwin's
+bash shell and refer to the Unix installation instructions below.
+
+The third alternative is to use MinGW, which is another port of gcc
+to the Windows environment. Other than Cygwin, MinGW does not include
+a Posix emulation library but is based on the standard Win32 API
+(for more details, see http://www.mingw.org/). Some notes about this
+configuration:
+
+  - Install Cygwin for its shell and its command-line tools such as make.
+    (MinGW's MSYS may be an alternative, but has not been tested yet.)
+  - Install MinGW; versions tested are MinGW-1.1 and mingw-runtime-1.2
+  - Follow instructions for patching MinGW at
+    http://www.geocrawler.com/archives/3/6013/2002/1/100/7606374/
+  - Set your PATH so that MinGW's gcc is picked up instead of Cygwin's
+  - However, you must use Cygwin's make, because MinGW's make does not
+    grok Cygwin's path names (/cygdrive/c/ instead of c:/). You can just
+    delete or rename MinGW's make.
+  - Configure with --disable-coss --enable-naming --enable-events; other
+    services have not been updated yet. (Or edit the Makefiles yourself.)
+  - Makefiles and scripts for demos have not been updated yet, so they
+    might need editing.
+  - "make install" is untested.
+
+
+Installation
+============
+
+The Mico source release is shipped as a tar'ed and gzip'ed archive called
+
+  mico-<version>.tar.gz
+
+Unpack the archive using the following command:
+
+  gzip -dc mico-<version>.tar.gz | tar xf -
+
+You are left with a new directory mico containing the Mico sources.  To save
+you the hassle of manually editing Makefile's and such, Mico comes with a
+configuration script that checks your system for required programs and other
+configuration issues. The script, called configure, supports several
+important command line options:
+
+--help
+     Gives an overview of all supported command line options.
+
+--prefix=<install-directory>
+     With this options you tell configure where the Mico programs and
+     libraries should be installed after compilation. This defaults
+     to /usr/local.
+
+--disable-optimize
+     Do not use the -O2 option when compiling C/C++ files. This option
+     is usually used together with --enable-debug, since optimisations
+     usually hurts debugging.
+
+--enable-debug
+     Use the -g option when compiling C/C++ files.
+
+--disable-shared
+     Build the Mico library as a static library instead as a shared one.
+     Shared libraries currently only work on ELF based systems (e.g., Linux,
+     Solaris, Digital Unix), AIX, and HP-UX. If you do not use the
+     --disable-shared option you have to make sure the directory where the
+     Mico library resides in is either by default searched for shared
+     libraries by the dynamic linker (/usr/lib and /lib on most systems) or
+     you have to include the directory in the environment variable that tells
+     the dynamic linker where to search for additional shared libraries. This
+     variable is called LIBPATH on AIX, SHLIB_PATH on HP-UX and
+     LD_LIBRARY_PATH on all the other systems.
+     To run the generated binaries before doing a make install you have to
+     set this environment variable like this:
+
+          # AIX
+
+          export LIBPATH=<mico-path>/mico/orb:$LIBPATH
+
+          # HP-UX
+
+          export SHLIB_PATH=<mico-path>/mico/orb:$SHLIB_PATH
+
+          # others
+
+          export LD_LIBRARY_PATH=<mico-path>/mico/orb:$LD_LIBRARY_PATH
+
+     where <mico-path> is the absolute path of the directory the Mico sources
+     were unpacked in.
+
+--disable-static
+     Don't build static MICO libraries but only the shared libraries.
+
+--disable-dynamic
+     This option disables dynamic loading of CORBA objects into a running
+     executeable. For dynamic loading to work your system must either support
+     support dlopen() and friends or shl_load() and friends.
+
+--enable-final
+     Build a size optimized version of the Mico library. This will need lots
+     of memory during compilation but will reduce the size of the resulting
+     library a lot. Works with and without --enable-shared. Does not work on
+     HP-UX.
+
+--enable-mini-stl
+     As mentioned before, Mico makes use of the Standard Template Library
+     (STL). For environments that do not provide an STL implementation, Mico
+     comes with its own slim STL (called MiniSTL), which is simply a subset
+     of the standard STL sufficient to compile Mico. By default Mico will
+     use your compiler's default STL if available. If you do not want to
+     use the system supplied STL for some reason, you will have to use the
+     option --enable-mini-stl.
+     MiniSTL works well with g++ and greatly reduces compilation time and
+     size of the binaries. Using MiniSTL one could try to compile Mico using
+     a C++ compiler other than g++. But this still has not been tested and
+     may therefore lead to problems.
+
+--disable-except
+     Disable exception handling.  On some platforms (e.g., DEC alpha)
+     and with ancient g++ version, the compiler has very buggy
+     exception handling support and cannot compile Mico with
+     exeption handling enabled.  If this happens to you try turning off
+     exception handling using this option.
+
+--with-qt=<qt-path>
+     Enable support for QT. <qt-path> is the directory where QT has been
+     installed in.
+
+--with-gtk=<gtk-path>
+     Enable support for GTK. <gtk-path> is the directory where GTK has been
+     installed in.
+
+--with-tcl=<tcl-path>}
+     Enable support for TCL. <tcl-path> is the directory where
+     TCL has been installed in.
+
+--with-ssl=<SSLeay-path>
+     Enable support for SSL. <SSLeay-path> is the directory where
+     SSLeay has been installed in.
+
+
+Now you should run configure with the proper command line options you need,
+e.g.:
+
+  cd mico
+  ./configure --with-qt=/usr/local/qt
+
+Use gmake to start compilation and install the programs and libraries,
+possibly becoming root before installation:
+
+  gmake
+  gmake install
+
+On some systems you have to take special actions after installing a shared
+library in order to tell the dynamic linker about the new library. For
+instance on Linux you have to run ldconfig as root:
+
+  /sbin/ldconfig -v

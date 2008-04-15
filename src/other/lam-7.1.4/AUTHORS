@@ -1,0 +1,57 @@
+LAM/MPI Authors
+===============
+
+The IDs in parenthesis are those used in CVS/Subversion commit
+notices.
+
+
+Current Authors
+---------------
+
+ Indiana University:
+  - Brian Barrett (brbarret)
+  - Andrew Lumsdaine (lums)
+  - Josh Hursey (jjhursey)
+  - With special thanks to Andrew Friedley.
+
+
+Previous Authors
+----------------
+
+ Indiana University:
+  - Jeff Squyres (jsquyres)
+  - Anju Kambadur (pkambadu)
+  - Vishal Sahay (vsahay)
+  - Nihar Sanghvi (nsanghvi)
+  - Prashanth Charapalli (pcharapa)
+  - Amey Sharachandra Dharurkar (adharurk)
+  - Manish Chablani (mchablan)
+  - Vinayak Vaikunta Dukle (vdukle)
+  - Sriram Sankaran (ssankara)
+  - Shashwat Srivastav (ssrivast)
+
+  LAM/MPI was originally developed at the Ohio Supercomputing Center
+  at Ohio State University.  In 1998, the project moved to the
+  Laboratory for Scientific Computing at the University of Notre Dame,
+  under the supervision of Dr. Andrew Lumsdaine.  In 2001, the project
+  moved with Dr. Lumsdaine to the Open Systems Laboratory at Indiana
+  University.
+
+ Notre Dame:
+  - Brian Barrett (bbarrett)
+  - Andrew Lumsdaine (lums)
+  - M.D. McNally (mmcnally)
+  - Kinis Meyer (kmeyer1)
+  - Peter Rijks (prijks)
+  - Arun Rodrigues (arodrig6)
+  - Mike Shepherd (mshepher)
+  - Jeff Squyres (jsquyres)
+
+ Ohio State University:
+  - Greg Burns
+  - Raja Daoud
+  - Vibha Dixit
+  - Raghu Machiraju
+  - Nick Nevin
+  - Vibha Radiya
+  - Jim Vaigl

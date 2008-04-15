@@ -1,0 +1,5 @@
+
+interface base {
+  attribute base m;
+};
+

@@ -1,0 +1,28 @@
+
+all:  client server
+
+RELATIVE=..\..\..
+!include ../../MakeVars.win32
+
+INSTALL_DIR     = obv/abstract
+INSTALL_SRCS    = README Makefile client.cc server.cc abstract.idl \
+		  abstract_impl.h
+INSTALL_SCRIPTS = abstract
+
+server: abstract.h abstract_impl.h abstract.obj server.obj $(DEPS)
+	$(LINK) $(LDFLAGS) abstract.obj server.obj $(LDLIBS) /out:server.exe
+
+client: abstract.h abstract_impl.h abstract.obj client.obj $(DEPS)
+	$(LINK)  $(LDFLAGS) abstract.obj client.obj $(LDLIBS) /out:client.exe
+
+
+abstract.h abstract.cc : abstract.idl 
+	$(IDL) $(IDLFLAGS) abstract.idl
+
+run:
+	abstract.bat
+
+clean:
+	-$(DELETE)
+	-$(RM) /q abstract.cc abstract.h
+

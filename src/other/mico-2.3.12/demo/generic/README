@@ -1,0 +1,9 @@
+
+The files in this directory show the implementation of a generic
+client and server. Once the executables are build, the test interface
+and actual parameters are determined at runtime. The test interface is
+defined in "test.idl" and the test cases to be executed in
+"test_cases".  First edit test.idl and test_cases to your liking. Then
+use the shell script "run_test" to execute the demo. The sources only
+use CORBA functionality. The code should be portable to any other
+compliant C++ ORB.

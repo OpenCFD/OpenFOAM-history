@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ ! "$MICODIR" ]; then
+  echo
+  echo "You must first set MICODIR environment variable"
+  echo
+  exit 1
+fi
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MICODIR/libs
+
+./daemons-start $@
+./servers-start $@
+./test $@
+./stop-servers $@
+./daemons-stop $@
+rm -f ir-db.idl
+rm -f ird.pid
+

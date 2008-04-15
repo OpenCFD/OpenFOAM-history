@@ -1,0 +1,48 @@
+.TH LIBTSTDIO 3 "July, 2007" "LAM 7.1.4" "LAM LIBRARY FUNCTIONS"
+.SH NAME
+libtstdio.a \- flexible LAM standard I/O package
+.SH SYNOPSIS
+.nf
+#include <tstdio.h>
+
+TFILE *tstdin;
+TFILE *tstdout;
+TFILE *tstderr;
+.fi
+.SH DESCRIPTION
+The LAM
+.I libtstdio.a
+library of C functions provides networked (remote)
+services equivalent to those of the stdio(3) functions.
+The
+.I tstdio
+library allows the user to designate the target node to/from
+which output/input is directed.
+The
+.I tstdio
+functions have the same names and interfaces as their counterpart
+in stdio(3), except that the names are prefixed with the letter 't'
+(tprintf(), tfopen(), tfclose(), etc.).
+This allows them to coexist with the stdio(3V) functions, giving
+the user the choice to bypass the LAM I/O functions and access
+the I/O of the native system.
+.PP
+Files opened using fopen(3), fdopen(3), or freopen(3) are
+treated as local to the node of the calling process.
+To open files on the origin node, from any LAM node,
+include a 'T' in the type field of the open call.
+For example:
+.PP
+.RS
+.nf
+#include <tstdio.h>
+
+tfopen("/tmp/input", "rT");
+.fi
+.RE
+.PP
+By default, functions using tstdout or tstderr direct 
+the streams to the LAM origin node (see getorigin(2)) where the
+user is assumed to be logged in.
+.SH SEE ALSO
+getorigin(2)

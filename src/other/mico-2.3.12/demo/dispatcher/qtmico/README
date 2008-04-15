@@ -1,0 +1,41 @@
+
+This is "qtmico" alias "korba", a qt/mico-adaptor. It is havily based
+on the a x11/mico-adaptor by Kay Roemer and was modified by Lars Doelle
+for Qt 1.1 or newer. I (kay) changed qtmico.* to get along without
+patching Qt. This required an ugly hack which will go away when Qt 1.3
+is released.
+
+
+// Examples //////////////////////////////////////////////////////////////
+
+  qthello1 runs a server and client without using micod. qthello2 uses micod,
+  that is you can terminate the server by closing its window and the next
+  invocation from the still running client will then activate a new server
+  and restore the Hello object.
+
+
+// State of the implementation ///////////////////////////////////////////
+
+  Allmost done.
+
+  This runs with multible clients, too. I was also able to validate
+  the client operations using the micod. 
+
+  I could validate that Q_OBJECTS and *_impls go well together
+  by multiple inheritance. This is usefull when working with qt.
+
+  The eventloop is placed such, that both server nor client
+  consume idle time.
+
+  The remaining major concern has to deal with the execution loops.
+
+  These are both started by MICO *and* QT for several reasons. I feel
+  quite confused about this topic, since i do not understand precisely,
+  when these loops are started (especially in MICO). To have things
+  running smooth, they must be made properly interoperating.
+
+  Further, i feel, that the package should offer it's own 'exec', but
+  i'm too unexperienced (both with qt dialogs *and* with mico) to be
+  able to design a proper interface, that matches the needs of both
+  packages. So i expect things to be changed most likely in this area.
+

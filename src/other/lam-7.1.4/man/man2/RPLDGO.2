@@ -1,0 +1,89 @@
+.TH RPLOADGO 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rploadgo \- Load and execute a LAM program on a remote node.
+.SH C SYNOPSIS
+#include <kio.h>
+.HP
+int rploadgo (int srcnode, int destnode, char *filename,
+int flags, char **argv, int *pid, int *idx);
+.SH FORTRAN SYNOPSIS
+.HP
+subroutine RPLDGO (srcnode, destnode, filename, flags, pid, idx, ierr)
+.RE
+integer srcnode, destnode, flags, pid, idx, ierr
+.br
+character filename*(*)
+.SH ARGUMENTS
+.TP 12
+srcnode
+where program is stored
+.TP
+destnode
+where new process will be created
+.TP
+filename
+program file
+.TP
+flags
+runtime flags passed to new process
+.TP
+argv
+null-terminated array of strings to be passed as command-line
+arguments to the new process
+.TP
+pid
+new process identifier (output)
+.TP
+idx
+new process index (output)
+.SH DESCRIPTION
+If the source and destination nodes are identical, the program
+is not transferred and the process is created with rpcreate(2).
+Otherwise the program is transferred with rload(2), stored in
+/tmp on the destination node, and created with rpgo(2).
+.PP
+If the source node is the local node, the program is located by
+searching the directories defined in the PATH environment variable
+of the caller.
+Otherwise, the PATH variable of the remote LAM daemon is used.
+Usually, the only difference is in how the "." directory is resolved.
+On the local node it is the current working directory of the
+calling process.
+On a remote node it is the user's home directory.
+.SS Current Working Directory
+By default,
+.I rploadgo()
+will propagate the caller's current working directory to the
+created process if target node is the local node.
+This is accomplished by passing the RTF_CWD runtime flag to
+rpgo(2) or rpcreate(2).
+A remote process will assume the remote home directory as its
+current working directory.
+This behaviour can be changed by the RTF_APPWD runtime flag.
+.SS Runtime Flags
+Runtimes flags are defined in <kio.h> (<NET.h> for Fortran) and can
+be added together in any combination.
+.TP 12
+RTF_WAIT
+The new process will send a message to the calling process,
+received by rpwait(2), when it exits.
+This flag is used if the parent is interested in the
+exit code of the child process.
+Failure to call rpwait(2) at some point after using this flag will leave
+stray messages with weird events in buffers on the caller's node.
+.TP
+RTF_TRACE
+Enable tracing for the new process.
+.TP
+RTF_APPWD
+The current working directory will be the location
+of the executable program.
+.SH ERRORS
+.TP 20
+ENOPDESCRIPTORS
+The remote process descriptor table is full.
+.TP
+ENOFLDESCRIPTORS
+The table of strorage blocks (kept by the flat daemon) is full.
+.SH SEE ALSO
+rpcreate(2), rpgo(2), rpwait(2)

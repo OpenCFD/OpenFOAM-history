@@ -1,0 +1,20 @@
+
+the contents of the directories:
+
+admin   -- scripts and programs needed to build MICO.
+auxdir  -- ORB related stuff that cannot go into a shared lib at the moment
+           (Xt and Qt support, DynAny). libmicoaux is built in this directory.
+coss    -- CORBA Services, only naming service at the moment. libmicocoss is
+           built in this directory.
+daemon  -- BOA daemon (micod).
+demo    -- some examples.
+doc     -- documentation.
+idl     -- idl compiler (idl).
+imr     -- implementation repository and admin tool (imr).
+include -- include files.
+ir      -- interface repository and IR server (ird).
+man     -- unix manual pages.
+orb     -- ORB core. libmico is built here.
+test    -- some test cases to check the ORB and IDL compiler.
+tools   -- misc tool programs, at the moment only the IR browser.
+

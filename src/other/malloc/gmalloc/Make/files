@@ -1,0 +1,16 @@
+valloc.c
+malloc.c
+free.c
+cfree.c
+realloc.c
+calloc.c
+morecore.c
+memalign.c
+mcheck.c
+mtrace.c
+mstats.c
+vm-limit.c
+/*ralloc.c*/
+malloc-find.c
+
+LIB = $(FOAM_LIBBIN)/libgmalloc

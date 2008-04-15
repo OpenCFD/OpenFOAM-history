@@ -1,0 +1,201 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997-2005 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+RELATIVE 	= ..
+!include ..\MakeVars.win32
+
+!include .\MakeVars.win32
+
+SUBDIRS = naming events property time wireless
+# streams trader relship lifecycle externalization
+
+DLL_OBJS = naming\CosNaming.obj \
+  events\CosEventComm.obj events\CosEventChannelAdmin.obj \
+ property\PropertyService.obj \
+ property\PropertyService_impl.obj \
+#  streams\stream.obj streams\stream_impl.obj\
+#  trader\CosTrading.obj trader\CosTradingRepos.obj \
+#  relship\CosObjectIdentity.obj relship\CosRelationships.obj \
+#  relship\CosGraphs.obj \
+#  relship\CosContainment.obj relship\CosReference.obj \
+#  relship\CosGraphsExtension.obj \
+#  relship\IdentifiableObject_impl.obj relship\Role_impl.obj \
+#  relship\Relationship_impl.obj relship\RelationshipIterator_impl.obj \
+#  relship\TraversalFactory_impl.obj relship\Traversal_impl.obj \
+#  relship\TraversalCriteria_impl.obj relship\Node_impl.obj \
+#  relship\GraphsRole_impl.obj relship\EdgeIterator_impl.obj \
+#  relship\CosContainment_impl.obj relship\CosReference_impl.obj \
+#  relship\GenericCriteriaFactory_impl.obj \
+#  relship\RandomGenerator.obj relship\random.obj \
+#  relship\RandomGenerator_impl.obj \
+#  relship\InterfaceDefsHelper.obj relship\NamedRoleTypesHelper.obj \
+  time\CosTime.obj
+#  wireless\MobileTerminal.obj wireless\GTP.obj \
+#  wireless\MobileTerminalNotification.obj
+#  lifecycle\CosLifeCycle.obj lifecycle\CosCompoundLifeCycle.obj \
+#  lifecycle\CosLifeCycleContainment.obj lifecycle\CosLifeCycleReference.obj \
+#  lifecycle\FactoryFinder_impl.obj lifecycle\GenericFactory_impl.obj \
+#  lifecycle\LifeRelationship_impl.obj lifecycle\LifeRole_impl.obj \
+#  lifecycle\LifeNode_impl.obj lifecycle\LifeTraversalCriteria_impl.obj \
+#  lifecycle\Operations_impl.obj lifecycle\LifePropagationCriteriaFactory_impl.obj \
+#  lifecycle\LifeContainment_impl.obj lifecycle\LifeReference_impl.obj lifecycle\RegisterHelper.obj
+#  externalization\CosExternalization.obj externalization\CosExternalizationContainment.obj \
+#  externalization\CosExternalizationReference.obj \
+#  externalization\CompoundExternalization_impl.obj externalization\ExternalizationContainment_impl.obj \
+#  externalization\ExternalizationPropagationCriteriaFactory_impl.obj externalization\ExternalizationReference_impl.obj \
+#  externalization\ExternalizationTraversalCriteria_impl.obj externalization\Externalization_impl.obj \
+#  externalization\Stream_impl.obj
+
+all: lib prg
+
+lib: sublib micocoss$(VERSION).lib
+
+prg: sublib micocoss$(VERSION).lib subprg
+
+DLL = "CREATE_DLL = 1"
+
+sublib:
+	
+	cd naming 
+	$(MAKE) $(DLL) /f Makefile.win32  lib
+
+	cd ..\events 
+	$(MAKE) $(DLL) /f Makefile.win32  lib
+	
+	cd ..\property 
+       $(MAKE) $(DLL) /f Makefile.win32  lib
+
+#	cd ..\streams 
+#       $(MAKE) $(DLL) /f Makefile.win32  lib
+	
+#	cd ..\trader 
+#        $(MAKE) $(DLL) /f Makefile.win32  lib
+
+#	cd ..\relship 
+#        $(MAKE) $(DLL) /f Makefile.win32  lib
+
+	cd ..\time 
+        $(MAKE) $(DLL) /f Makefile.win32  lib
+
+#	cd ..\wireless 
+#        $(MAKE) $(DLL) /f Makefile.win32  lib
+
+        cd ..
+		
+
+subprg:
+	cd naming 
+	$(MAKE) /f Makefile.win32  prg
+
+	cd ..\events 
+	$(MAKE) /f Makefile.win32  prg
+	
+ 	cd ..\property 
+        $(MAKE) /f Makefile.win32  prg
+
+#	cd ..\streams 
+#        $(MAKE) /f Makefile.win32  prg
+	
+#	cd ..\trader 
+#        $(MAKE) /f Makefile.win32  prg
+
+#	cd ..\relship 
+#        $(MAKE) /f Makefile.win32  prg
+
+	cd ..\time 
+       $(MAKE) /f Makefile.win32  prg
+
+#	cd ..\wireless 
+#       $(MAKE) /f Makefile.win32  prg
+
+	cd ..
+
+
+micocoss$(VERSION).lib: $(DLL_OBJS) micocoss$(VERSION).def
+	$(LINK) $(LINKDLLFLAGS) $(DLL_OBJS) $(SYSLIBS) ..\win32-bin\lib\mico$(VERSION).lib /out:micocoss$(VERSION).dll \
+		/def:micocoss$(VERSION).def /implib:micocoss$(VERSION).lib 
+
+# lib.exe $(DLL_OBJS) $(SYSLIBS) ..\win32-bin\lib\mico$(VERSION).lib /out:micocoss$(VERSION).lib
+	$(COPY) micocoss$(VERSION).lib ..\win32-bin\lib
+	$(COPY) micocoss$(VERSION).dll ..\win32-bin
+
+micocoss$(VERSION).def:
+	..\win32-bin\gendef.exe micocoss$(VERSION).def micocoss$(VERSION) $(DLL_OBJS)
+
+install:
+	$(COPY) micocoss$(VERSION).lib ..\win32-bin\lib
+	$(COPY) micocoss$(VERSION).dll ..\win32-bin
+
+	cd naming 
+	$(MAKE)  /f Makefile.win32  install
+
+	cd ..\events 
+	$(MAKE)  /f Makefile.win32  install
+	
+	cd ..\property 
+        $(MAKE)  /f Makefile.win32  install
+
+#	cd ..\streams 
+#        $(MAKE)  /f Makefile.win32  install
+	
+#	cd ..\trader 
+#        $(MAKE)  /f Makefile.win32  install
+
+#	cd ..\relship 
+#        $(MAKE)  /f Makefile.win32  install
+
+	cd ..\time 
+        $(MAKE)  /f Makefile.win32  install
+
+#	cd ..\wireless 
+#       $(MAKE)  /f Makefile.win32  install
+
+	cd ..
+
+clean:
+	cd naming 
+	$(MAKE)  /f Makefile.win32  clean
+
+	cd ..\events 
+	$(MAKE)  /f Makefile.win32  clean
+	
+	cd ..\property 
+        $(MAKE)  /f Makefile.win32  clean
+
+	cd ..\streams 
+        $(MAKE)  /f Makefile.win32  clean
+	
+	cd ..\trader 
+        $(MAKE)  /f Makefile.win32  clean
+
+	cd ..\relship 
+        $(MAKE)  /f Makefile.win32  clean
+
+	cd ..\time 
+        $(MAKE)  /f Makefile.win32  clean
+
+	cd ..\wireless 
+        $(MAKE)  /f Makefile.win32  clean
+
+        cd ..
+	-$(DELETE)
+	

@@ -1,0 +1,28 @@
+Running.
+send_request
+operation_context
+aa : aa-child
+ab : ab
+contexts
+a*
+receive_request
+operation_context
+aa : aa-child
+ab : ab
+contexts
+IDL:omg.org/CORBA/NO_RESOURCES:1.0
+Hello World
+aa: aa-child
+ab: ab
+send_reply
+operation_context
+aa : aa-child
+ab : ab
+contexts
+IDL:omg.org/CORBA/NO_RESOURCES:1.0
+receive_reply
+operation_context
+aa : aa-child
+ab : ab
+contexts
+a*

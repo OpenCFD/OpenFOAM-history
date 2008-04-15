@@ -1,0 +1,71 @@
+#
+# MICO --- a CORBA 2.0 implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and/or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+RELATIVE=..\..
+!include ..\MakeVars.win32
+MICO_HOME = ..\..\win32-bin
+
+
+CXX        = cl.exe
+CXXFLAGS   = $(CXXFLAGS) /nologo /D_DEBUG /DWIN32 /D_AFXDLL /GX /Zi
+LINKFLAGS  = /nologo /debug /subsystem:windows /incremental:no
+RC         = rc.exe
+
+
+
+.rc.RES:
+	$(RC) $<
+
+.idl.cpp:
+	$(IDL) --no-poa --boa --c++-suffix=cpp $<
+
+
+
+CXXFLAGS = $(CXXFLAGS) /I. 
+
+MICOLIBS = $(MICO_HOME)\lib\mico.lib
+# sander  ..\..\orb\static.obj
+
+all: client.exe server.exe
+
+w95-all: all
+
+
+client.exe: client.obj account.obj client.RES
+	$(LINK) $(LINKFLAGS) /out:client.exe client.obj client.RES account.obj \
+        $(LDLIBS)
+
+
+server.exe: server.obj account.obj server.RES
+	$(LINK) $(LINKFLAGS) /out:server.exe server.obj server.RES account.obj \
+        $(LDLIBS)
+
+client.cpp: client.h client-res.h account.cpp
+client.rc: client-res.h
+server.cpp: server.h server-res.h account.cpp
+server.rc: server-res.h
+
+
+clean:
+	-$(RM) /f account.cpp account.h *.exe *.obj *.pdb *.RES 2> nul
+	-$(DELETE)
+

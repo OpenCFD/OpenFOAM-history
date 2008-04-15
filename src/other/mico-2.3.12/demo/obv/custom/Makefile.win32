@@ -1,0 +1,23 @@
+all:  test
+
+RELATIVE=..\..\..
+!include ../../MakeVars.win32
+
+INSTALL_DIR     = obv/custom
+INSTALL_SRCS    = README Makefile test.cc custom.idl custom_impl.cc \
+		  custom_impl.h
+INSTALL_SCRIPTS = custom
+
+test: custom.h custom_impl.h custom.obj test.obj custom_impl.obj $(DEPS)
+	$(LD) $(LDFLAGS) custom.obj test.obj custom_impl.obj $(LDLIBS) /out:test.exe
+
+
+custom.h custom.cc : custom.idl
+	$(IDL) custom.idl
+
+run:
+	custom.bat
+
+clean:
+	-$(RM) /Q custom.cc custom.h
+	-$(DELETE)

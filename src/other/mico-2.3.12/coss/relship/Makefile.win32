@@ -1,0 +1,161 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+RELATIVE = ..\..
+
+!include ..\MakeVars.win32
+LDLIBS    = micocoss$(VERSION).lib mico$(VERSION).lib $(CONFLIBS)
+LDFLAGS  = /LIBPATH:.. /LIBPATH:..\..\win32-bin\lib $(LDFLAGS)
+
+# generated files
+
+OMG_SRCS = CosObjectIdentity.cc CosRelationships.cc CosGraphs.cc \
+  CosContainment.cc CosReference.cc CosGraphsExtension.cc 
+
+IMPL_SRCS = IdentifiableObject_impl.cc Role_impl.cc Relationship_impl.cc \
+  RelationshipIterator_impl.cc TraversalFactory_impl.cc Traversal_impl.cc \
+  TraversalCriteria_impl.cc Node_impl.cc GraphsRole_impl.cc EdgeIterator_impl.cc \
+  CosContainment_impl.cc CosReference_impl.cc \
+  GenericCriteriaFactory_impl.cc
+
+EXT_SRCS = CosGraphsExtension.cc RandomGenerator.cc random.cc
+
+EXT_IMPL_SRCS = GenericCriteriaFactory_impl.cc RandomGenerator_impl.cc
+
+UTIL_SRCS = InterfaceDefsHelper.cc NamedRoleTypesHelper.cc
+
+#DAEMONS_SRCS = traversald.cc noded.cc containmentd.cc referenced.cc randomd.cc \
+#  proxyd.cc
+
+SRCS = $(OMG_SRCS) $(EXT_SRCS) $(IMPL_SRCS) $(EXT_IMPL_SRCS) $(UTIL_SRCS)
+
+STATIC_OBJS = $(SRCS:.cc=.obj)
+SHARED_OBJS = $(SRCS:.cc=.obj)
+
+# normal rules
+
+all: lib prg
+
+lib:  $(SHARED_OBJS)
+prg:  traversald.exe noded.exe containmentd.exe referenced.exe randomd.exe proxyd.exe
+
+install: 
+	$(COPY) traversald.exe ..\..\win32-bin
+	$(COPY) noded.exe ..\..\win32-bin
+	$(COPY) containmentd.exe ..\..\win32-bin
+	$(COPY) referenced.exe ..\..\win32-bin
+	$(COPY) randomd.exe ..\..\win32-bin
+	$(COPY) proxyd.exe ..\..\win32-bin
+
+traversald.exe: traversald.obj
+	$(LINK) $(LDFLAGS) traversald.obj $(LDLIBS) /out:traversald.exe
+
+noded.exe: noded.obj
+	$(LINK) $(LDFLAGS) noded.obj $(LDLIBS) /out:noded.exe
+
+containmentd.exe: containmentd.obj
+	$(LINK) $(LDFLAGS) containmentd.obj $(LDLIBS) /out:containmentd.exe
+
+referenced.exe: referenced.obj
+	$(LINK) $(LDFLAGS) referenced.obj $(LDLIBS) /out:referenced.exe
+
+randomd.exe: randomd.obj
+	$(LINK) $(LDFLAGS) randomd.obj $(LDLIBS) /out:randomd.exe
+
+proxyd.exe: proxyd.obj
+	$(LINK) $(LDFLAGS) proxyd.obj $(LDLIBS) /out:proxyd.exe
+
+CosObjectIdentity.h CosObjectIdentity.cc: \
+		..\..\include\coss\CosObjectIdentity.idl 
+	$(IDL) $(IDLFLAGS) ..\..\include\coss\CosObjectIdentity.idl
+	$(COPY) CosObjectIdentity.h ..\..\include\coss
+
+CosRelationships.h CosRelationships.cc: \
+		..\..\include\coss\CosRelationships.idl
+	$(IDL) $(IDLFLAGS) ..\..\include\coss\CosRelationships.idl
+	$(COPY) CosRelationships.h ..\..\include\coss
+
+CosGraphs.h CosGraphs.cc: \
+		..\..\include\coss\CosGraphs.idl
+	$(IDL) $(IDLFLAGS) --name CosGraphs \
+		..\..\include\coss\CosGraphs.idl
+	$(COPY) CosGraphs.h ..\..\include\coss
+
+CosContainment.h CosContainment.cc: \
+		..\..\include\coss\CosContainment.idl
+	$(IDL) $(IDLFLAGS) --name CosContainment \
+		..\..\include\coss\CosContainment.idl
+	$(COPY) CosContainment.h ..\..\include\coss
+
+CosReference.h CosReference.cc: \
+		..\..\include\coss\CosReference.idl
+	$(IDL) $(IDLFLAGS) --name CosReference \
+		..\..\include\coss\CosReference.idl
+	$(COPY) CosReference.h ..\..\include\coss
+
+CosGraphsExtension.h CosGraphsExtension.cc: \
+		..\..\include\coss\CosGraphsExtension.idl
+	$(IDL) $(IDLFLAGS) --name CosGraphsExtension \
+		..\..\include\coss\CosGraphsExtension.idl
+	$(COPY) CosGraphsExtension.h ..\..\include\coss
+
+RandomGenerator.h RandomGenerator.cc: \
+		..\..\include\coss\RandomGenerator.idl
+	$(IDL) $(IDLFLAGS) --name RandomGenerator \
+		..\..\include\coss\RandomGenerator.idl
+	$(COPY) RandomGenerator.h ..\..\include\coss
+
+random.h random.cc: \
+		..\..\include\coss\random.idl
+	$(IDL) $(IDLFLAGS) --name random \
+		..\..\include\coss\random.idl
+	$(COPY) random.h ..\..\include\coss
+
+
+# cleaning
+
+clean:
+	-$(DELETE)
+	-$(RM) CosObjectIdentity.h
+	-$(RM) CosObjectIdentity.cc
+	-$(RM) ..\..\include\coss\CosObjectIdentity.h
+	-$(RM) CosRelationships.h
+	-$(RM) CosRelationships.cc
+	-$(RM) ..\..\include\coss\CosRelationships.h
+	-$(RM) CosGraphs.h
+	-$(RM) CosGraphs.cc
+	-$(RM) ..\..\include\coss\CosGraphs.h
+	-$(RM) CosContainment.h
+	-$(RM) CosContainment.cc
+	-$(RM) ..\..\include\coss\CosContainment.h
+	-$(RM) CosReference.h
+	-$(RM) CosReference.cc
+	-$(RM) ..\..\include\coss\CosReference.h
+	-$(RM) CosGraphsExtension.h
+	-$(RM) CosGraphsExtension.cc
+	-$(RM) ..\..\include\coss\CosGraphsExtension.h
+	-$(RM) RandomGenerator.h
+	-$(RM) RandomGenerator.cc
+	-$(RM) ..\..\include\coss\RandomGenerator.h
+	-$(RM) random.h
+	-$(RM) random.cc
+	-$(RM) ..\..\include\coss\random.h
+

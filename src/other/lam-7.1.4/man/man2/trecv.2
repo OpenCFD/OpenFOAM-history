@@ -1,0 +1,69 @@
+.TH TSEND 2 "July, 2007" "LAM 7.1.4" "LAM NETWORK LIBRARY"
+.SH NAME
+tsend, trecv  \- Send and receive LAM transport messages.
+.SH C SYNOPSIS
+.nf
+#include <net.h>
+
+int tsend (struct nmsg *header);
+int trecv (struct nmsg *header);
+.fi
+.SH FORTRAN SYNOPSIS
+.hy 0
+.HP
+subroutine TSND (nnode, nevent, ntype, nlength, nflags, ndata, ndsize, 
+nmsg, ierror)
+.HP
+subroutine TRCV (nevent, ntype, nlength, nflags, ndata, ndsize, 
+nmsg, ierror)
+.HP
+integer nnode, nevent, ntype, nlength, nflags, ndata(*), ndsize, 
+nmsg(*), ierror
+.hy 1
+.SH DESCRIPTION
+These transport message-passing routines add flow control to the
+network routines, nsend(2) and nrecv(2),
+and enable multiple processes to send multi-packet messages to a
+receiver using the same event and type while maintaining the atomicity of
+the messages.
+The sending process sends a "ready-to-send" message to the receiver
+and blocks until the receiving process signals that it is ready.
+The receiver returns to the sender a new event, its process ID negated, to
+be used in the transfer of the body of the message.
+The introduction of the second event allows multi-packet messages, using the
+same event and destined to the same node, to be received with no mixing up
+of packets.
+The transport routines are also typically used while developing and
+debugging applications.
+Naturally, they have higher overhead than their network counterparts.
+.PP
+The transport routines overcome the basic danger
+of LAM network message-passing - the lack of strong
+synchronization.
+A sending process can transmit a message that may never be received
+due to programming error or deadlock.
+This message will never be dropped or timed out.
+Some LAM process will always be stuck with it, waiting for a synchronizing
+drecv(2) or nrecv(2) that will never happen.
+If that unfortunate process is a buffer, it can be located by the user
+and swept clean (see sweep(1)).
+However, if the process is a link proprietor, the link is henceforth plugged
+and useless.
+.PP
+The transport routines solve this problem by causing the sending
+process to block until it receives a "ready-to-receive" protocol
+message from the receiving process.
+If due to a programming error there is no receiving process at the other
+end, the "ready-to-send" message is guaranteed not to plug a link proprietor.
+The second advantage in this case is that the sender is stopped from
+flooding the system with messages that no receiver will consume.
+After the pre-synchronizing exchange, the network routines
+are invoked and the message is transmitted.
+.PP
+Use of the network message structure passed to
+.I tsend()
+and
+.I trecv()
+is the same as described under nsend(2).
+.SH SEE ALSO
+dsend(2), nsend(2)

@@ -1,0 +1,3 @@
+#!/bin/sh
+ADDR=unix:/tmp/mico-pipe
+./server -ORBIIOPAddr $ADDR $@ > ref 

@@ -1,0 +1,151 @@
+.TH MPITASK 1 "July, 2007" "LAM 7.1.4" "LAM COMMANDS"
+.SH NAME
+mpitask \- Monitor MPI processes under LAM.
+.SH SYNOPSIS
+.hy 0
+.HP
+mpitask [-cdh] [-gps] [nodes] [processes]
+.hy 1
+.SH OPTIONS
+.TP 8
+.B \-c
+Print communicator descriptions.
+See "Communicators".
+.TP
+.B \-d
+Print datatype descriptions.
+See "Datatypes".
+.TP
+.B \-gps
+Print process information in GPS format.
+.TP
+.B \-h
+Print useful information on this command.
+.PP
+The \-c and \-d options are mutually exclusive.
+.SH DESCRIPTION
+The
+.I mpitask
+command displays information on processes which are using MPI.  One
+line is printed for each reported MPI process.  With no processes or
+nodes explicitly specified on the command line, all MPI processes on
+all nodes are reported.
+.PP
+% mpitask
+.TS
+l l l l l l l l.
+TASK (G/L)	FUNCTION	PEER|ROOT	TAG	COMM	COUNT	DATATYPE
+0/0 trivial	Ssend	1/1	123	WORLD	64	INT
+1/1 trivial	Recv	0/0	456	WORLD	64	INT
+.TE
+.PP
+For each process
+.I mpitask
+normally prints the following information:
+.TP 10
+TASK
+an identification of the process - If the process is currently
+communicating, a `/' followed by the process's rank within the
+current communicator is also displayed.
+The executable name, if available, is also displayed.
+See "MPI Process Identification".
+.TP
+FUNCTION
+an abbreviated form of the function name if the process is blocked inside 
+an MPI function -
+Otherwise one of the following execution states is printed:
+.RS
+.TP 10
+running
+free to run on the underlying OS
+.TP
+paused
+blocked on lam_kpause(2)
+.TP
+stopped
+stopped by the LAM signal, LAM_SIGARREST - See doom(1).
+.TP
+blocked
+blocked in a LAM function -
+In general this should be a transitory state.
+Further information on a LAM process's state can be obtained with state(1).
+.RE
+.TP
+PEER|ROOT 
+the source or destination of a point-to-point communication or
+the root process of certain collective communications,
+followed by a '/' and the process's rank within the
+current communicator -
+.TP
+TAG
+the message tag, if any, which was specified as a parameter to the
+current MPI function
+.TP
+COMM
+the communicator ID, if any, 
+which was specified as a parameter to the current MPI function -
+Communicators used in collective calls are displayed with a * suffix.
+Further information on the communicator may be obtained with the \-c option.
+.TP
+COUNT
+the element count, if any, which was specified as a parameter to the
+current MPI function
+.TP
+DATATYPE
+the element datatype, if any, which was specified as a parameter to the
+current MPI function -
+For intrinsic datatypes, a shortened version of the 
+datatype name is displayed.
+For derived datatypes, a datatype label is displayed.
+Further information on the datatype may be obtained with the \-d option.
+.SS MPI Process Identification
+By default, MPI processes are identified by their rank in
+MPI_COMM_WORLD. 
+We refer to this rank more concisely as the "global" rank (G).
+The rank within the currently employed communicator is referred to
+as the "local" rank (L).
+.PP
+Since processes may be dynamically spawned (see MPIL_Spawn(2)) and
+since multiple concurrent MPI applications are allowed, it is possible
+for multiple MPI_COMM_WORLD communicators to coexist.  
+In these situations, the global rank is no longer globally
+unique and the identification is ambiguous.
+Thus, LAM provides an alternate way of identifying MPI processes, the
+GPS (Global Positioning System).  
+A process's GPS consists of the nodeid the process is running on
+and the process's LAM index on that node.  
+It is displayed in
+.I mpitask
+as the pair nnode,iindex.
+If the \-gps option is given then the GPS is substituted for the global rank (G).
+.SS Communicators
+If the \-c option is given then information is no longer displayed in the 
+horizontal format described above.
+Instead for each selected process currently using a communicator,
+the information from the TASK column, described above, is given followed by an
+expanded description of the communicator.
+This description includes the size of the communicator group(s) and the
+global identifiers of all members of the group(s).
+.SS Datatypes
+If the \-d option is given then information is no longer displayed in the 
+horizontal format described above.
+Instead for each selected process currently using a communicator,
+the information from the TASK column, described above, is given followed by
+the datatype's type map.
+.SH EXAMPLES
+.TP 4
+mpitask
+Display the status of all MPI processes on all nodes.
+.TP
+mpitask -c n0 i9
+Display the communicator (if any) of process index 9 on node 0.
+.SH DIAGNOSTICS
+If no MPI processes are found, only the title line is displayed.
+.SH BUGS
+Sometimes processes may be shown as blocked inside a non-blocking MPI function.
+This occurs when the process is blocked inside the MPI
+function on some internal LAM event.
+Such states are highly transitory.
+.SH SEE ALSO
+doom(1), libmpi(3), mpirun(1), mpimsg(1), state(1), MPIL_Comm_id(2),
+MPIL_Type_id(2)

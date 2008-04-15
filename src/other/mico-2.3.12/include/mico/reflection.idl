@@ -1,0 +1,10 @@
+#pragma prefix "omg.org"
+
+module Reflection {
+  exception FormatNotSupported {};
+
+  interface IFRProvider {
+    any omg_get_ifr_metadata () raises (FormatNotSupported);
+    string omg_get_xml_metadata () raises (FormatNotSupported);
+  };
+};

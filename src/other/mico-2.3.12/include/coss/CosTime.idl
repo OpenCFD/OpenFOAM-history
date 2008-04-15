@@ -1,0 +1,82 @@
+//
+//This idl file was generated on base of the OMG TimeBase and CosTime files
+//
+//The interface UTO and TIO have one additional operation: destroy.
+//They are not covered by the OMG Spec
+//
+// zerbst@tu-harburg.de
+
+#include <mico/timebase.idl>
+
+#pragma prefix "omg.org"
+
+module CosTime {
+
+  enum TimeComparison {
+    TCEqualTo,
+    TCLessThan,
+    TCGreaterThan,
+    TCIndeterminate
+  };
+
+  enum ComparisonType {
+    IntervalC,
+    MidC
+  };
+
+  enum OverlapType {
+    OTContainer,
+    OTContained,
+    OTOverlap,
+    OTNoOverlap
+  };
+
+  exception TimeUnavailable {
+  };
+
+  interface UTO;
+
+  interface TIO;
+
+  interface UTO
+  {
+    readonly attribute TimeBase::TimeT time;
+    readonly attribute TimeBase::InaccuracyT inaccuracy;
+    readonly attribute TimeBase::TdfT tdf;
+    readonly attribute TimeBase::UtcT utc_time;
+    CosTime::UTO absolute_time();
+    CosTime::TimeComparison compare_time( in CosTime::ComparisonType comparison_type, in CosTime::UTO uto );
+    CosTime::TIO time_to_interval( in CosTime::UTO uto );
+    CosTime::TIO interval();
+    //!!
+    //added, not in OMG spec !!
+    //!!
+    void destroy();
+  };
+
+  interface TIO
+  {
+    readonly attribute TimeBase::IntervalT time_interval;
+    CosTime::OverlapType spans( in CosTime::UTO time, out CosTime::TIO overlap );
+    CosTime::OverlapType overlaps( in CosTime::TIO interval, out CosTime::TIO overlap );
+    CosTime::UTO time();
+    //!!
+    //added, not in OMG spec !!
+    //!!
+    void destroy();
+  };
+
+  interface TimeService
+  {
+    CosTime::UTO universal_time()
+      raises( ::CosTime::TimeUnavailable );
+    CosTime::UTO secure_universal_time()
+      raises( ::CosTime::TimeUnavailable );
+    CosTime::UTO new_universal_time( in TimeBase::TimeT time, in TimeBase::InaccuracyT inaccuracy, in TimeBase::TdfT tdf );
+    CosTime::UTO uto_from_utc( in TimeBase::UtcT utc );
+    CosTime::TIO new_interval( in TimeBase::TimeT lower, in TimeBase::TimeT upper );
+  };
+
+};
+
+

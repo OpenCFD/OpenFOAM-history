@@ -1,0 +1,75 @@
+<HTML>
+<HEAD>
+<TITLE>MICO -- Dynamic Invocation Interface Demo</TITLE>
+<!-- Changed by: Arno Puder, 22-Feb-1998 -->
+</HEAD>
+<BODY BACKGROUND="micobg.gif">
+<A NAME=TOC></A>
+<P>
+<CENTER>
+  <TABLE BORDER=5>
+    <TR><TD><IMG SRC="mico.gif">
+  </TABLE>
+</CENTER>
+<P>
+<HR SIZE=4>
+<P>
+
+<H1>Dynamic Invocation Interface Demo</H1>
+
+
+<P>
+
+<b>
+WARNING: Current java implementations are still bug-prone. This applet works
+flawlessly with the java classes and interpreter from the
+<a href="http://java.sun.com/">Java Developers Kit (JDK) 1.1.5</a>.
+</b>
+
+<P>
+<HR SIZE=4>
+<P>
+
+<CENTER>
+ <TABLE BORDER=3>
+  <TR><TD><applet code=DII.class width=300 height=50>
+  <blockquote>
+  <hr>
+  <em>Your browser doesn't understand the &lt;APPLET&gt; tag.</em>
+  <p>
+  <hr>
+  </blockquote>
+  </applet>
+ </TABLE>
+</CENTER>
+<p><hr size=4><p>
+
+To get started, you might want to try the following (assuming that you
+fed the interface repository with account.idl):
+
+<OL>
+  <LI>click with the left mouse button on the <EM>Account</EM> icon
+  <LI>click with the right mouse button on the <EM>Account</EM> icon
+  <LI>click on the <EM>deposit</EM> icon with the right mouse button
+      to invoke the <TT>deposit()</TT> method
+  <LI>click on the <TT>ULONG:0</TT> node while holding down the shift key,
+      enter 100 into the appearing entry box and press return
+  <LI>use <EM>Server/Invoke</EM> to do the actual invocation
+  <LI>click on the <EM>withdraw</EM> icon with the right mouse button
+      in the browser window to invoke the <TT>withdraw()</TT> method
+  <LI>click on the <TT>ULONG:0</TT> node while holding down the shift key,
+      enter 20 into the appearing entry box and press return
+  <LI>use <EM>Server/Invoke</EM> to do the actual invocation
+  <LI>click on the <EM>withdraw</EM> icon with the right mouse button
+      in the browser window to invoke the <TT>withdraw()</TT> method
+  <LI>use <EM>Server/Invoke</EM> to do the actual invocation
+  <LI>the rightmost node of the graph should change to
+       <TT>LONG:80</TT>
+</OL>
+
+Enjoy!
+
+<HR>
+
+</BODY>
+</HTML>

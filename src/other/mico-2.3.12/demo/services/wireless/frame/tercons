@@ -1,0 +1,1 @@
+exec ./consumer TerminalChannel -ORBConfFile ./micorc

@@ -1,0 +1,42 @@
+-1------------------------------------
+
+Interface: calc
+Operation: add
+Param #1 x
+Param #2 y
+Param #3 z
+Operation: sub
+Param #1 x
+Param #2 y
+Param #3 z
+
+Interface: simple_calc
+
+-2------------------------------------
+
+Interface: calc
+Operation: sub
+Param #1 x
+Param #2 y
+Param #3 z
+
+Interface: simple_calc
+Operation: add
+Param #1 x
+Param #2 y
+Param #3 z
+
+-3------------------------------------
+
+Interface: calc
+
+Interface: simple_calc
+Operation: add
+Param #1 x
+Param #2 y
+Param #3 z
+
+-4------------------------------------
+
+Interface: calc
+

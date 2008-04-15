@@ -1,0 +1,8 @@
+#AUTOMATICALLY GENERATED FILE. DO NOT MODIFY
+#Library files were installed in win32-bin and win32-bin\lib.
+#
+HAVE_PTHREADS = 1
+HAVE_THREADS = 1
+#
+#Exception model
+HAVE_PTHREADS_VC = 1

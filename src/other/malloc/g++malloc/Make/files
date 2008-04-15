@@ -1,0 +1,3 @@
+g++malloc.c
+
+LIB = $(FOAM_LIBBIN)/libg++malloc

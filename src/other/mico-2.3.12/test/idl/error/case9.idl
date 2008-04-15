@@ -1,0 +1,9 @@
+
+/*
+ * Duplicate member in struct.
+ */
+
+struct S {
+  long a;
+  char a;
+};

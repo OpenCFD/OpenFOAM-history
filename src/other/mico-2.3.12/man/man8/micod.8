@@ -1,0 +1,75 @@
+.\"
+.\" MICO --- a CORBA 2.0 implementation
+.\" Copyright (C) 1997 Kay Roemer & Arno Puder
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Send comments and/or bug reports to:
+.\"                mico@informatik.uni-frankfurt.de
+.\"
+.TH MICOD 8 "April 8 1997"
+.SH NAME
+micod \- MICO object adapter daemon
+.SH SYNOPSIS
+.BR "micod [options]"
+.br
+.SH DESCRIPTION
+The object adapter daemon
+.BR micod
+is the part of an object adapter that activates object implementations
+when their service is requested. Moreover
+.BR micod
+contains the implementation repository. To make all MICO applications use a
+single implementation repository you have to tell
+.BR micod
+an address to bind to using the
+.BR -ORBIIOPAddr
+option and tell all MICO
+applications this address by using the
+.BR -ORBImplRepoAddr
+option.
+.SH OPTIONS
+.TP
+.BR "--help"
+Gives an overview of all supported command line options.
+.TP
+.BR --forward
+This option instructs micod to make use of GIOP location forwarding, which
+results in much better performance (there is nearly no overhead compared
+to not using micod at all). Unfortunately this requires some client side
+GIOP features that some ORBs do not support properly although prescribed
+in the CORBA specification. Therefore you may encounter problems when
+using clients implemented using such broken ORBs. That is why this feature
+is off by default.
+.TP
+.BR --db=<database-file>
+Specifies the file name where
+.BR micod
+should save the contents of the implementation repository when exiting.  When
+.BR micod
+is restarted afterwards it will read the file given
+by the
+.BR --db
+option to restore the contents of the implementation
+repository.
+.SH FILES
+~/.micorc
+.SH "SEE ALSO"
+.IR "MICO Reference Manual" ", " rsh(1) ", " micod(8) ", " imr(1) ", "
+.IR micorc(5) ", " idl(1)
+.SH COPYRIGHT
+Copyright (C) 1997, Kay Roemer & Arno Puder
+.SH AUTHOR
+Kay Roemer & Arno Puder

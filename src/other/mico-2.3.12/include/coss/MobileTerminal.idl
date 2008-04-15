@@ -1,0 +1,229 @@
+//File: MobileTerminal.idl
+
+#ifndef _MOBILE_TERMINAL_IDL_
+#define _MOBILE_TERMINAL_IDL_
+
+#include <mico/ioptypes.idl>
+#pragma prefix "omg.org"
+
+module MobileTerminal {
+
+    interface HomeLocationAgent;
+    interface AccessBridge;
+
+    typedef sequence<octet> TerminalId;
+    typedef sequence<octet> GIOPEncapsulation;
+    typedef sequence<octet> GTPEncapsulation;
+
+    struct Version {
+	octet	major;
+	octet	minor;
+    };
+
+    struct ProfileBody {
+	Version				mior_version;
+	octet				reserved;
+	TerminalId			terminal_id;
+	sequence<octet>			terminal_object_key;
+	sequence<IOP::TaggedComponent>	components;
+    };
+
+    struct HomeLocationInfo {
+	HomeLocationAgent	agent;
+    };
+
+    struct MobileObjectKey {
+	Version		mior_version;
+	octet		reserved;
+	TerminalId     	terminal_id;
+	sequence<octet>	terminal_object_key;
+    };
+
+    enum HandoffStatus {
+	HANDOFF_SUCCESS,
+	HANDOFF_FAILURE,
+	NO_MAKE_BEFORE_BREAK
+    };
+
+    const octet TCP_TUNNELING = 0;
+    const octet UDP_TUNNELING = 1;
+    const octet WAP_TUNNELING = 2;
+    const octet L2CAP_TUNNELING = 3;
+
+    struct GTPInfo {
+	Version	gtp_version;
+	octet  	protocol_level;
+	octet  	protocol_id;	// values 0xE0...0xFF are reserved for internal use
+    };
+
+    struct AccessBridgeTransportAddress {
+	GTPInfo		tunneling_protocol;
+	sequence<octet>	transport_address;
+    };
+
+    typedef sequence<AccessBridgeTransportAddress> AccessBridgeTransportAddressList;
+    typedef string ObjectId; // same as CORBA::ORB::ObjectId
+    typedef sequence<ObjectId> ObjectIdList; // same as CORBA::ORB::ObjectIdList
+
+    exception IllegalTargetBridge {};
+    exception TerminalNotHere {};
+    exception UnknownTerminalId {};
+    exception UnknownTerminalLocation {};
+    exception InvalidName{}; // same as CORBA::ORB::InvalidName
+
+    interface HomeLocationAgent {
+
+	void update_location (
+	    in	TerminalId		terminal_id,
+	    in	AccessBridge	new_access_bridge
+	) raises (UnknownTerminalId, IllegalTargetBridge);
+
+	void query_location (
+	    in	TerminalId		terminal_id,
+	    out	AccessBridge	current_access_bridge
+	) raises (UnknownTerminalId, UnknownTerminalLocation);
+
+	boolean deregister_terminal (
+	    in	TerminalId		terminal_id,
+	    in	AccessBridge	old_access_bridge
+	) raises (UnknownTerminalId);
+
+	ObjectIdList list_initial_services ();
+
+	Object resolve_initial_references (
+	    in	ObjectId	identifier
+	) raises (InvalidName);
+
+    };
+
+    interface HandoffCallback {
+
+	void report_handoff_status (
+	    in	HandoffStatus	status
+	);
+
+    };
+
+    interface AccessBridge {
+
+	ObjectIdList list_initial_services ();
+
+	Object resolve_initial_references (
+	    in	ObjectId	identifier
+	) raises (InvalidName);
+
+	boolean terminal_attached (
+	    in	TerminalId	terminal_id
+	);
+
+	// miwco-extension
+	HomeLocationAgent home_location_agent (
+	    in TerminalId  terminal_id
+	) raises (UnknownTerminalId);
+
+	void get_address_info (
+	    out	AccessBridgeTransportAddressList	transport_address_list
+	);
+
+	void start_handoff (
+	    in	TerminalId		terminal_id,
+	    in	AccessBridge	new_access_bridge,
+	    in	HandoffCallback	handoff_callback_target
+	);
+
+	void transport_address_request (
+	    in	TerminalId			 terminal_id,
+	    out	AccessBridgeTransportAddressList new_access_bridge_addresses,
+	    out	boolean				 terminal_accepted
+	);
+
+	void handoff_completed (
+	    in	TerminalId	terminal_id,
+	    in	HandoffStatus	status
+	);
+
+	void handoff_in_progress (
+	    in	TerminalId		terminal_id,
+	    in	AccessBridge	new_access_bridge
+	);
+
+	void recovery_request (
+	    in	TerminalId		terminal_id,
+	    in	AccessBridge	new_access_bridge,
+	    in	unsigned short	highest_gtp_seqno_received_at_terminal,
+	    out	unsigned short	highest_gtp_seqno_received_at_access_bridge
+	) raises (UnknownTerminalId);
+
+	void gtp_to_terminal (
+	    in	TerminalId		terminal_id,
+	    in	AccessBridge	old_access_bridge,
+	    in	unsigned long	gtp_message_id,
+	    in	GTPEncapsulation	gtp_message
+	) raises (TerminalNotHere);
+
+	void gtp_from_terminal (
+	    in	TerminalId		terminal_id,
+	    in	unsigned long	gtp_message_id,
+	    in	GTPEncapsulation	gtp_message
+	) raises (UnknownTerminalId);
+
+	/*
+	 * The status argument should actually be GTP::ForwardStatus.
+	 * This would cause a circular dependency though, and so is
+	 * left as an unsigned long.
+	 */
+	void gtp_acknowledge (
+	    in	unsigned long		gtp_message_id,
+	    in	unsigned long		status
+	);
+
+	void handoff_notice (
+	    in	TerminalId	terminal_id,
+	    in	AccessBridge	new_access_bridge
+	);
+
+	void subscribe_handoff_notice (
+	    in	TerminalId		terminal_id,
+	    in	AccessBridge	interested_access_bridge
+	) raises (TerminalNotHere);
+
+	// miwco-extension
+	Object mobility_channel_reference ();
+
+    };
+
+    // miwco-extension
+    interface TerminalBridge {
+
+	ObjectIdList list_initial_services ();
+
+	Object resolve_initial_references (
+	    in ObjectId  identifier
+	) raises (InvalidName);
+
+	typedef sequence<octet>  IORProfile;
+
+	exception  AddressNotAvailable {};
+
+	string register_profile (
+	    in unsigned long  tag,
+	    in IORProfile     profile
+	) raises (AddressNotAvailable);
+
+	void connect (
+	    in string  address
+	);
+
+	void release (
+	    in boolean  notify_ab
+	);
+
+	void do_handoff (
+	    in string  address
+	);
+
+    };
+
+};
+
+#endif

@@ -1,0 +1,23 @@
+#include "java/lang/StackTraceElement.idl"
+
+#ifndef __org_omg_boxedRMI_java_lang_seq1_StackTraceElement__
+#define __org_omg_boxedRMI_java_lang_seq1_StackTraceElement__
+
+module org {
+module omg {
+module boxedRMI {
+module java {
+module lang {
+
+    valuetype seq1_StackTraceElement sequence<::java::lang::StackTraceElement>;
+
+#pragma ID seq1_StackTraceElement "RMI:[Ljava.lang.StackTraceElement;:CD38F9930EA8AAEC:6109C59A2636DD85"
+
+};
+};
+};
+};
+};
+
+#endif
+

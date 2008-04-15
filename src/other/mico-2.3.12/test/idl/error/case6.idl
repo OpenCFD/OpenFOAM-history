@@ -1,0 +1,9 @@
+
+/*
+ * Union with mismatching discriminator types.
+ */
+
+union U switch(char)
+{
+  case TRUE: long x;
+};

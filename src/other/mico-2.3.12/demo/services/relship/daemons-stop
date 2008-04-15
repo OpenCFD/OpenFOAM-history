@@ -1,0 +1,3 @@
+kill -15 `cat ird.pid`
+#kill -15 `cat nsd.pid`
+

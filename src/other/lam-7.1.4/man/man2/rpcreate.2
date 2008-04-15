@@ -1,0 +1,42 @@
+.TH RPCREATE 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rpcreate \- Create a LAM process on a remote node.
+.SH SYNOPSIS
+#include <kio.h>
+.HP
+int rpcreate(int node, char *filename, int flags, char **argv, int *pid,
+int *idx);
+.SH ARGUMENTS
+.TP 12
+node
+where new process will be created
+.TP
+filename
+program file
+.TP
+flags
+runtime flags passed to new process - See rploadgo(2).
+.TP
+argv
+null-terminated array of strings to be passed as command-line
+arguments to the new process
+.TP
+pid
+new process identifier (output)
+.TP
+idx
+new process index (output)
+.SH DESCRIPTION
+The executable program must already be in the filesystem of the
+target node.
+It is located by searching the directories defined in the PATH
+environment variable of the target node.
+.SH ERRORS
+.TP 20
+ENOPDESCRIPTORS
+The remote process descriptor table is full.
+.TP
+ENOFLDESCRIPTORS
+The table of strorage blocks (kept by the flat daemon) is full.
+.SH SEE ALSO
+rploadgo(2), rpgo(2), rpwait(2)

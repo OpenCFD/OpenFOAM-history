@@ -1,0 +1,21 @@
+
+#include <mico/CCM.idl>
+#include "message.idl"
+
+interface ProducerAdmin {
+  attribute Message myMessage;
+  void run (in unsigned long count);
+};
+
+component Producer supports ProducerAdmin {
+  publishes Message msg;
+};
+
+home ProducerHome manages Producer {};
+
+local interface MyProducer :
+  CCM_Producer,
+  Components::SessionComponent
+{
+};
+

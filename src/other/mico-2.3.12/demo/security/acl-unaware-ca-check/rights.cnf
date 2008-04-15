@@ -1,0 +1,11 @@
+# Access Rights configuration file
+
+# Manager
+
+[/CN=Account Manager/emailAddress=manager@objectsecurity.com]AccessId:corba:m
+
+
+# Owner and wife
+
+[/CN=Karel Gardas/emailAddress=kgardas@objectsecurity.com]AccessId:corba:u
+[/CN=Olga Gardasova/emailAddress=ogardasova@grpr.inext.cz]AccessId:corba:u

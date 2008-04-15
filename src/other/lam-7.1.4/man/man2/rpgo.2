@@ -1,0 +1,59 @@
+.TH RPGO 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rpgo \- Create a LAM process on a remote node from tagged storage.
+.SH SYNOPSIS
+#include <kio.h>
+.HP
+int rpgo(int node, int loadtag, int flags, int argvtag, int *pid, int *idx);
+.SH ARGUMENTS
+.TP 12
+node
+where new process will be created
+.TP
+loadtag
+storage tag for program file
+.TP
+flags
+runtime flags passed to new process
+.TP
+argvtag
+storage tag for null-terminated array of strings to be passed as
+command-line arguments to the new process
+.TP
+pid
+new process identifier (output)
+.TP
+idx
+new process index (output)
+.SH DESCRIPTION
+The executable program and the argument structure must already be
+loaded on the target node via the "flat storage" service.
+The program is typically loaded from a file with rload(2).
+The argument structure is assumed to be packed contiguously:  the null
+terminated array of string pointers
+followed immediately by the strings themselves.
+It is typically loaded to the target node with rflat(2).
+The storage tags,
+.I loadtag
+and
+.IR argvtag ,
+are erased from the target node after the call to
+.IR rpgo() .
+.PP
+See rploadgo(2) for valid process runtime flags.
+.SH ERRORS
+.TP 20
+EBADTAG
+Either or both of
+.I loadtag
+and
+.I argvtag
+are invalid.
+.TP
+ENOPDESCRIPTORS
+The remote process descriptor table is full.
+.TP
+ENOFLDESCRIPTORS
+The table of strorage blocks (kept by the flat daemon) is full.
+.SH SEE ALSO
+rflat(2), rload(2), rploadgo(2), rpwait(2)

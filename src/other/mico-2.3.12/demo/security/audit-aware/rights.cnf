@@ -1,0 +1,11 @@
+# Access Rights configuration file
+
+# Manager
+
+[/C=UK/ST=State/L=Cambridge/O=ObjectSecurity Ltd./OU=Section/CN=Manager/emailAddress=manager@ObjectSecurity.com]AccessId:corba:m
+
+
+# Owner and wife
+
+[room]GroupId:corba:u
+

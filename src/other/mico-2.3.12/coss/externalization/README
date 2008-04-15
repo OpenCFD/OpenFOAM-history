@@ -1,0 +1,48 @@
+This is implementation of COSS Externalization Service for MICO
+based of Trading Service.
+
+For more information about this service see 
+ftp://www.omg.org/pub/docs/formal/97-12-16.ps
+
+for run demo type in directory $MICODIR/doc/examples/services/externalization:
+	
+	make
+	./rundemo
+	
+	
+and for programmers information on how you can use this please 
+look at simple-test.cc in same directory.
+
+
+Daemons
+-------
+
+streamd
+-------
+
+This server start StreamFactory and FileStreamFactory. Both of this produce
+CosExternalization::Stream object. Both of this servers may export themself to
+Trading Service.
+
+
+extnoded
+---------
+
+This server start NodeFactory which produce CompoundExternalization::Node
+object. It may export itself to Trading Service.
+
+
+extcontainmentd and extreferenced.
+----------------------------
+
+On these servers run object implementation for third level 
+of the Externalization Service. Both of this servers may export themself to Trading
+Service.
+
+
+extcritariad.
+--------------
+
+This server start PropagationCriteriaFactory which produce Traversal Criteria
+object for externalize graph of Streamable object.
+

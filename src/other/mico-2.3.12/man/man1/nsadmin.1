@@ -1,0 +1,86 @@
+.\"
+.\" MICO --- a CORBA 2.0 implementation
+.\" Copyright (C) 1997 Kay Roemer & Arno Puder
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Send comments and/or bug reports to:
+.\"                mico@informatik.uni-frankfurt.de
+.\"
+.TH NSADMIN 1 "April 8 1997"
+.SH NAME
+nsadmin \- MICO naming service administration tool
+.SH SYNOPSIS
+.BR nsadmin
+.BR "[command ...]"
+.br
+.SH DESCRIPTION
+.BR nsadmin
+provides a user interface to the COS naming service. If invoked
+with no command line options (except ORB specific ones, such as
+.BR -ORBNamingAddr )
+it will enter interactive mode, show a prompt and wait for user input.
+Otherwise the command line arguments are evaluated as a command. Below
+is a short description of the supported commands. Context or binding names
+follow the syntax of Unix file names: slashes are used to separate
+context names; names starting with a slash are relative to the root,
+everything else is relative to the current context; .. stands for the
+parent context.
+.SH OPTIONS
+.TP
+.BR "help"
+Gives an overview of all supported commands.
+.TP
+.BR "pwd"
+Prints the path of the current naming context.
+.TP
+.BR "ls <binding-or-context>"
+If
+.BR "<binding-or-context>"
+is a binding this will show the associated stringified IOR. If 
+.BR "<binding-or-context>"
+is a context then this will show the contents of it.
+If 
+.BR "<binding-or-context>"
+is omitted the contents of the current naming context are shown.
+.TP
+.BR "cd <context>"
+Make
+.BR "<context>"
+the current naming context.
+.TP
+.BR "mkdir <context>"
+Create a new context.
+.TP
+.BR "bind <binding> <stringified-IOR>"
+Bind
+.BR "<binding>" " to " "<stringified-IOR>" .
+.TP
+.BR "rm <binding-or-context>"
+Delete the given binding or context. If the specified argument is a
+context then all its subcontexts will be removed, too.
+.TP
+.BR "exit"
+Quit
+.BR nsadmin .
+.SH FILES
+~/.micorc
+.SH "SEE ALSO"
+.IR "MICO Reference Manual" ", " rsh(1) ", " micod(8) ", " imr(1) ", "
+.IR ird(8) ", " micorc(5) ", " idl(1) ", " nsd(8)
+.SH COPYRIGHT
+Copyright (C) 1997, Kai-Uwe Sattler
+.SH AUTHOR
+Kai-Uwe Sattler

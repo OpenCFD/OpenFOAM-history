@@ -1,0 +1,155 @@
+.TH MPIMSG 1 "July, 2007" "LAM 7.1.4" "LAM COMMANDS"
+.SH NAME
+mpimsg \- Monitor MPI message buffers under LAM.
+.SH SYNOPSIS
+.hy 0
+.HP
+.na
+mpimsg [-gps] [-h] [-O] [-c seq] [-d seq] [-m seq] [-e #] [-B #] 
+[nodes] [processes]
+.hy 1
+.ad b
+.SH OPTIONS
+.TP 15
+.B \-gps
+Print process information in GPS format.
+.TP
+.B \-h
+Print useful information on this command.
+.TP
+.B \-O
+Multicomputer is homogeneous. 
+Do no data conversion.
+See mpirun(1).
+.TP
+.B \-c seq
+Print a description of the communicator used in message seq.
+See mpitask(1).
+.TP
+.B \-d seq
+Print a description of the datatype used in message seq.
+See mpitask(1).
+.TP
+.B \-e nn
+Limit printing the contents of a message to # elements.
+.TP
+.B \-m seq
+Print the contents of message seq.
+See "Message Contents".
+.TP
+.B \-B nn
+Change the limit on the number of messages reported.
+.PP
+The \-c, \-d and \-m options are mutually exclusive.
+.SH DESCRIPTION
+The
+.I mpimsg
+command displays information on buffered messages which were sent
+using the MPI library and are currently buffered on the
+specified nodes and destined to the specified processes.  
+.I mpimsg
+typically only works when the "daemon" mode of communication is used;
+it cannot be used to monitor "client to client" (C2C) communications.
+.PP
+With no processes or nodes explicitly specified on the command
+line, all MPI messages on all nodes are reported.
+.PP
+% mpimsg
+.TS
+l l l l l l l l l.
+SRC (G/L)	DEST (G/L)	TAG	COMM	COUNT	DATATYPE	MSG
+0/0	1/1	123	WORLD	64	INT	n1,#0
+.TE
+.PP
+For each message
+.I mpimsg
+outputs the following information:
+.TP 15
+SRC 
+an identification of the source process -
+A `/' followed by the process's rank within the
+message's communicator is also displayed.
+See mpitask(1) for a discussion of process identification.
+.TP
+DEST
+an identification of the destination process
+.TP
+TAG
+the tag from the message envelope
+.TP
+COMM
+the communicator identifier
+.TP
+COUNT
+the number of data elements in the message
+.TP
+DATATYPE
+the element datatype
+.TP
+MSG
+the message identifier -
+It is expressed in the form nnodeid,#seqnum, where nodeid is
+the physical location of the buffered message and seqnum is a
+sequence number assigned to the message by LAM.
+These values are used to get further information on the communicator,
+datatype or message contents.
+.PP
+More detailed information on the message's communicator or datatype
+can be obtained with the \-c or \-d options.
+The information is the same as obtained by mpitask(1) regarding processes.
+Unlike mpitask(1), these options in
+.I mpimsg
+require a message identifier to isolate a single message.
+Keep in mind that
+.I mpimsg
+invocations are snapshots of system status.
+It is possible that a buffered message shown in a call of
+.I mpimsg
+may be received prior to a subsequent call to 
+.I mpimsg
+made in order to display further information.
+In this case nothing is printed.
+.SS Message Contents
+If the \-m option is given then the contents of the specified message are
+displayed.
+.PP
+First the destination process identification and the message identification
+is printed and then the message contents are printed in a format somewhat
+similar to that produced by the UNIX utility od(1).
+On the left hand side of each line the offset from the beginning of the
+data buffer is printed in hexadecimal.  
+After that individual elements are printed according to
+their type as deduced from the type signature.
+Holes in the datatype and changes in basic type force newlines in the output 
+so in effect all elements on the same line of output are actually 
+contiguous in the buffer and of the same basic type.
+.PP
+The amount of a message that is to be printed can be limited with the \-e
+option.
+The limit is specified in terms of a maximum number of elements
+of a basic datatype that are to be printed.
+For example if a message consists of 100 structures with each structure
+containing three integers, then a limit of 20 would result in the display
+of the first 20 integers in the message, as opposed to the first 20
+structures (or 60 integers).
+.PP
+Buffered message data is by default stored in LAM representation and
+will be converted to local representation for display.
+In the case of a homogeneous LAM and MPI processes run with the \-O
+switch to mpirun(1) message data will be stored in the common local
+representation of the machines in the LAM.
+In this case when using the \-m option the \-O switch can be given
+in order to prevent the data conversion for display.
+.SH EXAMPLES
+.TP 4
+mpimsg
+Report all MPI messages.
+.TP
+mpimsg n1 -m 8 -e 20
+Print the first 20 elements of message #8 on node 1.
+.SH DIAGNOSTICS
+If no buffered messages are found, only the title line is displayed.
+If the message specified by \-c, \-d or \-m is no longer buffered,
+nothing is printed.
+.SH SEE ALSO
+bfctl(1), bfstate(1), libmpi(3), mpitask(1), sweep(1)

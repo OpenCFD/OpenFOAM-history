@@ -1,0 +1,44 @@
+
+/* Recursive struct */
+struct S {
+  string name;
+  sequence<S,1> left;
+  sequence<S,1> right;
+};
+
+/* Nested recursive struct */
+struct S2 {
+  struct S3 {
+    sequence<S2> c;
+  } s;
+};
+
+/* Nested recursive union */
+union UA switch (boolean) {
+ case TRUE:
+   struct t_st {
+     sequence<UA> a;
+   } st;
+ case FALSE:
+   short b;
+};
+
+union UB switch (boolean) {
+  case TRUE:
+    sequence<UB> mub;
+};
+
+struct S4 {
+  struct S5 {
+    struct S6 {
+      sequence<S4> s4;
+      sequence<S5> s5;
+      sequence<S6> ms6;
+    } ts6;
+  } ts5;
+};
+
+interface foo {
+  void bar( in S s );
+};
+

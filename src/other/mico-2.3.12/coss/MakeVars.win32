@@ -1,0 +1,11 @@
+
+!include $(RELATIVE)\Makevars.win32
+
+LINKDLLFLAGS 	= $(LINKDLLFLAGS) /LIBPATH:..\win32-bin\lib
+
+IDLFLAGS	= --windows-dll coss -B..\..
+CXXFLAGS        = /I. /I..\..\include /I..\..\include\windows $(EHFLAGS) $(CXXFLAGS)
+
+!ifdef CREATE_DLL
+CXXFLAGS=$(CXXFLAGS) /DBUILD_COSS_DLL
+!endif

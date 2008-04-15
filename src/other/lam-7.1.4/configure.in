@@ -1,0 +1,2542 @@
+# -*- shell-script -*-
+#
+# Copyright (c) 2001-2005 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+#
+# $Id: configure.in,v 6.356 2003/12/19 03:05:05 pcharapa Exp $
+#
+
+
+############################################################################
+# Initialization, version number, and other random setup/init stuff
+############################################################################
+
+# Init autoconf
+
+AC_INIT(./share/mpi/init.c)
+AC_PREREQ(2.52)
+AC_CONFIG_AUX_DIR(./config)
+
+# Get the version of LAM that we are installing
+
+LAM_GET_VERSION($srcdir/config, $srcdir/VERSION, LAM)
+
+AC_DEFINE_UNQUOTED(LAM_MAJOR_VERSION, $LAM_MAJOR_VERSION, [Major LAM version])
+AC_DEFINE_UNQUOTED(LAM_MINOR_VERSION, $LAM_MINOR_VERSION, [Minor LAM version])
+AC_DEFINE_UNQUOTED(LAM_RELEASE_VERSION, $LAM_RELEASE_VERSION, 
+    [Release LAM version])
+AC_DEFINE_UNQUOTED(LAM_ALPHA_VERSION, $LAM_ALPHA_VERSION, [Alpha LAM version])
+AC_DEFINE_UNQUOTED(LAM_BETA_VERSION, $LAM_BETA_VERSION, [Beta LAM version])
+AC_DEFINE_UNQUOTED(LAM_SVN_VERSION, $LAM_SVN_VERSION, [SVN LAM version])
+AC_DEFINE_UNQUOTED(LAM_VERSION, "$LAM_VERSION", [Overall LAM version number])
+
+# Need to also AC_SUBST these for share/include/patchlevel.h and
+# share/include/mpif.h
+
+AC_SUBST(LAM_MAJOR_VERSION)
+AC_SUBST(LAM_MINOR_VERSION)
+AC_SUBST(LAM_RELEASE_VERSION)
+AC_SUBST(LAM_ALPHA_VERSION)
+AC_SUBST(LAM_BETA_VERSION)
+AC_SUBST(LAM_SVN_VERSION)
+AC_SUBST(LAM_VERSION)
+
+#
+# Start it up
+#
+
+LAM_CONFIGURE_SETUP
+lam_show_title "Configuring LAM version $LAM_VERSION"
+lam_show_subtitle "Initialization, setup"
+
+#
+# Init automake
+# The third argument to AM_INIT_AUTOMAKE surpresses the PACKAGE and
+# VERSION macors
+#
+
+AM_INIT_AUTOMAKE(lam, $LAM_VERSION, 'no')
+
+LAM_TOP_BUILDDIR="`pwd`"
+cd "$srcdir"
+LAM_TOP_SRCDIR="`pwd`"
+cd "$LAM_TOP_BUILDDIR"
+AC_MSG_NOTICE([builddir: $LAM_TOP_BUILDDIR])
+AC_MSG_NOTICE([srcdir: $LAM_TOP_SRCDIR])
+
+# Setup the top of the share/include/lam_config.h file
+
+AH_TOP([/* -*- c -*-
+ *
+ * Copyright (c) 2001-2002 The Trustees of Indiana University.  
+ *                         All rights reserved.
+ * Copyright (c) 1998-2001 University of Notre Dame. 
+ *                         All rights reserved.
+ * Copyright (c) 1994-1998 The Ohio State University.  
+ *                         All rights reserved.
+ * 
+ * This file is part of the LAM/MPI software package.  For license
+ * information, see the LICENSE file in the top level directory of the
+ * LAM/MPI source distribution.
+ *
+ * Function: - OS, CPU and compiler dependent configuration 
+ */
+
+#ifndef _LAM_CONFIG_H
+#define _LAM_CONFIG_H
+])
+
+# There's a *lot* of hardwired values and macros that need to be in
+# lam_config.h.  So rather than having a huge AH_BOTTOM here in
+# configure.in, they have all been moved to <lam_config_bottom.h>, and
+# we simply include it at the bottom of <lam_config.h>.
+
+AH_BOTTOM([#include <lam_config_bottom.h>
+#endif /* _LAM_CONFIG_H */])
+
+#
+# For debugging
+#
+
+AC_ARG_ENABLE(echo, 
+    AC_HELP_STRING([--enable-echo],
+		   [echo configure script commands (maintainers only)]),
+    [set -x])
+
+#
+# This is useful later
+#
+
+LAM_BASIC_SETUP
+
+
+#
+# AC_DEFINE the some trivial things only so that it changes
+# lam_config.h if the user reconfigures with a new prefix or on a new
+# architecture.  By dependency analysis, this will then force the
+# recompilation of just about everything (which is probably overkill),
+# but it's safer and much better than no re-compilation at all.  Note
+# that we don't actually use the $prefix from lam_config.h -- the
+# prefix (and its derrivatives) are passed in from relevant
+# Makefile.am's with -D options because there are legitimate cases
+# where one needs to override $prefix at "make" time.  
+#
+# Similar logic for the architecture (i.e., if it's a new
+# architecture, we want to force a recompilation of everything, e.g.,
+# if the prefix is the same as last time but on a new architecture),
+# but since it doesn't need to be changed at "make" time, we use a
+# "real" #define for it.
+#
+
+AC_DEFINE_UNQUOTED(LAM_DEPENDENCY_PREFIX, "$prefix", 
+    [LAM installation prefix -- solely for dependency analysis])
+AC_DEFINE_UNQUOTED(LAM_ARCH, "$host", 
+    [LAM architecture string])
+
+#
+# Define some variables that are used for display purposes in
+# share/etc and tools/laminfo.  These are defined in lam_build_info.h, not
+# in lam_config.h (hence the no third argument).
+#
+AC_SUBST(LAM_CONFIGURE_USER)
+AC_SUBST(LAM_CONFIGURE_HOST)
+AC_SUBST(LAM_CONFIGURE_DATE)
+
+
+#
+# Set some variables to be initially empty
+#
+
+LIBLAM_EXTRA_LDFLAGS=
+LIBLAM_EXTRA_LIBS=
+LIBMPI_EXTRA_LDFLAGS=
+LIBMPI_EXTRA_LIBS=
+
+##################################
+# User-specified options for compilers
+##################################
+
+#
+# check for specification of fortran compiler
+#
+
+AC_ARG_WITH(fc,
+  AC_HELP_STRING([--with-fc=FC],
+		 [use Fortran compiler FC, use --without-fc for no fortran support]),
+  [FC="$withval"])
+AC_ARG_VAR([FC], [Fortran compiler])
+
+#
+# check for specification of Fortran compiler flags
+#
+
+AC_ARG_WITH(fflags, 
+  AC_HELP_STRING([--with-fflags],
+		 [DEPRECATED: use the env variable FFLAGS instead]),
+  [AC_MSG_WARN([The --with-fflags flag is deprecated.  Use the FFLAGS])
+   AC_MSG_WARN([environment variable instead.])
+   AC_MSG_ERROR([Cannot continue])])
+AC_ARG_VAR([FFLAGS], [Fortran compiler flags])
+
+#
+# Part one of libtool magic.  Enable static so that we have the --with
+# tests done up here and can check for OS.  Save the values of
+# $enable_static and $enable_shared before setting the defaults,
+# because if the user specified --[en|dis]able-[static|shared] on the
+# command line, they'll already be set.  In this way, we can tell if
+# the user requested something or if the default was set here.
+#
+lam_enable_shared="$enable_shared"
+lam_enable_static="$enable_static"
+AM_DISABLE_SHARED
+AM_ENABLE_STATIC
+
+if test "$enable_static" = "no" -a "$enable_shared" = "yes"; then
+    case "$host" in
+    *apple-darwin*)
+	AC_MSG_WARN([*** It is not possible to build the LAM/MPI supporting])
+	AC_MSG_WARN([*** infrastructure on Darwin or Mac OS X without static])
+	AC_MSG_WARN([*** libraries.  Note that you can build both shared and])
+	AC_MSG_WARN([*** static libraries and link your applications against])
+	AC_MSG_WARN([*** the shared libraries.])
+	AC_MSG_ERROR([Can not continue])
+	;;
+    esac
+fi
+
+
+############################################################################
+# Check for maintainer mode (secret sauce)
+############################################################################
+
+AC_ARG_WITH(llamas,
+    AC_HELP_STRING([--with-llamas=OPTIONS],
+		   [options just for LAM developers]))
+skipssi=0
+if test -n "$with_llamas"; then
+    llamas_options="`echo $with_llamas | sed -e 's/,/ /g'`"
+    for option in $llamas_options; do
+	# Presently have no --with-llamas options
+	case "$option" in
+	skipssi)
+	    skipssi=1
+	    ;;
+	no)
+	    # --without-llamas -- ignore
+	    ;;
+	*)
+	    # Unknown: ignore
+	    ;;
+	esac
+    done
+
+    # If --with-llamas was specified, we should print out all llamas
+    # options
+
+    lam_show_subtitle "Llamas-specific options:"
+    cat <<EOF
+Skip configuring SSI modules: $skipssi
+EOF
+fi
+
+
+############################################################################
+# Check for compilers and preprocessors
+############################################################################
+
+##################################
+# C compiler characteristics
+##################################
+
+CFLAGS_nonpicky="$CFLAGS"
+# config/lam_setup_cc.m4
+# config/lam_check_optflags.m4
+LAM_SETUP_CC
+
+# config/lam_ansi_protos.m4
+LAM_ANSI_PROTOS
+if test "$lam_ac_ansi_protos" = no; then
+    AC_MSG_WARN([*** LAM requires a compiler which understands ANSI C prototypes])
+    AC_MSG_ERROR([*** Cannot continue.])
+fi
+
+# Do we have a broken compiler that does not defined __STDC__ even
+# though it really is?  Hard coded for the moment for Solaris cc.  can
+# extend the hard coding or make a real test Does not hurt here to
+# AC_DEFINE LAM_CONFIG_FORCE_PROTOS to 0, because
+# LAM_CONFIG_FORCE_PROTOS is only one of multiple constants checked to
+# see if we want prototypes.
+
+AH_TEMPLATE([LAM_CONFIG_FORCE_PROTOS],
+    [Whether we need to force prototypes in header files or not])
+if test "`echo $host | grep solaris2`" != "" -a "$BASECC" = "cc"; then
+    AC_DEFINE(LAM_CONFIG_FORCE_PROTOS, 1)
+elif test "$GCC" = "yes"; then
+    AC_DEFINE(LAM_CONFIG_FORCE_PROTOS, 1)
+else
+    # At least some compilers don't want to be forced -- e.g., HP-UX 10.20
+    # which is not ANSI by default
+    AC_DEFINE(LAM_CONFIG_FORCE_PROTOS, 0)
+    # config/lam_check_stdc.m4
+    LAM_CHECK_STDC
+fi
+
+#
+# At least AIX 4.3 has things like int8 already defined
+#
+
+# config/lam_check_type.m4
+LAM_CHECK_TYPE(int2)
+LAM_CHECK_TYPE(uint2)
+LAM_CHECK_TYPE(int4)
+LAM_CHECK_TYPE(uint4)
+LAM_CHECK_TYPE(int8)
+LAM_CHECK_TYPE(uint8)
+LAM_CHECK_TYPE(float4)
+LAM_CHECK_TYPE(float8)
+
+#
+# Type sizes
+#
+
+# config/lam_get_sizeof.m4
+LAM_GET_SIZEOF(char, LAM_SIZEOF_CHAR)
+LAM_GET_SIZEOF(short, LAM_SIZEOF_SHORT)
+LAM_GET_SIZEOF(wchar_t, LAM_SIZEOF_WCHAR)
+LAM_GET_SIZEOF(int, LAM_SIZEOF_INT)
+LAM_GET_SIZEOF(long, LAM_SIZEOF_LONG)
+LAM_GET_SIZEOF(long long, LAM_SIZEOF_LONG_LONG)
+LAM_GET_SIZEOF(float, LAM_SIZEOF_FLOAT)
+LAM_GET_SIZEOF(double, LAM_SIZEOF_DOUBLE)
+LAM_GET_SIZEOF(long double, LAM_SIZEOF_LONG_DOUBLE)
+LAM_GET_SIZEOF(void *, LAM_SIZEOF_VOID_P)
+
+#
+# Type alignments
+#
+
+# config/lam_get_alignment.m4
+LAM_GET_ALIGNMENT(char, LAM_ALIGNMENT_CHAR)
+LAM_GET_ALIGNMENT(short, LAM_ALIGNMENT_SHORT)
+LAM_GET_ALIGNMENT(wchar_t, LAM_ALIGNMENT_WCHAR)
+LAM_GET_ALIGNMENT(int, LAM_ALIGNMENT_INT)
+LAM_GET_ALIGNMENT(long, LAM_ALIGNMENT_LONG)
+LAM_GET_ALIGNMENT(long long, LAM_ALIGNMENT_LONG_LONG)
+LAM_GET_ALIGNMENT(float, LAM_ALIGNMENT_FLOAT)
+LAM_GET_ALIGNMENT(double, LAM_ALIGNMENT_DOUBLE)
+LAM_GET_ALIGNMENT(long double, LAM_ALIGNMENT_LONG_DOUBLE)
+LAM_GET_ALIGNMENT(void *, LAM_ALIGNMENT_VOID_P)
+
+##################################
+# C++ compiler characteristics
+##################################
+
+# config/lam_setup_cxx.m4
+# config/lam_check_optflags.m4
+# config/cxx_have_nothrow_new.m4
+# config/cxx_find_template_repository.m4
+# config/cxx_find_template_parameters.m4
+LAM_SETUP_CXX
+
+# config/cxx_have_stl.m4
+LSC_CXX_HAVE_STL(LAM)
+if test "$LAM_CXX_STL" = "0"; then
+    AC_MSG_WARN([*** Your C++ compiler does not seem to support the STL.])
+    AC_MSG_WARN([*** STL support is necessary to compile LAM/MPI])
+    AC_MSG_ERROR([cannot continue])
+fi
+
+# config/cxx_have_bool.m4
+LSC_CXX_HAVE_BOOL(LAM)
+if test "$LAM_CXX_BOOL" = "0" ; then
+    AC_MSG_WARN([*** Your C++ compiler does not support the bool data type.])
+    AC_MSG_WARN([*** LAM requires a C++ compiler with support for the bool])
+    AC_MSG_WARN([*** data type.])
+    AC_MSG_ERROR([cannot continue])
+fi
+
+# config/cxx_have_true_false.m4
+LSC_CXX_HAVE_TRUE_FALSE(LAM)
+if test "$LAM_CXX_TRUE_FALSE" = "0" ; then
+    AC_MSG_WARN([*** Your C++ compiler does not support the bool data type.])
+    AC_MSG_WARN([*** LAM requires a C++ compiler with support for the bool])
+    AC_MSG_WARN([*** data type.])
+    AC_MSG_ERROR([cannot continue])
+fi
+
+
+#
+# Type sizes
+#
+LAM_CXX_GET_SIZEOF(bool, LAM_SIZEOF_CXX_BOOL)
+LAM_CXX_GET_SIZEOF(int, LAM_SIZEOF_CXX_INT)
+
+#
+# Type alignment
+#
+LAM_CXX_GET_ALIGNMENT(bool, LAM_ALIGNMENT_CXX_BOOL)
+LAM_CXX_GET_ALIGNMENT(int, LAM_ALIGNMENT_CXX_INT)
+
+#
+# Find type representation for bool - we should check alignment in the
+# future
+#
+AC_MSG_CHECKING([how to store bool in C])
+c_bool_type=""
+if test "$LAM_SIZEOF_CXX_BOOL" = "1"; then
+    c_bool_type="unsigned char"
+elif test "$LAM_SIZEOF_CXX_BOOL" = "$LAM_SIZEOF_SHORT"; then
+    c_bool_type="unsigned short"
+elif test "$LAM_SIZEOF_CXX_BOOL" = "$LAM_SIZEOF_INT"; then
+    c_bool_type="unsigned int"
+elif test "$LAM_SIZEOF_CXX_BOOL" = "$LAM_SIZEOF_LONG"; then
+    c_bool_type="unsigned long"
+elif test "$LAM_SIZEOF_CXX_BOOL" = "$LAM_SIZEOF_LONG_LONG"; then
+    c_bool_type="unsigned long long"
+fi
+
+if test "$c_bool_type" = ""; then
+    AC_MSG_ERROR([Can not find representation of C++ Bool in C])
+else
+    AC_MSG_RESULT([$c_bool_type])
+fi
+
+AC_DEFINE_UNQUOTED(LAM_CXX_BOOL_TYPE,
+    $c_bool_type,
+    [How to represent a CXX bool in the C library])
+
+# Save it all
+
+AC_SUBST(CXX)
+AC_SUBST(CXXCPP)
+AC_SUBST(LAM_CXX_TEMPLATE_REPOSITORY)
+
+
+##################################
+# Fortran
+##################################
+if test "$with_fc" = "no"; then
+    lam_show_subtitle "Fortran Compiler -- skipped" 
+else
+    lam_show_subtitle "Fortran Compiler"
+fi
+
+# How to specify a directory for the library archive search path in fortran
+
+FLIBPATH="\"-L\""
+# config/lam_prog_f77.m4
+LAM_PROG_F77
+
+# Set defaults for all the things that we're going to AC_DEFINE,
+# below.  Kinda sucks, but we have to do this because we might skip
+# the whole fortran test section.
+
+lam_fortran_double_underscore=0
+lam_fortran_underscore=0
+lam_fortran_caps=0
+lam_fortran_no_underscore=0
+
+LAM_SIZEOF_FORTRAN_INT=0
+LAM_SIZEOF_FORTRAN_REAL=0
+LAM_SIZEOF_FORTRAN_DBLPREC=0
+LAM_SIZEOF_FORTRAN_COMPLEX=0
+LAM_SIZEOF_FORTRAN_DBLCOMPLEX=0
+LAM_SIZEOF_FORTRAN_INTEGER1=0
+LAM_SIZEOF_FORTRAN_INTEGER2=0
+LAM_SIZEOF_FORTRAN_INTEGER4=0
+LAM_SIZEOF_FORTRAN_INTEGER8=0
+LAM_SIZEOF_FORTRAN_REAL4=0
+LAM_SIZEOF_FORTRAN_REAL8=0
+LAM_SIZEOF_FORTRAN_REAL16=0
+
+LAM_ALIGNMENT_FORTRAN_INT=0
+LAM_ALIGNMENT_FORTRAN_REAL=0
+LAM_ALIGNMENT_FORTRAN_DBLPREC=0
+LAM_ALIGNMENT_FORTRAN_COMPLEX=0
+LAM_ALIGNMENT_FORTRAN_DBLCOMPLEX=0
+LAM_ALIGNMENT_FORTRAN_INTEGER1=0
+LAM_ALIGNMENT_FORTRAN_INTEGER2=0
+LAM_ALIGNMENT_FORTRAN_INTEGER4=0
+LAM_ALIGNMENT_FORTRAN_INTEGER8=0
+LAM_ALIGNMENT_FORTRAN_REAL4=0
+LAM_ALIGNMENT_FORTRAN_REAL8=0
+LAM_ALIGNMENT_FORTRAN_REAL16=0
+
+LAM_FORTRAN_C_TYPE_INTEGER1=int
+LAM_FORTRAN_C_TYPE_INTEGER2=int
+LAM_FORTRAN_C_TYPE_INTEGER4=int
+LAM_FORTRAN_C_TYPE_INTEGER8=int
+LAM_FORTRAN_C_TYPE_REAL4=float
+LAM_FORTRAN_C_TYPE_REAL8=float
+LAM_FORTRAN_C_TYPE_REAL16=float
+
+LAM_INDEXOF_FORTRAN_REAL16=-1
+LAM_INDEXOF_FORTRAN_INTEGER8=-1
+
+if test "$LAM_WANT_FORTRAN" = "1"; then
+	
+    #
+    # Figure out how to add a library seach path to the compile line
+    #
+
+    AC_MSG_CHECKING([how to add a library directory to $F77])
+    case "$host" in
+	*hpux*) FLIBPATH="\"-Wl,-L\"" ;;
+    esac
+    AC_MSG_RESULT([$FLIBPATH])
+
+    #
+    # Get the naming convention for this fortran compiler
+    #
+
+    # config/lam_get_fortran_ext_name_convention.m4 
+    LAM_GET_FORTRAN_EXT_NAME_CONVENTION($F77)
+
+    #
+    # We don't actually compile any fortran code, except for the examples.
+    # So just be conservative, since it doesn't really matter.
+    #
+
+    OPTFLAGS="-O"
+    # config/lam_check_optflags.m4
+    LAM_CHECK_OPTFLAGS("$FFLAGS")
+    AC_MSG_CHECKING([for FORTRAN optimization flags])
+    AC_MSG_RESULT([$co_result])
+    FFLAGS="$co_result"
+
+    #
+    # Sizes of types
+    #
+
+    # config/lam_get_sizeof_fortran_type.m4
+    LAM_GET_SIZEOF_FORTRAN_TYPE(INTEGER, LAM_SIZEOF_FORTRAN_INT)
+    LAM_GET_SIZEOF_FORTRAN_TYPE(REAL, LAM_SIZEOF_FORTRAN_REAL)
+    LAM_GET_SIZEOF_FORTRAN_TYPE(DOUBLE PRECISION, LAM_SIZEOF_FORTRAN_DBLPREC)
+    LAM_GET_SIZEOF_FORTRAN_TYPE(COMPLEX, LAM_SIZEOF_FORTRAN_COMPLEX)
+    LAM_GET_SIZEOF_FORTRAN_TYPE(DOUBLE COMPLEX, LAM_SIZEOF_FORTRAN_DBLCOMPLEX)
+
+    #
+    # Alignment of types
+    #
+
+    # config/lam_get_fortran_alignment.m4
+    LAM_GET_FORTRAN_ALIGNMENT(INTEGER, LAM_ALIGNMENT_FORTRAN_INT)
+    LAM_GET_FORTRAN_ALIGNMENT(REAL, LAM_ALIGNMENT_FORTRAN_REAL)
+    LAM_GET_FORTRAN_ALIGNMENT(DOUBLE PRECISION, LAM_ALIGNMENT_FORTRAN_DBLPREC)
+    LAM_GET_FORTRAN_ALIGNMENT(COMPLEX, LAM_ALIGNMENT_FORTRAN_COMPLEX)
+    LAM_GET_FORTRAN_ALIGNMENT(DOUBLE COMPLEX, LAM_ALIGNMENT_FORTRAN_DBLCOMPLEX)
+
+
+    #
+    # Setup the optional types
+    #
+    
+    LAM_SETUP_OPTIONAL_FORTRAN_TYPE(INTEGER*1, integer, INTEGER1)
+    LAM_SETUP_OPTIONAL_FORTRAN_TYPE(INTEGER*2, integer, INTEGER2)
+    LAM_SETUP_OPTIONAL_FORTRAN_TYPE(INTEGER*4, integer, INTEGER4)
+    LAM_SETUP_OPTIONAL_FORTRAN_TYPE(INTEGER*8, integer, INTEGER8)
+    LAM_SETUP_OPTIONAL_FORTRAN_TYPE(REAL*4, real, REAL4)
+    LAM_SETUP_OPTIONAL_FORTRAN_TYPE(REAL*8, real, REAL8)   
+    LAM_SETUP_OPTIONAL_FORTRAN_TYPE(REAL*16, real, REAL16)   
+
+    #
+    # Setup alignment of fortran types
+    #
+    
+    LAM_GET_FORTRAN_ALIGNMENT_NOFAIL(INTEGER*1, LAM_ALIGNMENT_FORTRAN_INTEGER1)
+    LAM_GET_FORTRAN_ALIGNMENT_NOFAIL(INTEGER*2, LAM_ALIGNMENT_FORTRAN_INTEGER2)  
+    LAM_GET_FORTRAN_ALIGNMENT_NOFAIL(INTEGER*4, LAM_ALIGNMENT_FORTRAN_INTEGER4)
+    LAM_GET_FORTRAN_ALIGNMENT_NOFAIL(INTEGER*8, LAM_ALIGNMENT_FORTRAN_INTEGER8)
+    LAM_GET_FORTRAN_ALIGNMENT_NOFAIL(REAL*4, LAM_ALIGNMENT_FORTRAN_REAL4)
+    LAM_GET_FORTRAN_ALIGNMENT_NOFAIL(REAL*8, LAM_ALIGNMENT_FORTRAN_REAL8)
+    LAM_GET_FORTRAN_ALIGNMENT_NOFAIL(REAL*16, LAM_ALIGNMENT_FORTRAN_REAL16)
+
+    #
+    # check that alignment of double precsion and corresponding C type
+    # are same
+    #
+
+    if test "$lam_cv_size_fdprec" = "$ac_cv_sizeof_double"; then
+       if test "$lam_cv_align_fdprec" != "$lam_cv_align_double"; then
+         AC_MSG_WARN([*** Alignment of Fortran double precsion and C double])
+         AC_MSG_WARN([*** are not the same!])
+       fi
+    elif test "$lam_cv_size_fdprec" = "$ac_cv_sizeof_long_double"; then
+       if test "$lam_cv_align_fdprec" != "$lam_cv_align_longdbl"; then
+         AC_MSG_WARN([*** Alignment of Fortran double precsion and C])
+         AC_MSG_WARN([*** long double are not the same!])
+       fi
+    fi
+fi
+
+# Fortran symbol convention
+
+AC_DEFINE_UNQUOTED(LAM_FORTRANDOUBLEUNDERSCORE, 
+    $lam_fortran_double_underscore, 
+    [Whether fortran symbols have a trailing double underscore or not])
+AC_DEFINE_UNQUOTED(LAM_FORTRANUNDERSCORE, $lam_fortran_underscore,
+    [Whether fortran symbols have a trailing underscore or not])
+AC_DEFINE_UNQUOTED(LAM_FORTRANCAPS, $lam_fortran_caps,
+    [Whether fortran symbols are all caps or not])
+AC_DEFINE_UNQUOTED(LAM_FORTRANNOUNDERSCORE, $lam_fortran_no_underscore,
+    [Whether fortran symbols have no trailing underscore or not])
+
+# Fortran sizes
+
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_INT, $LAM_SIZEOF_FORTRAN_INT, 
+    [Size of fortran INTEGER])
+AC_DEFINE_UNQUOTED([LAM_SIZEOF_FORTRAN_REAL], $LAM_SIZEOF_FORTRAN_REAL,
+    [Size of fortran REAL])
+AC_DEFINE_UNQUOTED([LAM_SIZEOF_FORTRAN_DBLPREC], $LAM_SIZEOF_FORTRAN_DBLPREC,
+    [Size of fortran DOUBLE PRECISION])
+AC_DEFINE_UNQUOTED([LAM_SIZEOF_FORTRAN_COMPLEX], $LAM_SIZEOF_FORTRAN_COMPLEX,
+    [Size of fortran COMPLEX])
+AC_DEFINE_UNQUOTED([LAM_SIZEOF_FORTRAN_DBLCOMPLEX], 
+    $LAM_SIZEOF_FORTRAN_DBLCOMPLEX,
+    [Size of fortran DOUBLE COMPLEX])
+
+# Fortran Optional types sizes
+
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_INTEGER1, $LAM_SIZEOF_FORTRAN_INTEGER1,
+    [Size of fortran integer*1])
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_INTEGER2, $LAM_SIZEOF_FORTRAN_INTEGER2,
+    [Size of fortran integer*2])
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_INTEGER4, $LAM_SIZEOF_FORTRAN_INTEGER4,
+    [Size of fortran integer*4])
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_INTEGER8, $LAM_SIZEOF_FORTRAN_INTEGER8,
+    [Size of fortran integer*8])
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_REAL4, $LAM_SIZEOF_FORTRAN_REAL4,
+    [Size of fortran real*4])
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_REAL8, $LAM_SIZEOF_FORTRAN_REAL8,
+    [Size of fortran real*8])
+AC_DEFINE_UNQUOTED(LAM_SIZEOF_FORTRAN_REAL16, $LAM_SIZEOF_FORTRAN_REAL16,
+    [Size of fortran real*16])
+
+# Equivalent C types for Fortran Optional types
+
+AC_DEFINE_UNQUOTED(LAM_FORTRAN_C_TYPE_INTEGER1, $LAM_FORTRAN_C_TYPE_INTEGER1,
+    [Equivalent C type for fortran integer*1])
+AC_DEFINE_UNQUOTED(LAM_FORTRAN_C_TYPE_INTEGER2, $LAM_FORTRAN_C_TYPE_INTEGER2,
+    [Equivalent C type for fortran integer*2])
+AC_DEFINE_UNQUOTED(LAM_FORTRAN_C_TYPE_INTEGER4, $LAM_FORTRAN_C_TYPE_INTEGER4,
+    [Equivalent C type for fortran integer*4])
+AC_DEFINE_UNQUOTED(LAM_FORTRAN_C_TYPE_INTEGER8, $LAM_FORTRAN_C_TYPE_INTEGER8,
+    [Equivalent C type for fortran integer*8])
+AC_DEFINE_UNQUOTED(LAM_FORTRAN_C_TYPE_REAL4, $LAM_FORTRAN_C_TYPE_REAL4,
+    [Equivalent C type for fortran real*4])
+AC_DEFINE_UNQUOTED(LAM_FORTRAN_C_TYPE_REAL8, $LAM_FORTRAN_C_TYPE_REAL8,
+    [Equivalent C type for fortran real*8])
+AC_DEFINE_UNQUOTED(LAM_FORTRAN_C_TYPE_REAL16, $LAM_FORTRAN_C_TYPE_REAL16,
+    [Equivalent C type for fortran real*16])
+
+#
+# Set the indexes for fortran optional types to -1 if they are not supported 
+#
+
+if test "$LAM_SIZEOF_FORTRAN_REAL16" = "0" ; then
+  LAM_INDEXOF_FORTRAN_REAL16="-1"
+else
+  LAM_INDEXOF_FORTRAN_REAL16="19"
+fi
+
+if test "$LAM_SIZEOF_FORTRAN_INTEGER8" = "0" ; then
+  LAM_INDEXOF_FORTRAN_INTEGER8="-1"
+else 
+  LAM_INDEXOF_FORTRAN_INTEGER8="15"
+fi   
+
+# Index of optional fortran types
+
+AC_SUBST(LAM_INDEXOF_FORTRAN_INTEGER8)
+AC_SUBST(LAM_INDEXOF_FORTRAN_REAL16)
+
+# Fortran alignments
+
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_INT], $LAM_ALIGNMENT_FORTRAN_INT,
+    [Alignment of fortran INTEGER])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_REAL], $LAM_ALIGNMENT_FORTRAN_REAL,
+    [Alignment of fortran REAL])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_DBLPREC], 
+    $LAM_ALIGNMENT_FORTRAN_DBLPREC,
+    [Alignment of fortran DOUBLE PRECISION])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_COMPLEX], 
+    $LAM_ALIGNMENT_FORTRAN_COMPLEX,
+    [Alignment of fortran COMPLEX])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_DBLCOMPLEX], 
+    $LAM_ALIGNMENT_FORTRAN_DBLCOMPLEX,
+    [Alignment of fortran DOUBLE COMPLEX])
+
+# Fortran Optional Types Alignments
+
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_INTEGER1],
+                   $LAM_ALIGNMENT_FORTRAN_INTEGER1,
+    [Alignment of fortran INTEGER*1])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_INTEGER2],
+                   $LAM_ALIGNMENT_FORTRAN_INTEGER2,
+    [Alignment of fortran INTEGER*2])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_INTEGER4],
+                   $LAM_ALIGNMENT_FORTRAN_INTEGER4,
+    [Alignment of fortran INTEGER*4])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_INTEGER8],
+                   $LAM_ALIGNMENT_FORTRAN_INTEGER8,
+    [Alignment of fortran INTEGER*8])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_REAL4], $LAM_ALIGNMENT_FORTRAN_REAL4,
+    [Alignment of fortran REAL*4])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_REAL8], $LAM_ALIGNMENT_FORTRAN_REAL8,
+    [Alignment of fortran REAL*8])
+AC_DEFINE_UNQUOTED([LAM_ALIGNMENT_FORTRAN_REAL16], $LAM_ALIGNMENT_FORTRAN_REAL16,
+    [Alignment of fortran REAL*16])
+
+# Leftover fortran gorp
+
+AC_DEFINE_UNQUOTED(LAM_FLIBPATH, $FLIBPATH, [LAM fortran library path])
+AM_CONDITIONAL(WANT_FORTRAN, test "$LAM_WANT_FORTRAN" = "1")
+
+
+############################################################################
+# Specify optional portions of LAM to build (or not)
+############################################################################
+
+lam_show_subtitle "LAM configuration options" 
+
+##################################
+# Profiling
+##################################
+
+WANT_PROFILE=yes
+
+AC_ARG_WITH(profiling, 
+  AC_HELP_STRING([--without-profiling],
+		 [disable the MPI profiling interface]),
+  [WANT_PROFILE="$withval"])
+
+AC_MSG_CHECKING([if want profiling interface])
+AC_MSG_RESULT([$WANT_PROFILE])
+
+AH_TEMPLATE([LAM_WANT_PROFILE], [Whether to build LAMs profiling layer or not])
+AM_CONDITIONAL(WANT_PROFILE_BUILD, test "$WANT_PROFILE" = "yes")
+if test "$WANT_PROFILE" = "yes"; then
+    AC_DEFINE(LAM_WANT_PROFILE, 1)
+    MPIF_H_PMPI_W_FUNCS=", PMPI_WTIME, PMPI_WTICK"
+else
+    AC_DEFINE(LAM_WANT_PROFILE, 0)
+    MPIF_H_PMPI_W_FUNCS=""
+fi
+AC_SUBST(MPIF_H_PMPI_W_FUNCS)
+
+##################################
+# Full Trillium install
+##################################
+
+WANT_TRILLIUM=no
+
+AC_ARG_WITH(trillium, 
+  AC_HELP_STRING([--with-trillium],
+		 [enable installation of Trillium header/man/binary files (not required for MPI)]),
+  [WANT_TRILLIUM="$withval"])
+
+AC_MSG_CHECKING([if want full installation of Trillium files])
+AC_MSG_RESULT([$WANT_TRILLIUM])
+
+AM_CONDITIONAL(WANT_TRILLIUM_INSTALL, test "$WANT_TRILLIUM" = "yes")
+AH_TEMPLATE([LAM_WANT_TRILLIUM_INSTALL], 
+    [Whether to install Trillium or not (unnecessary for MPI-only installs)])
+if test "$WANT_TRILLIUM" = "yes" ; then
+    AC_DEFINE(LAM_WANT_TRILLIUM_INSTALL, 1)
+else
+    AC_DEFINE(LAM_WANT_TRILLIUM_INSTALL, 0)
+fi
+
+##################################
+# ROMIO
+##################################
+
+ROMIO_EXTRALIBS=
+ROMIO_USER_FLAGS=
+ROMIO_FLAGS=
+ROMIO_ARCH_FLAGS=
+WANT_ROMIO=yes
+
+
+AC_ARG_WITH(romio,
+  AC_HELP_STRING([--without-romio],
+		 [disable ROMIO support in LAM/MPI]),
+  [WANT_ROMIO="$withval"])
+AC_ARG_WITH(romio-flags,
+  AC_HELP_STRING([--with-romio-flags=FLAGS],
+		 [pass FLAGS to the ROMIO configure script]),
+  [ROMIO_USER_FLAGS="$withval"])
+AC_ARG_WITH(romio-libs,
+  AC_HELP_STRING([--with-romio-libs=LIBS],
+		 [pass LIBS to the ROMIO configure script]),
+  [ROMIO_EXTRALIBS="$withval"])
+
+AC_MSG_CHECKING([if want ROMIO support])
+AC_MSG_RESULT([$WANT_ROMIO])
+
+
+AH_TEMPLATE([HAVE_LIBAIO], [Whether we need -laio or not])
+AH_TEMPLATE([LAM_WANT_ROMIO], [Whether we want to build ROMIO or not])
+
+if test "$WANT_ROMIO" = "yes"; then
+
+    #
+    # See if we've got libaio
+    #
+
+    libs_SAVE="$LIBS"
+    AC_CHECK_LIB(aio, main,
+	[HAPPY=1 ROMIO_EXTRALIBS="$ROMIO_EXTRALIBS -laio"], [HAPPY=0])
+    LIBS="$libs_SAVE"
+    AC_DEFINE_UNQUOTED(HAVE_LIBAIO, $HAPPY)
+
+    #
+    # Get optional ROMIO user flags
+    #
+
+    AC_MSG_CHECKING([for user ROMIO flags])
+    if test "$ROMIO_USER_FLAGS" = ""; then
+	AC_MSG_RESULT([none])
+    else
+	AC_MSG_RESULT([$ROMIO_USER_FLAGS])
+    fi
+
+    #
+    # Force some flags under hp-ux
+    #
+
+    if test "$GCC" = no; then
+	case "$host" in
+	    *hpux*)
+		ROMIO_FLAGS="+U77"
+		;;
+	esac
+    fi
+
+     # Pass ROMIO architecture on OSX, as it can't figure it out...
+    case "$host" in
+	*apple-darwin*)
+	    ROMIO_ARCH_FLAGS="-arch=freebsd"
+	    ;;
+	*)
+	    ROMIO_ARCH_FLAGS=
+	    ;;
+    esac
+
+    
+    AC_DEFINE(LAM_WANT_ROMIO, 1)
+else
+    AC_DEFINE(LAM_WANT_ROMIO, 0)
+    AC_DEFINE(HAVE_LIBAIO, 0)
+fi
+AM_CONDITIONAL(WANT_ROMIO, test "$WANT_ROMIO" = "yes")
+LIBMPI_EXTRA_LIBS="$LIBMPI_EXTRA_LIBS $ROMIO_EXTRALIBS"
+WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS $ROMIO_EXTRALIBS"
+
+AC_SUBST(ROMIO_USER_FLAGS)
+AC_SUBST(ROMIO_ARCH_FLAGS)
+
+##################################
+# Fortran
+##################################
+
+F77_BUILD_DIR=
+F77_LTPLIB=
+ROMIO_NOF77=
+
+AC_MSG_CHECKING([if want FORTRAN support])
+AH_TEMPLATE([LAM_WANT_FORTRAN], [Whether we want Fortran or not])
+if test "$LAM_WANT_FORTRAN" = "0"; then
+
+    # We'll only get here if the user supplied --without-fc
+
+    LAM_F77="false"
+    ROMIO_NOF77="-nof77"
+
+    AC_MSG_RESULT([no])
+    AC_DEFINE(LAM_WANT_FORTRAN, 0)
+else
+
+    # We won't have gotten here if $F77 is empty -- if we want fortran
+    # support, $F77 will have been filled in properly above (or we
+    # would have already aborted if $F77 couldn't be filled in
+    # properly)
+
+    LAM_F77="$FC"
+    BASEFC="`basename $FC`"
+    F77_BUILD_DIR=f77
+    F77_LTPLIB=f77/liblamf77pmpi.la
+
+    AC_MSG_RESULT([yes])
+    AC_DEFINE(LAM_WANT_FORTRAN, 1)
+fi
+
+AC_DEFINE_UNQUOTED(LAM_F77, "$LAM_F77", [LAM underlying fortran compiler])
+
+AC_SUBST(F77_BUILD_DIR)
+AC_SUBST(F77_LTPLIB)
+
+##################################
+# MPI 2 C++ bindings
+##################################
+
+WANT_MPI2CPP=yes
+
+AC_ARG_WITH(mpi2cpp,
+  AC_HELP_STRING([--without-mpi2cpp],
+		 [build LAM without MPI 2 C++ bindings support]),
+  [WANT_MPI2CPP="$withval"])
+
+AC_MSG_CHECKING([if want MPI 2 C++ support])
+AC_MSG_RESULT([$WANT_MPI2CPP])
+
+AH_TEMPLATE([LAM_WANT_MPI2CPP], 
+    [Whether we can MPI 2 C++ bindings support or not])
+if test "$with_mpi2cpp" = "" -o "$with_mpi2cpp" = "yes"; then
+    AC_DEFINE(LAM_WANT_MPI2CPP, 1)
+else
+    AC_DEFINE(LAM_WANT_MPI2CPP, 0)
+fi
+AM_CONDITIONAL(WANT_MPI2CPP, test "$WANT_MPI2CPP" = "yes")
+
+##################################
+# VPS:MPI::FILE C++ BINDING
+##################################
+
+WANT_CPPFILE=no
+
+AC_ARG_WITH(cppfile,
+  AC_HELP_STRING([--with-cppfile],
+		 [build lam with support for MPI::File C++ binding. Only for LAM developers. ROMIO needs to be built before this.]),
+  [WANT_CPPFILE="$withval"])
+AC_MSG_CHECKING([if want MPI::File C++ binding support])
+AC_MSG_RESULT([$WANT_CPPFILE])
+
+
+AM_CONDITIONAL(WANT_CPPFILE, test "$WANT_CPPFILE" = "yes")
+AH_TEMPLATE([LAM_WANT_CPPFILE], 
+    [Whether we can MPI::File C++ bindings support or not])
+if test "$WANT_CPPFILE" = "yes" ; then
+    AC_DEFINE(LAM_WANT_CPPFILE, 1)
+else
+    AC_DEFINE(LAM_WANT_CPPFILE, 0)
+fi
+
+##################################
+# IMPI
+##################################
+
+IMPI_LIB=
+IMPI_DIR=
+IMPID_DIR=
+WANT_IMPI=no
+
+AC_ARG_WITH(impi, 
+    AC_HELP_STRING([--with-impi],
+		   [compile with IMPI support]),
+    [WANT_IMPI="$withval"])
+AC_MSG_CHECKING([if want IMPI support])
+AC_MSG_RESULT([$WANT_IMPI])
+
+AH_TEMPLATE([LAM_WANT_IMPI], [Whether we want IMPI support or not])
+if test "$WANT_IMPI" = "yes"; then
+    IMPI_LIB="impi/liblamimpi.la"
+    IMPI_DIR="impi"
+    IMPID_DIR="impid"
+
+    AC_DEFINE(LAM_WANT_IMPI, 1)
+else
+    AC_DEFINE(LAM_WANT_IMPI, 0)
+fi
+
+#
+# If we are building IMPI, look for "impi-server" in the path so that
+# we can build it into mpirun
+#
+
+AH_TEMPLATE(LAM_WANT_IMPI_SERVER, 
+    [Whether mpirun should run the IMPI server or not])
+AH_TEMPLATE(LAM_IMPI_SERVER, [Location of the IMPI server])
+if test "$WANT_IMPI" = "yes"; then
+    AC_CHECK_PROG(IMPI_SERVER, impi-server, impi-server, not found)
+    if test "$IMPI_SERVER" = "not found"; then
+	AC_MSG_WARN([*** Not able to find the executable 'impi-server' in])
+	AC_MSG_WARN([*** your path.  The '-server' option will be disabled])
+	AC_MSG_WARN([*** in mpirun.  To run IMPI jobs, you will need to run])
+	AC_MSG_WARN([*** the IMPI server independantly of LAM's mpirun.])
+	# Stoopid emacs mode: '
+	AC_DEFINE(LAM_WANT_IMPI_SERVER, 0)
+	AC_DEFINE(LAM_IMPI_SERVER, "")
+    else
+	AC_DEFINE(LAM_WANT_IMPI_SERVER, 1)
+	AC_DEFINE_UNQUOTED(LAM_IMPI_SERVER, "$IMPI_SERVER")
+    fi
+fi
+
+AC_SUBST(IMPI_LIB)
+AC_SUBST(IMPI_DIR)
+AC_SUBST(IMPID_DIR)
+AC_SUBST(IMPI_OBJS)
+AM_CONDITIONAL(WANT_IMPI_BUILD, test "$WANT_IMPI" = "yes")
+
+
+##################################
+# Sanity checks
+##################################
+
+#
+# Now that we know if we want ROMIO, check if the user
+# asked for shared libraries.
+#
+
+if test "$WANT_ROMIO" = "yes" -a "$enable_shared" = "yes"; then
+    AC_MSG_WARN([*** Building ROMIO and shared library support is])
+    AC_MSG_WARN([*** experimental.  It should work, but has not been])
+    AC_MSG_WARN([*** well tested by the LAM development team.])
+    AC_MSG_WARN([*** Note that it is not possible to build ROMIO])
+    AC_MSG_WARN([*** as a shared library, so it will still be built as])
+    AC_MSG_WARN([*** a static library])
+fi
+
+if test "$WANT_ROMIO" = "yes" -a "$WANT_PROFILE" = "no"; then
+    AC_MSG_WARN([*** You have selected to build ROMIO and not use the])
+    AC_MSG_WARN([*** MPI profiling interface.  This is not currently])
+    AC_MSG_WARN([*** supported.  You can either select --without-romio,])
+    AC_MSG_WARN([*** or build the profiling interface.  Sorry.])
+    AC_MSG_ERROR([*** Cannot continue.])
+fi
+
+##################################
+# use select to deschedule even when yield is available
+##################################
+
+AC_ARG_WITH(select_yield, 
+    AC_HELP_STRING([--with-select-yield],
+		   [use select to yield]))
+AC_MSG_CHECKING([how to yeild])
+AH_TEMPLATE([LAM_USE_SELECT_YIELD], [Whether to use select() or yield()])
+if test "$with_select_yield" = yes; then
+    MSG="select()"
+    AC_DEFINE(LAM_USE_SELECT_YIELD, 1)
+else
+    MSG="yield()"
+    AC_DEFINE(LAM_USE_SELECT_YIELD, 0)
+fi
+AC_MSG_RESULT([$MSG])
+
+##################################
+# change LAM's internal signal
+##################################
+
+lam_sig="SIGUSR2"
+AC_ARG_WITH(signal, 
+    AC_HELP_STRING([--with-signal=SIGNAL],
+		   [use internal signal SIGNAL]),
+    [lam_sig="$withval"])
+
+AC_MSG_CHECKING([for LAM user signal])
+# Note that we have to escape the use of [ and ] because this goes
+# through autoconf / m4.
+case "$lam_sig" in
+    SIG*) ;;
+    [[0-9]]) ;;
+    [[0-9]][[0-9]]) ;;
+    [[0-2]][[0-9]][[0-9]]) ;;
+    yes) ;;
+    *) AC_MSG_ERROR([*** Invalid signal $lam_sig]) ;;
+esac
+AC_DEFINE_UNQUOTED(LAM_SIGUSR, $lam_sig, 
+    [What signal to use for LAMs out of band signaling])
+AC_MSG_RESULT([$lam_sig])
+
+##################################
+# purify clean
+##################################
+
+# If we want things to be purify/bcheck/general-memory-checking-debugger
+# clean, set this flag so that LAM will always zero memory in known
+# trouble spots.  May cause slight overhead in sending/receiving, since
+# buffers are zeroed before using, hence, it is an option
+
+AC_MSG_CHECKING([if want purify clean])
+WANT_PURIFY=no
+AC_ARG_WITH(purify,
+    AC_HELP_STRING([--with-purify],
+	           [ensure to zero memory before using (see docs)]),
+    [WANT_PURIFY=$withval])
+AH_TEMPLATE([LAM_DISINFECT], 
+    [Whether to zero out memory before using it (for debugging)])
+if test "$WANT_PURIFY" = "yes"; then
+    AC_DEFINE(LAM_DISINFECT, 1)
+else
+    AC_DEFINE(LAM_DISINFECT, 0)
+fi
+AC_MSG_RESULT([$WANT_PURIFY])
+
+##################################
+# lamd defaults
+##################################
+
+# used to be in config.mk (Makefile include), but now have to be here
+# since we switched to automake
+
+TO_BOOT=60
+TO_DLO_ACK=500000
+TO_DLO_IDLE=120
+AC_ARG_WITH(lamd-boot,     
+  AC_HELP_STRING([--with-lamd-boot=SEC],
+		 [timeout (seconds) for booted node]),
+  [TO_BOOT="$withval"])
+AC_ARG_WITH(lamd-ack,      
+  AC_HELP_STRING([--with-lamd-ack=MICROSEC],
+		 [microseconds until a packet is resent]),
+  [TO_DLO_ACK="$withval"])
+AC_ARG_WITH(lamd-hb,       
+  AC_HELP_STRING([--with-lamd-hb=SEC],
+		 [seconds until heartbeat send to remote lamd]),
+  [TO_DLO_IDLE="$withval"])
+
+# Just for cosmetics
+
+AC_MSG_CHECKING([for desired boot timeout])
+AC_MSG_RESULT([$TO_BOOT seconds])
+AC_MSG_CHECKING([for desired lamd packet resend time])
+AC_MSG_RESULT([$TO_DLO_ACK seconds])
+AC_MSG_CHECKING([for desired lamd heartbeat time])
+AC_MSG_RESULT([$TO_DLO_IDLE seconds])
+AC_DEFINE_UNQUOTED(LAM_TO_BOOT, $TO_BOOT, [LAM lamd boot timeout])
+AC_DEFINE_UNQUOTED(LAM_TO_DLO_ACK, $TO_DLO_ACK, [LAM lamd dlo ACK time])
+AC_DEFINE_UNQUOTED(LAM_TO_DLO_IDLE, $TO_DLO_IDLE, [LAM lamd dlo idle time])
+
+
+##################################
+# Stub MPI functions for non-implemented functions
+##################################
+
+WANT_MPI_STUBS=no
+
+AC_ARG_WITH(mpi-stubs,
+    AC_HELP_STRING([--with-mpi-stubs],
+		   [enable stubs for unimplemented MPI functions]),
+    [WANT_MPI_STUBS="$withval"])
+
+AC_MSG_CHECKING([if want stub MPI functions])
+AC_MSG_RESULT([$WANT_MPI_STUBS])
+
+AH_TEMPLATE([LAM_WANT_MPI_STUBS], 
+    [Whether to include stubs for MPI functions that are not yet implemented in LAM])
+AM_CONDITIONAL(WANT_MPI_STUBS, test "$WANT_MPI_STUBS" = "yes")
+if test "$WANT_MPI_STUBS" = "yes"; then
+    AC_DEFINE(LAM_WANT_MPI_STUBS, 1)
+else
+    AC_DEFINE(LAM_WANT_MPI_STUBS, 0)
+fi
+
+
+##################################
+# Allow promiscuous boot SSI connections by default
+##################################
+
+WANT_BOOT_PROMISC=no
+
+AC_ARG_WITH(boot-promisc,
+    AC_HELP_STRING([--with-boot-promisc],
+		   [set default "promiscuous" boot SSI connection mode]),
+    [WANT_BOOT_PROMISC="$withval"])
+
+AC_MSG_CHECKING([if want default promiscuous boot connections])
+AC_MSG_RESULT([$WANT_BOOT_PROMISC])
+
+AH_TEMPLATE([LAM_WANT_BOOT_PROMISC_CONNECTIONS], 
+    [Whether the base boot SSI startup protocol should allow promiscuous connections or not.])
+if test "$WANT_BOOT_PROMISC" = "yes"; then
+    AC_DEFINE(LAM_WANT_BOOT_PROMISC_CONNECTIONS, 1)
+else
+    AC_DEFINE(LAM_WANT_BOOT_PROMISC_CONNECTIONS, 0)
+fi
+
+
+############################################################################
+# Various system-specific tests
+############################################################################
+
+lam_show_subtitle "System-specific tests" 
+
+##################################
+# Various programs
+##################################
+
+# Abort if we cannot find any one of the following
+
+AC_PROG_LN_S
+if test "$LN_S" = ""; then
+    AC_MSG_ERROR([Could not find command for symbolic links (ln).  Cannot continue.])
+fi
+
+AC_PATH_PROG(CP, cp)
+if test "$CP" = ""; then
+    AC_MSG_ERROR([Could not find cp.  Cannot continue.])
+fi
+
+AC_PATH_PROG(RM, rm)
+if test "$RM" = ""; then
+    AC_MSG_ERROR([Could not find rm.  Cannot continue.])
+fi
+AC_DEFINE_UNQUOTED(LAM_RM, "$RM -f", [What to use for the rm command])
+
+AC_PATH_PROG(SHELL_CMD, sh)
+if test "$SHELL_CMD" = ""; then
+    AC_MSG_ERROR([Could not find Bourne shell.  Cannot continue.])
+fi
+
+# config/lam_check_mpiexec.m4
+LAM_CHECK_MPIEXEC
+
+##################################
+# Header files
+##################################
+
+# Really crude checks for prototypes
+
+# config/lam_check_prototype.m4
+LAM_CHECK_PROTOTYPE(snprintf)
+
+# config/lam_check_prototype.m4
+LAM_CHECK_PROTOTYPE(gethostname)
+
+# #$%^#$%^$#%^ IRIX 7.3 MIPSpro compilers...
+
+have_sys_types=1
+if test "`grep sys/types.h confdefs.h`" = ""; then
+    echo "#include <sys/types.h>" >> confdefs.h
+    have_sys_types=0
+fi
+AC_CHECK_HEADERS([stropts.h grp.h netinet/tcp.h sys/select.h sys/resource.h])
+AC_CHECK_HEADERS([rpc/types.h])
+AC_CHECK_HEADERS([rpc/xdr.h], [], [],
+[#if HAVE_RPC_TYPES_H
+ # include <rpc/types.h>
+ # endif
+])
+AC_CHECK_HEADERS([pty.h util.h])
+if test "$have_sys_types" = "0"; then
+    rm -f confdefs.h.new
+    grep -v sys/types.h confdefs.h > confdefs.h.new
+    mv confdefs.h.new confdefs.h
+fi
+AC_CHECK_HEADERS([sched.h strings.h])
+
+# This is complicated enough to warrant a long explanation.
+#
+# So apparently, in 64 bit mode on AIX 4.3.3, fcntl(F_SETFL,
+# O_NONBLOCK) (you get the idea) is broken.  Sometimes.  i.e.,
+# sometimes, setting a socket to go into blocking mode just doesn't
+# work.  When it doesn't work, read() will return -1 and set errno to
+# EAGAIN, which is nonblocking behavior.  But when the socket is
+# supposed to be in blocking mode, LAM doesn't look at errno -- it
+# just sees the -1 and decides that "a process in the local group is
+# dead".  
+#
+# So we originally put in a test to check for FIONBIO and to use
+# ioctl(FIONBIO) instead of fcntl() wherever FIONBIO exists.  However,
+# at least on one system (HP-UX 10.20), FIONBIO is broken, and fcntl()
+# works.  The argument was made that we *know* that fcntl() works
+# everywhere except AIX 4.3.3 (since LAM has always only had fcntl(),
+# not ioctl()).  Plus, Stevens (the networking book) says that POSIX
+# says use fcntl().  
+#
+# Hence, we are now special-casing AIX 4.3.3 -- if we are on AIX, look
+# for FIONBIO.  If it's there, use ioctl.  Otherwise, always use
+# fcntl().  Yet another reason that AIX absolutely sucks.
+
+AC_MSG_CHECKING([if FIONBIO defined in sys/ioctl.h])
+case "$host" in
+*aix*)
+    AC_EGREP_CPP(yes, [
+#include <sys/ioctl.h>
+#ifdef FIONBIO
+yes
+#endif ],[MSG=yes RESULT=1], [MSG=no RESULT=0])
+    ;;
+*)
+    MSG="not on AIX 4.3.3, so who cares?"
+    RESULT=0
+    ;;
+esac
+AC_DEFINE_UNQUOTED(LAM_HAVE_FIONBIO, $RESULT, 
+    [Whether we need the stupid FIONBIO #define is in <sys/ioctl.h>])
+AC_MSG_RESULT([$MSG])
+
+#
+# Look for some constants and types
+#
+
+AC_MSG_CHECKING([if SA_RESTART defined in signal.h])
+AC_EGREP_CPP(yes, [
+#include <signal.h>
+#ifdef SA_RESTART
+    yes
+#endif ], [MSG=yes VALUE=1], [MSG=no VALUE=0])
+AC_DEFINE_UNQUOTED(LAM_HAVE_SA_RESTART, $VALUE, 
+    [Whether we have SA_RESTART in <signal.h> or not])
+AC_MSG_RESULT([$MSG])
+
+AC_MSG_CHECKING([for sa_len in struct sockaddr])
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>], [struct sockaddr s; s.sa_len;],
+[MSG=yes VALUE=1], [MSG=no VALUE=0])
+AC_DEFINE_UNQUOTED(LAM_HAVE_SA_LEN, $VALUE,
+    [Whether we have the sa_len struct in <sys/socket.h> or not])
+AC_MSG_RESULT([$MSG])
+
+AC_MSG_CHECKING([if need to include sys/select.h])
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>], [fd_set s; FD_ZERO(&s);],
+[MSG=yes VALUE=1], [MSG=no VALUE=0])
+AC_DEFINE_UNQUOTED(LAM_NEED_SYS_SELECT_H, $VALUE,
+    [Whether we need <sys/select.h> or not])
+AC_MSG_RESULT([$MSG])
+
+##################################
+# Libraries
+##################################
+
+#
+# Check for -lsocket -lnsl
+#
+
+libs_SAVE="$LIBS"
+
+lam_need_socket=0
+lam_need_nsl=0
+AC_CHECK_FUNC(socket, lam_need_socket=0, lam_need_socket=1)
+if test "$lam_need_socket" = "1"; then
+    AC_CHECK_LIB(socket, socket,
+		 WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS -lsocket"
+		 LIBLAM_EXTRA_LIBS="$LIBLAM_EXTRA_LIBS -lsocket")
+fi
+
+AC_CHECK_FUNC(gethostbyname, lam_need_nsl=0, lam_need_nsl=1)
+if test "$lam_need_nsl" = "1"; then
+    AC_CHECK_LIB(nsl, gethostbyname, 
+		 WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS -lnsl"
+                 LIBLAM_EXTRA_LIBS="$LIBLAM_EXTRA_LIBS -lnsl")
+fi
+
+unset lam_need_socket lam_need_nsl
+
+#
+# Do we have openpty()?
+# In Linux, openpty is in -lutil -- it is VERY IMPORTANT TO ADD -lutil
+# TO LIBS SO THAT LAM_CHECK_FUNC WORKS PROPERLY!
+#
+
+AC_CHECK_LIB(util, login, WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS -lutil" LIBLAM_EXTRA_LIBS="$LIBLAMEXTRALIBS -lutil" LIBS="$LIBS -lutil")
+# config/lam_check_func.m4
+LAM_CHECK_FUNC(openpty, LAM_HAVE_OPENPTY)
+
+LIBS="$libs_SAVE"
+
+##################################
+# Library functions
+##################################
+
+# Check for library functions.
+
+LAM_CHECK_FUNC(atexit, LAM_HAVE_ATEXIT, "")
+LAM_CHECK_FUNC(getcwd, LAM_HAVE_GETCWD, "")
+LAM_CHECK_FUNC(yield, LAM_HAVE_YIELD, "")
+LAM_CHECK_FUNC(snprintf, LAM_HAVE_SNPRINTF, "")
+LAM_CHECK_FUNC(atoll, LAM_HAVE_ATOLL, "")
+LAM_CHECK_FUNC(strtoll, LAM_HAVE_STRTOLL, "")
+LAM_CHECK_FUNC(sched_yield, LAM_HAVE_SCHED_YIELD, "")
+LAM_CHECK_FUNC(sysconf, LAM_HAVE_SYSCONF, "")
+LAM_CHECK_FUNC(sysctl, LAM_HAVE_SYSCTL, "")
+
+# Grrr - Linux has an internal VSCANF, so LAM_CHECK_FUNC will work
+AC_CHECK_DECL(vscanf, LAM_HAVE_VSCANF=1, LAM_HAVE_VSCANF=0)
+AH_TEMPLATE(LAM_HAVE_VSCANF, [Whether we have vscanf or not])
+AC_DEFINE_UNQUOTED(LAM_HAVE_VSCANF, $LAM_HAVE_VSCANF)
+
+# make sure we can copy va_lists (need check declared, not linkable)
+AC_CHECK_DECL(va_copy, LAM_HAVE_VA_COPY=1, LAM_HAVE_VA_COPY=0, 
+	      [#include <stdarg.h>])
+AH_TEMPLATE(LAM_HAVE_VA_COPY, [Whether we have va_copy or not])
+AC_DEFINE_UNQUOTED(LAM_HAVE_VA_COPY, $LAM_HAVE_VA_COPY)
+AC_CHECK_DECL(__va_copy, LAM_HAVE_UNDERSCORE_VA_COPY=1,
+	      LAM_HAVE_UNDERSCORE_VA_COPY=0, [#include <stdarg.h>])
+AH_TEMPLATE(LAM_HAVE_UNDERSCORE_VA_COPY, [Whether we have __va_copy or not])
+AC_DEFINE_UNQUOTED(LAM_HAVE_UNDERSCORE_VA_COPY, $LAM_HAVE_UNDERSCORE_VA_COPY)
+
+##################################
+# System-specific gorp
+##################################
+
+#
+
+# glibc memcpy() has some weird copy issues when the size being copied
+# is not divisable by 4.  In these cases, it appears that memcpy uses
+# a crappy copy algorithm instead of an optimal one.  This seems to
+# happen on x86 hardware in all present versions of glibc (at least <=
+# 2.2.5).  As a workaround (particularly in the shmem RIs), we can
+# copy a few "prefix" bytes (i.e., (size % 8)) before copying the main
+# message body.  This makes the size divisble by 4, and memcpy then
+# performs well.
+
+# See LAM bug 18 for more details.  
+
+# Providing this --without-glibc-memcpy-fix switch to disable the
+# "fixed" memcpy because we don't know yet when it will be fixed, or
+# if it actually happens on all architectures (older glibc's don't
+# show this on Alphas or G4s, but the memory bus is slower there, so
+# the memcpy may be just as bad, but the problem doesn't show up).
+
+# Many thanks to Dr. Dave Turner (NetPIPE rocks) for identifying this,
+# and suggesting fixes.
+LAM_CHECK_PREFIX_MEMCPY
+
+#
+# What's our endian?
+#
+AC_C_BIGENDIAN
+
+#
+# System V InterProcess Communication tests
+#
+LAM_CHECK_SYSV_SEMAPHORES
+LIBS="$LIBS $LAM_SYSV_SEMAPHORES_EXTRA_LIBS"
+LIBLAM_EXTRA_LIBS="$LIBLAM_EXTRA_LIBS $LAM_SYSV_SEMAPHORES_EXTRA_LIBS"
+WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS $LAM_SYSV_SEMAPHORES_EXTRA_LIBS"
+
+LAM_CHECK_SYSV_SHMEM
+LIBS="$LIBS $LAM_SYSV_SHMEM_EXTRA_LIBS"
+LIBLAM_EXTRA_LIBS="$LIBLAM_EXTRA_LIBS $LAM_SYSV_SHMEM_EXTRA_LIBS"
+WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS $LAM_SYSV_SHMEM_EXTRA_LIBS"
+
+#
+# Threads are good.  Threads work.
+#
+LAM_CONFIG_THREADS
+
+CFLAGS="$CFLAGS $THREAD_CFLAGS"
+CFLAGS_nonpicky="$CFLAGS_nonpicky $THREAD_CFLAGS"
+FFLAGS="$FFLAGS $THREAD_FFLAGS"
+CXXFLAGS="$CXXFLAGS $THREAD_CXXFLAGS"
+CPPFLAGS="$CPPFLAGS $THREAD_CPPFLAGS"
+CXXCPPFLAGS="$CXXCPPFLAGS $THREAD_CXXCPPLAGS"
+LDFLAGS="$LDFLAGS $THREAD_LDFLAGS"
+LIBS="$LIBS $THREAD_LIBS"
+
+WRAPPER_EXTRA_CFLAGS="$WRAPPER_EXTRA_CFLAGS $THREAD_CPPFLAGS $THREAD_CFLAGS"
+WRAPPER_EXTRA_CXXFLAGS="$WRAPPER_EXTRA_CXXFLAGS $THREAD_CXXCPPFLAGS $THREAD_CXXFLAGS"
+WRAPPER_EXTRA_FFLAGS="$WRAPPER_EXTRA_FFLAGS $THREAD_FFLAGS"
+WRAPPER_EXTRA_LDFLAGS="$WRAPPER_EXTRA_LDFLAGS $THREAD_LDFLAGS"
+WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS $THREAD_LIBS"
+LIBLAM_EXTRA_LDFLAGS="$LIBLAM_EXTRA_LDFLAGS $THREAD_LDFLAGS"
+LIBLAM_EXTRA_LIBS="$LIBLAM_EXTRA_LIBS $THREAD_LIBS"
+
+# now some thread-specific tests
+LAM_CHECK_FUNC(pthread_atfork, LAM_HAVE_PTHREAD_ATFORK, "")
+
+#
+# Number of available file descriptors
+#
+LAM_CHECK_FD_SETSIZE
+
+#
+# File-descriptor passing style (see Stevens APUE pg 479-489)
+#
+LAM_CONFIG_FD_PASSING
+
+#
+# pseudo-tty style
+#
+AC_MSG_CHECKING([for BSD ptys])
+if test -r /dev/ptyp0 -a -w /dev/ptyp0; then
+    BSDPTY=1
+    MSG=yes
+    VALUE=1
+else
+    BSDPTY=0
+    MSG=no
+    VALUE=0
+fi
+AC_DEFINE_UNQUOTED(LAM_HAVE_BSD_PTYS, $VALUE, 
+    [Whether we have BSD pseudo-ttys or not])
+AC_MSG_RESULT([$MSG])
+
+AC_MSG_CHECKING([for SYSV ptys])
+if test -r /dev/ptmx -a -w /dev/ptmx; then
+    SYSVPYT=1
+    MSG=yes
+    VALUE=1
+else
+    SYSVPTY=0
+    MSG=no
+    VALUE=0
+fi
+AC_DEFINE_UNQUOTED(LAM_HAVE_SYSV_PTYS, $VALUE,
+    [Whether we have SYSV pseudo-ttys or not])
+AC_MSG_RESULT([$MSG])
+
+# warn if no pty support available
+if test "$BSDPTY" = "0" -a "$SYSVPTY" = "0" ; then
+    AC_MSG_WARN(["*** It appears your system does not have pty support."])
+    AC_MSG_WARN(["*** LAM will operate just fine, but pty support will"])
+    AC_MSG_WARN(["*** be unavailable"])
+fi
+
+
+# config/lam_check_sizeof_struct_stat_members.m4
+LAM_CHECK_SIZEOF_STRUCT_STAT_MEMBERS
+
+# config/lam_check_typeof_getsockopt_optlen.m4
+LAM_CHECK_TYPEOF_GETSOCKOPT_OPTLEN
+
+# config/lam_check_typeof_recvfrom_len.m4
+LAM_CHECK_TYPEOF_RECVFROM_LEN
+
+#
+# File system questions.  Yes, LAM now cares about your filesystem.
+# This is mainly a question of what to name the C++ compiler, but it
+# is an OS question, so I put it in the OS section.
+#
+# most of the actual logic lives in tools/wrappers/Makefile.am
+#
+LAM_CASE_SENSITIVE_FS_SETUP
+
+
+############################################################################
+# Optional modules
+############################################################################
+
+lam_show_subtitle "Memory management setup"
+LAM_MEMORY_SETUP
+
+lam_show_subtitle "Optional modules" 
+
+AC_MSG_CHECKING([if want MPI C++ bindings])
+if test "$WANT_MPI2CPP" = "yes"; then
+    AC_MSG_RESULT([enabled])
+
+    # This used to be the configure script from mpi2c++; it's now been
+    # sucked up into this configure script and makes our lives much
+    # better.
+    LAM_CXX_BINDINGS_SETUP
+else
+    AC_MSG_RESULT([disabled])
+fi
+
+AC_MSG_CHECKING([if want ROMIO])
+if test "$WANT_ROMIO" = "yes"; then
+    AC_MSG_RESULT([enabled])
+else
+    AC_MSG_RESULT([disabled])
+fi
+
+#
+# Disable the additional -g used for compiling totalview stuff
+#
+
+AC_ARG_ENABLE(tv,
+    AC_HELP_STRING([--disable-tv],
+		   [disable TotalView-specific compile options when building LAM (usually not necessary)]),
+    [WANT_TV="$enableval"], [WANT_TV=yes])
+AC_MSG_CHECKING([if want TotalView attach support])
+if test "$WANT_TV" = "yes"; then
+    AC_MSG_RESULT([enabled])
+else
+    AC_MSG_RESULT([disabled])
+fi
+
+#
+# Disable TotalView queue support (additional DLL)
+#
+
+WANT_TV_QUEUE_DEFINE=0
+AC_ARG_ENABLE(tv-queue,
+    AC_HELP_STRING([--disable-tv-queue],
+                   [disable TotalView queue functioanlity]),
+    [WANT_TV_QUEUE="$enableval"])
+AC_MSG_CHECKING([if want TotalView queue debugging support])
+if test "$WANT_TV" = "no"; then
+    WANT_TV_QUEUE=no
+    AC_MSG_RESULT([disabled (TV support disabled)])
+elif test "$lam_enable_shared" = "no"; then
+    WANT_TV_QUEUE=no
+    AC_MSG_RESULT([disabled (shared library support explicitly disabled)])
+elif test "$WANT_TV_QUEUE" = "" -a "$BASECC" = "pgcc"; then
+    WANT_TV_QUEUE=no
+    AC_MSG_RESULT([disabled (using Portland Group compilers)])
+elif test "$WANT_TV_QUEUE" = "" -a "$BASECC" = "icc"; then
+    WANT_TV_QUEUE=no
+    AC_MSG_RESULT([disabled (using Intel compilers)])
+elif test "$WANT_TV_QUEUE" = "no"; then
+    AC_MSG_RESULT([disabled])
+else
+    WANT_TV_QUEUE=yes
+    WANT_TV_QUEUE_DEFINE=1
+    AC_MSG_RESULT([enabled])
+fi
+
+#
+# Allow overriding of what flags are used to compile debugging
+# support, because at least some compilers are buggy, and using "-g"
+# doesn't result in the proper symbols being added to the resulting
+# libraries/executables.
+#
+
+AC_ARG_WITH(tv-debug-flags,
+    AC_HELP_STRING([--with-tv-debug-flags=flags],
+		   [specify flags to pass to the compiler/linker to allow proper debugging symbols to be compiled (only necessary of -g does not work)]))
+
+#
+# Do all the BPROC configuration work
+#
+LAM_BPROC_SETUP
+
+
+#
+
+# We want to phase out some of the old/deprecated LAM executable names
+# (e.g., hcc -> mpicc, hcp -> mpiCC, hf77 -> mpif77, wipe -> lamwipe).
+# The main executables are all renamed, and for now, we just make sym
+# links from the real (new) name to the deprecated (old) name in the
+# installation tree.  The --disable-deprecated-executable-names option
+# can block this behavior and not create the sym links.  Someday,
+# we'll change the default behavior to not create these sym links and
+# have --enable-deprecated-executable-names enable the behavior.
+
+WANT_DEN=yes
+AC_MSG_CHECKING(if want deprecated executable names)
+AC_ARG_ENABLE(deprecated-executable-names,
+    AC_HELP_STRING([--disable-deprecated-executable-names],
+		   [do not make sym links to deprecated LAM executables (e.g., hcc, hcp, hf77, wipe)]),
+    [if test "$enableval" = "yes"; then
+	WANT_DEN=yes
+    else
+	WANT_DEN=no
+    fi])
+AM_CONDITIONAL(WANT_DEPRECATED_EXECUTABLE_NAMES, test "$WANT_DEN" = "yes")
+AC_MSG_RESULT([$WANT_DEN])
+
+
+############################################################################
+# Setup Totalview shared library
+############################################################################
+
+# Build a list of args that we will pass to the subdirectory configure
+# scripts.
+
+AC_MSG_CHECKING([for subdir args])
+LAM_CONFIG_SUBDIR_ARGS([lam_subdir_args])
+AC_MSG_RESULT([$lam_subdir_args])
+
+if test "$WANT_TV_QUEUE" = "yes"; then
+
+    # See if the user explicitly specified --disable-shared on the
+    # command line.  If so, refuse to build the TV DLL.
+
+    lam_show_title "Totalview message queue debugging support"
+    echo ""
+    LAM_CONFIG_SUBDIR([share/totalview], [$lam_subdir_args], 
+	[HAPPY=1], [HAPPY=0])
+    if test "$HAPPY" = "1"; then
+	WANT_TV_QUEUE_DEFINE=1
+	TOTALVIEW_DLL_DIR=totalview
+    else
+	WANT_TV_QUEUE_DEFINE=0
+	TOTALVIEW_DLL_DIR=
+    fi
+else
+    TOTALVIEW_DLL_DIR=
+    WANT_TV_QUEUE_DEFINE=0
+fi
+AC_DEFINE_UNQUOTED(LAM_HAVE_TV_QUEUE_DLL, $WANT_TV_QUEUE_DEFINE,
+    [Whether we built/installed the TotalView queue debugging DLL or not])
+AC_SUBST(TOTALVIEW_DLL_DIR)
+
+
+############################################################################
+# Configure ROMIO support
+############################################################################
+
+if test "$WANT_ROMIO" = "yes" ; then
+
+    lam_show_title "Configuring ROMIO (MPI-2 I/O) support"
+
+    # If we're doing a VPATH build, then there may not be a romio
+    # directory yet.  Make it.
+
+    if test ! -d romio; then 
+	mkdir romio
+	mkdir romio/lib
+	mkdir romio/util
+	mkdir romio/test
+    fi
+    cd romio
+    rm -f config.cache 
+
+    if test "$WANT_DEBUG" = "1"; then
+	ROMIO_DEBUG="-debug"
+    else
+	ROMIO_DEBUG=
+    fi
+
+    # Look for ROMIO's configure (e.g., VPATH stuff)
+
+    if test -x configure; then 
+	cdir="." 
+	cd ..
+	LAM_TOP_SRCDIR="`pwd`"
+	cd romio
+    elif test -x "../$srcdir/romio/configure"; then 
+	cdir="../$srcdir/romio"
+	tmp="`pwd`"
+	cd "../$srcdir"
+	LAM_TOP_SRCDIR="`pwd`"
+	cd $tmp
+    elif test -x "$srcdir/romio/configure"; then 
+	cdir="$srcdir/romio"
+	tmp="`pwd`"
+	cd "$srcdir" 
+	LAM_TOP_SRCDIR="`pwd`"
+	cd $tmp
+    else 
+	echo "Error!  I can't find the configure for the ROMIO package.  :-(" 
+	exit 1
+    fi
+
+    # Call ROMIO's configure script
+
+    command="$cdir/configure --prefix=\"$prefix\" -mpi=lam -from_lam -mpiincdir=\"$LAM_TOP_SRCDIR/share/include -I$LAM_TOP_BUILDDIR/share/include\" -cc=\"$CC\" -fc=\"$FC\" -mpiolib=\"$LAM_TOP_BUILDDIR/romio/lib/liblammpio.a\" -cflags=\"$CFLAGS -DLAM_BUILDING=1\" -fflags=\"$FFLAGS $ROMIO_FLAGS\" $ROMIO_DEBUG $ROMIO_NOF77 $ROMIO_USER_FLAGS $ROMIO_ARCH_FLAGS && touch .lam_built"
+    cat > $cdir/config.command <<EOF
+# This file is generated automatically by LAM's top-level configure script.
+# DO NOT EDIT!
+# Date: `date`
+# Host: `hostname`
+# User: `whoami`
+
+$command
+EOF
+    eval $command
+    cd .. 
+fi
+
+
+############################################################################
+# System Serices Interface (SSI)
+############################################################################
+
+lam_show_subtitle "SSI modules" 
+
+# Find which modules should be built as run-time loadable modules
+# Acceptable combinations:
+#
+# --with-modules
+# --with-modules=[.+,]*MODULE_TYPE[.+,]*
+# --with-modules=[.+,]*MODULE_TYPE-MODULE_NAME[.+,]*
+# --without-modules
+#
+
+AC_MSG_CHECKING([which modules should be run-time loadable])
+AC_ARG_WITH(modules,
+    AC_HELP_STRING([--with-modules=LIST],
+		   [comma-separated list of types and/or type-module pairs of modules that will be built as run-time loadable modules (as opposed to statically linked in LAM/MPI (if supported on this platform).  This directly implies "--enable-shared=LIST and --disable-static=LIST".]))
+
+if test "$with_modules" = "" -o "$with_modules" = "no"; then
+    LOADABLE_MODULE_all=0
+    msg=none
+elif test "$with_modules" = "yes"; then
+    if test "$lam_enable_shared" = "" -o "$lam_enable_shared" = "no"; then
+	AC_MSG_RESULT([Error])
+	AC_MSG_ERROR([Cannot build runtime loadable modules. You need to configure with --enable-shared=yes if you want --with-modules to be effective. Aborting])
+    fi
+    LOADABLE_MODULE_all=1
+    msg=all
+else
+    if test "$lam_enable_shared" = "" -o "$lam_enable_shared" = "no"; then
+	AC_MSG_RESULT([Error])
+	AC_MSG_ERROR([Cannot build runtime loadable modules. You need to configure with --enable-shared=yes if you want --with-modules to be effective. Aborting])
+    fi
+    LOADABLE_MODULE_all=0
+    ifs_save="$IFS"
+    IFS="${IFS}$PATH_SEPARATOR,"
+    msg=
+    for module in $with_modules; do
+	str="`echo LOADABLE_MODULE_$module=1 | sed s/-/_/g`"
+	eval $str
+	msg="$module $msg"
+    done
+    IFS="$ifs_save"
+fi
+AC_MSG_RESULT([$msg])
+unset msg
+
+# First, build a list of the kinds of SSIs that we have.  This is more
+# of a sanity check than anything else -- the names of the various
+# kinds are regulated by LAM.
+
+kinds="boot coll crlam crmpi rpi"
+
+AC_MSG_CHECKING([for SSI kinds])
+file=conftest_ssi_list.$$
+rm -f $file
+touch $file
+for kind in $kinds; do
+    kind_dir="$srcdir/share/ssi/$kind"
+    found=0
+
+    for module in $kind_dir/*; do
+	if test -d $module -a -x $module/configure -a ! -f $module/.lam_ignore; then
+	    found=1
+	fi
+    done
+
+    if test "$found" = "1"; then
+	echo $kind >> $file
+    fi
+done
+
+# m4 weirdness: must also do the echo after the sort, or we get a
+# string with newlines in it
+found_kinds="`sort $file`"
+found_kinds="`echo $found_kinds`"
+rm -f $file
+AC_MSG_RESULT([$found_kinds])
+
+# Now determine the modules in each of the kinds.  This is a little
+# redundant and could be combined into the loop above, but we separate
+# it out for clarity.  The extern statements and array of pointers to
+# the module global structs are written to a file for each kind that
+# is #include'd in the flue file for each kind.
+
+for kind in $found_kinds; do
+    all_modules=
+    static_modules=
+    dynamic_modules=
+    static_ltlibs=
+
+    # Ensure that the directory where the #include file is to live
+    # exists.  Need to do this for VPATH builds, because the directory
+    # may not exist yet.
+
+    outdir=share/ssi/$kind/base
+    total_dir="."
+    for dir_part in `IFS='/\\'; set X $outdir; shift; echo "$[@]"`; do
+	total_dir=$total_dir/$dir_part
+	test -d "$total_dir" ||
+	mkdir "$total_dir" ||
+	AC_MSG_ERROR([cannot create $total_dir])
+    done
+
+    # Also ensure that the dynamic-ssi base directory exists
+
+    total_dir="."
+    dyndir=share/dynamic-ssi/$kind
+    for dir_part in `IFS='/\\'; set X $dyndir; shift; echo "$[@]"`; do
+	total_dir=$total_dir/$dir_part
+	test -d "$total_dir" ||
+	mkdir "$total_dir" ||
+	AC_MSG_ERROR([cannot create $total_dir])
+    done
+
+    # Remove any previous #include file
+
+    outfile=$outdir/lam-ssi-${kind}-modules.h
+    rm -f $outfile $outfile.struct $outfile.extern \
+	$file.all $file.static $file.dyanmic
+    touch $outfile.struct $outfile.extern \
+	$file.all $file.static $file.dynamic
+
+    # Manual conversion of $kind to its generic name (e.g., crmpi->cr,
+    # crlam->cr).
+
+    case "$kind" in
+    crmpi)
+	generic_kind="cr"
+	;;
+    crlam)
+	generic_kind="cr"
+	;;
+    *)
+	generic_kind="$kind"
+	;;
+    esac
+
+    # Go through all the module directories and find valid modules
+
+    for module in $srcdir/share/ssi/$kind/*; do
+	FOUND=0
+	HAPPY=0
+	m="`basename $module`"
+	if test -d $module -a -x $module/configure -a \
+	    ! -f $module/.lam_ignore; then
+
+	    # We found one!
+
+	    FOUND=1
+
+	    # Remove any possible sym link in the ssi-dynamic tree
+
+	    rm -f share/dynamic-ssi/$kind/$m
+
+	    # If we're skipping SSI, look at the results from last
+	    # time
+
+	    cachefile="share/ssi/$kind/$m/.lam_configure_results_cache"
+	    if test "$skipssi" = "1"; then
+		AC_MSG_WARN([Llama-specific function to skip configuring SSI module!])
+		if test -f "$cachefile"; then
+		    HAPPY="`grep SUCCESS $cachefile | cut -d= -f2`"
+		else
+		    AC_MSG_WARN([Cannot find result of previous configure of])
+		    AC_MSG_WARN([module $kind/$m.])
+		    AC_MSG_WARN([You must run configure without skipssi at least once.])
+		    AC_MSG_ERROR([Cannot continue.])
+		fi
+	    else
+		LAM_CONFIG_SUBDIR([share/ssi/$kind/$m], [$lam_subdir_args], 
+				  [HAPPY=1], [HAPPY=0])
+		rm -f "$cachefile"
+		echo "SUCCESS=$HAPPY" > "$cachefile"
+	    fi
+	fi
+
+	# See if it dropped an output file for us to pick up some
+	# shell variables in.  
+
+	infile="share/ssi/$kind/$m/ssi_${kind}_${m}_config.sh"
+
+	# Did we find a valid module, and did its configure run
+	# successfully?
+
+	if test "$HAPPY" = "1"; then
+            AC_MSG_NOTICE([Post-module top-level processing])
+
+	    # Add this subdir to the mast list of all SSI module subdirs
+
+	    echo $m >> $file.all
+
+	    # Is this module going to built staic or shared?
+
+	    str="SHARED_KIND=\$LOADABLE_MODULE_$kind"
+	    eval $str
+	    str="SHARED_GENERIC_KIND=\$LOADABLE_MODULE_$generic_kind"
+	    eval $str
+	    str="SHARED_MODULE=\$LOADABLE_MODULE_${kind}_$m"
+	    eval $str
+
+	    # If we're doing skipssi, then look at the results from
+	    # last time
+
+	    shared_mode_override=static
+	    if test "$skipssi" = "1"; then
+		shared_mode_override="`grep COMPILE_MODE $cachefile | cut -d= -f2`"
+	    fi
+
+	    # Setup for either shared or static
+
+	    if test "$shared_mode_override" = "dynamic" -o \
+		"$SHARED_KIND" = "1" -o \
+		"$SHARED_GENERIC_KIND" = "1" -o \
+		"$SHARED_MODULE" = "1" -o \
+		"$LOADABLE_MODULE_all" = "1"; then
+		compile_mode="dynamic"
+		echo $m >> $file.dynamic
+		$LN_S "$LAM_TOP_BUILDDIR/share/ssi/$kind/$m" \
+		    "share/dynamic-ssi/$kind/$m"
+	    else
+		static_ltlibs="$m/liblam_ssi_${kind}_${m}.la $static_ltlibs"
+		echo "extern const lam_ssi_t lam_ssi_${kind}_${m}_module;" >> $outfile.extern
+		echo "  &lam_ssi_${kind}_${m}_module, " >> $outfile.struct
+		compile_mode="static"
+		echo $m >> $file.static
+
+                # If we're building static and there's a "libtool" in
+                # the module directory, see if we can snarf any extra
+                # LDFLAGS of LIBS that libtool figured out.  We only
+                # want thinks like -Wl... here -- *not* -L or -l flags
+                # (those should be passed in the output .sh [$infile],
+                # and will be processed below).
+
+                dir="$LAM_TOP_BUILDDIR/share/ssi/$kind/$m"
+                lt="$dir/libtool"
+                if test -x "$lt" -a -f "$dir/Makefile"; then
+                    flags1="`egrep '^LDFLAGS[ \t]*=' $dir/Makefile | cut -d= -f2-`"
+                    flags2="`egrep '^LIBS[ \t]*=' $dir/Makefile | cut -d= -f2-`"
+                    LAM_CHECK_LINKER_FLAGS([$lt], [$flags1 $flags2])
+
+                    for flag in $extra_ldflags; do
+                        case $flag in
+                        -L*) ;;
+                        -l*) ;;
+                        *) WRAPPER_EXTRA_LDFLAGS="$WRAPPER_EXTRA_LDFLAGS $flag" ;;
+                        esac
+                    done
+
+                    for flag in $extra_libs; do
+                        case $flag in
+                        -L*) ;;
+                        -l*) ;;
+                        *) WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS $flag" ;;
+                        esac
+                    done
+                fi
+                unset dir lt flags1 flags2
+	    fi
+	    if test "$skipssi" != "1"; then
+		echo "COMPILE_MODE=$compile_mode" >> "$cachefile"
+	    fi
+
+	    # Output pretty results
+
+	    AC_MSG_NOTICE([+++ SSI module $kind:$m compile: yes])
+	    AC_MSG_NOTICE([+++ SSI module $kind:$m mode: $compile_mode])
+            if test "$compile_mode" = "dynamic"; then
+                AC_MSG_NOTICE([+++ Ignored any extra wrapper flags])
+            fi
+
+	    # If there's an output file, add the values to
+	    # scope_EXTRA_flags.
+
+	    if test -f $infile; then
+
+		# First check for the ABORT tag
+
+		line="`grep ABORT= $infile | cut -d= -f2-`"
+		if test -n "$line" -a "$line" != "no"; then
+		    AC_MSG_WARN([SSI module configure script told me to abort])
+		    AC_MSG_ERROR([cannot continue])
+		fi
+
+		# Now check for the rest of the tags
+
+		for scope in LIBLAM LIBMPI; do
+		    for flags in CFLAGS CXXFLAGS FFLAGS LDFLAGS LIBS; do
+			var="${scope}_EXTRA_${flags}"
+			line="`grep $var= $infile | cut -d= -f2-`"
+			if test -n "$line"; then
+			    str="$var="'"$'"$var $line"'"'
+			    eval $str
+			fi
+		    done
+		done
+
+                if test "$compile_mode" = "static"; then
+		    for flags in LDFLAGS LIBS; do
+			var="WRAPPER_EXTRA_${flags}"
+			line="`grep $var= $infile | cut -d= -f2-`"
+			if test -n "$line"; then
+			    str="$var="'"$'"$var $line"'"'
+			    eval $str
+			fi
+		    done
+                fi
+	    fi
+	    echo ""
+	elif test "$FOUND" = "1"; then
+	    AC_MSG_NOTICE([--- SSI module $kind:$m compile: no])
+	    echo ""
+
+	    # If this module was requested as the default for this
+	    # kind, then abort.
+
+	    str="foo="'"$'"with_$kind"'"'
+	    eval $str
+	    str="bar="'"$'"with_$generic_kind"'"'
+	    eval $str
+	    if test "$foo" = "$m" -o "$bar" = "$m"; then
+		AC_MSG_WARN([SSI module "$m" failed to configure properly])
+		AC_MSG_WARN([This module was selected as the default])
+		AC_MSG_ERROR([Cannot continue])
+		exit 1
+	    fi
+	fi
+    done
+
+    # m4 weirdness: must also do the echo after the sort, or we get a
+    # string with newlines in it
+
+    all_modules="`sort $file.all`"
+    all_modules="`echo $all_modules`"
+    static_modules="`sort $file.static`"
+    static_modules="`echo $static_modules`"
+    dynamic_modules="`sort $file.dynamic`"
+    dynamic_modules="`echo $dynamic_modules`"
+    rm -f $file $file.all $file.static $file.dynamic
+
+    # Create the final .h file that will be included in the kind's
+    # top-level glue.  This lists all the static modules.
+
+    cat > $outfile <<EOF
+/*
+ * Copyright (c) 2001-2003 The Trustees of Indiana University.  
+ *                         All rights reserved.
+ * Copyright (c) 1998-2001 University of Notre Dame. 
+ *                         All rights reserved.
+ * Copyright (c) 1994-1998 The Ohio State University.  
+ *                         All rights reserved.
+ * 
+ * This file is part of the LAM/MPI software package.  For license
+ * information, see the LICENSE file in the top level directory of the
+ * LAM/MPI source distribution.
+ *
+ * This file automatically generated by LAM's configure script.
+ * Do not edit; any changes will be lost.
+ */
+
+`cat $outfile.extern`
+
+const lam_ssi_t *lam_ssi_${kind}_static_modules[[]] = {
+`cat $outfile.struct`
+  NULL
+};
+EOF
+    rm -f $outfile.struct $outfile.extern 
+
+    # Save the results for the Makefile.am's.  Note the whacky shell
+    # script escaping that is necessary because $modules may be
+    # multiple words, but we also need to substitute on ${kind}...
+
+    foo="LAM_SSI_${kind}_ALL_SUBDIRS"'="$all_modules"'
+    eval "$foo"
+    foo="LAM_SSI_${kind}_STATIC_SUBDIRS"'="$static_modules"'
+    eval "$foo"
+    foo="LAM_SSI_${kind}_DYNAMIC_SUBDIRS"'="$dynamic_modules"'
+    eval "$foo"
+    foo="LAM_SSI_${kind}_STATIC_LTLIBS"'="$static_ltlibs"'
+    eval "$foo"
+done
+unset foo kind m modules structs outfile outdir total_dir file \
+    all_modules static_modules dynamic_modules static_ltlibs
+
+# Grumble.  It seems that AC_SUBST and AC_DEFINE don't let you
+# substitue on a variable name that contains a variable (e.g.,
+# LAM_SSI_$kind_SUBDIRS).  So we have to do this manually.  :-(
+
+AC_SUBST(LAM_SSI_boot_ALL_SUBDIRS)
+AC_SUBST(LAM_SSI_boot_STATIC_SUBDIRS)
+AC_SUBST(LAM_SSI_boot_DYNAMIC_SUBDIRS)
+AC_SUBST(LAM_SSI_boot_STATIC_LTLIBS)
+
+AC_SUBST(LAM_SSI_coll_ALL_SUBDIRS)
+AC_SUBST(LAM_SSI_coll_STATIC_SUBDIRS)
+AC_SUBST(LAM_SSI_coll_DYNAMIC_SUBDIRS)
+AC_SUBST(LAM_SSI_coll_STATIC_LTLIBS)
+
+AC_SUBST(LAM_SSI_crlam_ALL_SUBDIRS)
+AC_SUBST(LAM_SSI_crlam_STATIC_SUBDIRS)
+AC_SUBST(LAM_SSI_crlam_DYNAMIC_SUBDIRS)
+AC_SUBST(LAM_SSI_crlam_STATIC_LTLIBS)
+
+AC_SUBST(LAM_SSI_crmpi_ALL_SUBDIRS)
+AC_SUBST(LAM_SSI_crmpi_STATIC_SUBDIRS)
+AC_SUBST(LAM_SSI_crmpi_DYNAMIC_SUBDIRS)
+AC_SUBST(LAM_SSI_crmpi_STATIC_LTLIBS)
+
+AC_SUBST(LAM_SSI_rpi_ALL_SUBDIRS)
+AC_SUBST(LAM_SSI_rpi_STATIC_SUBDIRS)
+AC_SUBST(LAM_SSI_rpi_DYNAMIC_SUBDIRS)
+AC_SUBST(LAM_SSI_rpi_STATIC_LTLIBS)
+
+
+############################################################################
+# Bookkeeping / house cleaning
+############################################################################
+
+lam_show_title "Libtool / libltdl configuration"
+
+#
+# Arrghh... quirk in the build system that we can't use relative paths
+# here (they're computed for each subdirectory, and therefore are not
+# available yet)
+#
+
+# Already set $LAM_TOP_BUILDDIR and $LAM_TOP_SRCDIR much earlier
+AC_SUBST(LAM_TOP_BUILDDIR)
+AC_SUBST(LAM_TOP_SRCDIR)
+
+#
+# This is needed for VPATH builds, so that it will -I the appropriate
+# include directory (don't know why automake doesn't do this
+# automatically).  We delayed doing it until now just so that
+# '-I$(top_srcdir)' doesn't show up in any of the configure output --
+# purely aesthetic.
+#
+
+CPPFLAGS='-I$(top_srcdir)/share/include'" $CPPFLAGS"
+CXXCPPFLAGS='-I$(top_srcdir)/share/include'" $CXXCPPFLAGS"
+
+
+############################################################################
+# libtool magic
+############################################################################
+
+lam_show_subtitle "GNU libtool setup" 
+
+# Use convenience libltdl for the moment, because we need to force the
+# use of the newest libltdl (i.e., the one that ships with libtool
+# 1.5) because it has support for a lot more things than older
+# versions of libtool (which are generally installed by default).
+
+AC_LIBLTDL_CONVENIENCE(share/libltdl)
+AC_SUBST(LTDLINCL)
+AC_SUBST(LIBLTDL)
+AC_LIBTOOL_DLOPEN
+AM_PROG_LIBTOOL
+
+# AC_CONFIG_SUBDIRS appears to be broken for non-gcc compilers (i.e.,
+# passing precious variables down to the sub-configure).  
+#
+# Note that we also did some magic scripty-foo in autogen.sh to rename
+# the output libtool library "liblamltdl", so add -llamltdl here.
+# This is because so many systems have older versions of libltdl
+# installed very early in ld.so's search path; if we installed our own
+# libltdl in some non-standard path (e.g., $HOME/local or even
+# /usr/local), the libltdl in /usr/lib might get found first.  And if
+# it's older -- or just not matching the version that we need, Bad
+# Things happen.  [sigh]
+#
+# Finally, make liblamltdl follow the same shared/static convention
+# that was user for the main LAM libraries.  So manually examine
+# $enable_shared and $enable_static and pass down the corresponding
+# flags.
+
+lam_show_subtitle "GNU libltdl setup" 
+
+lam_subdir_args="$lam_subdir_args --enable-ltdl-convenience --disable-ltdl-install"
+if test "$enable_shared" = "yes"; then
+    lam_subdir_args="$lam_subdir_args --enable-shared"
+else
+    lam_subdir_args="$lam_subdir_args --disable-shared"
+fi
+if test "$enable_static" = "yes"; then
+    lam_subdir_args="$lam_subdir_args --enable-static"
+else
+    lam_subdir_args="$lam_subdir_args --disable-static"
+fi
+
+CFLAGS_save="$CFLAGS"
+CFLAGS="$CFLAGS_nonpicky"
+LAM_CONFIG_SUBDIR(share/libltdl, [$lam_subdir_args], [HAPPY=1], [HAPPY=0])
+if test "$HAPPY" = "1"; then
+    LIBLTDL_SUBDIR=libltdl
+    WANT_LIBLTDL=1
+
+    # Arrgh.  This is gross.  But I can't think of any other way to do
+    # it.  :-(
+
+    flags="`egrep '^LIBADD_DL[ \t]*=' share/libltdl/Makefile | cut -d= -f2-`"
+    LAM_CHECK_LINKER_FLAGS([share/libltdl/libtool], [$flags])
+    WRAPPER_EXTRA_LDFLAGS="$WRAPPER_EXTRA_LDFLAGS $extra_ldflags"
+    WRAPPER_EXTRA_LIBS="$WRAPPER_EXTRA_LIBS $extra_libs"
+    EXTRA_LDFLAGS="-export-dynamic $EXTRA_LDFLAGS"
+else
+    LIBLTDL_SUBDIR=
+    WANT_LIBLTDL=0
+    EXTRA_LDFLAGS="$EXTRA_LDFLAGS"
+fi
+
+AC_SUBST(EXTRA_LDFLAGS)
+AC_SUBST(LIBLTDL_SUBDIR)
+AM_CONDITIONAL(WANT_LIBLTDL, test "$WANT_LIBLTDL" = "1")
+AC_DEFINE_UNQUOTED(LAM_WANT_LIBLTDL, $WANT_LIBLTDL,
+    [Whether to include support for libltdl or not])
+CFLAGS="$CFLAGS_save"
+
+
+############################################################################
+# final wrapper compiler config
+############################################################################
+
+lam_show_title "Final top-level LAM configuration"
+
+lam_show_subtitle "Miscellaneous configuration"
+
+# At this point, the libtool shell script has been created.  Now we
+# need to run it to see if there are any other flags that we need to
+# add to the wrapper compilers.  This may be helpful (or necesary) if
+# we are building shared libraries, for example.
+
+LAM_WRAPPER_EXTRA_LDFLAGS
+
+# 
+# We delay until the bloody end, in case these needed to be touched...
+# Add in the #defines only so that it triggers recompilcations because
+# of dependencies on lam_config.h.
+#
+
+LAM_UNIQ(LIBLAM_EXTRA_LDFLAGS)
+AC_SUBST(LIBLAM_EXTRA_LDFLAGS)
+AC_DEFINE_UNQUOTED(LIBLAM_EXTRA_LDFLAGS, "$LIBLAM_EXTRA_LDFLAGS", 
+    [Additional flags that are necessary to link LAM programs])
+AC_SUBST(LIBLAM_EXTRA_LIBS)
+    AC_DEFINE_UNQUOTED(LIBLAM_EXTRA_LIBS, "$LIBLAM_EXTRA_LIBS", 
+    [Additional libraries that are necessary to link LAM programs])
+
+LAM_UNIQ(LIBMPI_EXTRA_LDFLAGS)
+AC_SUBST(LIBMPI_EXTRA_LDFLAGS)
+AC_DEFINE_UNQUOTED(LIBMPI_EXTRA_LDFLAGS, "$LIBMPI_EXTRA_LDFLAGS", 
+    [Additional flags that are necessary to link MPI programs])
+AC_SUBST(LIBMPI_EXTRA_LIBS)
+AC_DEFINE_UNQUOTED(LIBMPI_EXTRA_LIBS, "$LIBMPI_EXTRA_LIBS", 
+    [Additional libraries that are necessary to link MPI programs])
+
+LAM_UNIQ(WRAPPER_EXTRA_CFLAGS)
+AC_SUBST(WRAPPER_EXTRA_CFLAGS)
+AC_DEFINE_UNQUOTED(WRAPPER_EXTRA_CFLAGS, "$WRAPPER_EXTRA_CFLAGS",
+    [Additional CFLAGS to pass through the wrapper compilers])
+LAM_UNIQ(WRAPPER_EXTRA_CXXFLAGS)
+AC_SUBST(WRAPPER_EXTRA_CXXFLAGS)
+AC_DEFINE_UNQUOTED(WRAPPER_EXTRA_CXXFLAGS, "$WRAPPER_EXTRA_CXXFLAGS",
+    [Additional CXXFLAGS to pass through the wrapper compilers])
+LAM_UNIQ(WRAPPER_EXTRA_FFLAGS)
+AC_SUBST(WRAPPER_EXTRA_FFLAGS)
+AC_DEFINE_UNQUOTED(WRAPPER_EXTRA_FFLAGS, "$WRAPPER_EXTRA_FFLAGS",
+    [Additional FFLAGS to pass through the wrapper compilers])
+LAM_UNIQ(WRAPPER_EXTRA_LDFLAGS)
+AC_SUBST(WRAPPER_EXTRA_LDFLAGS)
+AC_DEFINE_UNQUOTED(WRAPPER_EXTRA_LDFLAGS, "$WRAPPER_EXTRA_LDFLAGS",
+    [Additional LDFLAGS to pass through the wrapper compilers])
+AC_SUBST(WRAPPER_EXTRA_LIBS)
+AC_DEFINE_UNQUOTED(WRAPPER_EXTRA_LIBS, "$WRAPPER_EXTRA_LIBS",
+    [Additional LIBS to pass through the wrapper compilers])
+
+#
+# Do a final process of the CFLAGS to make a WITHOUT_OPT version.  We
+# need this so that we can guarantee to build the TotalView stuff with
+# -g and nothing else.
+#
+
+if test "$WANT_TV" = "yes"; then
+    LAM_MAKE_STRIPPED_FLAGS($CFLAGS)
+    CFLAGS_WITHOUT_OPTFLAGS="$s_result"
+    if test "$with_tv_debug_flags" != ""; then
+	TOTALVIEW_DEBUG_FLAGS="$with_tv_debug_flags"
+    else
+	TOTALVIEW_DEBUG_FLAGS="-g"
+    fi
+else
+    CFLAGS_WITHOUT_OPTFLAGS="$CFLAGS"
+    TOTALVIEW_DEBUG_FLAGS=
+fi
+AC_MSG_CHECKING([which of CFLAGS are ok for TotalView modules])
+AC_MSG_RESULT([$CFLAGS_WITHOUT_OPTFLAGS])
+AC_MSG_CHECKING([extra CFLAGS for TotalView modules])
+AC_MSG_RESULT([$TOTALVIEW_DEBUG_FLAGS])
+
+AC_SUBST(CFLAGS_WITHOUT_OPTFLAGS)
+AC_SUBST(TOTALVIEW_DEBUG_FLAGS)
+
+#
+# Delayed the substitution of CFLAGS and CXXFLAGS until now because
+# they may have been modified throughout the course of this script.
+#
+
+AC_SUBST(CFLAGS)
+AC_SUBST(CPPFLAGS)
+AC_SUBST(CXXFLAGS)
+AC_SUBST(CXXCPPFLAGS)
+AC_SUBST(FFLAGS)
+
+
+############################################################################
+# Party on
+############################################################################
+
+lam_show_subtitle "Final output" 
+
+AM_CONFIG_HEADER([share/include/lam_config.h])
+AC_CONFIG_FILES([
+    Makefile
+    config/Makefile
+    config/lam-shell-setup.sh
+    config/lam-shell-setup.csh
+    config/lam_module.tcl
+
+    doc/Makefile
+    doc/install/Makefile
+    doc/user/Makefile
+    doc/user/version.tex
+
+    etc/Makefile
+
+    examples/Makefile
+    examples/alltoall/Makefile
+    examples/cxx/Makefile
+    examples/fault/Makefile
+    examples/hello/Makefile
+    examples/mandelbrot/Makefile
+    examples/mandelbrot/myapp
+    examples/pi/Makefile
+    examples/ring/Makefile
+    examples/romio/Makefile
+    examples/topology/Makefile
+    examples/trivial/Makefile
+    examples/trivial/myapp
+    examples/wave1d/Makefile
+    examples/wave1d/myapp
+
+    man/Makefile
+    man/man1/Makefile
+    man/man2/Makefile
+    man/man3/Makefile
+    man/man5/Makefile
+    man/man7/Makefile
+    man/mans/Makefile
+
+    otb/Makefile
+    otb/bfctl/Makefile
+    otb/bfstate/Makefile
+    otb/doom/Makefile
+    otb/fctl/Makefile
+    otb/filedr/Makefile
+    otb/fstate/Makefile
+    otb/ipcdr/Makefile
+    otb/kdump/Makefile
+    otb/lamclean/Makefile
+    otb/lamexec/Makefile
+    otb/lamhalt/Makefile
+    otb/lamgrow/Makefile
+    otb/lamnodes/Makefile
+    otb/lamshrink/Makefile
+    otb/lamtrace/Makefile
+    otb/lamcheckpoint/Makefile
+    otb/lamrestart/Makefile
+    otb/loadgo/Makefile
+    otb/mpimsg/Makefile
+    otb/mpirun/Makefile
+    otb/mpitask/Makefile
+    otb/state/Makefile
+    otb/sys/Makefile
+    otb/sys/bforward/Makefile
+    otb/sys/bufferd/Makefile
+    otb/sys/dli_inet/Makefile
+    otb/sys/dlo_inet/Makefile
+    otb/sys/echod/Makefile
+    otb/sys/filed/Makefile
+    otb/sys/flatd/Makefile
+    otb/sys/iod/Makefile
+    otb/sys/haltd/Makefile
+    otb/sys/kenyad/Makefile
+    otb/sys/kernel/Makefile
+    otb/sys/loadd/Makefile
+    otb/sys/router/Makefile
+    otb/sys/traced/Makefile
+    otb/sys/versiond/Makefile
+    otb/sys/lamd/Makefile
+    otb/sys/impid/Makefile
+    otb/tping/Makefile
+
+    share/Makefile
+    share/args/Makefile
+    share/boot/Makefile
+    share/etc/Makefile
+    share/freq/Makefile
+    share/impi/Makefile
+    share/kreq/Makefile
+    share/include/Makefile
+    share/include/lam_build_info.h
+    share/include/mpif.h
+    share/include/patchlevel.h
+    share/include/mpi2cxx/Makefile
+    share/mpi/Makefile
+    share/mpi/cxx/Makefile
+    share/mpi/f77/Makefile
+    share/mpi/totalview/Makefile
+    share/nreq/Makefile
+    share/pmpi/Makefile
+    share/pmpi/f77/Makefile
+    share/memory/Makefile
+    share/memory/darwin7/Makefile
+    share/memory/ptmalloc/Makefile
+    share/memory/ptmalloc2/Makefile
+    share/rreq/Makefile
+
+    share/ssi/Makefile
+    share/ssi/base/Makefile
+
+    share/ssi/boot/Makefile
+    share/ssi/boot/base/Makefile
+
+    share/ssi/coll/Makefile
+    share/ssi/coll/base/Makefile
+
+    share/ssi/crlam/Makefile
+    share/ssi/crlam/base/Makefile
+
+    share/ssi/crmpi/Makefile
+    share/ssi/crmpi/base/Makefile
+
+    share/ssi/rpi/Makefile
+    share/ssi/rpi/base/Makefile
+
+    share/libmpi/Makefile
+    share/liblam/Makefile
+
+    share/dynamic-ssi/Makefile
+    share/dynamic-ssi/boot/Makefile
+    share/dynamic-ssi/coll/Makefile
+    share/dynamic-ssi/crlam/Makefile
+    share/dynamic-ssi/crmpi/Makefile
+    share/dynamic-ssi/rpi/Makefile
+
+    share/threads/Makefile
+    share/trillium/Makefile
+    share/tstdio/Makefile
+
+    tools/Makefile
+    tools/hboot/Makefile
+    tools/lamboot/Makefile
+    tools/laminfo/Makefile
+    tools/mpiexec/Makefile
+    tools/recon/Makefile
+    tools/tkill/Makefile
+    tools/wipe/Makefile
+    tools/wrappers/Makefile
+    romio/util/lam-configure-values
+], 
+[if test "$WANT_ROMIO" = "yes"; then
+    file=romio/util/lam-configure-values
+    if test ! -f $file; then
+	echo : > $file
+    fi
+    chmod a+x $file
+fi])
+AC_OUTPUT
+
+# ARRGGGHHH!!!  #$%@#$%@#$% IRIX.  It seems that their "make" either
+# has date analysis precision of less than 1 second, or it rules that
+# files of the same timestamp (according to ls -l, anyway) are out of
+# date w.r.t. each other.  
+
+# For an example of what I mean, go to share/include and do "make".
+# Then do "make" again.  Try it on some other operating system (e.g.,
+# Solaris, Linux).  Why does IRIX fire the same rule twice in a row?  
+
+# The result of this is that config.status is run for *every*
+# invocation of "make" on IRIX systems, which, if the "rm" statement
+# below was included in the AC_OUTPUT macro (as it really should be),
+# would remove the sentinel files in ROMIO and the C++ bindings,
+# resulting in ROMIO and the C++ bindings being built *every* time.
+# ARRGHHH!!!
+
+# The only real solution that we can come up with (without being
+# overly complicated; this just isn't worth it) is to move this rm
+# statement out of the AC_OUTPUT macro.  Hence, they'll only be
+# deleted via respective "*clean" targets and when configure is run.
+# This *shouldn't* be too much of a problem, because the "rebuilt
+# share/include/lam_config.h" mechanism built in to config.status will
+# really only be effective for those who run "make depend", which is
+# generally only the developers.  Ugh!!!
+
+rm -f .lam_built romio/.lam_built

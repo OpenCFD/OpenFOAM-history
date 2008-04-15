@@ -1,0 +1,38 @@
+
+// Can someone tell me what a wide char or wide string
+// literal looks like in IDL? For now I'll just cast
+// ordinary char's and string's to their wide cousins.
+const wchar wide_c = 'A';
+const wstring wide_s = "BC";
+const fixed f1 = 0123.450D;
+const fixed f2 = f1 + 6.7D;
+const long l = 10;
+const long long ll = l + 20;
+const unsigned long long ull = ll - 15;
+
+
+struct S {
+  wchar m1;
+  wstring m2;
+  wstring<10> m3;
+  fixed<5,2> m4;
+  long double m5;
+  long long m6;
+  unsigned long long m7;
+};
+
+union U switch(unsigned long long) {
+  case 1: wstring a;
+  case 2: wchar b;
+  case 3: long double c;
+  default: S d;
+};
+
+
+interface A 
+{
+  typedef fixed<5,3> _Fixed;
+  
+  long double m1( in long double x, out long double y, inout long double z );
+  _Fixed m2( in _Fixed x, out _Fixed y, inout _Fixed z );
+};

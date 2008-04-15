@@ -1,0 +1,9 @@
+
+/*
+ * Oneway operation may not contain output parameters or raises expressions.
+ */
+
+interface A
+{
+  oneway void foo( out long x );
+};

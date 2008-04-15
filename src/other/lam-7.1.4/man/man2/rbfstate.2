@@ -1,0 +1,88 @@
+.TH RBFSTATE 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rbfstate \- Report status of remote LAM buffers.
+.SH SYNOPSIS
+#include <bfreq.h>
+.HP
+int rbfstate (int node, struct bfstatus *table, int maxsize,
+struct bfparms *parms);
+.SH ARGUMENTS
+.TP 12
+node
+target node for buffer status
+.TP
+table
+array of message packet status structures (output)
+.TP
+maxsize
+table size - This limits the number of messages than will be reported.
+.TP
+parms
+additional information about the overall status of the network buffer service
+(output)
+.SH DESCRIPTION
+The message packet status structure is defined in <bfreq.h>.
+.PP
+.RS
+.ta 1i 2i
+.nf
+struct bfstatus {
+	int	bfs_node;
+	int	bfs_event;
+	int	bfs_type;
+	int	bfs_length;
+	int	bfs_flags;
+	int	bfs_seq;
+};
+.fi
+.DT
+.RE
+.TP 18
+bfs_node
+destination node of the buffered message packet
+.TP
+bfs_event
+destination event (see nsend(2))
+.TP
+bfs_type
+destination type (see nsend(2))
+.TP
+bfs_length
+length in bytes of the message packet
+.TP
+bfs_flags
+additional boolean information about the message packet
+.TP
+bfs_seq
+sequence number that can be later used to retrieve a copy
+of the packet (see rbflook(2))
+.PP
+Additional information about the overall status of the buffer service
+is stored in a buffer parameter structure, defined in <bfreq.h>.
+.PP
+.RS
+.ta 1i 2i
+.nf
+struct bfparms {
+	int	bfp_maxspace;
+	int	bfp_nspace;
+};
+.fi
+.DT
+.RE
+.TP 18
+bfp_maxspace
+maximum size in bytes of the buffer pool (see rbfparms(2))
+.TP
+bfp_nspace
+current amount of occupied space in the buffer pool
+.SH RETURN VALUE
+Upon successful completion, the number of buffered message packets held
+by the remote buffer daemon is returned.
+The return value may be more or less than
+.IR maxsize .
+If an error occurred, \-1 is returned and the global variable
+.I errno
+is set to indicate the error.
+.SH SEE ALSO
+bfctl(1), bfstate(2), rbflook(2), rbfparms(2)

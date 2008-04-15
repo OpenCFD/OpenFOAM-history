@@ -1,0 +1,33 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+trivial is a most basic message-passing program that transfers one
+message between two processes.  Two versions are supplied: one in C
+and the other in Fortran.
+
+Use "make" to compile this example.  Make will use mpicc and mpif77 to
+compile these programs:
+
+        mpicc -o trivialc trivialc.c
+        mpif77 -o trivialf trivialf.f
+
+ezstart.c is a master/slave skeleton used in "MPI Primer / Developing
+With LAM".  See the Mandelbrot example for a more complete
+master/slave program.  A sample schema file is provided in this
+directory (see the file "myapp"), or you can simply use mpirun to
+launch the executable.  For example:
+
+        mpirun C trivialc
+        mpirun C trivialf

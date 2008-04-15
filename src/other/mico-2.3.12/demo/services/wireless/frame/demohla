@@ -1,0 +1,1 @@
+exec hla -ORBDebug All -ORBIIOPAddr inet:$1:27360 -POAImplName MobilitySupport -ORBIIOPVersion 1.2 -ORBGIOPVersion 1.2 -WATMTerminalPrefix %80%d6%0a%a6 -ORBConfFile ./micorc -WATMTerminalFile ./hlarc -ORBRequestLimit 1

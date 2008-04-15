@@ -1,0 +1,8 @@
+
+interface grid {
+  readonly attribute short height;
+  readonly attribute short width;
+
+  void set( in short n, in short m, in long value );
+  long get( in short n, in short m );
+};

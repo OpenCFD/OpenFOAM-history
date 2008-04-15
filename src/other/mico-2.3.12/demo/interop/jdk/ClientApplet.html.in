@@ -1,0 +1,13 @@
+<h1>MICO - JDK 1.2 beta 2</h1>
+<hr>
+<center>
+  <applet 
+    code=ClientApplet.class 
+    width=210 height=100>
+    <param name=IOR value="@IOR@">
+    <h2>You are probably not running a Java enabled browser.
+    Please use a Java enabled browser (or enable your browser for Java)
+    to view this applet...</h2>
+  </applet>
+</center>
+<hr>

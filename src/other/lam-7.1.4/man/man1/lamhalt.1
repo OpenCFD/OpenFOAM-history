@@ -1,0 +1,72 @@
+.TH LAMHALT 1 "July, 2007" "LAM 7.1.4" "LAM TOOLS"
+.SH NAME
+lamhalt \- Shutdown the LAM/MPI run-time environment.
+.SH SYNOPSIS
+lamhalt [-dhHv]
+.SH OPTIONS
+.TP 12
+.B \-d
+Turn on debugging mode.  This implies -v.
+.TP
+.B \-h
+Print the command help menu.
+.TP
+.B \-i
+Return immediately (even before the LAM universe is fully halted);
+deprecated
+.TP
+.B \-H
+Suppress printing the header message.
+.TP
+.B \-v
+Be verbose.
+.SH DESCRIPTION
+The
+.I lamhalt
+tool terminates the LAM software on each of the nodes that were
+initially booted with
+.I lamboot
+and/or 
+.IR lamgrow .
+No additional command line arguments are necessary - 
+.I lamhalt 
+simply sends a message to each remote node telling it to shut down.
+Each remote node invokes tkill(1) locally to shut down.  See tkill(1)
+for a description of how LAM is terminated on each node.
+.PP
+.I lamhalt
+may fail if one of the remote nodes has failed, and does not respond
+to
+.IR lamhalt 's
+queries.  In this case, the lamwipe(1) command should be used to shut
+down LAM/MPI.  If lamwipe(1) fails, the user can manually invoke
+tkill(1) on the troubled node.  In extreme cases, the user may have to
+terminate individual LAM processes with kill(1).
+.PP
+Older versions of
+.I lamhalt
+would return 1-3 seconds before the entire LAM universe was shut
+down.  This caused problems for some LAM users, particularly those who
+had scripts that invoked
+.I lamboot
+immediately after
+.IR lamhalt .
+.I lamhalt
+has therefore been changed to wait until the entire LAM universe is
+down before exiting.  This makes the execution of
+.I lamhalt
+take a few seconds (typically less than 5).  
+.PP
+For users who want the old 
+.I lamhalt
+behavior, use the 
+.I -i
+(or "immediate") switch, which will cause
+.I lamhalt to return immediately, likely before the entire LAM
+universe has been taken down.
+.SH EXAMPLES
+.TP 4
+lamhalt -d
+Shutdown LAM on the machines and be verbose about its actions.
+.SH SEE ALSO
+recon(1), lamboot(1), tkill(1), bhost(5), lam-helpfile(5), lamwipe(1)

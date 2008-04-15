@@ -1,0 +1,136 @@
+                +------------------------------------------+
+                |     Object Property Service for MICO     |
+                |               Version  0.2b              |
+                +------------------------------------------+
+
+
+1.Prerequisites:
+----------------
+
+  The "Object Property Service for MICO" requires MICO 2.2.0 or higher. 
+
+
+2.Introduction:
+---------------
+
+  The "Object Property Service" has been specified by the Object Management
+  Group (OMG) as an Common Object Service (COS). OMG's code for the spezifi-
+  cation is "OMG TC Document 95.6.1". The Document is available at:
+
+    ftp://ftp.omg.org/pub/docs/1995/95-06-01.{ps|pdf}
+      or as part of the COSS-Book:
+    ftp://ftp.omg.org/pub/docs/formal/97-12-20.{ps|pdf}
+
+  The complete COSS-Book can be found at:
+
+    ftp://ftp.omg.org/pub/docs/formal/98-07-05.{ps|pdf}
+
+  The following chapter is partially taken from the first chapter of OMG's
+  "Object Property Service" Document.
+
+
+3.Service Description:
+----------------------
+
+  An object supports an interface. An interface consists of operations and
+  attributes. The interface is statically defined in IDL. Two objects are
+  of the same type if they support the same interface.
+
+  Properties are typed, named values dynamically associated with an object and
+  outside of the type system.
+
+  Properties are intended to be the dynamic equivalent of CORBA attributes.
+  As with CORBA attributes, clients can get an set property values. However,
+  with properties, clients can also dynamically create and delete properties
+  with an object. Clients can manipulate properties individually or in batches
+  using a sequence of the "Property" data type called "Properties".
+  
+  The following are the key features of the Property Service:
+  
+    * It provides the ability to dynamically associate named values with objects
+      outside the static IDL type system.
+
+    * It defines operations to create and manipulate sets of name-value pairs
+      or name-value-mode tuples. The modes are similar to those defined in the
+      "Interface Repository AttributeDef" interface.
+      (normal, read_only, fixed_normal, fixed_readonly, undefined)
+
+    * It is designed to be a basic building block for a broad set of services 
+      and applications.
+
+    * It provides "batch" operations to deal with sets of properties as a whole.
+
+    * It provides Client access and control of constraints and property modes.
+
+  For more informations about the "Object Property Service" please read OMG's 
+  Documentation which has been announced in chapter 2.
+
+
+4.Implementation Specifics:
+---------------------------
+
+  A few things of the "Property Service" are not standardised by the OMG. The
+  following list describes the behaviour of the "Object Property Service for 
+  MICO" in these cases:
+
+
+  PropertySetFactory:
+ 
+    - create_constrained_propertyset (allowed_property_types,
+                                      allowed_properties)
+
+     * If the "allowed_property_types" sequence is empty, then there are no
+       constraints on the "any" TypeCode portion of the property_value field of 
+       a Property in this PropertySet. Otherwise only TypeCodes which are
+       defined in this sequence will be allowed in the hole PropertySet.
+     * If the "allowed_properties" sequence is empty, then all pairs of
+       (PropertyName, PropertyValue) fields will be accepted in the PropertySet.
+     * If there are any conflicts between the constrains an "ConstraintNot
+       Supported" exception will be thrown. For instance the only allowed
+       PropertyType is "CORBA::_tc_long" and in the "allowed_properties" is
+       a Property defined with a different PropertyType. For example: 
+       ("frame_rate", (CORBA::Any) {CORBA::_tc_short, 0})
+ 
+    - create_initial_propertyset (initial_properties)
+
+     * All properties in the "initial_properties" sequence will be defined in
+       the PropertySet with "fixed_normal" mode.
+
+
+  PropertySetDefFactory:
+
+    - create_constrained_propertysetdef (allowed_property_types, 
+                                         allowed_property_defs)
+
+     * This method has the same behaviour as the create_constrained_propertyset
+       method of the PropertySetFactory.
+     * If the property_mode field of an PropertyDef in the allowed_property_defs
+       sequence is set to "undefined" then are all modes for this PropertyDef
+       allowed. Otherwise only a PropertyDef with the same PropertyName,
+       PropertyType and PropertyMode is allowed.
+
+
+    - create_initial_propertysetdef (initial_properties)
+
+     * All properties in the "initial_properties" sequence will be defined in
+       the PropertySet with "fixed_normal" mode.
+
+
+5.STATUS:
+---------
+
+  At the moment it won't run safely if there is no exception support by your
+  compiler.
+
+
+6.Help:
+-------
+
+  Please send bug-reports and comments to: mico@informatik.uni-frankfurt.de
+
+
+7.Author:
+---------
+
+  Leif Jakobsmeier (leif@informatik.uni-frankfurt.de)
+

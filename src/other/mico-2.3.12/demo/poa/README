@@ -1,0 +1,24 @@
+Some examples how to use the POA, the Portable Object Adapter from the
+CORBA 2.2 specification, and how to implement POA-based servants.
+
+hello-1:
+	A trivial "Hello World" example.
+
+hello-2:
+	Another "Hello World" example using a tie-based implementation.
+
+inherit:
+	Shows various ways how to implement inheritance.
+
+account-1:
+	A Bank object (factory) creates account objects.
+
+account-2:
+	Demonstrates the usage of a ServantManager. The Bank creates
+	references to "virtual" objects, which are then incarnated
+	on request.
+
+account-3:
+	Shows usage of Persistent POAs. Upon server shutdown, accounts
+	are "etherealized" -- their state is written to disk. See also
+	account-3/README.

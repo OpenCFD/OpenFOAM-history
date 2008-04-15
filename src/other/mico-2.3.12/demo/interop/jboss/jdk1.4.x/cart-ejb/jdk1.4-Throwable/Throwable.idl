@@ -1,0 +1,23 @@
+#include "orb.idl"
+
+#ifndef __java_lang_Throwable__
+#define __java_lang_Throwable__
+
+#include "org/omg/boxedRMI/java/lang/seq1_StackTraceElement.idl"
+
+module java {
+module lang {
+
+    valuetype Throwable {
+	private ::java::lang::Throwable cause;
+        private ::CORBA::WStringValue detailMessage;
+        private ::org::omg::boxedRMI::java::lang::seq1_StackTraceElement stackTrace;
+    };
+
+#pragma ID Throwable "RMI:java.lang.Throwable:F8678B4F4D2EB705:D5C635273977B8CB"
+
+};
+};
+
+#endif
+

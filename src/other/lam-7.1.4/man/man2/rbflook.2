@@ -1,0 +1,33 @@
+.TH RBFLOOK 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rbflook \- Retrieve a copy of a buffered LAM message packet.
+.SH SYNOPSIS
+#include <net.h>
+.HP
+int rbflook (int node, struct nmsg *nh, int seq);
+.SH DESCRIPTION
+The message packet is identified solely by a sequence number,
+.IR seq .
+Sequence numbers of buffered packets are learned by a prior call
+to rbfstate(2).
+Note that the packets and their sequence numbers reported by rbfstate(2)
+are only a snapshot of a buffer daemon's state.
+When
+.I rbflook()
+is called, some or all of packets reported by rbfstate(2) may have been
+forwarded and new ones (with unknown sequence numbers) may have arrived.
+The most useful application of
+.I rbflook()
+is to debug a blocked system of processes and messages.
+.PP
+The \fInh\fR argument is a network message descriptor that is only
+used to supply a packet buffer and maximum packet length (up to
+MAXNMSGLEN, defined in <net.h>).
+The synchronization fields of the descriptor are not used.
+Only the sequence number identifies the message packet.
+.SH ERRORS
+.TP 16
+EWOULDBLOCK
+No message packet with the supplied sequence number could be found.
+.SH SEE ALSO
+rbfstate(2)

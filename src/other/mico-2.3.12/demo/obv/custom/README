@@ -1,0 +1,25 @@
+
+Custom marshalling allows you to choose your own "on-the-wire" representation
+of your valuetype. You request custom marshalling by prefixing your valuetype
+declaration in the IDL file with the keyword "custom":
+
+custom valuetype MyCustomValue {
+  // members as usual
+};
+
+Instead of marshalling each member using the default marshalling algorithm,
+the ORB invokes the methods "marshal" and "unmarshal" on your valuetype that
+you have to implement.
+
+`marshal' receives a CORBA::DataOutputStream parameter that offers to write
+a number of basic types (see mico/include/mico/valuetype.idl). On the re-
+ceiving end, `demarshal' must extract the same data in the same order.
+
+This mechanism could be useful if your valuetype could be transmitted in a
+more efficient manner than the default of marshalling each data member, or
+if data must be represented in a certain way using a legacy system.
+
+In this example, this is demonstrated by writing and reading a certain
+sequence of data. For a custom valuetype, `_copy_value()' must invoke the
+custom marshalling routines too, and this is what the `test' program checks
+for. This example does not make a lot of sense otherwise.

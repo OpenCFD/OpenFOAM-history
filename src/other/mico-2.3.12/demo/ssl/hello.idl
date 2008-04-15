@@ -1,0 +1,3 @@
+interface SecureHello {
+  void hello ();
+};

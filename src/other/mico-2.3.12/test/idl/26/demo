@@ -1,0 +1,14 @@
+#!/bin/sh
+
+SERVER_ADDR=inet:`uname -n`:4444
+
+# run server
+./server -ORBIIOPAddr $SERVER_ADDR &
+server_pid=$!
+sleep 1
+
+trap "kill $server_pid" 0
+
+# run client
+./client $SERVER_ADDR
+

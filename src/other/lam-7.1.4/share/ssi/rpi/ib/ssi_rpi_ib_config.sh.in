@@ -1,0 +1,11 @@
+# -*- shell-script -*-
+#
+# $Id: ssi_rpi_ib_config.sh.in,v 1.1 2003/12/15 03:11:39 vsahay Exp $
+#
+# This file is part of the LAM/MPI software package.
+#
+# See the LICENSE file in the top-level directory for Copyright notices.
+#
+
+WRAPPER_EXTRA_LDFLAGS=@WRAPPER_EXTRA_LDFLAGS@
+WRAPPER_EXTRA_LIBS=@WRAPPER_EXTRA_LIBS@

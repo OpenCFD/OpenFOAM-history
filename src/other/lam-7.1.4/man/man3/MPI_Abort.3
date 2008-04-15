@@ -1,0 +1,122 @@
+.TH MPI_Abort 3 "6/24/2006" "LAM/MPI 7.1.4" "LAM/MPI"
+.SH NAME
+MPI_Abort \-  Terminates MPI execution environment 
+.SH SYNOPSIS
+.nf
+#include <mpi.h>
+int MPI_Abort(MPI_Comm comm, int errcode)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B comm 
+- communicator of tasks to abort 
+.PD 1
+.PD 0
+.TP
+.B errcode 
+- error code to return to invoking environment 
+.PD 1
+
+.SH NOTES
+
+Makes a "best attempt" to terminate all MPI processes associated with
+the communicator 
+.I comm
+; for non-IMPI jobs, this will terminate all
+processes.  
+.I MPI_Abort
+will hang, however, if the LAM daemon on the
+node on which a rank was running has died.  For example, if a node
+gets powered off in the middle of an MPI run and 
+.I MPI_Abort
+is
+invoked, it may hang trying to contact the LAM daemon on the downed
+node.
+
+In the case of an IMPI job, in addition to terminating all local IMPI
+procs, this function will also send an abort message to the local IMPI
+host, which will, in turn send "closing" messages to all the other
+IMPI hosts.  Their behavior upon receipt of these "closing" messages
+is implementation dependant.
+
+If the LAM IMPI host receives a premature "closing" message from a
+remote IMPI host, it will attempt to continue processing.  Any new
+messages to that host will likely hang, however.
+
+.SH 'ERRCODE' IS SPLIT INTO THREE SECTIONS
+
+.PD 0
+.TP
+.B lower 8 bits: error class
+- . next 9 bits: function enumeration (there are over 300 MPI functions;
+it takes 9 bits to represent all possibilities)
+.PD 1
+.PD 0
+.TP
+.B upper 15 bits: error code
+- 
+If the error class is nonzero, the error code is the POSIX return
+value for the program (i.e., exit(error_code) is eventually called to
+terminate the program).  If the error class is zero, 
+.I errcode
+is
+returned as the POSIX return value for the program.
+.PD 1
+
+This is mainly because 
+.I MPI_Abort
+is used internally in LAM/MPI to
+abort MPI upon error; LAM packs all three pieces of data into the
+errcode.  Users who wish to return a specific value from the program
+.SH SHOULD USE SOMETHING SIMILAR TO
+
+.nf
+return ((return_code << 17) + 1);
+.fi
+
+
+.SH NOTES FOR FORTRAN
+
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+)
+have an additional argument 
+.I ierr
+at the end of the argument list.
+.I ierr
+is an integer and has the same meaning as the return value of
+the routine in C.  In Fortran, MPI routines are subroutines, and are
+invoked with the 
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type
+.I INTEGER
+in Fortran.
+
+.SH MORE INFORMATION
+
+For more information, please see the official MPI Forum web site,
+which contains the text of both the MPI-1 and MPI-2 standards.  These
+documents contain detailed information about each MPI function (most
+of which is not duplicated in these man pages).
+
+.I http://www.mpi-forum.org/
+
+
+.SH ACKNOWLEDGEMENTS
+
+The LAM Team would like the thank the MPICH Team for the handy program
+to generate man pages ("doctext" from
+.I ftp://ftp.mcs.anl.gov/pub/sowing/sowing.tar.gz
+), the initial
+formatting, and some initial text for most of the MPI-1 man pages.
+.SH LOCATION
+abort.c

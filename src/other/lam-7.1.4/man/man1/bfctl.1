@@ -1,0 +1,115 @@
+.TH BFCTL 1  "July, 2007" "LAM 7.1.4" "LAM COMMANDS"
+.SH NAME
+bfctl, sweep \- Control LAM buffers.
+.SH SYNOPSIS
+bfctl
+[-hR] [-s space] [-e event] nodes
+.sp
+sweep nodes
+.SH OPTIONS
+.TP 15
+.B \-h
+Print the command help menu.
+.TP
+.B \-R
+Reset the state of the buffer daemon.
+.TP
+.B \-e event
+Sweep (clean) out buffered messages of a specific event.
+.TP
+.B \-s space
+Limit the total size, in bytes, of a node's total buffer pool.
+.SH DESCRIPTION
+Most MPI users will probably not need to use the
+.I bfctl
+and
+.I sweep
+commands; see lamclean(1).  This command is only installed if LAM/MPI
+was configured with the 
+.I --with-trillium
+switch.
+.PP
+The
+.I bfctl
+command controls buffering parameters on any node.
+It must be called with an option:
+.I bfctl node(s)
+by itself has no function.
+.I sweep
+is used after an application program error or premature termination to
+remove all messages held in buffers.
+.PP
+The total space that can be consumed by the buffer daemon's buffer
+pool is adjusted with the
+.I -s space
+option, where
+.I space
+is the maximum number of bytes in the buffer pool; the default is 2 Mbytes.
+The
+.I space
+parameter should not be less than MAXNMSGLEN (defined in net.h).
+.PP
+In the event of an application program error or premature termination
+of an application process, unwanted messages often collect in the
+buffers.  The user will need to "sweep" the buffers clean before
+running the application program again.
+.I bfctl -R node(s)
+will remove all messages from the internal buffer pool on the given nodes.
+.I sweep nodes
+is equivalent to
+.I bfctl -R
+.IR nodes .
+Sweeping buffered messages can be done in a selective manner, removing
+all messages of a specific event.  The event is specified by the
+.I -e
+option.
+.SS Message Buffering
+The purpose of LAM network buffering is to receive, store, and forward
+messages to provide very loose synchronization for senders, to allow
+selective out-of-order synchronization for receivers and to facilitate
+debugging synchronization errors.
+.PP
+Two communicating processes using network functions nsend(2) and
+nrecv(2) (or functions built upon these) have the option of using the
+network buffers or not.  By default, they are used.  The message is
+routed to the buffer daemon on each node along the path from the
+sender to the receiver.  If the two processes are on different nodes,
+the buffer daemon on the sender's node is skipped.  The receiver
+synchronizes by first sending a query to the local buffer daemon and
+then waiting for a message to arrive on the selected event.  If the
+buffer daemon has a synchronizing message, it forwards it to the
+receiver immediately.  Otherwise the buffer daemon forwards the
+message when it arrives.  The sender blocks only if there is no
+appropriate buffer space available on the receiver's node and on all
+nodes in between.
+.SS Bypassing Buffers
+Buffering is turned off by setting the NOBUF flag in the nh_flags
+field of the network message descriptor prior to calling nrecv(2) in
+the receiver and nsend(2) in the sender.  The NOBUF flag must be used
+with care and caution.  Setting the flag in one but not the other
+process may inhibit synchronization.  Toggling the NOBUF flag in a
+stream of messages to same receiver on the same synchronization point
+(event and type, see nsend(2)), may cause messages to get out of
+order.  Even without buffering the node-to-node links can hold one or
+more messages.  Thus the sender will block when all the links on the
+path to the receiver's node are stuffed with messages.  When the
+sender and receiver are on the same node, synchronization is strong
+and the sender will block until the receiver takes the message.
+.PP
+The buffer daemon will refuse to receive any message for buffering if
+the current size of the buffer pool exceeds the upper size limit.  It
+will resume receiving messages when space is cleared through
+forwarding messages to receivers or other nodes.
+.SH EXAMPLES
+.TP 4
+bfctl -s 0x100000 h
+Allow one megabyte of total message buffer space on the local node.
+.TP
+sweep N
+Clean out all buffers on all nodes.
+.TP
+bfctl -e 4 n1
+Remove all messages with event 4 on node 1.
+.SH SEE ALSO
+bfstate(1),
+lamclean(1)

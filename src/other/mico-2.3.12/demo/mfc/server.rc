@@ -1,0 +1,48 @@
+/*
+ *  MICO --- a free CORBA implementation
+ *  Copyright (C) 1997-98 Kay Roemer & Arno Puder
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Library General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Library General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Library General Public
+ *  License along with this library; if not, write to the Free
+ *  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  Send comments and/or bug reports to:
+ *                 mico@informatik.uni-frankfurt.de
+ */
+
+#include "server-res.h"
+
+#include "afxres.h"
+
+
+IDD_SERVER_DIALOG DIALOGEX 0, 0, 162, 86
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "MICO Server"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Exit",IDOK,56,58,50,14
+    LTEXT           "Current balance:",IDC_LABEL2,28,26,53,8
+    EDITTEXT        IDC_CURR_BALANCE,92,22,40,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | ES_NUMBER
+    GROUPBOX        "",IDC_STATIC,15,10,130,38
+END
+
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
+    IDP_ORB_INIT_FAILED "MICO ORB initialization failed."
+END
+
+

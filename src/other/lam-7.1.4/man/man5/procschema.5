@@ -1,0 +1,111 @@
+.TH PROCSCHEMA 5 "July, 2007" "LAM 7.1.4" "LAM FILE FORMATS"
+.SH NAME
+procschema \- LAM process schema format
+.SH SYNTAX
+.nf
+#
+# comment
+#
+<program> [$delay] [$inet_topo] [<arguments>]
+<program> [$delay] [$inet_topo] [<arguments>]
+ \.\.\.
+.SH DESCRIPTION
+Most LAM/MPI users can disregard this page.
+.PP
+A process schema (once ambiguously called a configuration file) lists
+the programs that will constitute the LAM environment on a particular
+node.  It drives the operation of hboot(1).  LAM system developers
+will find process schemata very useful for debugging and for
+generating custom systems.  By convention these files begin with the
+prefix
+.IR conf .
+.PP
+The default process schema selected by lamboot(1) (conf.lam) contains
+only one program, the LAM daemon (lamd).
+A one program process schema makes the whole business of process schemata
+and hboot(1) rather redundant.
+LAM can also be run in a de-clustered mode with the daemon reduced to
+a simple local message-passing server (the "kernel") and several system
+clients for network message-passing and remote services.
+This form of LAM is described in the process schema, conf.otb.
+.PP
+The syntax is line oriented.
+Comments begin with # and terminate with a newline.
+.PP
+Process lines consist of a filename, command line arguments,
+and possibly options and substitution variables.
+The command line arguments are passed to the process when it is started.
+The process options control how the process is started.
+Currently supported process options are:
+.TP 14
+$delay
+After starting the process, pause before starting the next process.
+.PP
+Substitution variables are set by the tools that interpret the
+process schema and are a way of customizing the process at runtime.
+See hboot(1).
+Currently supported substitution variables are:
+.TP 14
+$inet_topo
+typically, command-line arguments for LAM Internet datalink processes
+.TP
+$rtr_topo
+typically, command-line arguments for the LAM network information process
+.PP
+The programs found in the LAM de-clustered mode process schema, conf.otb,
+are listed below.
+.PP
+.nf
+.ta 1.25i
+bufferd	Creates, kills, sweeps, and states buffers.
+bforward	Forward messages; helper for bufferd.
+died	Monitors for death of user processes.
+dli_inet	UDP/IP incoming connection to other nodes
+dlo_inet	UDP/IP outgoing connection to other nodes
+echod	Echoes messages; can be used to test nodes and links.
+filed	Serves file access.
+flatd	Provides symbolic access to node memory.
+kenyad	Controls and monitors processes.
+kernel	Coordinates local message-passing.
+loadd	Loads executable files onto nodes.
+router	Maintains network information.
+traced	Collects and transports trace data.
+.fi
+.PP
+Processes are started in the order given in the process schema, and
+for LAM, the order is important.
+In particular, the kernel must be first.
+.SH EXAMPLE
+The de-clustered debug mode LAM process schema is shown below:
+.PP
+.nf
+##
+## The kernel is listed first.
+##
+kernel $delay
+
+##
+## daemons
+##
+router
+kenyad
+dli_inet $inet_topo
+dlo_inet
+bufferd
+bforward
+loadd
+echod
+flatd
+filed
+traced
+.fi
+.SH FILES
+.TP 34
+$LAMHOME/etc/lam-conf.lamd
+default process schema for lamboot(1), where $LAMHOME is the
+installation directory
+.TP
+$LAMHOME/etc/lam-conf.separate
+default process schema for hboot(1)
+.SH SEE ALSO
+lamboot(1), hboot(1)

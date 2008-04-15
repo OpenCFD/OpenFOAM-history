@@ -1,0 +1,22 @@
+// -*- c++ -*-
+//
+// types within container types
+//
+
+struct A {
+  struct B {
+    enum C {
+      JUST_TESTING
+    } tc;
+    long d;
+    sequence<B> sb;
+    sequence<A> sa;
+  } tb;
+  union E switch (A::B::C) {
+  case JUST_TESTING:
+    struct F {
+      boolean b;
+    } tf;
+  } te;
+};
+

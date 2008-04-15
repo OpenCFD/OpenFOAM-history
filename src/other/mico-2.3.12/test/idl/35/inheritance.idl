@@ -1,0 +1,14 @@
+
+interface ComponentImplDef;
+interface Contained;
+interface Container;
+
+interface Contained {
+    Container defined_in ();
+};
+
+interface Container : Contained {
+};
+
+interface ComponentImplDef : Container {
+};

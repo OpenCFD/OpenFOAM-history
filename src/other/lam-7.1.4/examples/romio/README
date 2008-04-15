@@ -1,0 +1,39 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+simple is a fairly straightforward example of using the MPI I/O
+functions.  Each process writes to separate files and then reads them
+back.  The filename is given as a command line argument.  Each process
+writes to this filename with their rank number appended to it.
+
+This program was taken directly from the ROMIO distribution.  It will
+compile properly if ROMIO support was compiled into LAM (which
+typically happens by default, unless ROMIO support was explicitly
+disabled with the --without-romio switch to ./configure.  Use the
+"laminfo" command to see if ROMIO support is included in your LAM
+installation).
+
+Use "make" to compile this example.  Make will use mpicc to compile
+this program.  LAM's "mpicc" takes care of linking in all the
+appropriate libraries, etc.:
+
+       mpicc -o simple simple.c
+
+This program requires a sample filename to use as test storage.  You
+can run it on any number of processors.  For example:
+
+       mpirun C simple -fname <filename>
+
+Where "<filename>" is the name of the file to use for storage.

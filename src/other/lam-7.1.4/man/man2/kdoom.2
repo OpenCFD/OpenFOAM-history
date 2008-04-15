@@ -1,0 +1,52 @@
+.TH KDOOM 2 "July, 2007" "LAM 7.1.4" "LAM LOCAL LIBRARY"
+.SH NAME
+kdoom \- Deliver a signal to a LAM process.
+.SH SYNOPSIS
+#include <lam_ksignal.h>
+.sp
+int kdoom (int pid, int signum);
+.SH DESCRIPTION
+The function
+.I kdoom()
+enables one LAM process to deliver an asynchronous signal to
+another LAM process on the local node, including itself.
+.PP
+The
+.I pid 
+argument is the identifier of the process to which the signal will
+be delivered.
+Process identifiers refer to other LAM processes,
+except for the special identifier 0, which refers to the caller.
+.PP
+The
+.I signum
+argument identifies the signal to be delivered.
+These signals are completely apart from the signals provided by
+the native operating system.
+LAM signals, defined in <lam_ksignal.h>, are listed below.
+.PP
+.nf
+.ta \w'LAM_SIGRELEASE 'u +\w'15*  'u
+LAM_SIGTRACE	1	unload trace data
+LAM_SIGUDIE	4	terminate
+LAM_SIGARREST	5	suspend execution
+LAM_SIGRELEASE	6	continue execution
+LAM_SIGA	7	user defined
+LAM_SIGB	8	user defined
+LAM_SIGFUSE	9	node is about to die
+LAM_SIGSHRINK	10	another node has died
+.fi
+.SH ERRORS
+.TP 15
+ENOTPROCESS
+The process whose process identifier was passed to
+.I kdoom()
+is not a LAM process.
+.TP
+EINVAL
+The signal number is invalid.
+.TP
+ENOTATTACHED
+The calling process is not a LAM process.
+.SH SEE ALSO
+lam_ksignal(2), lam_ksigblock(2)

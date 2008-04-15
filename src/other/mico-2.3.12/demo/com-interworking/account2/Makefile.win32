@@ -1,0 +1,23 @@
+# Makefile for the CORBA side.
+
+RELATIVE = ..\..\..
+!include ..\..\MakeVars.win32
+
+# Path of win32-bin 
+WIN32_BIN  = ..\..\..\win32-bin
+
+all:  client.exe server.exe
+
+client.exe: account.h account.obj client.obj 
+	$(LD)  $(LDFLAGS) account.obj client.obj $(LDLIBS) /out:$@
+
+server.exe: account.h account.obj server.obj 
+	$(LD)  $(LDFLAGS) account.obj server.obj $(LDLIBS) /out:$@
+
+account.h account.cc : account.idl $(IDLGEN)
+	$(IDL) --no-poa --boa account.idl
+
+clean:
+	-$(RM) /f /q 2> nul  account.cc account.h *.o core client server *~ .depend *.exe *.obj *.pdb 0*
+	-$(DELETE)
+

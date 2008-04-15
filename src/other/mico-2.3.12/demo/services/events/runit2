@@ -1,0 +1,53 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+PATH=/tmp/ee-test:../../../daemon:../../../coss/naming:../../../coss/events:../../../imr:../../../ir:$PATH
+export PATH
+
+rm -f NameService-root.inf
+
+ADDR=inet:`uname -n`:12456
+RC="-ORBNamingAddr $ADDR"
+
+echo "run naming service ..."
+nsd -ORBIIOPAddr $ADDR &
+nsd_pid=$!
+
+sleep 2
+
+echo "run event service ..."
+eventd $RC &
+eventd_pid=$!
+
+sleep 2
+
+echo "run event demo server #1 ..."
+./server $RC &
+server1_pid=$!
+sleep 2
+
+echo "run event demo server #2 ..."
+./server2 $RC &
+server2_pid=$!
+sleep 2
+
+trap "kill $nsd_pid $eventd_pid $server1_pid $server2_pid" 0
+
+echo "run event demo server #3 ..."
+./server3 $RC &
+sleep 2
+
+# run client
+echo "and run client #1 ..."
+./client $RC
+
+echo "and run client #2 ..."
+sleep 5
+./client $RC
+
+echo "and run client #3 ..."
+sleep 5
+./client2 $RC
+

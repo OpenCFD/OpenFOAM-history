@@ -1,0 +1,60 @@
+
+MICO - Test suite
+=================
+
+This directory contains a little test suite for MICO. Each of the
+following sub-directories contains a test case, which are described in
+the following:
+
+1- One interface with one method and no parameters
+2- Two interfaces. One interface with two methods. All interfaces
+   have no parameters
+3- One interface with one method. Method has three parameters
+4- Method with result
+5- string
+6- fix length struct
+7- variable length struct
+8- typedef
+9- enum
+10- module
+11- sequence
+12- object references
+13- attribute
+14- Pseudo objects (Any, TypeCode)
+15- interface inheritance
+16- forward declaration of interface
+17- exceptions
+18- arrays
+19- oneway
+20- const
+21- union
+22- context
+23- #include
+24- recursive types
+25- #pragma
+26- --query-server-for-narrow
+27- CORBA 2.2 IDL types (wchar et al)
+28- re-opening of modules
+29- types within container types
+error- testing some IDL errors
+
+Most of these test have the client and server object in the same
+address space. The method CORBA::Object::string_to_object() is
+optimized such that if client and server objects reside within the
+same address space, a C++ pointer is being returned as a result of
+CORBA::Object::string_to_object(). A method invocation in this case is
+therefore a simple C++ method call, bypassing the marshalling
+routines. In order to test the marshalling, the files */main.cc
+contain a #define FORCE_MARSHALLING. If this symbol is defined, the
+reference to a server object is generated slightly different. This
+will guarantee that the marshalling code is being used (and therefore
+tested), although client and server reside in the same address space.
+If FORCE_MARSHALLING is not defined, things are done the "standard
+way".
+
+A simple "make" will generate an executable called "demo" in most of
+the sub-directories. "demo" will generate some output to stdout. If
+everything goes well, this output should be identical with the
+contents of the file "expected-stdout" of the corresponding
+sub-directory. A "make check" on this level will just do this test for
+all sub-directories.

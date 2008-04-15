@@ -1,0 +1,17 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+ADDR=inet:`uname -n`:12456
+
+# run Server
+./server -ORBIIOPAddr $ADDR &
+server_pid=$!
+sleep 1
+
+trap "kill $server_pid" 0
+
+# run client
+./client -ORBBindAddr $ADDR
+

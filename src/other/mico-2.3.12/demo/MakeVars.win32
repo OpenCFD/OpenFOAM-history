@@ -1,0 +1,20 @@
+
+!include $(RELATIVE)\MakeVars.win32
+
+
+IDLGEN	   = 
+
+CXXFLAGS = $(CXXFLAGS) /I. /I$(RELATIVE)\include /I$(RELATIVE)\include\windows
+CCFLAGS = $(CCFLAGS) /I. /I$(RELATIVE)\include /I$(RELATIVE)\include\windows
+
+LDLIBS       = $(RELATIVE)\win32-bin\lib\mico$(VERSION).lib
+COS_CXXFLAGS =
+COS_LDLIBS   = $(RELATIVE)\win32-bin\lib\micocoss$(VERSION).lib
+COS_LDFLAGS  =
+COS_DEPS     =
+
+AUX_CXXFLAGS =
+AUX_LDLIBS   = $(RELATIVE)\win32-bin\lib\micoaux$(VERSION).lib
+AUX_LDFLAGS  =
+AUX_DEPS     =
+

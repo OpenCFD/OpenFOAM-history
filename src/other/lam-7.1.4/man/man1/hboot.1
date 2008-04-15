@@ -1,0 +1,123 @@
+.TH HBOOT 1 "July, 2007" "LAM 7.1.4" "LAM TOOLS"
+.SH NAME
+hboot \- Start LAM on the local node.
+.SH SYNOPSIS
+.hy 0
+.HP
+hboot [-dhstvNV] [-c conf] [-I inet_topo] [-R rtr_topo]
+.hy 1
+.SH OPTIONS
+.TP 16
+.B \-d
+Turn on debugging.  This implies -v.
+.TP
+.B \-h
+Print the command help menu.
+.TP
+.B \-s
+Close stdio of child processes.
+.TP
+.B \-t
+Terminate (tkill(1)) any previous LAM session before starting.
+.TP
+.B \-v
+Be verbose.
+.TP
+.B \-N
+Go through the motions but do not actually take any action.
+.TP
+.B \-V
+Format and print the process schema.
+.TP
+.B \-c conf
+Use conf as the process schema.
+.TP
+.B \-I inet_topo
+Set the $inet_topo variable in the process schema.
+.TP
+.B \-R rtr_topo
+Set the $rtr_topo variable in the process schema.
+.SH DESCRIPTION
+Most MPI users will probably not need to use the
+.I hboot
+command; see lamboot(1).
+.PP
+The
+.I hboot
+tool
+can be understood as a generic utility that starts multiple processes
+on the local node, based on information in a process schema.
+It is not restricted to starting LAM.
+It is part of the startup sequence preformed by lamboot(1).
+.PP
+A process schema is a description of the processes which constitute
+the operating system on a given node.
+Naturally, the process schema used by
+.I hboot
+should be the one that describes LAM on a node.
+The grammar of the process schema is described in conf(5).
+.PP
+When starting LAM on a remote machine using rsh(1), the open file
+descriptors of the processes started by
+.I hboot
+must be closed in order for rsh(1) to exit.
+This is done by using the
+.I \-s
+option.
+The
+.I \-t
+option can be used to force a tkill(1) on the machine before
+attempting to start LAM.  This feature is used by lamboot(1) to handle
+the case where a user might start a machine a second time without
+using lamwipe(1) to terminate the previous LAM session.
+.PP
+The \fI\-I\fR and \fI\-R\fR options set their
+respective variables to the given values.
+The $inet_topo variable is typically used by the LAM Internet datalinks
+that communicate with other nodes.
+The $rtr_topo variable is passed to the LAM router that
+handles network and topology information.
+The variables can also be set in the process schema file (see conf(5))
+but their values are overridden by the command line options.
+.PP
+When LAM is started, the kernel records all processes that
+attach to it, including all the processes in the process schema.
+It is the job of tkill(1)
+to use this information to remove these processes from the node.
+.SH EXAMPLES
+.TP 4
+hboot -v
+Start LAM on the local node with the default process schema.
+Report about every step as it is done.
+.TP
+hboot -c myconfig
+Boot the local node with the custom process schema,
+.IR myconfig .
+.SH FILES
+.TP 30
+laminstalldir/etc/lam-conf.lamd 
+default node process schema, where "laminstalldir" is the directory
+where LAM/MPI was installed
+.TP
+laminstalldir/etc/lam7.1.4helpfile
+Default location for help file for diagnostic messages that 
+.I hboot
+may generate.
+.TP
+/tmp/lam-$USER@hostname
+kill file for the LAM session on machine hostname, where
+$USER is the userid.
+.SH DIAGNOSTICS
+Using ps(1) after
+.I hboot
+will display, among others, the LAM
+processes that have been started.
+They may be killed one by one with kill(1), or all at once by killing
+the LAM kernel process with a HUP signal.
+The preferred method is to use the LAM tool tkill(1)
+which should kill them all at once, and also remove the kill file.
+New users should make liberal use of ps(1)
+to gain confidence that the system is working properly.
+In a disaster, ps(1) and kill(1) are your only hope of recovery.
+.SH SEE ALSO
+lamboot(1), tkill(1), conf(5), lam-helpfile(5)

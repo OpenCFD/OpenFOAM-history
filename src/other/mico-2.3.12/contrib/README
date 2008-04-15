@@ -1,0 +1,8 @@
+
+This directory is for contributions to MICO that are not suitable
+for inclusion in the main source, but may be useful nonetheless.
+
+micoservice   --   provides support to run MICO daemons as an NT
+                   service 
+
+pthreads -- the core of RedHat's Pthreads Win32 library

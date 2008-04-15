@@ -1,0 +1,1188 @@
+% -*- latex -*-
+%
+% Copyright (c) 2001-2004 The Trustees of Indiana University.  
+%                         All rights reserved.
+% Copyright (c) 1998-2001 University of Notre Dame. 
+%                         All rights reserved.
+% Copyright (c) 1994-1998 The Ohio State University.  
+%                         All rights reserved.
+% 
+% This file is part of the LAM/MPI software package.  For license
+% information, see the LICENSE file in the top level directory of the
+% LAM/MPI source distribution.
+%
+% $Id: configure.tex,v 1.30 2004/02/15 14:11:48 jsquyres Exp $
+%
+
+\chapter{Configuring LAM/MPI}
+\label{sec:configure}
+
+The first, and most complex, step in installing LAM/MPI is the
+configuration process.  Many LAM/MPI options can be set at either
+configure or run time; the configure settings simply provide default
+values.  Detailed instructions on setting run-time values is provided
+in the LAM/MPI User's Guide~\cite{lamteam03:_lam_mpi_user_guide}.  If
+you have problems configuring LAM/MPI, see the
+Chapter~\ref{sec:trouble}, ``Troubleshooting.''
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Unpacking the Distribution}
+\index{unpacking the distribution}
+
+The LAM distribution is packaged as a compressed tape archive, in
+either \file{gzip} or \file{bzip2} format.  It is available from the
+main LAM web site.\footnote{\url{http://www.lam-mpi.org/}}
+
+Uncompress the archive and extract the sources. 
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ gunzip -c lam-7.1.2.tar.gz | tar xf -
+# Or, if using GNU tar:
+shell$ tar zxf lam-7.1.2.tar.gz
+\end{lstlisting}
+
+or 
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ bunzip2 -c lam-7.1.2.tar.bz2 | tar xf -
+# Or, if using a recent version of GNU tar:
+shell$ tar jxf lam-7.1.2.tar.bz2
+\end{lstlisting}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Configuration Basics}
+
+LAM uses a GNU \file{configure} script to perform site and
+architecture specific configuration.
+
+Change directory to the top-level LAM directory
+(\file{lam-\lamversion}), set any environment variables necessary, and
+run the \file{configure} script.
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ cd lam-7.1.2
+shell$ ./configure <option> ...
+\end{lstlisting}
+% stupid emacs mode: $
+
+or 
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ cd lam-7.1.2
+shell$ sh ./configure <option> ...
+\end{lstlisting}
+% stupid emacs mode: $
+
+By default, the \cmd{configure} script sets the LAM install directory
+to the parent of where the LAM command \icmd{lamclean} is found (if it
+is in your path -- this will effectively build LAM/MPI to overlay a
+previous installation), or \file{/usr/local} if \cmd{lamclean} is not
+in your path.  This behavior can be overridden with the
+\confflag{prefix} option (see below).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Compiler Options}
+\label{sec:configure:compiler}
+
+LAM's \cmd{configure} script makes an attempt to find the correct
+compilers to use to build LAM/MPI.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Specifying Compilers and Compiler Options}
+\index{compiler selection}
+
+Environment variables are used to override the default compiler
+behavior.  The same environment variables should be set during both
+configuration and build phases of the process.
+
+\begin{description}
+
+\item[Compilers] 
+  
+  The \ienvvar{CC}, \ienvvar{CXX}, and \ienvvar{FC} environment
+  variables specify the C, C++, and Fortran 77 compilers to use to
+  build LAM.  The same compilers are later used by the \icmd{mpicc},
+  \icmd{mpiCC}, and \icmd{mpif77} wrapper compilers.
+
+\item[Compiler Flags]
+  
+  The \ienvvar{CFLAGS}, \ienvvar{CXXFLAGS}, and \ienvvar{FFLAGS}
+  environment variables specify the compiler flags to pass to the
+  appropriate compiler.  These flags are only used when building LAM
+  and are not added to the wrapper compiler argument list.
+
+\item[Linker Flags]
+  
+  The \ienvvar{LDFLAGS} and \ienvvar{CXXLDFLAGS} environment variables
+  are used to pass argument to the linker (or C++ compiler when used
+  as a linker), as appropriate.  They are not added to the argument
+  list of the wrapper compilers.
+
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Mixing Vendor Compilers}
+\index{compiler selection}
+
+A single vendor product line should typically be used to compile all
+of LAM/MPI.  For example, if \cmd{gcc} is used to compile LAM,
+\cmd{g++} should be used to compile the C++ bindings, and
+\cmd{gcc}/\cmd{g++}/\cmd{g77} should be used to compile any user
+programs.  Mixing multiple vendors' compilers between different
+components of LAM/MPI and/or to compile user MPI programs,
+particularly when using the C++ MPI bindings, is almost guaranteed not
+to work.
+
+C++ compilers are not link-compatible; compiling the C++ bindings with
+one C++ compiler and compiling a user program that uses the MPI C++
+bindings will almost certainly produce linker errors.
+%
+Indeed, if exception support is enabled in the C++ bindings, it will
+only work if the C and/or Fortran code knows how to pass C++
+exceptions through their code.  This will only happen properly when
+the same compiler (or a single vendor's compiler product line, such as
+\cmd{gcc}, \cmd{g77}, and \cmd{g++}) is used to compile {\em all}
+components -- LAM/MPI, the C++ bindings, and the user program.  Using
+multiple vendor compilers with C++ exceptions will almost certainly
+not work.
+
+The one possible exception to this rule (pardon the pun) is the
+\cmd{KCC} compiler.  Since \cmd{KCC} turns C++ code to C code and then
+gives it to the back end ``native'' C compiler, \cmd{KCC} may work
+properly with the native C and Fortran compilers.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Configure Options}
+\label{sec:configure:options}
+
+The \cmd{configure} script will create several configuration files
+used during the build phase, including the header file
+\file{share/\-include/\-lam\_\-config.h}.  
+%
+Although \cmd{configure} usually guesses correctly, you may wish to
+inspect this file for a sanity check before building LAM/MPI.
+
+There are many options available from the \cmd{configure} script.
+Although the command \cmd{./configure --help} lists many of the
+command line options, it will {\em not} list all options that are
+available to SSI modules.  This document is the only comprehensive
+list of all available options.
+
+\subsection{General LAM Options}
+\label{sec:configure:options:general}
+
+The following options are relevant to the general LAM/MPI
+infrastructure.
+
+\begin{itemize}
+
+\item \confflag{disable-static}
+  
+  Do not build static libraries.  This flag is only meaningful when
+  \confflag{enable-shared} is specified; if this flag is specified
+  without \confflag{enable-shared}, it is ignored and static libraries
+  are created.
+
+
+\item \confflag{enable-shared}
+
+  Build shared libraries.  ROMIO can not be built as a shared library,
+  so it will always be built as a static library, even if
+  \confflag{enable-shared} is specified.
+
+  Also note that enabling building shared libraries does {\em not}
+  disable building the static libraries.  Specifying
+  \confflag{enable-shared} without \confflag{disable-static} will
+  result in a build taking twice as long, and installing both the
+  static and shared libraries.
+
+\changebegin{7.1}
+  This flag {\em must} be specified if \confflag{with-modules} is
+  used.  Specifically, modules must be built as shared libraries.
+\changeend{7.1}
+
+
+\item \confflag{disable-tv-queue}
+
+  Disable building the TotalView shared library, which provides queue
+  debugging support for LAM/MPI.  This should only be necessary if
+  your architecture and compiler combination do not support building
+  shared libraries.
+
+
+\item \confflagtwo{prefix}{PATH}
+
+  Sets the installation location for the LAM binaries, libraries,
+  etc., to the directory \var{PATH}.  \var{PATH} must be specified as
+  an absolute directory name.
+
+
+\item \confflagtwo{with-boot}{MODULE\_NAME}
+  
+  Set \var{MODULE\_NAME} to be the default SSI boot module.
+  \var{MODULE\_NAME} must be one of the supported boot mechanisms.
+  Currently, these include: \boot{rsh}, \boot{tm}, \boot{slurm}, and
+  \boot{bproc}, and \boot{globus}.
+  
+  The default value for this option is \rpi{rsh}.  Note that LAM's
+  configuration/build system will attempt to build all available RPI
+  modules (regardless of what the default module is).  All \kind{boot}
+  modules that are successfully built will be available for selection
+  at run-time.
+
+\item \confflag{with-boot-promisc}
+  
+  Sets the default behavior of the base \kind{boot} SSI startup
+  protocols.  On many kinds of networks, LAM can know exactly which
+  nodes should be making connections while booting the LAM run-time
+  environment, and promiscuous connections (i.e., allowing any node to
+  connect) are discouraged.  However, this is not possible in some
+  complex network configurations and promiscuous connections {\em
+    must} be enabled.
+  
+  By default, LAM's base \kind{boot} SSI startup protocols disable
+  promiscuous connections.  Using the \confflag{with-boot-promisc}
+  flag changes the default behavior to allow promiscuous connections.
+  
+  Note that this setting can also be overridden at run time when
+  lamboot is invoked.  See the \file{lamssi\_\-boot(7)} manual page
+  for more details.
+
+
+\item \confflag{without-dash-pthread}
+  
+  Disable use of \cmdarg{-pthread} with GCC compilers, using the
+  traditional \cmdarg{-D\_REENTRANT} and \cmd{-lpthread} flags
+  instead.  This is useful for using the GCC C compiler with non-GCC
+  Fortran or C++ compilers.  For example, when using the \cmd{KCC} C++
+  compiler on Linux, \cmd{configure} will incorrectly guess that it
+  can pass \cmdarg{-pthread} to the C++ compiler.  Specifying
+  \confflag{without-dash-pthread} and setting \envvar{CXXFLAGS} and
+  \envvar{CXXLDFLAGS} to the appropriate values for the C++ compiler
+  will allow \cmd{KCC} to properly compile threaded code.
+
+
+\item \confflag{with-debug}
+  
+  This option is typically only used by the LAM Team; it should
+  generally not be invoked by users.  This option both causes
+  additional compiler debugging and warning flags to be used while
+  compiling LAM/MPI, and also activates some debugging-specific code
+  within LAM/MPI (some of which may cause performance degredation).
+  This option is disabled by default.
+
+
+\changebegin{7.1}
+\item \confflag{disable-deprecated-executable-names}
+
+  Several LAM command executable names are deprecated (e.g.,
+  \idepcmd{hcc}, \idepcmd{hcp}, \idepcmd{hf77}, \idepcmd{wipe}).
+  While the executables all still exist, they are now named
+  differently.  By default, symbolic links are created to the
+  old/deprecated names in the installation tree.  This option will
+  disable that behavior such that the deprecated names will not be
+  created in the installation tree.
+
+\changeend{7.1}
+
+
+\item \confflag{with-exceptions}
+  
+  Used to enable exception handling support in the C++ bindings for
+  MPI.  Exception handling support (i.e., the
+  \mpiconst{MPI::ERRORS\_\-THROW\_\-EXCEPTIONS} error handler) is
+  disabled by default.  See the
+  Section~\ref{sec:releasenotes:cxxexceptions}
+  (page~\pageref{sec:releasenotes:cxxexceptions}).
+
+
+\item \confflagtwo{with-exflags}{FLAGS} \\
+  \confflag{without-exflags}
+
+  Used to specify any command line arguments that are necessary for
+  the C, C++, and Fortran compilers to enable C++ exception support.
+  This switch is ignored unless \confflag{with-exceptions} is also
+  specified.
+  
+  This switch is unnecessary for \cmd{gcc}/\cmd{g77}/\cmd{g++} version
+  2.95 and above; \cmdarg{-fexceptions} will automatically be used
+  (when building \confflag{with-exceptions}).  Additionally, this
+  switch is unnecessary if the \cmd{KCC} compiler is used; \cmdarg{-x}
+  is automatically used.
+
+  \changebegin{7.1}
+  
+  At lease some compilers lie about who they are.  The Intel C++
+  compiler, for example, will set the symbol {\tt \_\_GNUC\_\_} to be
+  1, even though it is not the GNU C compiler.  This makes LAM's
+  \cmd{configure} script guess the wrong flags (because it thinks the
+  compiler is \cmd{g++}, not \cmd{icc}).  In this case, you may wish
+  to disable all compiler exception flags.  Use
+  \confflag{without-exflags} (as opposed to {\tt --with-exflags=""}).
+
+  \changeend{7.1}
+
+  See the Section~\ref{sec:releasenotes:cxxexceptions}
+  (page~\pageref{sec:releasenotes:cxxexceptions}).
+
+
+\item \confflag{without-fc}
+  
+  Do not build the Fortran MPI bindings.  Although
+  \depconfflagtwo{with-fc}{FC} used to be able to be used to specify
+  the Fortran compiler, its use is deprecated (see
+  Section~\ref{sec:configure:compiler} and
+  Section~\ref{sec:configure:deprecated}).
+
+
+\item \confflag{with-impi}
+
+  Use this switch to enable the IMPI extensions.  The IMPI extensions
+  are still considered experimental, and are disabled by default.
+  
+  IMPI, Interoperable MPI, is a standard that allows compliant MPI
+  implementations to interact, forming an \mpiconst{MPI\_COMM\_WORLD}
+  that spans multiple implementations.  Currently, there are a limited
+  number of implementations with IMPI support.  Unless necessary, it
+  is not recommended you use the IMPI extensions.
+
+
+\item \confflagtwo{with-lamd-ack}{MIRCOSECONDS}
+  
+  Number of microseconds until an ACK is resent between LAM daemons.  You
+  probably should not need to change this; the default is half a second.
+
+
+\item \confflagtwo{with-lamd-hb}{SECONDS}
+
+  Number of seconds between heartbeat messages in the LAM daemon (only
+  applicable when running in fault tolerant mode).  You probably
+  should not need to change this; the default is 120 seconds.
+
+
+\item \confflagtwo{with-lamd-boot}{SECONDS}
+
+  Set the default number of seconds to wait before a process started
+  on a remote node is considered to have failed (e.g., during
+  \icmd{lamboot}).  You probably should not need to change this; the
+  default is 60 seconds.
+
+
+\changebegin{7.1}
+\item \confflagtwo{with-memory-manager}{ptmalloc|ptmalloc2|darwin|external|none}
+  
+  The \rpi{gm} and \rpi{ib} RPI modules require an additional memory
+  manager in order to ensure that freed memory is released from the
+  kernel modules properly.  
+  
+  If you are planning on using the \rpi{gm} or \rpi{ib} RPI modules,
+  please read Section~\ref{release-notes:os-bypass}
+  (page~\pageref{release-notes:os-bypass}).
+  
+  On most systems, the correct memory manager will be selected
+  automatically.  The ptmalloc package (discussed in
+  Section~\ref{sec:requirements-gm},
+  page~\pageref{sec:requirements-gm}) is used for this purpose.
+  ptmalloc v1 (``\confarg{ptmalloc}'') is included for historical
+  reasons, and is currently never used unless explicitly asked for.
+  \confarg{darwin} is the default on OS X platforms, \confarg{none} is
+  the default on Solaris, AIX, BSD, and Cygwin systems, and ptmalloc v2
+  (``\confarg{ptmalloc2}'') is the default everywhere else.
+  
+  The value ``\confarg{external}'' is a special case for a small
+  number of cases where it is known that all applications that will
+  use LAM/MPI have their own memory manager and will invoke LAM's
+  internal handle release function upon invocation of \func{sbrk()}.
+  See Section~\ref{release-notes:os-bypass}.  If you have no idea what
+  this means, you probably don't need it.
+
+\changeend{7.1}
+
+\item \confflag{without-mpi2cpp}
+
+  Build LAM without the MPI-2 C++ bindings (see chapter 10 of the
+  MPI-2 standard); the default is to build them.  Unlike previous
+  versions of LAM/MPI, a working C++ compiler is required even if the
+  C++ bindings are disabled.
+
+
+\item \confflag{with-prefix-memcpy} \\
+  \confflag{without-prefix-memcpy}
+  
+  The \func{memcpy()} function in the GNU C library (glibc) performs
+  poorly in many cases.  On glibc systems, LAM will default to using a
+  ``prefix'' \func{memcpy()} workaround that significantly increases
+  \func{memcpy()} performance (this has drastic effects on the shared
+  memory RPI modules as well as unexpected message buffering).  These
+  two flags can be used to override the default behavior on glibc and
+  non-glibc systems, respectively.
+
+
+\item \confflag{without-profiling}
+  
+  Build LAM/MPI without the MPI profiling layer (Chapter 8 of the
+  MPI-1 standard).  The default is to build this layer since ROMIO
+  requires it.  See the \confflag{without-romio} option for more
+  details.
+
+
+\item \confflag{with-purify}
+  
+  Causes LAM to zero out all data structures before using them.  This
+  option is not necessary to make LAM function correctly (LAM/MPI
+  already zeros out relevant structure members when necessary), but it
+  is very helpful when running MPI programs through memory checking
+  debuggers, such as Purify, Solaris Workshop/Forte's \icmd{bcheck},
+  and Linux's \icmd{valgrind}.
+  
+  By default, LAM/MPI only initializes relevant struct members before
+  using a structure.  As such, a partially-initialized structure may
+  be sent to a remote host.  This is not a problem because the remote
+  host will ignore the irrelevant struct members (depending on the
+  specific function being invoked).  LAM/MPI was designed this way to
+  avoid setting variables that will not be used; this is a slight
+  optimization in run-time performance.
+  
+  Memory-checking debuggers are both popular useful to find memory
+  leaks, indexing past the end of arrays, and other types of memory
+  problems.  Since LAM/MPI ``uses'' uninitialized memory, it tends to
+  generate many warnings with these types of debuggers.  Setting the
+  \confflag{with-purify} option will cause LAM to always initialize
+  the entire structure, thereby eliminating ``false'' warnings when
+  running MPI applications through memory checking debuggers.  Using
+  this option, however, incurs a slight performance penalty since
+  every structure member will be initialized before the structure is
+  used.
+
+
+\item \confflag{without-romio}
+  
+  Build LAM without ROMIO~\cite{thak99a,thak99b} support (ROMIO
+  provides the MPI-2 I/O support, see Chapter 9 of the MPI-2
+  standard); the default is to build {\em with} ROMIO support.  ROMIO
+  is known to work on a large subset of the platforms on which LAM/MPI
+  properly operates.  Consult the \file{romio/README} file for more
+  information.  Note that ROMIO is always built as a static library,
+  even if \confflag{enable-shared} and \confflag{disable-static} are
+  specified.
+  
+  Note also that building ROMIO implies building the profiling layer.
+  ROMIO makes extensive use of the MPI profiling layer; if
+  \confflag{without-profiling} is specified, \confflag{without-romio}
+  must be specified.
+
+\changebegin{7.0.1}
+
+\item \confflagtwo{with-romio-flags}{FLAGS}
+  
+  Pass \var{FLAGS} to ROMIO's configure script when it is invoked
+  during the build process.  This switch is to effect specific
+  behavior in ROMIO, such as building for a non-default file system
+  (e.g., PVFS).  Note that LAM already sends the following switches to
+  ROMIO's configure script -- the \confflag{with-romio-\-flags} switch
+  should not be used to override them:
+
+  \begin{center}
+    \begin{tabular}{p{2in} p{2in}}
+      \confflag{prefix}   & \cmdarg{-cflags} \\
+      \cmdarg{-mpi}       & \cmdarg{-fflags} \\
+      \cmdarg{-mpiincdir} & \cmdarg{-nof77}  \\
+      \cmdarg{-cc}        & \cmdarg{-make}   \\
+      \cmdarg{-fc}        & \cmdarg{-mpilib} \\
+      \cmdarg{-debug}     & \\
+    \end{tabular}
+  \end{center}
+  
+  Also note that this switch is intended for ROMIO configure flags.
+  It is {\em not} intended as a general mechanism to pass
+  prepropcessor flags, compiler flags, linker flags, or libraries to
+  ROMIO.  See \confflag{with-romio-libs} for more details.
+
+\item \confflagtwo{with-romio-libs}{LIBS}
+  
+  Pass \var{LIBS} to ROMIO's configure script and add it to the list
+  of flags that are automatically passed by the wrapper compilers.
+  This option is named ``libs'' instead of ``ldflags'' (and there is
+  no corresponding \confflag{with-romio-ldflags} option) as a
+  simplistic short-cut; these flags are added in the traditional
+  \var{LIBS} location on the wrapper compiler line (i.e., to the right
+  of the \var{LDFLAGS} variable).
+
+  This should {\em only} be used for flags that must be used to link
+  MPI programs (e.g., additional ``\cmdarg{-L}'' and ``\cmdarg{-l}''
+  switches required to find/link libraries required by ROMIO).  A
+  typical example might be:
+
+  \lstset{style=lam-cmdline}
+  \begin{lstlisting}
+shell$ ./configure ... --with-romio-flags=-file_system=pvfs+nfs \
+  --with-romio-libs=''-L/location/of/pvfs/installation -lpvfs''
+  \end{lstlisting}
+% stupid emacs mode: $
+
+\changeend{7.0.1}
+
+\item \confflagtwo{with-rpi}{MODULE\_NAME}
+  
+  Set \var{MODULE\_NAME} to be the default RPI module for MPI jobs.
+  \var{MODULE\_\-NAME} should be one of the supported RPI modules.
+  Currently, these include:
+  
+  \begin{description}
+  \item[\rpi{crtcp}] Same as the \rpi{tcp} module, except that it can
+    be checkpointed and restarted (see
+    Section~\ref{sec:configure:ssi:options:blcr}).  A small
+    performance overhead exists compared to \rpi{tcp}.
+
+  \item[\rpi{gm}] Myrinet support, using the native gm message
+    passing interface.
+
+\changebegin{7.1}
+  \item[\rpi{ib}] Infiniband support, using the Mellanox Verbs API
+    (VAPI) interface.
+\changeend{7.1}
+
+  \item[\rpi{lamd}] Native LAM message passing.  Although slower than
+    other RPI modules, the \rpi{lamd} RPI module provides true
+    asynchronous message passing which can overall higher performance
+    for MPI applications that utilize latency-hiding techniques.
+    
+  \item[\rpi{tcp}] Communication over fully-connected TCP sockets.
+
+  \item[\rpi{sysv}] Shared memory communication for processes on
+    the same node, TCP sockets for communication between processes on
+    different nodes.  A System V semaphore is used for synchronization
+    between processes.
+    
+  \item[\rpi{usysv}] Like \rpi{sysv}, except spin locks with back-off
+    are used for synchronization.  When a process backs off, it
+    attempts to yield the processor using \func{yield()} or
+    \func{sched\_\-yield()}.
+  \end{description}
+  
+  The default value for this option is \rpi{tcp}.  Note that LAM's
+  configuration/build system will attempt to build all available RPI
+  modules (regardless of what the default module is).  All RPI modules
+  that are successfully built will be available for selection at
+  run-time.
+  
+
+\item \confflag{without-shortcircuit}
+
+  LAM's MPI message passing engines typically use queueing systems to
+  ensure that messages are sent and received in order.  In some cases,
+  however, the queue system is unnecessary and simply adds overhead
+  (such as when the queues are empty and a blocking send is invoked).
+  The short-circuit optimization bypasses the queues and directly
+  sends or receives messages when possible.
+  
+  Although not recommended, this option can be used to disable the
+  short-circuit optimization.  This option exists mainly for
+  historical reasons and may be deprecated in future versions of
+  LAM/MPI.
+
+
+\item \confflagtwo{with-signal}{SIGNAL}
+  
+  Use SIGNAL as the signal used internally by LAM. The default value
+  is \signal{SIGUSR2}.  To set the signal to \signal{SIGUSR1} for
+  example, specify \confflagtwo{with-signal}{SIGUSR1}.  To set the signal
+  to 50, specify \confflagtwo{with-signal}{50}.  Be {\em very} careful to
+  ensure that the signal that you choose will not be used by anything
+  else!
+
+
+\item \confflagtwo{with-threads}{PACKAGE}
+  
+  Use \cmdarg{PACKAGE} for threading support.  Currently supported
+  options are \confarg{posix}, \confarg{solaris}, and \confarg{no}.
+  \confarg{no} will disable threading support in LAM, with the side
+  effects that \mpiconst{MPI\_\-THREAD\_\-FUNNELED} and
+  \mpiconst{MPI\_\-THREAD\_\-SERIALIZED} will not be available, and
+  checkpoint/restart functionality is disabled.  Specifying
+  \confflag{without-threads} is equivalent to
+  \confflagtwo{with-threads}{no}.
+
+
+\item \confflag{with-trillium}
+  
+  Build and install the Trillium support executables, header files,
+  and man pages.  Trillium support is {\em not} necessary for normal
+  MPI operation; it is intended for the LAM Team and certain third
+  party products that interact with the lower layers of LAM/MPI.
+  Building XMPI
+  \footnote{\url{http://www.lam-mpi.org/software/xmpi/}}, for example,
+  requires that all the Trillium header files were previously
+  installed.  Hence, if you intend to compile XMPI after installing
+  LAM/MPI, you should use this option.
+
+
+\item \confflag{with-wrapper-extra-ldflags}
+
+  When compiling LAM with shared library support, user MPI programs
+  will need to be able to find the shared libraries at run time.  This
+  typically happens in one of three ways:
+
+  \begin{enumerate}
+  \item The \ienvvar{LD\_\-LIBRARY\_\-PATH} environment variable
+    specifies \$\file{prefix/lib} where the LAM and MPI libraries are
+    located.
+    
+  \item The linker is configured to search \$\file{prefix/lib} for
+    libraries at run-time.
+    
+  \item The path \$\file{prefix/lib} is added to the run-time search
+    path when the user's MPI program is linked.
+  \end{enumerate}
+  
+  Although either option \#1 or \#2 is used as the typical solution to
+  this problem, they are outside the scope of LAM.  Option \#3 can be
+  effected when \confflag{with-wrapper-extra-ldflags} is used.  The
+  appropriate compiler options to find the LAM and MPI shared
+  libraries are added to the wrapper's underlying compiler command
+  line to effect option \#3.  Note, however, that this does {\em not}
+  necessarily mean that supporting shared libraries (such as those
+  required by SSI modules) will automatically be found, particularly
+  if they are installed in non-standard locations.
+  
+  If \confflag{with-wrapper-extra-ldflags} is {\em not} specified,
+  these options are not added to the wrapper's underlying compiler
+  command line.
+
+
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{SSI Module Options}
+\label{sec:configure:options:ssi}
+\index{configuring SSI modules}
+\index{SSI modules|see {configuring SSI modules}}
+
+LAM/MPI's configure/build procedure will attempt to configure and
+build {\em all} SSI modules that can be found in the source tree.  Any
+SSI module that fails to configure properly will simply be skipped; it
+will not abort the entire build.  Closely examining the output of
+LAM's \cmd{configure} script will show which modules LAM decided to
+build and which ones it decided to skip.  Once LAM/MPI has been built
+and installed, the \icmd{laminfo} command can be used to see which
+modules are included in the installation.
+
+The options below list several SSI module-specific configuration
+options.  Modules that have no specific configuration options are not
+listed.
+
+\changebegin{7.1}
+
+\begin{itemize}
+
+\item \confflag{with-modules[=list]}
+
+  Enable LAM SSI modules to be built as dynamic shared objects (DSO).
+  This option {\em must} be used in conjunction with
+  \confflag{enable-shared}; \cmd{configure} will abort with an error
+  if this option is used without \confflag{enable-shared}.
+  
+  If no list is specified, then all SSI modules that are built will be
+  DSOs.  If a list is specified, it can be a comma-separated list of
+  SSI types and/or names specifying which modules to build as DSOs.
+  Module names must be prefixed with their type name to prevent
+  ambiguity.  For example:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+# Build all modules as DSOs
+shell$ ./configure --enable-shared --with-modules
+# Build all boot modules as DSOs
+shell$ ./configure --enable-shared --with-modules=boot
+# Build all boot and RPI modules as DSOs
+shell$ ./configure --enable-shared --with-modules=boot,rpi
+# Build all boot modules and the gm RPI module as DSOs
+shell$ ./configure --enable-shared --with-modules=boot,rpi:gm
+# Build the rsh boot module and gm RPI module as DSOs
+shell$ ./configure --enable-shared --with-modules=boot:rsh,rpi:gm
+\end{lstlisting}
+% stupid latex mode: $
+
+\end{itemize}
+
+\changeend{7.1}
+
+%%%% BOOT
+
+\subsubsection{BProc \kind{boot} Module}
+\index{bproc boot module@\boot{bproc} \kind{boot} module}
+
+\changebegin{7.1}
+
+\begin{itemize}
+
+\item \confflagtwo{with-boot-bproc}{PATH}
+
+  If the BProc header and library files are installed in a
+  non-standard location, this option must be used to indicate where
+  they can be found.  If the \boot{bproc} module's configuration fails
+  to find the BProc header and library files, it will fail (and
+  therefore be skipped).
+
+\end{itemize}
+
+\changeend{7.1}
+
+%%%%%
+
+\subsubsection{RSH \kind{boot} Module}
+\index{rsh (ssh) boot module@\boot{rsh} (\cmd{ssh}) \kind{boot} module}
+
+\begin{itemize}
+
+\item \confflagtwo{with-rsh}{AGENT}
+  
+  Use \var{AGENT} as the remote shell command.  For example, to use
+  \cmd{ssh} then specify \confflagtwo{with-rsh}{"ssh
+    -x"}.\footnote{Note that \cmdarg{-x} is necessary to prevent the
+    \cmd{ssh} 1.x series of clients from sending its standard banner
+    information to the standard error, which will cause
+    \icmd{recon}/\icmd{lamboot}/etc.\ to fail.}  This shell command
+  will be used to launch commands on remote nodes from binaries such
+  as \icmd{lamboot}, \icmd{recon}, \icmd{lamwipe}, etc.  The command
+  can be one or more shell words, such as a command and multiple
+  command line switches.
+  %
+  This value is adjustable at run-time.
+
+\end{itemize}
+
+%%%%%
+
+\subsubsection{TM (OpenPBS/PBS Pro/Torque) \kind{boot} Module}
+\index{tm (PBS/Torque) boot module@\boot{tm} (PBS) \kind{boot} module}
+
+\changebegin{7.1}
+
+\begin{itemize}
+
+\item \confflagtwo{with-boot-tm}{PATH}
+  
+  If the TM (PBS) header and library files are installed in a
+  non-standard location, this option must be used to indicate where
+  they can be found.  If the \boot{tm} module's configuration fails to
+  find the PBS header and library files, it will fail (and therefore
+  be skipped).
+
+\end{itemize}
+
+\changeend{7.1}
+
+%%%% CHECKPOINT/RESTART
+
+\subsubsection{BLCR Checkpoint/Restart (\kind{cr}) Module}
+\label{sec:configure:ssi:options:blcr}
+\index{blcr checkpoint/restart module@\crssi{blcr} checkpoint/restart module}
+
+The blcr checkpoint/restart module may only be used when the running
+RPI is \rpi{crtcp}.  You may want to use the configure option
+\confflagtwo{with-rpi}{crtcp} to make \rpi{crtcp} the default RPI.
+
+\changebegin{7.1}
+
+\begin{itemize}
+
+\item \confflagtwo{with-cr-blcr}{PATH}
+  
+  If the BLCR header and library files are installed in a non-standard
+  location, this option must be used to indicate where they can be
+  found.  If the \crssi{blcr} module's configuration fails to find the
+  BLCR header and library files, it will fail (and therefore be
+  skipped).
+
+\item \confflagtwo{with-cr-base-file-dir}{PATH}
+
+  Use \var{PATH} as the default location for writing checkpoint files.
+  This parameter is adjustable at run-time.
+
+\end{itemize}
+
+\changeend{7.1}
+
+%%%% RPI
+\subsubsection{CRTCP \kind{rpi} Module}
+\index{crtcp RPI module@\rpi{crtcp} RPI module}
+
+\changebegin{7.1}
+
+\begin{itemize}
+
+\item \confflagtwo{with-rpi-crtcp-short}{BYTES}
+  
+  Use \var{BYTES} as the maximum size of a short message when
+  communicating over TCP using the checkpoint/restart-enabled TCP
+  module.  The default is 64 KB.  See
+  Section~\ref{sec:advanced:tslproto}
+  (page~\pageref{sec:advanced:tslproto}) for information on
+  communication protocols.  This parameter is adjustable at run-time.
+
+\end{itemize}
+
+\changeend{7.1}
+
+%%%%%
+
+\subsubsection{Myrinet/GM \kind{rpi} Module}
+\index{gm (Myrinet) RPI module@\rpi{gm} RPI module}
+\index{Myrinet RPI module|see {gm (Myrinet) RPI module}}
+\label{sec:configure:ssi:options:gm}
+
+Note that LAM/MPI does not need Myrinet hardware installed on the node
+where LAM is configured and built to include Myrinet support; LAM/MPI
+only needs the appropriate gm libraries and header files installed.
+Running MPI applications with the \rpi{gm} RPI module requires Myrinet
+hardware, of course.
+
+\begin{itemize}
+
+\changebegin{7.1}
+
+\item \confflagtwo{with-rpi-gm}{PATH}
+  
+  If the GM header and library files are installed in a non-standard
+  location, this option must be used to indicate where they can be
+  found.  If the \rpi{gm} module's configuration fails to find the GM
+  header and library files, it will fail (and therefore be skipped).
+
+
+\item \confflag{with-rpi-gm-get}
+
+  Enable the experimental use of the GM 2.x library call
+  \func{gm\_\-get()}.  Although this can slightly reduce latency for
+  long messages, its use is not yet advised.
+  
+  More specifically, by the time LAM/MPI 7.1 shipped, there still
+  appeared to be a problem with using \func{gm\_\-get()} -- it wasn't
+  clear if it was LAM's problem or GM's problem.  If it turns out to
+  be a GM problem, and GM gets fixed, this switch is provided to
+  enable the use of \func{gm\_\-get()} in the \rpi{gm} module.
+
+  Note that checkpointing the \rpi{gm} module is only supported when
+  using this option.  Specifically, LAM can only checkpoint \rpi{gm}
+  jobs that use \func{gm\_\-get()}.
+
+\changeend{7.1}
+
+\changebegin{7.0.5}
+\item \confflagtwo{with-rpi-gm-lib}{PATH}
+
+  By default, LAM looks for the GM library in \file{\$GMDIR/lib} and
+  \file{\$GMDIR/binary/lib}.  If your system's GM library is in
+  neither of these locations, this option can be used to specify the
+  directory where the GM library can be found.
+
+\changeend{7.0.5}
+
+
+\changebegin{7.1}
+
+\item \confflagtwo{with-rpi-gm-tiny}{MAX\_\-BYTES}
+  
+  Set the boundary size between the tiny and long protocols.  See
+  Section~\ref{sec:advanced:tslproto}
+  (page~\pageref{sec:advanced:tslproto}) for information on
+  communication protocols.  This parameter is adjustable at run-time.
+
+
+\item \confflagtwo{with-rpi-gm-max-port}{N}
+  
+  Use N as the maximum GM port to try when searching for an open port
+  number.  The default value is \var{8}, and is also modifiable at
+  run-time.
+
+
+\item \confflagtwo{with-rpi-gm-port}{N}
+  
+  Use N as a fixed port to use for GM communication.  The default is
+  -1, meaning ``search available ports for an open port''.  This value
+  is adjustable at run-time.
+
+\changeend{7.1}
+
+\end{itemize}
+
+%%%%%
+
+\subsubsection{Infiniband \kind{rpi} Module}
+\index{ib (Infiniband) RPI module@\rpi{ib} RPI module}
+\index{Infiniband RPI module|see {ib (Infiniband) RPI module}}
+\label{sec:configure:ssi:options:ib}
+
+\changebegin{7.1}
+
+Note that LAM/MPI does not need Infiniband hardware installed on the
+node where LAM is configured and built to include Infiniband support;
+LAM/MPI only needs the appropriate VAPI libraries and header files
+installed.  Running MPI applications with the \rpi{ib} RPI module
+requires Infiniband hardware, of course.
+
+\begin{itemize}
+
+\item \confflagtwo{with-rpi-ib}{PATH}
+  
+  If the IB/VAPI header and library files are installed in a non-standard
+  location, this option must be used to indicate where they can be
+  found.  If the \rpi{ib} module's configuration fails to find the IB/VAPI
+  header and library files, it will fail (and therefore be skipped).
+
+
+\item \confflagtwo{with-rpi-ib-tiny}{bytes}
+
+  This is the tiny message cut-off for message passing using IB.  The
+  default is 1024 bytes, but can be overridden with this
+  option.  This option is adjustable at runtime.
+
+
+\item \confflagtwo{with-rpi-ib-port}{N}
+
+  Use port N as the fixed port for IB communication.  The default is
+  -1, meaning ``search available ports for an open port''.  This value
+  is adjustable at run-time.
+
+
+\item \confflagtwo{with-rpi-ib-num-envelopes}{N} 
+
+  Pre-post N envelopes per peer process for the tiny messages.  In the
+  case of Infiniband, the receive buffers need to be preposted on the
+  receiver side of the message.  These preposts are on a per peer
+  process basis and each post will be of the sum of size of message
+  headers internally generated by LAM/MPI and tiny message size (specified
+  by the configure time \confflagtwo{with-rpi-ib-tiny}{N} option or the
+  runtime \ssiparam{rpi\_ib\_tinymsglen} parameter or the default size
+  of 1024 bytes).
+
+
+\end{itemize}
+\changeend{7.1}
+
+%%%%%
+
+\subsubsection{Shared Memory \kind{rpi} Modules}
+\label{sec:configure:options:ssi:shmem}
+\index{shared memory RPI modules}
+\index{sysv RPI module@\rpi{sysv} RPI module}
+\index{usysv RPI module@\rpi{usysv} RPI module}
+
+The \rpi{usysv} and \rpi{sysv} modules differ only in the mechanism
+used to synchronize the transfer of messages via shared memory.  The
+\rpi{usysv} module uses spin locks with back-off while the \rpi{sysv}
+module uses System V semaphores.
+
+Both transports use a few System V semaphores for synchronizing the
+deallocation of shared structures or for synchronizing access to the
+shared pool.  Both modules also use TCP for off-node communication, so
+options for the \rpi{tcp} RPI module are also applicable.
+
+See Section~\ref{sec:advanced:shm} (page~\pageref{sec:advanced:shm})
+for information on shared memory tuning parameters.
+
+\begin{itemize}
+
+\changebegin{7.1}
+
+\item \confflagtwo{with-rpi-sysv-maxalloc}{BYTES} \\
+\confflagtwo{with-rpi-usysv-maxalloc}{BYTES}
+  
+  Use \var{BYTES} as the maximum size of a single allocation from the
+  shared memory pool.  If no value is specified, configure will set
+  the size according to the value of \confflag{shm-poolsize} (below).
+  This parameter is adjustable at run-time.
+
+
+\item \confflagtwo{with-rpi-sysv-poolsize}{BYTES} \\
+\confflagtwo{with-rpi-usysv-poolsize}{BYTES}
+  
+  Use \var{BYTES} as the size of the shared memory pool.  If no size
+  is specified, \cmd{configure} will determine a suitably large size
+  to use.  This parameter is adjustable at run-time.
+
+\item \confflagtwo{with-rpi-sysv-short}{BYTES} \\
+\confflagtwo{with-rpi-usysv-short}{BYTES}
+  
+  Use \var{BYTES} as the maximum size of a short message when
+  communicating via shared memory.  The default is 8 KB.  This
+  parameter is adjustable at run-time.
+
+
+\item \confflag{with-rpi-sysv-pthread-lock} \\
+\confflag{with-rpi-usysv-pthread-lock}
+  
+  Use a process-shared pthread mutex to lock access to the shared
+  memory pool rather than the default System V semaphore.  This option
+  is only valid on systems which support process-shared pthread
+  mutexes.
+
+\changeend{7.1}
+
+\item \confflag{with-select-yield}
+  
+  The \rpi{usysv} transport uses spin locks with back-off.  When a
+  process backs off, it attempts to yield the processor.  If the
+  \cmd{configure} script finds a system-provided yield function such
+  as \func{yield()} or \func{sched\_\-yield()}, this is used.  If no
+  such function is found, then \func{select()} on NULL file descriptor
+  sets with a timeout of 10us is used.
+  
+  The \confflag{with-select-yield} option forces the use of
+  \func{select()} to yield the processor.  This option only has
+  meaning for the \rpi{usysv} RPI.
+\end{itemize}
+
+
+%%%%%
+
+\subsubsection{TCP \kind{rpi} Module}
+\index{tcp RPI module@\rpi{tcp} RPI module}
+
+\changebegin{7.1}
+
+\begin{itemize}
+
+\item \confflagtwo{with-rpi-tcp-short}{BYTES}
+  
+  Use \var{BYTES} as the maximum size of a short message when
+  communicating over TCP.  The default is 64 KB.  This is relevant to
+  the \rpi{sysv} and \rpi{usysv} RPI modules, since the shared memory
+  RPIs are multi-protocol -- they will use TCP when communicating with
+  MPI ranks that are not in the same node.  See
+  Section~\ref{sec:advanced:tslproto}
+  (page~\pageref{sec:advanced:tslproto}) for information on
+  communication protocols.  This parameter is adjustable at run-time.
+
+\end{itemize}
+
+\changeend{7.1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Deprecated Flags}
+\label{sec:configure:deprecated}
+
+The flags listed below are deprecated.  While they are still usable in
+LAM/MPI \lamversion, it is possible they will disappear in future
+versions of LAM/MPI.
+
+\begin{itemize}
+
+\changebegin{7.1}
+\item \depconfflagtwo{with-blcr}{PATH}
+  
+  Use the \confflagtwo{with-cr-blcr}{PATH} flag instead.
+
+
+\item \depconfflagtwo{with-bproc}{PATH}
+  
+  Use the \confflagtwo{with-boot-bproc}{PATH} flag instead.
+
+\changeend{7.1}
+
+
+\item \depconfflagtwo{with-cc}{CC}
+  
+  Use the \ienvvar{CC} environment variable instead.
+
+
+\item \depconfflagtwo{with-cflags}{CFLAGS}
+  
+  Use the \ienvvar{CFLAGS} environment variable instead.
+
+
+\changebegin{7.1}
+\item \depconfflagtwo{with-cr-file-dir}{PATH}
+  
+  Use the \confflagtwo{with-cr-base-file-dir}{PATH} flag instead.
+
+\changeend{7.1}
+
+
+\item \depconfflagtwo{with-cxx}{CXX}
+  
+  Use the \ienvvar{CXX} environment variable instead.
+
+
+\item \depconfflagtwo{with-cxxflags}{CXXFLAGS}
+  
+  Use the \ienvvar{CXXFLAGS} environment variable instead.
+
+
+\item \depconfflagtwo{with-cxxldflags}{CXXLDFLAGS}
+  
+  Use the \ienvvar{CXXLDFLAGS} environment variable instead.
+
+
+\item \depconfflagtwo{with-fc}{FC}
+  
+  Use the \ienvvar{FC} environment variable instead.
+
+
+\item \depconfflagtwo{with-fflags}{FFLAGS}
+  
+  Use the \ienvvar{FFLAGS} environment variable instead.
+
+
+\changebegin{7.1}
+\item \depconfflagtwo{with-gm}{PATH}
+
+  Use the \confflagtwo{with-rpi-gm}{PATH} flag instead.
+
+
+\item \depconfflag{with-pthread-lock}
+
+  Use the \confflag{with-rpi-sysv-pthread-lock} and
+  \confflag{with-rpi-usysv-pthread-lock} flags instead.
+
+
+\item \depconfflagtwo{with-shm-maxalloc}{BYTES}
+
+  Use the \confflagtwo{with-rpi-sysv-maxalloc}{BYTES} and
+  \confflagtwo{with-rpi-usysv-maxalloc}{BYTES} flags instead.
+
+
+\item \depconfflagtwo{with-shm-poolsize}{BYTES}
+
+  Use the \confflagtwo{with-rpi-sysv-poolsize}{BYTES} and
+  \confflagtwo{with-rpi-usysv-poolsize}{BYTES} flags instead.
+
+
+\item \depconfflagtwo{with-shm-short}{BYTES}
+
+  Use the \confflagtwo{with-rpi-sysv-short}{BYTES} and
+  \confflagtwo{with-rpi-usysv-short}{BYTES} flags instead.
+
+
+\item \depconfflagtwo{with-tcp-short}{BYTES}
+
+  Use the \confflagtwo{with-rpi-tcp-short}{BYTES} flag instead.
+  
+
+\item \depconfflagtwo{with-tm}{PATH}
+
+  Use the \confflagtwo{with-boot-tm}{PATH} flag instead.
+
+\changeend{7.1}
+\end{itemize}

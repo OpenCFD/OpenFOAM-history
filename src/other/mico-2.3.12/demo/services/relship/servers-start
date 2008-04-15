@@ -1,0 +1,59 @@
+#!/bin/sh
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:../../../coss/relship:$PATH
+export PATH
+ADDR=inet:`uname -n`:12456
+IRADDR=inet:`uname -n`:12500
+DOCUMENT=inet:`uname -n`:13002
+REFERENCE=inet:`uname -n`:13300
+CONTAINMENT=inet:`uname -n`:13400
+NODE=inet:`uname -n`:13500
+TEST=inet:`uname -n`:13600
+TRAVERSAL=inet:`uname -n`:13700
+RANDOMD=inet:`uname -n`:15000
+
+printf "Starting randomd ..."
+randomd -ORBIIOPAddr $RANDOMD --generate &
+echo $! >> pids
+sleep 1
+echo done.
+
+printf "Starting traversald ..."
+traversald -ORBIIOPAddr $TRAVERSAL -ORBBindAddr $RANDOMD &
+echo $! >> pids
+sleep 1
+echo done.
+
+printf "Starting noded ..."
+noded -ORBIIOPAddr $NODE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD &
+echo $! >> pids
+sleep 1
+echo done.
+
+printf "Starting containmentd ..."
+containmentd -ORBIIOPAddr $CONTAINMENT -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD &
+echo $! >> pids
+sleep 1
+echo done.
+
+printf "Starting referenced ..."
+referenced -ORBIIOPAddr $REFERENCE -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD &
+echo $! >> pids
+sleep 1
+echo done.
+
+printf "Starting DocumentsServer ..."
+./DocumentsServer -ORBIIOPAddr $DOCUMENT -ORBBindAddr $RANDOMD &
+echo $! >> pids
+sleep 1
+echo done.
+
+printf "Starting TestServer ..."
+./TestServer -ORBIIOPAddr $TEST -ORBIfaceRepoAddr $IRADDR -ORBBindAddr $RANDOMD &
+echo $! >> pids
+sleep 1
+echo done.
+
+
+
+

@@ -1,0 +1,54 @@
+
+/*
+ * Abstract components for ordered trees: a key needs to implement
+ * equality and comparison operators, while Node just serves as a
+ * common base and can be extended with arbitrary data
+ */
+
+abstract valuetype Key {
+  boolean equal (in Key other);
+  boolean less_than (in Key other);
+};
+
+abstract valuetype Node {};
+
+/*
+ * A map operates on these abstract datatypes.
+ */
+
+interface Map {
+  void insert (in Key key, in Node value);
+  Node find (in Key key);
+};
+
+/*
+ * A concrete binary tree. The keys and nodes are still abstract.
+ * The binary tree supports "Map" operations, i.e. insertion and
+ * retrieval.
+ */
+
+valuetype TreeNode {
+  public Key key;
+  public Node data;
+  public TreeNode left, right;
+};
+
+valuetype BinaryTree supports Map {
+  private TreeNode Root;
+};
+
+/*
+ * Concrete implementations for our abstract types.
+ */
+
+valuetype StringKey : Key {
+  public string key;
+};
+
+valuetype Name : Node {
+  public string name;
+};
+
+valuetype NameValue : truncatable Name {
+  public string value;
+};

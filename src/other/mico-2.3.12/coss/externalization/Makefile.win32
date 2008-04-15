@@ -1,0 +1,121 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+RELATIVE = ..\..
+
+!include ..\MakeVars.win32
+LDLIBS    = micocoss$(VERSION).lib mico$(VERSION).lib $(CONFLIBS)
+LDFLAGS  = /LIBPATH:.. /LIBPATH:..\..\win32-bin\lib $(LDFLAGS)
+IDLFLAGS = --poa --no-boa $(IDLFLAGS)
+
+# generated files
+OMG_SRCS =  CosExternalization.cc \
+	    CosExternalizationReference.cc \
+	    CosExternalizationContainment.cc \
+
+IMPL_SRCS = Externalization_impl.cc \
+	    CompoundExternalization_impl.cc \
+	    ExternalizationContainment_impl.cc \
+	    ExternalizationPropagationCriteriaFactory_impl.cc \
+	    ExternalizationReference_impl.cc \
+	    ExternalizationTraversalCriteria_impl.cc \
+	    Stream_impl.cc
+
+#DAEMONS_SRCS = extcontainmentd.cc extreferenced.cc extnoded.cc \
+#  streamd.cc extcriteriad.cc
+
+SRCS = $(OMG_SRCS) $(IMPL_SRCS)
+
+STATIC_OBJS = $(SRCS:.cc=.obj)
+SHARED_OBJS = $(SRCS:.cc=.obj)
+
+# normal rules
+
+all: lib prg
+
+lib:  $(SHARED_OBJS)
+prg:	extcontainmentd.exe extreferenced.exe extnoded.exe \
+	streamd.exe extcriteriad.exe
+
+install:prg
+	$(COPY) extcontainmentd.exe ..\..\win32-bin
+	$(COPY) extreferenced.exe ..\..\win32-bin
+	$(COPY) extnoded.exe ..\..\win32-bin
+	$(COPY) streamd.exe ..\..\win32-bin
+	$(COPY) extcriteriad.exe ..\..\win32-bin
+
+extcontainmentd.exe: extcontainmentd.obj
+	$(LINK) $(LDFLAGS) extcontainmentd.obj $(LDLIBS) /out:extcontainmentd.exe
+
+extreferenced.exe: extreferenced.obj
+	$(LINK) $(LDFLAGS) extreferenced.obj $(LDLIBS) /out:extreferenced.exe
+
+extnoded.exe: extnoded.obj
+	$(LINK) $(LDFLAGS) extnoded.obj $(LDLIBS) /out:extnoded.exe
+
+streamd.exe: streamd.obj
+	$(LINK) $(LDFLAGS) streamd.obj $(LDLIBS) /out:streamd.exe
+
+extcriteriad.exe: extcriteriad.obj
+	$(LINK) $(LDFLAGS) extcriteriad.obj $(LDLIBS) /out:extcriteriad.exe
+
+CosExternalization.h CosExternalization.cc: \
+		..\..\include\mico\CosExternalization.idl 
+	$(IDL) $(IDLFLAGS) ..\..\include\mico\CosExternalization.idl
+	$(COPY) CosExternalization.h ..\..\include\mico
+
+CosExternalizationContainment.h CosExternalizationContainment.cc: \
+		..\..\include\mico\CosExternalizationContainment.idl
+	$(IDL) $(IDLFLAGS) --name CosExternalizationContainment \
+		..\..\include\coss\CosExternalizationContainment.idl
+	$(COPY) CosExternalizationContainment.h ..\..\include\mico
+
+CosExternalizationReference.h CosExternalizationReference.cc: \
+		..\..\include\coss\CosExternalizationReference.idl
+	$(IDL) $(IDLFLAGS) --name CosExternalizationReference \
+		..\..\include\coss\CosExternalizationReference.idl
+	$(COPY) CosExternalizationReference.h ..\..\include\mico
+
+# cleaning
+
+clean:
+	-$(DELETE)
+	-$(RM) CosExternalization.h
+	-$(RM) CosExternalization.cc
+	-$(RM) ..\..\include\coss\CosExternalization.h
+	-$(RM) CosExternalizationContainment.h
+	-$(RM) CosExternalizationContainment.cc
+	-$(RM) ..\..\include\coss\CosExternalizationContainment.h
+	-$(RM) CosExternalizationReference.h
+	-$(RM) CosExternalizationReference.cc
+	-$(RM) ..\..\include\coss\CosExternalizationReference.h
+
+install:
+	$(IDIRCMD) $(INSTDIR)\bin
+	$(IBINCMD) extnoded.exe $(INSTDIR)\bin
+	$(IDIRCMD) $(INSTDIR)\bin
+	$(IBINCMD) extcontainmentd.exe $(INSTDIR)\bin
+	$(IDIRCMD) $(INSTDIR)\bin
+	$(IBINCMD) extreferenced.exe $(INSTDIR)\bin
+	$(IDIRCMD) $(INSTDIR)\bin
+	$(IBINCMD) streamd.exe $(INSTDIR)\bin
+	$(IDIRCMD) $(INSTDIR)\bin
+	$(IBINCMD) extcriteriad.exe $(INSTDIR)\bin

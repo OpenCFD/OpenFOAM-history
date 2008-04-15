@@ -1,0 +1,49 @@
+#!/bin/sh
+
+echo "// automatically generated from code_set_registry.txt by mkcsreg"
+echo "#ifndef __mico_code_set_registry_h__"
+echo "#define __mico_code_set_registry_h__"
+echo
+echo "static CORBA::Codeset::Info _osf_cs_reg[] = {"
+
+cat $* | \
+egrep 'description|rgy_value|max_bytes|char_values' | \
+sed -e 's/[ \	][ \	]*/ /g' | \
+cut -f2- -d\  | \
+( IFS=;
+  while read DESC && read REGVAL && read CHARS && read NBYTES; do
+    # list of contained character sets
+    CHARS="{ `echo $CHARS | sed -e 's/:/, /g'`, 0 }"
+
+    # codepoint size and max number of code points per char
+    case $DESC in
+    *UCS-2*)
+      CP_SIZE=2;
+      MAX_CPS=1;
+      ;;
+    *UCS-4*)
+      CP_SIZE=4;
+      MAX_CPS=1;
+      ;;
+    *UTF-16*)
+      CP_SIZE=2;
+      MAX_CPS=2;
+      ;;
+    *)
+      CP_SIZE=1;
+      MAX_CPS=$NBYTES;
+      ;;
+    esac
+
+    # system name
+    NAME=`echo $REGVAL | sed -e 's/0x/osf/g'`
+
+    echo "    { $REGVAL, $CP_SIZE, $MAX_CPS, $CHARS, \"$DESC\", \"$NAME\" },"
+  done
+)
+
+echo "    { 0x00000000, 0, 0, { 0 }, \"\", \"\" }"
+echo "};"
+echo
+echo "#endif"
+

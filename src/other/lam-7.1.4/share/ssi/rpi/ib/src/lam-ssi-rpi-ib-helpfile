@@ -1,0 +1,88 @@
+# -*- text-*-
+#
+# Copyright (c) 2001-2003 The Trustees of Indiana University.  
+#                         All rights reserved.
+# Copyright (c) 1998-2001 University of Notre Dame. 
+#                         All rights reserved.
+# Copyright (c) 1994-1998 The Ohio State University.  
+#                         All rights reserved.
+# 
+# This file is part of the LAM/MPI software package.  For license
+# information, see the LICENSE file in the top level directory of the
+# LAM/MPI source distribution.
+# 
+# $HEADER$
+# 
+# $Id: lam-ssi-rpi-ib-helpfile,v 1.3 2004/02/18 04:16:43 vsahay Exp $
+#
+# ASCII help messages for LAM
+#
+
+-*-rpi-ib:malloc-fail-*- 
+# Invoked when malloc fails.
+# %1 = data struct for which malloc failed
+LAM encountered an error when invoking the library call "malloc". 
+This happenned when trying to create "%1". Aborting!
+-*-rpi-ib:hca-hndl-fail-*-
+# Called when hca_get_hndl fails in IB
+LAM was not able to get an HCA handle for Infiniband hardware. Aborting!
+-*-rpi-ib:this-port-not-free-*-
+It seems that the Infiniband port "%1" is busy or not
+active. Aborting!
+-*-rpi-ib:no-free-port-*-
+LAM could not get a free port on Infiniband. All the ports seem to be
+in use now. Aborting!
+-*-rpi-ib:interval-init-fail-*-
+LAM failed while initialization of the data structures required for
+management of registered memory intervals. This may be because of
+malloc failing due to lack of memory space. Aborting!
+-*-rpi-ib:register-mem-fail-*-
+An error occurred while registering/pinning OS memory for
+Infiniband module. It is possible that you are running on an OS which does
+not support memory pining. Aborting!
+-*-rpi-ib:qp-create-fail-*-
+An error occurred while creating a Infiniband Queue Pair. 
+
+The exact error string returned by Infiniband API is as follows:
+
+"%1"
+-*-rpi-ib:cq-create-fail-*-
+An error occurred while creating an Infiniband Completion Queue. 
+The exact error string returned by Infiniband API is as follows:
+
+"%1"
+-*-rpi-ib:change-q-state-*-
+An error occurred while changing the Infiniband queue state to "%2".
+
+The exact error string returned by Infiniband API is as follows:
+
+"%1"
+-*-rpi-ib:post-req-fail-*-
+An error occurred while posting a request to the Infiniband work queue.
+
+The exact error string returned by Infiniband API is as follows:
+
+"%1"
+-*-rpi-ib:poll-fail-*-
+An erroneous completion was generated while polling for the Infiniband 
+completion queue
+
+The exact error string returned by Infiniband API is as follows:
+
+"%1"
+-*-rpi-ib:inval-cq-opcode-*-
+An invalid completion opcode was obtained while polling the Infiniband
+completion queue. Aborting!
+-*-rpi-ib:fc-exchange-fail-*-
+An error occurred while exchanging the flow control arguments 
+through the "lam daemon" channel. The commmunication between the "lam
+daemons" failed. Make sure the "lam daemons" are active on all the
+required nodes.
+-*-rpi-ib:no-pool-buffer-*-
+It seems that no pool buffers are left for the pre-posted
+receives for the Infiniband work queues. Aborting!
+-*-rpi-ib:no-memory-to-register-*-
+It seems registration of memory for Infiniband operation failed. We
+can not register any more memory. Aborting ..
+-*-rpi-ib:invalid-pd-*-
+Infiniband did not return a valid protection domain. Aborting!

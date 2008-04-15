@@ -1,0 +1,23 @@
+
+all:  client.exe server.exe
+
+RELATIVE = ..\..\..
+!include ..\..\MakeVars.win32
+INSTALL_DIR     = poa\account-3
+INSTALL_SRCS    = Makefile client.cc server.cc account.idl
+INSTALL_SCRIPTS = account
+CXXFLAGS = $(CXXFLAGS) /Gm /Od
+
+server.exe: account.h account.obj server.obj 
+	$(LD)  $(LDFLAGS) account.obj server.obj $(LDLIBS) /out:server.exe
+
+client.exe: account.h account.obj client.obj 
+	$(LD)  $(LDFLAGS) account.obj client.obj $(LDLIBS) /out:client.exe 
+
+
+account.h account.cc : account.idl $(IDLGEN)
+	$(IDL) account.idl
+
+clean:
+	-$(RM) /f /q 2> nul  account.cc account.h *.o core client server *~ .depend Frank *.exe *.obj *.pdb *.idb
+	-$(DELETE)

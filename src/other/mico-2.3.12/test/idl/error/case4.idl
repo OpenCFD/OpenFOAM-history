@@ -1,0 +1,14 @@
+
+/*
+ * Overloading of attributes and operations is not permitted.
+ */
+
+interface B
+{
+  attribute long m;
+};
+
+interface D : B
+{
+  attribute char m;
+};

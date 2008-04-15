@@ -1,0 +1,660 @@
+diff -r -c -N henning.orig/ch_12/Makefile henning/ch_12/Makefile
+*** henning.orig/ch_12/Makefile	Thu Jan  1 01:00:00 1970
+--- henning/ch_12/Makefile	Tue May 18 12:57:52 1999
+***************
+*** 0 ****
+--- 1,27 ----
++ 
++ all: client server
++ 
++ client: client.o CCS.o
++ 	mico-ld -o $@ client.o CCS.o -lmico$(MICOVERSION)
++ 
++ server: server.o CCS.o icp.o
++ 	mico-ld -o $@ server.o CCS.o icp.o -lmico$(MICOVERSION)
++ 
++ client.o: client.cc CCS.h
++ 	mico-c++ -c client.cc
++ 
++ server.o: server.cc CCS.h server.hh icp.h
++ 	mico-c++ -c server.cc
++ 
++ icp.o: icp.cc icp.h
++ 	c++ -c icp.cc
++ 
++ CCS.o: CCS.cc CCS.h
++ 	mico-c++ -c CCS.cc
++ 
++ CCS.h CCS.cc: CCS.idl
++ 	idl --poa --no-boa CCS.idl
++ 
++ clean:
++ 	rm -f CCS.cc CCS.h *.o core client server *~
++ 
+diff -r -c -N henning.orig/ch_12/client.cc henning/ch_12/client.cc
+*** henning.orig/ch_12/client.cc	Mon Mar 22 03:28:12 1999
+--- henning/ch_12/client.cc	Tue May 18 12:58:18 1999
+***************
+*** 1,6 ****
+  #include    <iostream.h>
+  #include    <fstream.h>
+! #include    "CCS.hh"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+--- 1,6 ----
+  #include    <iostream.h>
+  #include    <fstream.h>
+! #include    "CCS.h"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+diff -r -c -N henning.orig/ch_12/icp.cc henning/ch_12/icp.cc
+*** henning.orig/ch_12/icp.cc	Mon Mar 22 03:28:12 1999
+--- henning/ch_12/icp.cc	Tue May 18 13:06:41 1999
+***************
+*** 321,330 ****
+--- 321,332 ----
+      }
+  
+      db.close();
++ #if 0
+      if (!db) {
+          cerr << "Error closing " << m_filename << endl;
+          exit(1);
+      }
++ #endif
+  }
+  
+  // Write device state to the file.
+diff -r -c -N henning.orig/ch_12/server.cc henning/ch_12/server.cc
+*** henning.orig/ch_12/server.cc	Mon Mar 22 03:28:12 1999
+--- henning/ch_12/server.cc	Tue May 18 13:08:09 1999
+***************
+*** 315,324 ****
+--- 315,326 ----
+      while (afile >> anum)
+          m_assets[anum] = 0;
+      afile.close();
++ #if 0
+      if (!afile) {
+          cerr << "Cannot close " << m_asset_file << endl;
+          throw 0;
+      }
++ #endif
+  }
+  
+  // Destructor
+***************
+*** 343,352 ****
+--- 345,356 ----
+          delete i->second;
+      }
+      afile.close();
++ #if 0
+      if (!afile) {
+          cerr << "Cannot close " << m_asset_file << endl;
+          assert(0);
+      }
++ #endif
+  }
+  
+  CCS::Thermometer_ptr
+diff -r -c -N henning.orig/ch_12/server.hh henning/ch_12/server.hh
+*** henning.orig/ch_12/server.hh	Mon Mar 22 03:28:12 1999
+--- henning/ch_12/server.hh	Tue May 18 12:59:08 1999
+***************
+*** 4,12 ****
+  #include <map>
+  #include <list>
+  #include <assert.h>
+- #include <corba/poaS.hh>
+  
+! #include "CCSS.hh"
+  
+  class Controller_impl;
+  
+--- 4,11 ----
+  #include <map>
+  #include <list>
+  #include <assert.h>
+  
+! #include "CCS.h"
+  
+  class Controller_impl;
+  
+diff -r -c -N henning.orig/ch_16/show_TC.cc henning/ch_16/show_TC.cc
+*** henning.orig/ch_16/show_TC.cc	Mon Mar 22 03:28:12 1999
+--- henning/ch_16/show_TC.cc	Tue May 18 13:11:17 1999
+***************
+*** 1,10 ****
+  #include <iostream.h>
+  #include <iomanip.h>
+  #include <assert.h>
+  #include <ctype.h>
+  #include <list>
+  #include <algorithm>
+- #include <corba/orb.hh>
+  
+  //-----------------------------------------------------------------------------
+  
+--- 1,10 ----
++ #include <CORBA.h>
+  #include <iostream.h>
+  #include <iomanip.h>
+  #include <assert.h>
+  #include <ctype.h>
+  #include <list>
+  #include <algorithm>
+  
+  //-----------------------------------------------------------------------------
+  
+diff -r -c -N henning.orig/ch_18/Makefile henning/ch_18/Makefile
+*** henning.orig/ch_18/Makefile	Thu Jan  1 01:00:00 1970
+--- henning/ch_18/Makefile	Tue May 18 13:29:16 1999
+***************
+*** 0 ****
+--- 1,27 ----
++ 
++ all: client server
++ 
++ client: client.o CCS.o
++ 	mico-ld -o $@ $^ -lmicocoss$(MICOVERSION) -lmico$(MICOVERSION)
++ 
++ server: server.o CCS.o icp.o
++ 	mico-ld -o $@ $^ -lmicocoss$(MICOVERSION) -lmico$(MICOVERSION)
++ 
++ client.o: client.cc CCS.h
++ 	mico-c++ -c client.cc
++ 
++ server.o: server.cc CCS.h server.hh icp.h
++ 	mico-c++ -c server.cc
++ 
++ icp.o: icp.cc icp.h
++ 	c++ -c icp.cc
++ 
++ CCS.o: CCS.cc CCS.h
++ 	mico-c++ -c CCS.cc
++ 
++ CCS.h CCS.cc: CCS.idl
++ 	idl --poa --no-boa CCS.idl
++ 
++ clean:
++ 	rm -f CCS.cc CCS.h *.o core client server *~
++ 
+diff -r -c -N henning.orig/ch_18/client.cc henning/ch_18/client.cc
+*** henning.orig/ch_18/client.cc	Mon Mar 22 03:28:13 1999
+--- henning/ch_18/client.cc	Tue May 18 13:29:41 1999
+***************
+*** 1,7 ****
+  #include    <iostream.h>
+  #include    <fstream.h>
+! #include    <CosNaming.hh>
+! #include    "CCS.hh"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+--- 1,7 ----
+  #include    <iostream.h>
+  #include    <fstream.h>
+! #include    <mico/naming.h>
+! #include    "CCS.h"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+diff -r -c -N henning.orig/ch_18/icp.cc henning/ch_18/icp.cc
+*** henning.orig/ch_18/icp.cc	Mon Mar 22 03:28:13 1999
+--- henning/ch_18/icp.cc	Tue May 18 13:33:35 1999
+***************
+*** 321,330 ****
+--- 321,332 ----
+      }
+  
+      db.close();
++ #if 0
+      if (!db) {
+          cerr << "Error closing " << m_filename << endl;
+          exit(1);
+      }
++ #endif
+  }
+  
+  // Write device state to the file.
+***************
+*** 354,363 ****
+--- 356,367 ----
+      }
+  
+      db.close();
++ #if 0
+      if (!db) {
+          cerr << "Error closing " << m_filename << endl;
+          exit(1);
+      }
++ #endif
+  }
+  
+  // Instantiate a single global instance of the class.
+diff -r -c -N henning.orig/ch_18/server.cc henning/ch_18/server.cc
+*** henning.orig/ch_18/server.cc	Mon Mar 22 03:28:13 1999
+--- henning/ch_18/server.cc	Tue May 18 13:35:57 1999
+***************
+*** 2,8 ****
+  #include <iostream.h>
+  #include <fstream.h>
+  #include <strstream.h>
+! #include <CosNaming.hh>
+  #include "icp.h"
+  #include "server.hh"
+  
+--- 2,8 ----
+  #include <iostream.h>
+  #include <fstream.h>
+  #include <strstream.h>
+! #include <mico/naming.h>
+  #include "icp.h"
+  #include "server.hh"
+  
+***************
+*** 353,362 ****
+--- 353,364 ----
+      while (afile >> anum)
+          m_assets[anum] = 0;
+      afile.close();
++ #if 0
+      if (!afile) {
+          cerr << "Cannot close " << m_asset_file << endl;
+          throw 0;
+      }
++ #endif
+  }
+  
+  // Destructor
+***************
+*** 381,390 ****
+--- 383,394 ----
+          delete i->second;
+      }
+      afile.close();
++ #if 0
+      if (!afile) {
+          cerr << "Cannot close " << m_asset_file << endl;
+          assert(0);
+      }
++ #endif
+  }
+  
+  CCS::Thermometer_ptr
+diff -r -c -N henning.orig/ch_18/server.hh henning/ch_18/server.hh
+*** henning.orig/ch_18/server.hh	Mon Mar 22 03:28:13 1999
+--- henning/ch_18/server.hh	Tue May 18 13:13:39 1999
+***************
+*** 4,12 ****
+  #include <map>
+  #include <list>
+  #include <assert.h>
+- #include <corba/poaS.hh>
+  
+! #include "CCSS.hh"
+  
+  class Controller_impl;
+  
+--- 4,11 ----
+  #include <map>
+  #include <list>
+  #include <assert.h>
+  
+! #include "CCS.h"
+  
+  class Controller_impl;
+  
+diff -r -c -N henning.orig/ch_19/Makefile henning/ch_19/Makefile
+*** henning.orig/ch_19/Makefile	Thu Jan  1 01:00:00 1970
+--- henning/ch_19/Makefile	Tue May 18 14:09:01 1999
+***************
+*** 0 ****
+--- 1,33 ----
++ 
++ all: client server create_types
++ 
++ client: client.o CCS.o
++ 	mico-ld -o $@ $^ -lmicocoss$(MICOVERSION) -lmico$(MICOVERSION)
++ 
++ server: server.o CCS.o icp.o
++ 	mico-ld -o $@ $^ -lmicocoss$(MICOVERSION) -lmico$(MICOVERSION)
++ 
++ create_types: create_types.o CCS.o
++ 	mico-ld -o $@ $^ -lmicocoss$(MICOVERSION) -lmico$(MICOVERSION)
++ 
++ client.o: client.cc CCS.h
++ 	mico-c++ -c client.cc
++ 
++ server.o: server.cc CCS.h server.hh icp.h
++ 	mico-c++ -c server.cc
++ 
++ icp.o: icp.cc icp.h
++ 	c++ -c icp.cc
++ 
++ CCS.o: CCS.cc CCS.h
++ 	mico-c++ -c CCS.cc
++ 
++ create_types.o: create_types.cc
++ 	mico-c++ -c create_types.cc
++ 
++ CCS.h CCS.cc: CCS.idl
++ 	idl --poa --no-boa --typecode CCS.idl
++ 
++ clean:
++ 	rm -f CCS.cc CCS.h *.o core create_types client server *~
++ 
+diff -r -c -N henning.orig/ch_19/client.cc henning/ch_19/client.cc
+*** henning.orig/ch_19/client.cc	Mon Mar 22 03:28:13 1999
+--- henning/ch_19/client.cc	Tue May 18 13:50:16 1999
+***************
+*** 1,7 ****
+  #include    <iostream.h>
+  #include    <fstream.h>
+! #include    <CosTrading.hh>
+! #include    "CCS.hh"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+--- 1,7 ----
+  #include    <iostream.h>
+  #include    <fstream.h>
+! #include    <mico/trader.h>
+! #include    "CCS.h"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+diff -r -c -N henning.orig/ch_19/create_types.cc henning/ch_19/create_types.cc
+*** henning.orig/ch_19/create_types.cc	Mon Mar 22 03:28:13 1999
+--- henning/ch_19/create_types.cc	Tue May 18 14:00:05 1999
+***************
+*** 1,6 ****
+! #include <CCS.hh>               // ORB-specific
+! #include <CosTradingRepos.hh>   // ORB-specific
+! #include <CosTrading.hh>        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+--- 1,6 ----
+! #include "CCS.h"               // ORB-specific
+! #include <mico/typerepo.h>     // ORB-specific
+! #include <mico/trader.h>       // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+diff -r -c -N henning.orig/ch_19/icp.cc henning/ch_19/icp.cc
+*** henning.orig/ch_19/icp.cc	Mon Mar 22 03:28:14 1999
+--- henning/ch_19/icp.cc	Tue May 18 13:52:05 1999
+***************
+*** 321,330 ****
+--- 321,332 ----
+      }
+  
+      db.close();
++ #if 0
+      if (!db) {
+          cerr << "Error closing " << m_filename << endl;
+          exit(1);
+      }
++ #endif
+  }
+  
+  // Write device state to the file.
+***************
+*** 354,363 ****
+--- 356,367 ----
+      }
+  
+      db.close();
++ #if 0
+      if (!db) {
+          cerr << "Error closing " << m_filename << endl;
+          exit(1);
+      }
++ #endif
+  }
+  
+  // Instantiate a single global instance of the class.
+diff -r -c -N henning.orig/ch_19/server.cc henning/ch_19/server.cc
+*** henning.orig/ch_19/server.cc	Mon Mar 22 03:28:14 1999
+--- henning/ch_19/server.cc	Tue May 18 13:52:45 1999
+***************
+*** 2,8 ****
+  #include <iostream.h>
+  #include <fstream.h>
+  #include <strstream.h>
+! #include <CosTrading.hh>    // ORB-specific
+  #include "icp.h"
+  #include "server.hh"
+  
+--- 2,8 ----
+  #include <iostream.h>
+  #include <fstream.h>
+  #include <strstream.h>
+! #include <mico/trader.h>    // ORB-specific
+  #include "icp.h"
+  #include "server.hh"
+  
+***************
+*** 23,32 ****
+--- 23,34 ----
+          throw 0;
+      }
+      ifs.close();
++ #if 0
+      if (!ifs) {
+          cerr << "Cannot close file \"" << file << "\"" << endl;
+          throw 0;
+      }
++ #endif
+      return str._retn();
+  }
+  
+***************
+*** 46,55 ****
+--- 48,59 ----
+          throw 0;
+      }
+      ofs.close();
++ #if 0
+      if (!ofs) {
+          cerr << "Cannot close file \"" << offer_id_file << "\"" << endl;
+          throw 0;
+      }
++ #endif
+  }
+  
+  //----------------------------------------------------------------
+***************
+*** 397,406 ****
+--- 401,412 ----
+      while (afile >> anum)
+          m_assets[anum] = 0;
+      afile.close();
++ #if 0
+      if (!afile) {
+          cerr << "Cannot close " << m_asset_file << endl;
+          throw 0;
+      }
++ #endif
+  }
+  
+  // Destructor
+***************
+*** 425,434 ****
+--- 431,442 ----
+          delete i->second;
+      }
+      afile.close();
++ #if 0
+      if (!afile) {
+          cerr << "Cannot close " << m_asset_file << endl;
+          assert(0);
+      }
++ #endif
+  }
+  
+  CCS::Thermometer_ptr
+diff -r -c -N henning.orig/ch_19/server.hh henning/ch_19/server.hh
+*** henning.orig/ch_19/server.hh	Mon Mar 22 03:28:14 1999
+--- henning/ch_19/server.hh	Tue May 18 13:51:14 1999
+***************
+*** 4,12 ****
+  #include <map>
+  #include <list>
+  #include <assert.h>
+- #include <corba/poaS.hh>
+  
+! #include "CCSS.hh"
+  
+  class Controller_impl;
+  
+--- 4,11 ----
+  #include <map>
+  #include <list>
+  #include <assert.h>
+  
+! #include "CCS.h"
+  
+  class Controller_impl;
+  
+diff -r -c -N henning.orig/ch_3/Makefile henning/ch_3/Makefile
+*** henning.orig/ch_3/Makefile	Thu Jan  1 01:00:00 1970
+--- henning/ch_3/Makefile	Tue May 18 12:46:42 1999
+***************
+*** 0 ****
+--- 1,24 ----
++ 
++ all: client server
++ 
++ client: client.o time.o
++ 	mico-ld -o $@ client.o time.o -lmico$(MICOVERSION)
++ 
++ server: server.o time.o
++ 	mico-ld -o $@ server.o time.o -lmico$(MICOVERSION)
++ 
++ client.o: client.cc time.h
++ 	mico-c++ -c client.cc
++ 
++ server.o: server.cc time.h server.hh
++ 	mico-c++ -c server.cc
++ 
++ time.o: time.cc time.h
++ 	mico-c++ -c time.cc
++ 
++ time.h time.cc: time.idl
++ 	idl --poa --no-boa time.idl
++ 
++ clean:
++ 	rm -f time.cc time.h *.o core client server *~
++ 
+diff -r -c -N henning.orig/ch_3/client.cc henning/ch_3/client.cc
+*** henning.orig/ch_3/client.cc	Mon Mar 22 03:28:15 1999
+--- henning/ch_3/client.cc	Tue May 18 12:40:57 1999
+***************
+*** 1,6 ****
+  #include <iostream.h>
+  #include <iomanip.h>
+! #include "time.hh"
+  
+  //-----------------------------------------------------------------------------
+  
+--- 1,6 ----
+  #include <iostream.h>
+  #include <iomanip.h>
+! #include "time.h"
+  
+  //-----------------------------------------------------------------------------
+  
+diff -r -c -N henning.orig/ch_3/server.hh henning/ch_3/server.hh
+*** henning.orig/ch_3/server.hh	Mon Mar 22 03:28:15 1999
+--- henning/ch_3/server.hh	Tue May 18 12:41:09 1999
+***************
+*** 1,7 ****
+  #ifndef server_HH_
+  #define server_HH_
+  
+! #include "timeS.hh"
+  
+  class Time_impl : public virtual POA_Time {
+  public:
+--- 1,7 ----
+  #ifndef server_HH_
+  #define server_HH_
+  
+! #include "time.h"
+  
+  class Time_impl : public virtual POA_Time {
+  public:
+diff -r -c -N henning.orig/ch_8_and_10/Makefile henning/ch_8_and_10/Makefile
+*** henning.orig/ch_8_and_10/Makefile	Thu Jan  1 01:00:00 1970
+--- henning/ch_8_and_10/Makefile	Tue May 18 12:53:18 1999
+***************
+*** 0 ****
+--- 1,27 ----
++ 
++ all: client server
++ 
++ client: client.o CCS.o
++ 	mico-ld -o $@ client.o CCS.o -lmico$(MICOVERSION)
++ 
++ server: server.o CCS.o icp.o
++ 	mico-ld -o $@ server.o CCS.o icp.o -lmico$(MICOVERSION)
++ 
++ client.o: client.cc CCS.h
++ 	mico-c++ -c client.cc
++ 
++ server.o: server.cc CCS.h server.hh icp.h
++ 	mico-c++ -c server.cc
++ 
++ icp.o: icp.cc icp.h
++ 	c++ -c icp.cc
++ 
++ CCS.o: CCS.cc CCS.h
++ 	mico-c++ -c CCS.cc
++ 
++ CCS.h CCS.cc: CCS.idl
++ 	idl --poa --no-boa CCS.idl
++ 
++ clean:
++ 	rm -f CCS.cc CCS.h *.o core client server *~
++ 
+diff -r -c -N henning.orig/ch_8_and_10/client.cc henning/ch_8_and_10/client.cc
+*** henning.orig/ch_8_and_10/client.cc	Mon Mar 22 03:28:15 1999
+--- henning/ch_8_and_10/client.cc	Tue May 18 12:51:40 1999
+***************
+*** 1,5 ****
+  #include    <iostream.h>
+! #include    "CCS.hh"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+--- 1,5 ----
+  #include    <iostream.h>
+! #include    "CCS.h"        // ORB-specific
+  
+  //----------------------------------------------------------------
+  
+diff -r -c -N henning.orig/ch_8_and_10/server.hh henning/ch_8_and_10/server.hh
+*** henning.orig/ch_8_and_10/server.hh	Mon Mar 22 03:28:16 1999
+--- henning/ch_8_and_10/server.hh	Tue May 18 12:53:46 1999
+***************
+*** 3,9 ****
+  
+  #include <map>
+  #include <assert.h>
+! #include "CCSS.hh"
+  
+  class Controller_impl;
+  
+--- 3,9 ----
+  
+  #include <map>
+  #include <assert.h>
+! #include "CCS.h"
+  
+  class Controller_impl;
+  

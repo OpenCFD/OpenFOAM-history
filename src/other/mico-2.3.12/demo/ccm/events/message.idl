@@ -1,0 +1,10 @@
+
+#ifndef __MESSAGE__
+#define __MESSAGE__
+
+eventtype Message {
+  public string text;
+};
+
+#endif
+

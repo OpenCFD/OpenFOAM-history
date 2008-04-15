@@ -1,0 +1,337 @@
+		Notes to Portable Interceptors
+		------------------------------
+		
+1. How to use
+According to specification (orbos/99-12-02) this implementation based on,
+"Portable Interceptors are hooks into the ORB through which ORB services
+can intercept the normal flow of execution of the ORB". As far as interceptors
+are becoming standardized, it is becoming possible to create standardized
+services e.g. Security Service, Transaction Service etc. based on Portable
+Interceptors (PI) which can be used with any ORB.
+Rules for creation any service based on PI described below.
+In current submission we have 3 types of interceptors - Client Interceptor,
+Server Interceptor and IOR Interceptor.
+
+1.1. Registering Interceptors.
+Interceptors are intended to be a means by which ORB services gain access
+to ORB processing, effectively becoming part of the ORB. Since Interceptors
+are part of the ORB, when ORB_init() returns an ORB, the Interceptors shall
+have been registered. An Interceptor is registering an assotiated ORBInitializer
+object which implements the ORBInitializer interface. When ORB is initializing,
+it calls each registered ORBInitializer, passing it an ORBInitInfo object,
+which is used to register its Interceptor(s).
+In our examples (see poa, poa2, client.cc, server.cc) we implemented this
+interface as MyInitializer class. Using this class it is possible to register
+any number of any kind of interceptors and every interceptor is some service
+we need for this ORB.
+Simple example:
+
+class MyInitializer : virtual public PortableInterceptor::ORBInitializer
+{
+  public:
+  	MyInitializer() {}
+    ~MyInitializer() {}
+
+    virtual void pre_init( PortableInterceptor::ORBInitInfo_ptr info ) {
+    	// register server interceptor(s)	
+    	MyServerInterceptor * interceptor = new MyServerInterceptor("MyServerInterceptor");
+    	info->add_server_request_interceptor(interceptor);
+    	MyServerInterceptor * interceptor2 = new MyServerInterceptor("MyServerInterceptor2");
+    	info->add_server_request_interceptor(interceptor2);
+    	........
+    	// also policy factory(s) if necessary
+    	// some initial settings, getting parameters, etc.
+    }
+    
+    virtual void post_init( PortableInterceptor::ORBInitInfo_ptr info ) {
+    	// nothing, but you can put any stuff here if necessary
+    }
+};
+
+Every initializer is registered using register_orb_initializer() operation,
+this operation like ORB_init() is not part of any interface and is "global".
+Also it can not be called after ORB_init() operation.
+Example:
+
+int
+main (int argc, char *argv[])
+{
+
+  /*
+   * Initialize PI
+   */
+  MyInitializer * ini = new MyInitializer;
+  PortableInterceptor::register_orb_initializer(ini);
+
+  /*
+   * Initialize the ORB
+   */
+
+  CORBA::ORB_var orb = CORBA::ORB_init (argc, argv);
+  ..................................................
+  do whatever...
+  .............
+}
+
+
+1.2. Service implementation (for Request Interceptors).
+To be able to implement some kind of service based on PI we have to derive
+our service from Server or Client PI and implement its main methods. Simple
+example for server:
+
+class MyServerInterceptor : virtual public PortableInterceptor::ServerRequestInterceptor
+{
+	string nm;
+	
+  public:
+	
+	MyServerInterceptor() {
+		nm = "";
+	}
+	MyServerInterceptor(char * name) {	
+		nm = name;
+	}
+	
+	char* name() {
+		return (char *)nm.c_str();
+	}
+
+	void receive_request_service_contexts( PortableInterceptor::ServerRequestInfo_ptr ri ) {
+	
+		// put your service stuff here
+	}
+    
+	void receive_request( PortableInterceptor::ServerRequestInfo_ptr ri ) {
+		
+		// put your service stuff here
+	}
+
+	void send_reply( PortableInterceptor::ServerRequestInfo_ptr ri ) {
+
+		// put your service stuff here
+	}
+
+	void send_exception( PortableInterceptor::ServerRequestInfo_ptr ri ) {
+
+		// put your service stuff here
+	}
+
+	void send_other( PortableInterceptor::ServerRequestInfo_ptr ri ) {
+
+		// put your service stuff here
+	}
+	
+};
+
+Service based on Client PI looks similar.
+
+Every method implements what we (our service) want to do on appropriate interception
+point. After our service has been registered, ORB will call every method of every
+registered service in appropriate interception point. Rules for using standard
+paramenter which is filled in by ORB on every interception point (PortableInterceptor::
+ServerRequestInfo or PortableInterceptor::ClientRequestInfo) and what kind of information
+we can get/put from/to ORB using this parameter described in tables 5-2 p.5-50,51
+and 5-1 p.5-46,47 respectively. See specification for detailed description of interception
+points flow for Client and Server Interceptors.
+
+1.3. IOR Interceptor
+Like described in Specification the IOR Interceptor is used to establish tagged components
+in the profile(s) within an IOR.
+The IOR Interceptor is registered like any other interceptor (see above) using
+ORBInitializer object. To be able to implement service based on this interceptor we have
+to do the following (simple example):
+
+class MyIORInterceptor : virtual public PortableInterceptor::IORInterceptor
+{
+	string nm;
+	
+	public:
+	
+	MyIORInterceptor() {
+		nm = "";
+	}
+	MyIORInterceptor(char * name) {	
+		nm = name;
+	}
+	
+	char* name() {
+		return (char *)nm.c_str();
+	}
+	
+	void establish_components(PortableInterceptor::IORInfo_ptr info) {
+	 
+	 // use IORInfo object for your service needs
+	 // e.g. obtain effective policy (see below "Notes about POA policies")
+	CORBA::Policy_ptr pol;
+	try {
+	pol = info->get_effective_policy((CORBA::PolicyType)111111);
+	} catch (...) {
+	cout << "Exception occured..." << endl;
+	return;
+	}
+	cout << "PolicyType = " << pol->policy_type() << endl;
+	}
+};
+
+Example of using "like IOR Interceptor" service you can find in poa2/server.cc.
+Operation establish_components() is guaranteed to be called at least once for each
+distinct set of server policies, i.e. once per POA creation in our case.
+
+Notes about POA policies. According to Specification: "The POA shall preserve
+Policies whose types have been registered via PortableInterceptor::OrbInintInfo::
+register_policy_factory() even if the POA itself does not know about those policies."
+So now we can create our own policy factories, create our own policies and register
+those policies with POA during creation and can obtain those policies from interceptors
+in appropriate interception points.
+Simple example of using own policies (see poa2/server.cc):
+.........
+///////////////////////////
+// My Policy
+
+class MyPolicy : virtual public CORBA::Policy
+{
+	CORBA::PolicyType pt;
+	
+  public:
+  	MyPolicy() {
+  		pt = (CORBA::PolicyType)111111;
+  	}
+  	~MyPolicy() {}
+  	
+  	CORBA::PolicyType policy_type() {
+  		return pt;
+  	}
+	CORBA::Policy_ptr copy() {
+		return _duplicate(this);
+	}
+	void destroy() {}
+};
+	
+///////////////////////////
+// My Policy Factory
+
+class MyPolicyFactory : virtual public PortableInterceptor::PolicyFactory
+{
+  public:	
+	MyPolicyFactory() {}
+	~MyPolicyFactory() {}
+	
+	CORBA::Policy_ptr create_policy( CORBA::PolicyType type, const CORBA::Any& value ) {
+		if (type != (CORBA::PolicyType)111111)
+			mico_throw(CORBA::PolicyError());
+		return new MyPolicy;
+	}
+};	
+
+
+
+class MyInitializer : virtual public PortableInterceptor::ORBInitializer
+{
+  public:
+  	MyInitializer() {}
+    ~MyInitializer() {}
+
+    virtual void pre_init( PortableInterceptor::ORBInitInfo_ptr info ) {
+    	// register request server interceptor(s)	
+    	MyServerInterceptor * interceptor = new MyServerInterceptor("MyServerInterceptor");
+    	info->add_server_request_interceptor(interceptor);
+    	// register IOR Interceptor
+	MyIORInterceptor * ior_interceptor = new MyIORInterceptor("MyIORInterceptor");
+	info->add_ior_interceptor(ior_interceptor);
+	// register My Policy Factory
+	MyPolicyFactory * factory = new MyPolicyFactory;
+	info->register_policy_factory((CORBA::PolicyType)111111, factory);
+    }
+    
+    virtual void post_init( PortableInterceptor::ORBInitInfo_ptr info ) {
+    	// nothing
+    }
+};
+
+
+
+int
+main (int argc, char *argv[])
+{
+
+  /*
+   * Initialize PI
+   */
+  
+  MyInitializer * ini = new MyInitializer;
+  PortableInterceptor::register_orb_initializer(ini);
+
+  /*
+   * Initialize the ORB
+   */
+
+  CORBA::ORB_var orb = CORBA::ORB_init (argc, argv);
+
+  /*
+   * Obtain a reference to the RootPOA and its Manager
+   */
+
+  CORBA::Object_var poaobj = orb->resolve_initial_references ("RootPOA");
+  PortableServer::POA_var poa = PortableServer::POA::_narrow (poaobj);
+  PortableServer::POAManager_var mgr = poa->the_POAManager();
+
+  /*
+   * The RootPOA has the USE_ACTIVE_OBJECT_MAP_ONLY policy; to register
+   * our ServantManager, we must create our own POA with the
+   * USE_SERVANT_MANAGER policy
+   */
+
+  CORBA::PolicyList pl;
+  pl.length(2);
+  pl[0] = poa->create_request_processing_policy (PortableServer::USE_SERVANT_MANAGER);
+
+  //////////////////////////////////////////////////////////////
+  // test our policy factory, create MyPolicy and add it to POA,
+  // interceptor will be able to obtain this policy
+  /////////////////////////////////////////////////////////////
+
+  CORBA::Any any; // for this example we don't need
+  pl[1] = orb->create_policy((CORBA::PolicyType)111111, any);
+  //
+  PortableServer::POA_var mypoa = poa->create_POA ("MyPOA", mgr, pl);
+  .............
+  continue.....
+  .............
+}
+
+2. Notes about current implementation.
+2.1. Specification.
+
+2.1.1. Table 5-2, p. 5-50,51
+last row, first 2 columns - I would say "no", "no" instead of "yes", "yes" because
+at those points it is impossible (at least for this orb), because orb request has
+only 1 service context list both for receive and reply and at those points we have
+only "receive service context" and we can't do anything with reply service context.
+Also IMHO it is not necessary at those interception points because we don't send to
+client anything yet, what for we need to add something to "reply service context"?
+
+2.1.2. Same table, "get_server_policy" row "receive_request_service_contexts" column -
+I would say "no" instead of "yes", because we don't have OA at this point yet and
+we can't get policy and IMHO we don't need any policy here.
+
+2.1.3. Misprint on page 9-70 - IDL description of ORBInitInfo interface,
+.......
+void resolve_initial_references(...)....
+.......
+But if it doesn't return something it is useless :-)
+I would say
+......
+Object resolve_initial_references(...)....
+......
+
+2.2. MICO ORB.
+Some problems with Codec - for _this_ orb it is almost useless, because _this_ orb
+doesn't use approach with TaggedComponents and TaggedProfiles, it uses Components and
+Profiles "as is" not encoded, all this stuff encoded at last stage in GIOP::Codec
+when message is assemled, so I had to do some "triks" to convert this stuff back
+and forth for conformance with spec.
+Also we don't have ANY implementation for components and profiles, but Codec works 
+with ANY only.
+
+Anyway I implemented it, it works but we don't need it for _this_ orb.
+

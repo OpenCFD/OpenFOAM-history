@@ -1,0 +1,21 @@
+
+struct S1 {
+  long x;
+  char c;
+};
+
+struct S2 {
+  string str;
+};
+
+struct S3 {
+  char c;
+  any  a;
+  TypeCode tc;
+};
+
+interface foo {
+  any bar( in any a1, out any a2, inout any a3 );
+  CORBA::TypeCode bar1( in TypeCode tc1, out TypeCode tc2, inout TypeCode tc3 );
+};
+

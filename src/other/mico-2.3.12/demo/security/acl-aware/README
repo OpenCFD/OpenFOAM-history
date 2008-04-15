@@ -1,0 +1,38 @@
+Example with security aware access.
+
+The complete access control policy is set in the server.cc source:
+-Object Domain Mapping
+-Required rights of the operations in the different domains
+-Principal's rights
+
+There are 3 persons: "manager" (bank manager), "owner" and his "wife".
+They have appropriate sertificates: manager.pem, owner.pem, wife.pem
+
+User Rights:
+
+
+AccessId:manager        "m"
+GroupId:owner & wife    "u"
+
+Object Access Policies:
+
+bank->create()       "m"    in /Access/Bank
+bank->open()         "ug"   in /Access/Bank
+
+account->deposit()   "ug"   in /Access/Accounts
+account->withdraw()  "u"    in /Access/Accounts
+account->balance()   "ug"   in /Access/Accounts
+
+Rights combinator   - Any
+
+SecPolicyCombinator - Union
+
+
+To check how it works run server - rss
+Then clients                     - rcs
+
+"manager" can create account only, 
+"owner" and "wife" can open account, deposit/withdraw money, see the balance,
+
+Files:
+config.cnf - describes poa -> domain mapping for auditing.

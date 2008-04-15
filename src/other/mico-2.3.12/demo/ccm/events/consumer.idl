@@ -1,0 +1,9 @@
+
+#include "message.idl"
+
+component Consumer {
+  consumes Message msg;
+};
+
+home ConsumerHome manages Consumer {};
+

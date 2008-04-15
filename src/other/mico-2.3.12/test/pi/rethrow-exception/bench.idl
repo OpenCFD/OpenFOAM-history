@@ -1,0 +1,8 @@
+
+exception Exc {
+};
+
+interface bench {
+    void perform()
+	raises(Exc);
+};

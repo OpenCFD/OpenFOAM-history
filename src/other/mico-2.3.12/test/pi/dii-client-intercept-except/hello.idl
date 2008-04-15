@@ -1,0 +1,6 @@
+// -*- c++ -*-
+
+interface HelloWorld {
+  void hello();
+  oneway void oneway_hello();
+};

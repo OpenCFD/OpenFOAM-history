@@ -1,0 +1,56 @@
+#!/bin/sh
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:$PATH
+export PATH
+
+NSD=`pwd`/../../coss/naming/nsd
+
+ADDR=inet:`uname -n`:12456
+RC="-ORBImplRepoAddr $ADDR -ORBNamingAddr $ADDR"
+
+rm -f NameService-root.inf
+
+# run POA daemon
+echo "starting POA daemon ..."
+micod -ORBIIOPAddr $ADDR --forward &
+micod_pid=$!
+
+trap "kill $micod_pid" 0
+
+sleep 1
+
+# register server
+echo "register name service ..."
+imr create NameService poa $NSD \
+ IDL:omg.org/CosNaming/NamingContext:1.0#NameService $RC
+
+echo "register depot server ..."
+imr create DepotServer poa "`pwd`/central/depot_server \
+ `pwd`/central/depot.dat $RC" \
+ IDL:omg.org/CentralOffice/Depot:1.0 $RC
+
+echo "register store server ..."
+imr create StoreServer poa "`pwd`/store/store_server 1.5 1 $RC" \
+ IDL:omg.org/AStore/Store:1.0 IDL:omg.org/AStore/StoreAccess:1.0 \
+ IDL:omg.org/AStore/Tax:1.0 $RC
+
+echo "register POS server ..."
+imr create POSServer poa "`pwd`/pos/POS_Server 2 $RC" \
+ IDL:omg.org/POS/OutputMedia:1.0 IDL:omg.org/POS/POSTerminal:1.0 \
+ IDL:omg.org/POS/InputMedia:1.0 $RC
+
+sleep 1
+echo "activating server implementations"
+imr activate NameService $RC
+imr activate DepotServer $RC
+imr activate StoreServer $RC
+imr activate POSServer $RC
+
+sleep 1
+
+# run client
+echo "and run client ..."
+
+pos/POS_Client $RC 1 2
+
+

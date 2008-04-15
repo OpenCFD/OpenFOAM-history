@@ -1,0 +1,24 @@
+#!/bin/sh
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:$PATH
+export PATH
+
+rm -f NameService-root.inf
+
+echo "starting Naming Service daemon ..."
+nsd -ORBIIOPAddr inet:`uname -n`:12456 &
+nsd_pid=$!
+
+trap "kill $nsd_pid" 0
+sleep 3
+
+
+echo "starting Bank server ..."
+./server -ORBInitRef NameService=corbaloc::`uname -n`:12456/NameService &
+server_pid=$!
+
+trap "kill $nsd_pid $server_pid" 0
+sleep 3
+
+echo "running client ..."
+./client -ORBInitRef NameService=corbaloc::`uname -n`:12456/NameService

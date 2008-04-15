@@ -1,0 +1,27 @@
+all:  client.exe server.exe
+
+RELATIVE=..\..\..
+!include ../../MakeVars.win32
+
+INSTALL_DIR     = obv/tree
+INSTALL_SRCS    = Makefile client.cc server.cc tree.idl \
+		  tree_impl.cc tree_impl.h
+INSTALL_SCRIPTS = tree
+
+server.exe: tree.h tree_impl.h tree.obj tree_impl.obj server.obj $(DEPS)
+	$(LD) $(LDFLAGS) tree.obj tree_impl.obj server.obj $(LDLIBS) /out:server.exe
+
+client.exe: tree.h tree_impl.h tree.obj tree_impl.obj client.obj $(DEPS)
+	$(LD) $(LDFLAGS) tree.obj tree_impl.obj client.obj $(LDLIBS) /out:client.exe 
+
+
+tree.h tree.cc : tree.idl $(IDLGEN)
+	$(IDL) tree.idl
+
+run:
+	tree
+
+clean:
+	-$(RM) tree.cc tree.h
+	-$(DELETE)
+

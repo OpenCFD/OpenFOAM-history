@@ -1,0 +1,243 @@
+//File: GTP.idl
+
+#ifndef _GTP_IDL_
+#define _GTP_IDL_
+
+#include <coss/MobileTerminal.idl>
+
+#pragma prefix "omg.org"
+
+module GTP {
+
+    struct GTPHeader {
+	octet		gtp_msg_type;
+	octet		flags;
+	unsigned short	seq_no;
+	unsigned short	last_seq_no_received;
+	unsigned short	content_length;
+    };
+
+    // miwco-extension
+    enum MsgType {
+	IdleSync, EstablishRequest, EstablishReply, ReleaseRequest,
+	ReleaseReply, HandoffRequest, HandoffReplyCompleted, OpenRequest,
+	OpenReply, CloseRequest, CloseReply, CloseIndication, GIOPData,
+	GIOPDataError, GTPForward, GTPForwardReply, Error
+    };
+
+    typedef short RequestType;
+    const short INITIAL_REQUEST = 0;
+    const short RECOVERY_REQUEST = 1;
+    const short NETWORK_REQUEST = 2;
+    const short TERMINAL_REQUEST = 3;
+
+    struct InitialRequestBody {
+	MobileTerminal::TerminalId		terminal_id;
+	MobileTerminal::HomeLocationAgent	home_location_agent_reference;
+	unsigned long				time_to_live_request;
+    };
+
+    struct RecoveryRequestBody {
+	MobileTerminal::TerminalId		terminal_id;
+	MobileTerminal::HomeLocationAgent	home_location_agent_reference;
+	struct LastAccessBridgeInfo {
+	    MobileTerminal::AccessBridge access_bridge_reference;
+	    unsigned long		 time_to_live_request;
+	    unsigned short		 last_seq_no_received;
+	} last_access_bridge_info;
+	unsigned long				time_to_live_request;
+    };
+
+    typedef RecoveryRequestBody NetworkRequestBody;
+    typedef RecoveryRequestBody TerminalRequestBody;
+
+    union EstablishTunnelRequestBody switch (RequestType) {
+    case INITIAL_REQUEST:
+	InitialRequestBody	initial_request_body;
+    case RECOVERY_REQUEST:
+	RecoveryRequestBody	recovery_request_body;
+    case NETWORK_REQUEST:
+	NetworkRequestBody	network_request_body;
+    case TERMINAL_REQUEST:
+	TerminalRequestBody	terminal_request_body;
+    };
+
+
+    typedef short ReplyType;
+    const short INITIAL_REPLY = 0;
+    const short RECOVERY_REPLY = 1;
+    const short NETWORK_REPLY = 2;
+    const short TERMINAL_REPLY = 3;
+
+    enum AccessStatus {
+	ACCESS_ACCEPT,
+	ACCESS_ACCEPT_RECOVERY,
+	ACCESS_ACCEPT_HANDOFF,
+	ACCESS_ACCEPT_LOCAL,
+	ACCESS_REJECT_LOCATION_UPDATE_FAILURE,
+	ACCESS_REJECT_ACCESS_DENIED,
+	ACCESS_REJECT_RECOVERY_FAILURE
+    };
+
+    struct InitialReplyBody {
+	AccessStatus			status;
+	MobileTerminal::AccessBridge	access_bridge_reference;
+	unsigned long			time_to_live_reply;
+    };
+
+    struct RecoveryReplyBody {
+	AccessStatus			status;
+	MobileTerminal::AccessBridge	access_bridge_reference;
+	struct OldAccessBridgeInfo {
+	    unsigned long	time_to_live_reply;
+	    unsigned short	last_seq_no_received;
+	} old_access_bridge_info;
+	unsigned long			time_to_live_reply;
+    };
+
+    typedef RecoveryReplyBody NetworkReplyBody;
+    typedef RecoveryReplyBody TerminalReplyBody;
+
+    union EstablishTunnelReplyBody switch (ReplyType) {
+    case INITIAL_REPLY:
+	InitialReplyBody	initial_reply_body;
+    case RECOVERY_REPLY:
+	RecoveryReplyBody	recovery_reply_body;
+    case NETWORK_REPLY:
+	NetworkReplyBody	network_reply_body;
+    case TERMINAL_REPLY:
+	TerminalReplyBody	terminal_reply_body;
+    };
+
+
+    struct ReleaseTunnelRequestBody {
+	unsigned long	time_to_live;
+    };
+
+    struct ReleaseTunnelReplyBody {
+	unsigned long	time_to_live;
+    };
+
+
+    struct HandoffTunnelRequestBody {
+	MobileTerminal::AccessBridgeTransportAddressList
+	new_access_bridge_transport_address_list;
+    };
+
+    struct HandoffTunnelReplyBody {
+	MobileTerminal::HandoffStatus	status;
+    };
+
+
+    /*
+     * XXX - the type of target_object_reference should actually be
+     * GIOP::TargetAddress.  Unfortunately it seems currently
+     * impossible to use most GIOP types in MICO.  The implemented
+     * code does the right thing, since it does not use generated
+     * marshalling code.
+     */
+    struct OpenConnectionRequestBody {
+	Object		target_object_reference;
+	unsigned long	open_connection_request_id;
+	unsigned long	timeout;
+    };
+
+
+    enum OpenConnectionStatus {
+	OPEN_SUCCESS,
+	OPEN_FAILED_UNREACHABLE_TARGET,
+	OPEN_FAILED_OUT_OF_RESOURCES,
+	OPEN_FAILED_TIMEOUT,
+	OPEN_FAILED_UNKNOWN_REASON
+    };
+
+    struct OpenConnectionReplyBody {
+	unsigned long		open_connection_request_id;
+	OpenConnectionStatus	status;
+	unsigned long		connection_id;
+    };
+
+
+    struct CloseConnectionRequestBody {
+	unsigned long	connection_id;
+    };
+
+
+    enum CloseConnectionStatus {
+	CLOSE_SUCCESS,
+	CLOSE_FAILED_INVALID_CONNECTION_ID,
+	CLOSE_FAILED_UNKNOWN_REASON
+    };
+
+    struct CloseConnectionReplyBody {
+	unsigned long		connection_id;
+	CloseConnectionStatus	status;
+    };
+
+
+    enum ConnectionCloseReason {
+	CLOSE_REASON_REMOTE_END_CLOSE,
+	CLOSE_REASON_RESOURCE_CONSTRAINT,
+	CLOSE_REASON_IDLE_CLOSED,
+	CLOSE_REASON_TIME_TO_LIVE_EXPIRED,
+	CLOSE_REASON_UNKNOWN_REASON
+    };
+
+    struct ConnectionCloseIndicationBody {
+	unsigned long		connection_id;
+	ConnectionCloseReason	reason;
+    };
+
+
+    struct GIOPDataBody {
+	unsigned long				connection_id;
+	unsigned long				giop_message_id;
+	MobileTerminal::GIOPEncapsulation	giop_message;
+    };
+
+
+    enum DeliveryStatus {
+	DELIVERY_FAILED_INVALID_CONNECTION_ID,
+	DELIVERY_FAILED_UNKNOWN_REASON
+    };
+
+    struct GIOPDataErrorBody {
+	unsigned long	giop_message_id;
+	DeliveryStatus	status;
+    };
+
+
+    struct GTPForwardBody {
+	MobileTerminal::AccessBridge		access_bridge_reference;
+	unsigned long				gtp_message_id;
+	MobileTerminal::GTPEncapsulation	gtp_message;
+    };
+
+
+    enum ForwardStatus {
+	FORWARD_SUCCESS,
+	FORWARD_ERROR_ACCESS_BRIDGE_UNREACHABLE,
+	FORWARD_ERROR_UNKNOWN_SENDER,
+	FORWARD_UNKNOWN_FORWARD_ERROR
+    };
+
+    struct GTPForwardReplyBody {
+	unsigned long	gtp_message_id;
+	ForwardStatus	status;
+    };
+
+
+    enum ErrorCode {
+	ERROR_UNKNOWN_SENDER,
+	ERROR_PROTOCOL_ERROR,
+	ERROR_UNKNOWN_FATAL_ERROR
+    };
+
+    struct ErrorBody {
+	unsigned short	gtp_seq_no;
+	ErrorCode		error_code;
+    };
+
+};
+
+#endif

@@ -1,0 +1,102 @@
+
+ MICO CSIv2
+ ----------
+
+MICO CSIv2 is CSIv2 level 0 compliant implementation. It has been
+written by ObjectSecurity, Ltd. and contributed to the MICO
+project. Please report all bugs to micosec@objectsecurity.com.
+
+Installation
+------------
+
+CSIv2 adds one configure option '--enable-csiv2' which configure all
+necessary options for compiling MICO CSIv2 support. Please note that
+SSL/TLS support is required for building CSIv2.
+
+
+Command-line options
+--------------------
+
+Since CSIv2 specification doesn't specify any public API for accessing
+CSIv2 implementation internals, there was a need to extend MICO by
+command-line options required for CSIv2 configuration. This paragraph
+describes these options in more details.
+
+'-ORBCSIv2' - turn on CSIv2 support. The MICO client configured with
+this option will look at server object's IOR and if it contains CSIv2
+related information, then the client will include SAS message in GIOP
+request/reply. The MICO server configured with this option will search
+GIOP request for included SAS message. If it find it, it'll process it.
+
+'-ORBCSIv2Realm <realm name>' - configure default user realm. e.g. using
+'-ORBCSIv2Realm objectsecurity.com' will set user realm to
+'objectsecurity.com'
+
+'-ORBGSSClientUser <user>,<passwd>' - set client user. This name will
+be used for GSSUP user/password login. Example:
+'-ORBGSSClientUser karel,cobalt'
+
+'-ORBGSSServerUser <user>,<passwd>' - add user to server's user base
+for checking user access with using GSSUP method. Example:
+'-ORBGSSServerUser karel,cobalt'
+
+'-ORBTLSDName <TLS distinguished name>' - add distinguished user name
+to the server's user base. These names are checked if client (process)
+doesn't send SAS message along with GIOP request but use TLS/SSL
+transport layer for authentication. Example:
+'-ORBTLSDName "/CN=Rudolf Schreiner/Email=ras@objectsecurity.com"'
+
+'-ORBClientIdentity <identity name>' - add identity to the client
+process. If client uses attribute layer of SAS protocol, then CSIv2
+will assert this identity into SAS establish context message. Example:
+'-ORBClientIdentity karel_identity'
+
+'-ORBUserIdentity <user name>,<identity name>' - add user identity
+into server's identity base. If client uses attribute layer of SAS
+protocol and assert identity, this identity will be checked against
+identity base on server process. The user name can be user name used
+for GSSUP login or TLS distinguished user name for TLS authentication.
+Example:
+'-ORBUserIdentity karel,karel_identity'
+'-ORBUserIdentity "/CN=Karel Gardas/Email=kgardas@objectsecurity.com,karel_identity"'
+
+Following options configure properties of SAS protocol. For more information
+about SAS protocol, please read CSIv2 specification.
+
+'-ORBTSSNoAuth' - turn off authentication layer on TSS
+
+'-ORBTSSAuthSupported' - turn on authentication layer on TSS and set
+it as supported
+
+'-ORBTSSAuthRequired' - turn on authentication layer on TSS and set it
+as required
+
+'-ORBTSSNoAttr' - turn off attribute layer on TSS
+
+'-ORBTSSAttrSupported' - turn on attribute layer on TSS and set
+it as supported
+
+'-ORBTSSAttrRequired' - turn on attribute layer on TSS and set it
+as required
+
+'-ORBCSSNoAuth' - turn off authentication layer on CSS
+
+'-ORBCSSAuthSupported' - turn on authentication layer on CSS and set
+it as supported
+
+'-ORBCSSAuthRequired' - turn on authentication layer on CSS and set it
+as required
+
+'-ORBCSSNoAttr' - turn off attribute layer on CSS
+
+'-ORBCSSAttrSupported' - turn on attribute layer on CSS and set
+it as supported
+
+'-ORBCSSAttrRequired' - turn on attribute layer on CSS and set it
+as required
+
+
+Debugging option.
+
+There was special option added to MICO debugging framework. For
+switching debugging of CSIv2 on please use '-ORBDebug Security' option.

@@ -1,0 +1,12 @@
+/* IDL */
+
+module Bank {
+
+  struct Account {
+    string first_name;
+    string name;
+    long   balance;
+  };
+
+};
+  

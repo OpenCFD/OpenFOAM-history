@@ -1,0 +1,38 @@
+!include ..\..\..\MakeVars.win32
+!include ..\MakeVars.win32
+
+all: client.exe philo.dll
+
+client.exe: client.obj philo.obj
+	-$(RM) client.exe
+	$(LINK) $(LDFLAGS) client.obj philo.obj micoccm$(VERSION).lib micocoss$(VERSION).lib mico$(VERSION).lib \
+	/out:client.exe
+
+philo.dll: philo_impl.obj philo_ccm.obj philo.obj
+	-$(RM) philo.dll
+	$(LINK) $(LDFLAGS) philo_impl.obj philo_ccm.obj philo.obj micoccm$(VERSION).lib micocoss$(VERSION).lib \
+	mico$(VERSION).lib /dll /out:philo.dll
+
+tkobserver.obj: tkobserver.cc philo.h
+
+tkobserver.dll: tkobserver.obj philo_ccm.obj philo.obj
+	-$(RM) tkobserver.dll
+	$(LINK) $(LDFLAGS) tkobserver.obj philo_ccm.obj philo.obj micoccm$(VERSION).lib micocoss$(VERSION).lib \
+	mico$(VERSION).lib /libpath:$(TCL_PATH) $(TCL_LIBS) /out:tkobserver.dll
+
+client.obj: client.cc philo.h
+philo.obj: philo.cc
+philo_impl.obj: philo_impl.cc philo.h
+philo_ccm.obj: philo_ccm.cc
+
+philo_ccm.cc philo_ccm.h: philo.idl
+	$(CCMGEN) --session -I..\..\..\include philo.idl
+
+philo.cc philo.h: philo.idl
+	$(IDL) $(IDLFLAGS) philo.idl
+
+clean:
+	-$(RM) client.exe philo.dll tkobserver.dll
+	-$(RM) philo_ccm.cc philo_ccm.h
+	-$(RM) philo.cc philo.h
+	-$(RM) *.obj

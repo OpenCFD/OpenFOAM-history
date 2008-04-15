@@ -1,0 +1,9 @@
+
+This directory contains patches to make the examples given in the Book
+  Henning, Vinoski: "Advanced CORBA Programming with C++"
+compile with MICO. Apply the patches by running:
+
+  patch -p1 < diffs
+
+Note that you have to configure MICO with --disable-mini-stl to make
+the examples work.

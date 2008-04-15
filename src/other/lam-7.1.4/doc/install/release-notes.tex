@@ -1,0 +1,1140 @@
+% -*- latex -*-
+%
+% Copyright (c) 2001-2004 The Trustees of Indiana University.  
+%                         All rights reserved.
+% Copyright (c) 1998-2001 University of Notre Dame. 
+%                         All rights reserved.
+% Copyright (c) 1994-1998 The Ohio State University.  
+%                         All rights reserved.
+% 
+% This file is part of the LAM/MPI software package.  For license
+% information, see the LICENSE file in the top level directory of the
+% LAM/MPI source distribution.
+%
+% $Id: release-notes.tex,v 1.44 2003/12/16 00:12:56 jsquyres Exp $
+%
+
+\chapter{Release Notes}
+\label{sec:releasenotes}
+\index{release notes|(}
+
+This chapter contains release notes as they pertain to the
+configuration, building, and installing of LAM/MPI.  The User's
+Guide~\cite{lamteam03:_lam_mpi_user_guide} contains additional release
+notes on the run-time operation of LAM/MPI.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{New Feature Overview}
+
+A full, high-level overview of all changes in the 7 series (and
+previous versions) can be found in the \file{HISTORY} file that is
+included in the LAM/MPI distribution.
+
+This docuemntation was originally written for LAM/MPI v7.0.
+Changebars are used extensively throughout the document to indicate
+changes, updates, and new features in the versions since 7.0.  The
+change bars indicate a version number in which the change was
+introduced.
+
+Major new features specific to the 7 series include the following:
+
+\begin{itemize}
+\item LAM/MPI 7.0 is the first version to feature the System Services
+  Interface (SSI).  SSI is a ``pluggable'' framework that allows for a
+  variety of run-time selectable modules to be used in MPI
+  applications.  For example, the selection of which network to use
+  for MPI point-to-point message passing is now a run-time decision,
+  not a compile-time decision.
+  
+  \changebegin{7.1}
+  
+  SSI modules can be built as part of the MPI libraries that are
+  linked into user applications or as standalone dynamic shared
+  objects (DSOs).  When compiled as DSOs, all SSI modules are
+  installed in \cmd{\$prefix/lib/lam}; new modules can be added to or
+  removed from an existing LAM installation simply by putting new DSOs
+  in that directory (there is no need to recompile or relink user
+  applications).
+
+  \changeend{7.1}
+
+\item When used with supported back-end checkpoint/restart systems,
+  LAM/MPI can checkpoint parallel MPI jobs (see
+  Section~\ref{sec:configure:ssi:options:blcr},
+  page~\pageref{sec:configure:ssi:options:blcr}, for more details).
+
+  \changebegin{7.1}
+  
+  LAM/MPI now also supports checkpointing and restarting the \rpi{gm}
+  RPI module, but only when used with the GM 2.x function
+  \func{gm\_\-get()}, which is disabled by default.  See
+  Section~\ref{sec:configure:ssi:options:gm}, page
+  \pageref{sec:configure:ssi:options:gm}, for more details.
+
+  \changeend{7.1}
+  
+\item LAM/MPI supports the following underlying networks for MPI
+  communication, including several run-time tunable-parameters for
+  each (see Section~\ref{sec:configure:options:ssi},
+  page~\pageref{sec:configure:options:ssi}) for configuration options
+  and the User's Guide for tuning parameters):
+
+  \begin{itemize}
+  \item TCP/IP, using direct peer-to-peer sockets
+  \item Myrinet, using the native gm message passing library
+\changebegin{7.1}
+  \item Infiniband, using the Mellanox Verbs API (mVAPI) library
+\changeend{7.1}
+  \item Shared memory, using either spin locks or semaphores
+  \item ``LAM Daemon'' mode, using LAM's native run-time environment
+    message passing
+  \end{itemize}
+  
+\item LAM's run-time environment can now be ``natively'' executed in
+  the following environments (see
+  Section~\ref{sec:configure:options:ssi},
+  page~\pageref{sec:configure:options:ssi} for more details):
+
+  \begin{itemize}
+  \item BProc clusters
+  \item Globus grid environments (beta level support)
+  \item Traditional \cmd{rsh} / \cmd{ssh}-based clusters
+  \item OpenPBS/PBS Pro/Torque batch queue jobs 
+        (See Section~\ref{sec:releasenotes:usage:pbs}, 
+        page~\pageref{sec:releasenotes:usage:pbs})
+\changebegin{7.1}
+  \item SLURM batch queue systems
+\changeend{7.1}
+  \end{itemize}
+
+\changebegin{7.1}
+
+\item LAM can be configured to use one TCP network for ``out-of-band''
+  communications and another TCP network for MPI communications.  This
+  is typically useful in environments where multiple TCP networks with
+  different operational purposes and characteristics are available.
+  For example, it may be suitable to allow LAM's out-of-band traffic
+  to travel on a ``slow'' network and reserve the ``fast'' network for
+  MPI traffic.
+  
+  Although this configuration is performed at run-time; a network
+  administrator can setup default behavior.  See
+  Section~\ref{sec:postbuild:mpi_hostmap}
+  (page~\pageref{sec:postbuild:mpi_hostmap} for more details.
+
+\changeend{7.1}
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Usage Notes}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Filesystem Issues}
+
+\paragraph{Case-insensitive filesystems.}
+\index{case-insensitive filesystem}
+\index{filesystem notes!case-insensitive filesystems}
+
+On systems with case-insensitive filesystems (such as Mac OS X with
+HFS+, Linux with NTFS, or Microsoft Windows\trademark\ (Cygwin)), the
+\icmd{mpicc} and \icmd{mpiCC} commands will both refer to the same
+executable.  This obviously makes distinguishing between the
+\cmd{mpicc} and \cmd{mpiCC} wrapper compilers impossible.  LAM will
+attempt to determine if you are building on a case-insensitive
+filesystem.  If you are, the C++ wrapper compiler will be called
+\icmd{mpic++}.  Otherwise, the C++ compiler will be called \cmd{mpiCC}
+(although \cmd{mpic++} will also be available).
+
+The \confflag{with-cs-fs} and \confflag{without-cs-fs} flags to LAM's
+\cmd{configure} script can be used to force LAM to install as if it
+was on either a case-sensitive filesystem or a case-insensitive
+filesystem.  See Section~\ref{sec:configure:options:general} for more
+details.
+
+\changebegin{7.1}
+
+In Microsoft Windows\trademark\ (Cygwin), file and directory names are
+allowed to have spaces.  As a consequence, environment variables such
+as \ienvvar{HOME} may contain spaces.  Since occurrence of spaces in
+such variables cause problems with the build, it is advised to escape
+these variables.
+
+\changeend{7.1}
+
+\paragraph{NFS-shared \file{/tmp}.}
+\index{NFS filesystem}
+\index{filesystem notes!NFS}
+
+The LAM per-session directory may not work properly when hosted in an
+NFS directory, and may cause problems when running MPI programs and/or
+supplementary LAM run-time environment commands.  If using a local
+filesystem is not possible (e.g., on diskless workstations), the use
+of {\tt tmpfs} or {\tt tinyfs} is recommended.  LAM's session
+directory will not grow large; it contains a small amount of meta data
+as well as known endpoints for Unix sockets to allow LAM/MPI programs
+to contact the local LAM run-time environment daemon.
+
+\paragraph{AFS and tokens/permissions.}
+\index{AFS filesystem}
+\index{filesystem notes!AFS}
+
+AFS has some peculiarities, especially with file permissions when
+using \cmd{rsh}/\cmd{ssh}.  
+
+Many sites tend to install the AFS \cmd{rsh} replacement that passes
+tokens to the remote machine as the default \cmd{rsh}.  Similarly,
+most modern versions of \cmd{ssh} have the ability to pass AFS tokens.
+Hence, if you are using the \boot{rsh} boot module with \cmd{recon} or
+\cmd{lamboot}, your AFS token will be passed to the remote LAM daemon
+automatically.  If your site does not install the AFS replacement
+\cmd{rsh} as the default, consult the documentation on
+\confflag{with-rsh} to see how to set the path to the \cmd{rsh} that
+LAM will use.
+
+Once you use the replacement \cmd{rsh} or an AFS-capable \cmd{ssh},
+you should get a token on the target node when using the \boot{rsh}
+boot module.\footnote{If you are using a different boot module, you
+  may experience problems with obtaining AFS tokens on remote nodes.}
+This means that your LAM daemons are running with your AFS token, and
+you should be able to run any program that you wish, including those
+that are not {\tt system:anyuser} accessible.  You will even be able
+to write into AFS directories where you have write permission (as you
+would expect).
+
+Keep in mind, however, that AFS tokens have limited lives, and will
+eventually expire.  This means that your LAM daemons (and user MPI
+programs) will lose their AFS permissions after some specified time
+unless you renew your token (with the \cmd{klog} command, for example)
+on the originating machine before the token runs out.  This can play
+havoc with long-running MPI programs that periodically write out file
+results; if you lose your AFS token in the middle of a run, and your
+program tries to write out to a file, it will not have permission to,
+which may cause Bad Things to happen.
+
+If you need to run long MPI jobs with LAM on AFS, it is usually
+advisable to ask your AFS administrator to increase your default token
+life time to a large value, such as 2 weeks.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{PBS Job Cleanup}
+\label{sec:releasenotes:usage:pbs}
+\index{PBS Pro}
+\index{OpenPBS}
+\index{Torque}
+
+OpenPBS and PBS Pro are batch queuing products from Altair Grid
+Technologies, LLC.  Torque is an open source derrivative of Open PBS.
+LAM/MPI's \boot{tm} boot SSI module provides interaction with both
+versions of PBS when launching the LAM run-time environment.
+
+There are a number of limitations in OpenPBS, PBS Pro, and Torque with
+regards to proper job shutdown.  There is a race condition in sending
+both a SIGKILL and SIGTERM to spawned tasks such that the LAM RTE may
+not be properly shutdown.  A
+patch~\footnote{\url{http://bellatrix.pcl.ox.ac.uk/~ben/pbs/}} for
+OpenPBS to force OpenPBS to send a SIGTERM was developed by the
+WGR/PDL Lab at Oxford University.  Although the patch is for Linux
+only, it should be straight-forward to modify for other operating
+systems.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{PBS Pro RPM Notes}
+\index{PBS Pro}
+\index{OpenPBS}
+
+Older versions The Altair-provided client RPMs for PBS Pro do not
+include the \icmd{pbs\_\-demux} command, which is necessary for proper
+execution of TM jobs.  The solution is to copy the executable from the
+server RPMs to the client nodes.  This has been fixed in more recent
+releases of PBS Pro.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Root Execution Disallowed}
+  
+It is a Very Bad Idea to run the LAM executables as \user{root}.
+  
+LAM was designed to be run by individual users; it was {\em not}
+designed to be run as a \user{root}-level service where multiple users
+use the same LAM daemons in a client-server fashion.  The LAM run-time
+environment should be started by each individual user who wishes to
+run MPI programs.  There are a wide array of security issues when
+\user{root} runs a service-level daemon; LAM does not even attempt to
+address any of these issues.
+  
+Especially with today's propensity for hackers to scan for
+\user{root}-owned network daemons, it could be tragic to run this
+program as \user{root}.  While LAM is known to be quite stable, and
+LAM does not leave network sockets open for random connections after
+the initial setup, several factors should strike fear into system
+administrator's hearts if LAM were to be constantly running for all
+users to utilize:
+
+\begin{enumerate}
+\item LAM leaves a Unix domain socket open on each machine (usually
+  under the \file{/tmp} directory).  Hence, if \user{root} is
+  compromised on one machine, \user{root} is effectively compromised
+  on all machines that are connected via LAM.
+  
+\item There must be a \file{.rhosts} (or some other trust mechanism)
+  for \user{root} to allow running LAM on remote nodes.  Depending on
+  your local setup, this may not be safe.
+  
+\item LAM has never been checked for buffer overflows and other
+  malicious input types of errors.  LAM is tested heavily before
+  release, but never from a \user{root}-level security perspective.
+  
+\item LAM programs are not audited or tracked in any way.  This could
+  present a sneaky way to execute binaries without log trails
+  (especially as \user{root}).
+\end{enumerate}
+  
+Hence, it's a Very Bad Idea to run LAM as \user{root}.  LAM binaries
+will quit immediately if \user{root} runs them.  Login as a different
+user to run LAM.
+
+The only exception to this rule is the \cmd{recon} command.  Since
+\cmd{recon} can be used to verify basic LAM functionality, it is
+useful to run this as \user{root}, and is therefore the only LAM
+executable that allows itself to be run as \user{root}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\changebegin{7.1}
+
+\subsection{Operating System Bypass Communication: Myrinet and
+  Infiniband}
+\label{release-notes:os-bypass}
+\index{Myrinet release notes}
+\index{Infiniband release notes}
+\index{Memory management}
+
+%%%%%
+
+\subsubsection{Supported Versions}
+
+The \rpi{gm} \kind{rpi} has been tested with GM version 2.0.13 and
+1.6.4.  Versions prior to this in the 2.0.x and 1.6.x series had bugs
+and are not advised.  The \rpi{gm} \kind{rpi} has not been tested in
+the GM 2.1.x series.
+
+The \rpi{ib} \kind{rpi} has been tested with Mellanox VAPI
+thca-linux-3.2-build-024.  Other versions of VAPI, to include OpenIB
+and versions from other vendors, have not been well tested.
+%
+\changebegin{7.1.1}
+%
+Whichever Infiniband driver is used, it must include support for
+shared completion queues.  Mellanox VAPI, for example, did not include
+support for this feature until mVAPI v3.0.  {\bf If your Infiniband
+  driver does not support shared completion queues, the LAM/MPI}
+\rpi{ib} \kind{rpi} {\bf will not function properly.}  Symptoms will
+include LAM hanging or crashing during \mpifunc{MPI\_\-INIT}.
+%
+\changeend{7.1.1}
+
+\changebegin{7.1.2}
+
+Note that the 7.1.x versions of the \rpi{ib} \kind{rpi} will not scale
+well to large numbers of nodes because they register a fixed number of
+buffers ($M$ bytes) for each process peer during
+\mpifunc{MPI\_\-INIT}.  Hence, for an $N$-process
+\mpiconst{MPI\_\-COMM\_\-WORLD}, the total memory registered by each
+process during \mpifunc{MPI\_\-INIT} is $(N - 1) \times M$ bytes.
+This can be prohibitive as $N$ grows large.
+
+This effect can be limited, however, by decreasing the number and size
+of buffers that the \rpi{ib} \kind{rpi} module via SSI parameters at
+run-time.  See the \rpi{ib} \kind{rpi} section in the LAM/MPI User's
+Guide for more details.
+
+\changeend{7.1.2}
+
+%%%%%
+
+\subsubsection{Memory Managers}
+
+The \rpi{gm} and \rpi{ib} RPI modules require an additional memory
+manager in order to run properly.  On most systems, LAM will
+automatically select the proper memory manager and the system
+administrator / end user doesn't need to know anything about this.
+However, on some systems and/or in some applications, extra work is
+required.
+
+The issue is that OS-bypass networks such as Myrinet and Infiniband
+require virtual pages to be ``pinned'' down to specific hardware
+addresses before they can be used by the Myrinet/Infiniband NIC
+hardware.  This allows the NIC communication processor to operate on
+memory buffers independent of the main CPU because it knows that the
+buffers will never be swapped out (or otherwise be relocated in
+memory) before the operation is complete.\footnote{Surprisingly, this
+  memory management is unnecessary on Solaris.  The details are too
+  lengthy for this document.}
+
+LAM performs the ``pinning'' operation behind the scenes; for example,
+if application \mpifunc{MPI\_\-SEND}s a buffer using the \rpi{gm} or
+\rpi{ib} RPI modules, LAM will automatically pin the buffer before it
+is sent.  However, since pinning is a relatively expensive operation,
+LAM usually leaves buffers pinned when the function completes (e.g.,
+\mpifunc{MPI\_\-SEND}).  This typically speeds up future sends and
+receives because the buffer does not need to be [re-]pinned.  However,
+if the user frees this memory, the buffer {\em must} be unpinned
+before it is given back to the operating system.  This is where the
+additional memory manager comes in.
+
+LAM will, by default, intercept calls to \func{malloc()},
+\func{calloc()}, and \func{free()} by use of the ptmalloc, ptmalloc2,
+or Mac OS X dynlib functionality (note that C++ \func{new} and
+\func{delete} are {\em not} intercepted).  However, this is actually
+only an unfortunate side effect: LAM really only needs to intercept
+the \func{sbrk()} function in order to catch memory before it is
+returned to the operating system.  Specifically, an internal LAM
+routine runs during \func{sbrk()} to ensure that all memory is
+properly unpinned before it is given back to the operating system.
+
+There is, sadly, no easy, portable way to intercept \func{sbrk()}
+without also intercepting \func{malloc()} et al.  In most cases,
+however, this is not a problem: the user's application invokes
+\func{malloc()} and obtains heap memory, just as expected (and the
+other memory functions also function as expected).  However, there are
+some applications do their own intercepting of \func{malloc()} (et
+al.).  These applications will not work properly with a default
+installation of LAM/MPI.
+
+To fix this problem, LAM allows you to disable all memory management,
+but only if the top-level application promises to invoke an internal
+LAM handler function when \func{sbrk()} is invoked ({\em before} the
+memory is returned to the operating system).  This is accomplished by
+configuring LAM with the following switch:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ configure --with-memory-manager=external ...
+\end{lstlisting}
+% stupid emacs mode: $
+
+``\cmdarg{external}'' specifically indicates that if the \rpi{gm} or
+\rpi{ib} RPI modules are used, the application promises to invoke the
+internal LAM function for unpinning memory as required.  Note that
+this function is irrelevant (but harmless) when any other RPI module
+is used.  The function that must be invoked is prototyped in
+\file{<mpi.h>}:
+
+\lstset{style=lam-c}
+\begin{lstlisting}
+void lam_handle_free(void *buf, size_t length);
+\end{lstlisting}
+
+For applications that must use this functionality, it is probably
+safest to wrap the call to \func{lam\_\-handle\_\-free()} in the
+following preprocessor conditional:
+
+\lstset{style=lam-c}
+\begin{lstlisting}
+#include <mpi.h>
+
+int my_sbrk(...) {
+  /* ...sbrk() functionality... */
+#if defined(LAM_MPI)
+  lam_handle_free(bufer, length);
+#endif
+  /* ...rest of sbrk() functionality... */
+}
+\end{lstlisting}
+
+Note that when LAM is configured this way, {\em all} MPI applications
+that use the \rpi{gm} or \rpi{ib} RPI modules must invoke this
+function as required.  Failure to do so will result in undefined
+behavior. 
+
+\changeend{7.1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Build-Related Notes}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Compiler Warnings}
+
+The LAM Team is aware of the following compiler warnings:
+
+\begin{itemize}
+\item Several warnings about undefined preprocessor macros may be
+  emitted when compiling most of the GM RPI source files.  This is a
+  function of the GM library's main include file (\file{gm.h}), and is
+  safe to ignore.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{64-bit Compilation}
+
+LAM is 64-bit clean and regularly used in a variety of 64-bit
+environments.  To compile LAM in 64-bit mode, you will likely need to
+specify additional compiler and linker flags.  Each
+compiler/architecture has its own flags to enable 64 bit compilation;
+consult the documentation for your compiler.  See
+Section~\ref{sec:configure:compiler}
+(page~\pageref{sec:configure:compiler}) for information on specifying
+compiler flags.
+
+Flags used by the LAM development team during 64-bit testing are
+specified in the Platform-Specific Release Notes section.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{C++ and Exceptions}
+\label{sec:releasenotes:cxxexceptions}
+\index{C++ exceptions}
+
+A default build of LAM/MPI will not include support for C++
+exceptions.  Enabling C++ exceptions typically entails a slight
+run-time performance degradation because of extra bootstrapping
+required for every function call (particularly with the GNU
+compilers).  As such, C++ exceptions are disabled by default, and
+using the \mpiconst{MPI::ERRORS\_\-THROW\_\-EXCEPTIONS} error handler
+will print out error messages rather than throw an exception.  If full
+exception handling capabilities are desired, LAM must be configured
+with the \confflag{with-exceptions} flag.  It should be noted that
+some C++ (and C and Fortran) compilers need additional command line
+flags to properly enable exception handling.
+
+For example, with \cmd{gcc}/\cmd{g++} 2.95.2 and later, \cmd{gcc},
+\cmd{g77}, and \cmd{g++} all require the command line flag
+\cmdarg{-fexceptions}.  \cmd{gcc} and \cmd{gf77} require
+\cmdarg{-fexceptions} so that they can pass C++ exceptions through C
+and Fortran functions properly.  As such, {\em all} of LAM/MPI must be
+compiled with the appropriate compiler options, not just the C++
+bindings. Using \mpiconst{MPI::ERRORS\_\-THROW\_\-EXCEPTIONS} without
+having compiled with proper exception support will cause undefined
+behavior.
+
+If building with IMPI or the C++ bindings, LAM's configure script will
+automatically guess the necessary compiler exception support command
+line flags for the \cmd{gcc}/\cmd{g++} and \cmd{KCC} compilers.  That
+is, if a user selects to build the MPI 2 C++ bindings and/or the IMPI
+extensions, and also selects to build exception support, and \cmd{g++}
+or \cmd{KCC} is selected as the C++ compiler, the appropriate
+exceptions flags will automatically be used.
+
+The configure option \confflag{with-exflags=FLAGS} is provided for
+other compilers that require command line flags for exception support,
+or if LAM's configuration script guesses the wrong compiler flags.
+See Section~\ref{sec:configure:options:general} for more information.
+
+Note that this also applies even if you do not build the C++ bindings.
+If LAM is to call C++ functions that may throw exceptions (e.g,. from
+an MPI error handler or other callback function), you need to build
+LAM with the appropriate exceptions compiler flags.
+
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Internal Unix Signal}
+  
+LAM uses \signal{SIGUSR2} for internal control.  The signal used is
+configurable; see Section~\ref{sec:configure:options:general}
+(page~\pageref{sec:configure:options:general}) for specific
+instructions how to change this signal.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Shared Libraries}
+\label{sec:releasenotes:sharedlib}
+\index{Shared Libraries}
+
+LAM/MPI uses the GNU Libtool\index{Libtool} package for building
+libraries.  While Libtool generally does a good job at building
+libraries across a wide variety of platforms, there are limitations
+with Libtool and shared libraries.  The known issues with building LAM
+and shared libraries are documented in
+Section~\ref{sec:releasenotes:platform}.  If building shared
+libraries, please read the release notes for your platform.
+
+The TotalView queue debugging support requires the ability to build
+shared libraries.  If it is not possible to build shared libraries
+with your combination of platform and compiler, building the TotalView
+library will fail.  Using the \confflag{disable-tv-queue} configure
+flag will disable building the TotalView support shared library.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\changebegin{7.1}
+
+\subsection{Dynamic SSI Modules}
+\label{sec:releasenotes:dynamic-ssi-modules}
+\index{Dynamic SSI Modules}
+
+The term ``Dynamic SSI modules'' refers to SSI modules compiled as
+stand-alone shared libraries that are loaded by the LAM/MPI SSI
+framework at run-time.  This is quite convenient from a
+system-administrator perspective; users won't need to recompile their
+MPI applications when a new network is added (and therefore a new
+\rpi\ module is added to an existing LAM/MPI installation), for
+example -- the system administrator simply places the SSI shared
+library module in the correct directory and all LAM/MPI applications
+``see'' it at run-time.
+
+Be sure to also read Section~\ref{sec:releasenotes:sharedlib} -- all
+of the issues in that section also apply to dynamic SSI modules.
+
+Also note that the GNU compilers prior to version 3.0 {\em cannot}
+build self-contained shared libraries on Solaris systems.  The
+\file{configure} script will emit large warnings in such
+circumstances.  Hence, attempting to build dynamic SSI modules on
+Solaris systems with old versions of GNU compilers will not work.
+
+\changeend{7.1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{TotalView Support}
+\index{TotalView}
+
+LAM/MPI supports the TotalView parallel debugger, both for attaching
+parallel programs (including partial attach) and for message passing
+queue debugging.  See the User's
+Guide~\cite{lamteam03:_lam_mpi_user_guide} for more details.
+
+In order to support the message queue debugging functionality, a
+LAM-specific shared library (\ifile{liblam\_\-totalview}) must be
+built that the TotalView debugger can load at run-time.  Hence, the
+queue-debugging functionality is only supported on platforms that
+support shared libraries.
+
+The TotalView debugger itself is a 32-bit application.  As such,
+\file{liblam\_\-totalview} must also be built in 32-bit mode,
+regardless of what mode the LAM/MPI libraries and applications are
+built.  To avoid complicated build scenarios, if LAM/MPI is being
+built in a non-32 bit mode, \file{liblam\_\-totalview} will not be
+built or installed.
+
+This behavior can be overridden with the
+\confflag{enable-tv-dll-force}, which will force
+\file{liblam\_\-totalview} to be built and installed, regardless of
+LAM's build mode.  Using a non-32 bit TotalView shared library is not
+expected to work; this option is mainly for future expandability (for
+if TotalView debugger becomes able to load non-32 bit shared
+libraries).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{VPATH Builds}
+
+LAM supports the ``VPATH'' building mechanism.  If LAM/MPI is to be
+installed in multiple environments that require different options to
+configure, or require different compilers (such as compiling for
+multiple architectures/operating systems), the following form can be
+used to configure LAM:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ cd /some/temp/directory
+shell$ /directory/containing/lam-7.1.2/configure <option> ...
+\end{lstlisting}
+
+\noindent where \var{/directory/containing/lam-7.1.2} is the directory
+where the LAM/MPI distribution tarball was expanded.  This form will
+build the LAM executables and libraries under
+\file{/some/temp/directory} and will not produce any files in the
+\var{/directory/containing/lam-7.1.2} tree.  It allows multiple,
+concurrent builds of LAM/MPI from the same source tree.
+
+Note that you must have a VPATH-enabled \icmd{make} in order to use
+this form.  The GNU
+\icmd{make}\footnote{\url{ftp://ftp.gnu.org/gnu/make/}} supports VPATH
+builds, for example, but the Solaris Workshop/Forte \icmd{make} does
+not.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Large Job Size Support}
+
+\changebegin{7.0.3}
+On many platforms, it is possible to compile an application to use a
+large number of file descriptors.  This allows LAM/MPI applications
+using TCP to be much larger than was previously possible.  The
+configure flag \confflag{with-fd-setsize} allows users to raise the
+soft per-process file descriptor limit.  The system administrator may
+be required to raise the hard per-process file descriptor limit.  Be
+sure to see the platform-specific release notes for information on
+your particular platform.
+\changeend{7.0.3}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Configure Cache Support (\ifile{config.cache})}
+
+\changebegin{7.1}
+
+The use of \cmd{configure}'s ``\cmdarg{-C}'' flag to specify using a
+cachefile for the results of various configuration tests is
+unsupported.  There are some complex interactions between configure
+and the environment as a result of LAM's SSI system that makes using
+the configure cache impossible.  In short, each module has its own
+\cmd{configure} script, and LAM usually must override various flags
+that are passed to these sub-configure scripts.  This unfortunately
+conflicts which the \file{config.cache} usage policies.
+
+As a result, the \cmdarg{-C} option cannot be used with LAM's
+\cmd{configure} script.  This will never create incorrect results, but
+it does force LAM's \cmd{configure} script (and all of its
+sub-\cmd{configure} scripts) to take a long time on some platforms.
+
+\changeend{7.1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Platform-Specific Release Notes}
+\label{sec:releasenotes:platform}
+
+LAM \lamversion\ has been officially tested on the following systems:
+
+\begin{center}
+  \begin{tabular}{p{2in} p{2in}}
+    AIX 5.1     & Mac OS X 10.3, 10.4 \\
+    IRIX 6.5    & OpenBSD 3.5 \\
+    Linux 2.4.x & Solaris 8, 9 \\
+    Windows\trademark\ (Cygwin) \\
+  \end{tabular}
+\end{center}
+
+\noindent Even if your operating system is not listed here, LAM will
+likely compile and run properly.  The source code is fairly portable;
+it should work properly under most POSIX-like systems.
+
+The LAM Team also requests that you also download the
+``\file{lamtest}'' package from the LAM web site and run it on your
+system.  See Chapter~\ref{sec:postbuild} for more details.  We would
+greatly appreciate your time and effort in helping to verify LAM/MPI
+on a wide variety of systems.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Cross-Platform Compilers}
+
+\changebegin{7.1.2}
+
+\paragraph{Portland Group Compilers.}
+
+\index{Portland Group compilers|see {release notes / Portland Group
+    compilers}}
+\index{release notes!Portland Group compilers}
+
+Prior versions of LAM/MPI included older, unpatched versions of GNU
+Libtool that did not support the PGI compiler suite properly.  As
+such, compiling older versions of LAM/MPI with the PGI compilers was
+difficult.
+
+LAM/MPI version 7.1.2 includes a patched version of GNU Libtool that
+properly supports the Portland Group compilers.  No additional flags,
+patches, or workarounds are necessary.  Specifically, the following
+should ``just work'':
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ ./configure CC=pgcc CXX=pgCC FC=pgf77 ...
+# ...lots of output...
+shell$ make all install
+# ...lots of output...
+\end{lstlisting}
+
+LAM/MPI 7.1.2 is using a patch that will be included in future stable
+versions of Libtool.  As such, future versions of LAM/MPI will likely
+discard the patched Libtool in favor of a stable Libtool release
+version.
+
+\changeend{7.1.2}
+
+\changebegin{7.1.2}
+
+\paragraph{Absoft Fortran Compilers.}
+
+\index{Absoft Fortran compilers}
+\index{Fortran compilers!Absoft}
+
+To use the Absoft Fortran compilers with LAM/MPI on OS X, you must
+have at least version 9.0 EP (Enhancement Pack).  Contact
+\url{mailto:support@absoft.com} for details.
+
+LAM can use either \cmd{f77} or \cmd{f90} as its back-end Fortran
+compiler, despite the fact that LAM's wrapper compiler is named
+\cmd{mpif77}.
+
+Additionally, Absoft recommends the following flags (on all
+platforms):
+
+\begin{itemize}
+\item \cmd{f77} compiler: \cmdarg{-f} \cmdarg{-N15} \cmdarg{-lU77}
+
+\item \cmd{f90} compiler: \cmdarg{-YEXT\_NAME=LCS} \cmdarg{-YEXT\_SFX=\_}
+\cmdarg{-lU77}
+\end{itemize}
+
+The \cmdarg{-f} and \cmdarg{-YEXT\_NAME=LCS} flags force the compiler
+to use case-insensitive symbol names (which LAM expects).  The
+\cmdarg{-N15} and \cmdarg{-YEXT\_SFX=\_} flags are to enable
+recognizing the Unix compatability library (\cmdarg{-lU77}) properly.
+The Unix compatability library enables Fortran programs to invoke
+functions such as \func{system(3F)} properly.
+
+{\bf NOTE:} It is advisable to specify all of these flags in the
+\ienvvar{FC} environment variable (as opposed to specifying the
+compiler in \ienvvar{FC} and the flags in \ienvvar{FFLAGS}).  Putting
+them all in \ienvvar{FC} allows LAM to propagate these values down
+into k the \cmd{mpif77} wrapper compiler so that users will not have
+to explicitly specify the additional flags on the \cmd{mpif77} command
+line.  For example:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ ./configure ``FC=f77 -f -N15 -lU77'' ...
+\end{lstlisting}
+% stupid emacs mode: $
+
+The quotes {\em are} important.  This allows users to run:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ mpif77 my_mpi_application.f -o my_mpi_application
+\end{lstlisting}
+% stupid emacs mode: $
+
+Rather than:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ mpif77 -f -N15 -lU77 my_mpi_application.f -o my_mpi_application
+\end{lstlisting}
+% stupid emacs mode: $
+
+\changeend{7.1.2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{AIX}
+
+Building LAM/MPI as shared libraries is not well tested with the
+\icmd{xlc} compiler suite, and is not supported.  With more recent
+releases of AIX and the compiler suite, it may be possible to build
+correct shared libraries on AIX.  There have been reports of linker
+errors similar to those of Mac OS X when building with
+\confflag{disable-static} \confflag{enable-shared}.  LAM will build
+properly but fail with strange errors from the LAM daemon involving
+\func{nsend}.
+
+To build LAM/MPI in 64-bit mode with the
+\icmd{xlc}/\icmd{xlC}/\icmd{xlf} compilers, it is recommended that the
+environment variable \ienvvar{OBJECT\_\-MODE} be set to \cmdarg{64}
+before running LAM's \cmd{configure} script.  Building 64-bit mode
+with the GNU compiler is not tested, but should be possible.
+
+The memory management code that is required for GM and InfiniBand
+support is disabled by default on AIX.  On at least one version of
+AIX, it caused random failures during \func{free}.  The functionality
+can be enabled with the \confflag{with-memory-manager} configure
+option.
+
+Finally, there have been repeatable problems with AIX's \icmd{make}
+when building ROMIO~\cite{thak99a,thak99b}.  This does not appear to
+be ROMIO's fault -- it appears to be a bug in AIX's \icmd{make}.  The
+LAM Team suggests that you use GNU \icmd{make} when building if you
+see failures when using AIX's \cmd{make} to avoid these problems.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{HP-UX}
+
+It appears that the default C++ compiler on HP-UX (CC) is a pre-ANSI
+standard C++ compiler.  As such, it will not build the C++ bindings
+package.  The C++ compiler \icmd{aCC} should be used instead.  See
+Section~\ref{sec:configure:compiler} for information on changing the
+default C++ compiler.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{IRIX}
+
+Parts of LAM/MPI use the C++ Standard Template Library (STL).  The
+IRIX Workshop compilers require an additional flag to compile STL code
+properly.  The following flag must be added to the \ienvvar{CXXFLAGS}
+environment variable before running LAM's \file{configure} script:
+{\tt -LANG:std}.
+
+Note that setting \envvar{CXXFLAGS} will override any automatic
+selection of optimization flags.  Hence, if you want the C++ code in
+LAM to be compiled with optimization, you will need to set both {\tt
+  -LANG:std} {\em and} any optimization flags in \envvar{CXXFLAGS}.
+For example:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ ./configure CXXFLAGS=''-LANG:std -O3'' ...
+\end{lstlisting}
+% stupid emacs mode: $
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Linux}
+
+\index{release notes!Linux|(}
+
+LAM/MPI is frequently used on Linux-based machines (IA-32 and
+otherwise).  Although LAM/MPI is generally tested on Red Hat and
+Mandrake Linux systems using recent kernel versions, it should work on
+other Linux distributions as well.
+
+\paragraph{Red Hat 7.2 \cmd{awk}.}
+
+\index{Linux|see {release notes / Linux}}
+\index{Red Hat|see {release notes / Red Hat}}
+\index{release notes!Red Hat!\cmd{awk} in 7.2}
+
+There appears to be an error in the \cmd{awk} shipped with Red Hat 7.2
+for IA-64, which will cause random failures in the LAM test suite.
+Rather than using make check, we recommend specifying the available
+RPIs manually: \cmd{make check MODES="usysv sysv tcp"}, replacing
+the list with whatever RPIs are available in your installation.
+
+\paragraph{Intel Compilers}
+
+\index{Intel compilers|see {release notes / Intel compilers}}
+\index{release notes!Red Hat!Intel Compilers}
+\index{release notes!Intel compilers}
+
+Using the Intel compiler suite with unsupported versions of glibc may
+result in strange errors while building LAM.  This is a problem with
+the compiler-supplied header files, not LAM.  For more information,
+see either the LAM mail
+archives\footnote{\url{http://www.lam-mpi.org/MailArchives/}} or the
+Intel support pages.  
+
+\changebegin{7.0.3}
+
+As an example, on Red Hat 9, some versions of the Intel compiler will
+complain about the \file{<stropts.h>} and/or complain that System V
+semaphores and shared memory cannot be used.  The problem is actually
+with replacement header files that ship with the Intel compiler, not
+with LAM (or \file{<stropts.h>} or System V semaphores or shared
+memory).  Any solution included in this documentation would likely be
+outdated quickly.  Contacting Intel technical support for workarounds
+and/or upgrading your Intel compiler may solve these problems.
+
+\changeend{7.0.3}
+
+\paragraph{Older Linux Kernels}
+
+Note that kernel versions 2.2.0 through 2.2.9 had some TCP/IP
+performance problems.  It seems that version 2.2.10 fixed these
+problems; if you are using a Linux version between 2.2.0 and 2.2.9,
+LAM may exhibit poor TCP performance due to the Linux TCP/IP kernel
+bugs.  We recommend that you upgrade to 2.2.10 (or the latest
+version).
+See \url{http://www.lam-mpi.org/linux/} for a full discussion of the
+problem.
+
+\changebegin{7.0.3}
+It is not possible to use \confflag{with-fd-setsize} to increase the
+per-process file descriptor limit.  The glibc header files hard code
+file descriptor related sizes to 1024 file descriptors.
+\changeend{7.0.3}
+
+\index{release notes!Linux|)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Mac OS X}
+
+\paragraph{Fortran support.} The Apple OS X 10.3 developer's CD does
+not include a Fortran compiler.  If you do not wish to use Fortran,
+you need to tell LAM not to build the Fortran bindings.  The
+\confflag{without-fc} flag to LAM's \cmd{configure} script will tell
+LAM to skip building the Fortran MPI bindings.
+
+\changebegin{7.1.2}
+\index{Fortran support on OS X}
+\index{gfortran support on OS X|\cmd{gfortran} support on OS X}
+
+When compiling Fortran support with some versions of the
+\icmd{gfortran} compiler, it may be necessary to add
+``\cmdarg{-lSystemStubs}'' library to the \ienvvar{LIBS} environment
+variable when running \cmd{configure}.\footnote{The LAM Team has had
+  reports that this problem occurs with the \cmd{gfortran} from GCC
+  4.0 on OS X Tiger (10.4), but we have not verified this.}  For
+example:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ configure FC=gfortran LIBS=-lSystemStubs
+\end{lstlisting}
+% stupid emacs mode: $
+
+Failure to include \ienvvar{LIBS} with this value will result in some
+of the Fortran configure tests failing (e.g., failing to find the size
+of a Fortran INTEGER).
+\changeend{7.1.2}
+
+\paragraph{Shared library support.} The Apple dynamic linker works
+slightly differently than most Unix linkers.  Due to a difference in
+symbol resolution when using the shared libraries, it is not possible
+to build {\em only} shared libraries.  It is possible to build LAM/MPI
+with both shared and static libraries; the build system will
+automatically statically link the binaries that can not be dynamically
+linked.
+
+\paragraph{ROMIO.} In previous versions of LAM, it was necessary to
+pass an argument \footnote{\cmdarg{--with-romio-flags=\--DNO\_\-AIO}}
+to the ROMIO build system in order to properly compile.  This is no
+longer needed; LAM will pass the correct flags to ROMIO automatically.
+
+\paragraph{XL compilers.} Libtool does not support building shared
+libraries with the IBM XL compilers on OS X.  Therefore, LAM/MPI does
+not support building shared libraries using this configuration.
+Because of this, LAM/MPI must be configured with TotalView queue
+debugging support disabled (\cmdarg{--disable-tv-queue}).  Building
+LAM/MPI with shared libraries with the GCC suite is supported.
+
+\changebegin{7.1}
+\paragraph{Memory manager.} By default, LAM adds a hook into the
+dynamic memory management interface to catch page deallocations (used
+for OS-bypass devices like Myrinet) -- except on Solaris, AIX, BSD,
+and Cygwin systems.  This hook requires all MPI applications to be
+built with flat namespaces.  If this causes problems for your
+application, you can disable the allocation hook with the configure
+option \cmdarg{--with-memory-manager=none}.
+\changeend{7.1}
+
+\changebegin{7.0.3}
+\paragraph{Large file descriptor support.} There are no published
+limits to the value specified to \confflag{with-fd-setsize}.  However,
+there are memory considerations so do not specify a limit much higher
+than needed.
+\changeend{7.0.3}
+
+\changebegin{7.1.2}
+\index{Fortran support on OS X}
+\index{gfortran support on OS X|\cmd{gfortran} support on OS X}
+
+Finally, when compiling Fortran support with some versions of the
+\icmd{gfortran} compiler on OS X, it may be necessary to add
+``\cmdarg{-lSystemStubs}'' library to the \ienvvar{LIBS} environment
+variable when running \cmd{configure}.  For example:
+
+\lstset{style=lam-cmdline}
+\begin{lstlisting}
+shell$ configure FC=gfortran LIBS=-lSystemStubs
+\end{lstlisting}
+% stupid emacs mode: $
+
+Failure to include \ienvvar{LIBS} with this value will result in some
+of the Fortran configure tests failing (e.g., failing to find the size
+of a Fortran INTEGER).
+\changeend{7.1.2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{OpenBSD}
+
+The \icmd{make} on some versions of OpenBSD requires the \cmdarg{-i}
+option for the clean target: \cmd{make -i clean}.
+
+On some versions of OpenBSD, there appears to be a problem with the
+POSIX Threads library which causes a segfault in the \cmd{lamd}.  If
+the \cmd{lamd} is dying, leaving a core file\footnote{\file{lamd.core}
+in the directory from which \cmd{lamboot} was run or the user's home
+directory}, it is recommended LAM be rebuilt without threads support
+(using the \confflag{with-threads} option -- See
+Section~\ref{sec:configure:options}).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Solaris}
+
+To build LAM/MPI in 64-bit mode with the Sun Forte compilers, it is
+recommended that the compiler option \cmdarg{-xarch=v9} be used.  See
+Section~\ref{sec:configure:compiler} for information on setting
+compiler flags.
+
+Building shared libraries in 64-bit mode with the Sun Forte compilers
+is not possible due to a bug in the GNU Libtool package.
+Specifically, Libtool does not pass \ienvvar{CFLAGS} to the linker,
+which causes the linker to attempt to build a 32-bit shared object.
+One possible workaround (which has not been tested by the LAM
+development team) is to write a ``wrapper'' \icmd{ld} script that
+inserts the proper flags and then calls the Solaris \icmd{ld}.
+
+TotalView support on Solaris may require special compiler flags -- in
+particular, for some versions of the Forte compilers, you may have to
+use the configure option \cmdarg{--with-tv-debug-flags="-g -W0,-y-s"}
+to work around a bug in the Forte compiler suite.
+
+\changebegin{7.0.3}
+For 32-bit builds of LAM, \confflag{with-fd-size} can be used to set a
+value up to 65,536.  For 64-bit builds of LAM, the FD\_SETSIZE is
+already 65,536 and can not be increased.
+\changeend{7.0.3}
+
+\changebegin{7.1} There is an important note about dynamic SSI modules
+and older versions of the GNU compilers (i.e., before 3.0) on Solaris
+systems in Section~\ref{sec:releasenotes:dynamic-ssi-modules}
+(page~\pageref{sec:releasenotes:dynamic-ssi-modules}).
+\changeend{7.1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Microsoft Windows\trademark\ (Cygwin)}
+
+\changebegin{7.1} 
+
+LAM/MPI is supported on Microsoft Windows\trademark\ (Cygwin 1.5.5).
+Currently, \rpi{tcp}, \rpi{sysv}, \rpi{usysv} and \rpi{lamd} RPIs are
+supported.  To ensure that \rpi{sysv} and \rpi{usysv} RPIs are built,
+it is necessary that the IPC module be both installed {\em and
+  running} (even while configuring and building LAM/MPI).  See
+Section~\ref{sec:requirements-shared-memory} for more information on
+building and using \rpi{sysv} and \rpi{usysv} RPIs.
+
+ROMIO is not supported.  It is necessary to use the
+\confflag{without-romio} option while configuring LAM/MPI for proper
+installation.
+
+Since there are some issues with the use of the native 
+Cygwin terminal for standard IO redirection, it is 
+advised to run MPI applications on xterm.  
+For more information about getting X services for Cygwin, please
+see the XFree86 web site.\footnote{\url{http://www.cygwin.com/}}
+
+\changeend{7.1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\index{release notes|)}

@@ -1,0 +1,41 @@
+Running.
+client: send_request
+client: send_request
+client: send_request
+MyInterceptor throws NO_PERMISSION exception
+client: receive_exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2 throws NO_RESOURCES exception
+client: receive_exception: IDL:omg.org/CORBA/NO_RESOURCES:1.0
+MyInterceptor3 throws NO_MEMORY exception
+client: caught: IDL:omg.org/CORBA/NO_MEMORY:1.0
+exception set in req->env(): IDL:omg.org/CORBA/NO_MEMORY:1.0
+client: send_request
+client: send_request
+client: send_request
+server: receive_request_service_contexts
+server: receive_request
+server: Hello World
+server: send_reply
+client: receive_reply
+MyInterceptor throws NO_PERMISSION exception
+client: receive_exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2 throws NO_RESOURCES exception
+client: receive_exception: IDL:omg.org/CORBA/NO_RESOURCES:1.0
+MyInterceptor3 throws NO_MEMORY exception
+client: caught: IDL:omg.org/CORBA/NO_MEMORY:1.0
+exception set in req->env(): IDL:omg.org/CORBA/NO_MEMORY:1.0
+client: send_request
+client: send_request
+client: send_request
+server: receive_request_service_contexts
+server: receive_request
+server: oneway: Hello World
+server: send_reply
+client: receive_other
+MyInterceptor throws NO_PERMISSION exception
+client: receive_exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor2 throws NO_RESOURCES exception
+client: receive_exception: IDL:omg.org/CORBA/NO_RESOURCES:1.0
+MyInterceptor3 throws NO_MEMORY exception
+client: caught: IDL:omg.org/CORBA/NO_MEMORY:1.0
+exception set in req->env(): IDL:omg.org/CORBA/NO_MEMORY:1.0

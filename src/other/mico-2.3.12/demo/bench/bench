@@ -1,0 +1,46 @@
+#!/bin/sh
+
+PATH=../../daemon:../../coss/naming:../../imr:../../ir:$PATH
+MICORC=/dev/null
+export MICORC
+
+IADDR=inet:`uname -n`:12123
+DADDR=inet-dgram:`uname -n`:12123
+UADDR=unix:/tmp/foo$$
+LADDR=local:
+MADDR=inet:`uname -n`:12124
+RC="-ORBNoCodeSets -ORBIIOPBlocking"
+
+./server -ORBIIOPAddr $UADDR $RC &
+userver_pid=$!
+
+./server -ORBIIOPAddr $IADDR $RC &
+iserver_pid=$!
+
+./server -ORBIIOPAddr $DADDR $RC &
+dserver_pid=$!
+
+micod -ORBIIOPAddr $MADDR --forward &
+micod_pid=$!
+
+sleep 1
+
+trap "kill $userver_pid $iserver_pid $dserver_pid $micod_pid" 0
+
+imr create Bench poa "`pwd`/server $RC" 'IDL:Bench:1.0' \
+  -ORBImplRepoAddr $MADDR
+
+echo "### same process:" 
+./client $LADDR $RC
+
+echo "### same machine (pipe):"
+./client $UADDR $RC
+
+echo "### same machine (TCP):"
+./client $IADDR $RC
+
+echo "### same machine (UDP):"
+./client $DADDR $RC
+
+echo "### same machine with micod (TCP):"
+./client $MADDR $RC

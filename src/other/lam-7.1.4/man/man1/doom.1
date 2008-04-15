@@ -1,0 +1,69 @@
+.TH DOOM 1 "July, 2007" "LAM 7.1.4" "LAM COMMANDS"
+.SH NAME
+doom \- Deliver a signal to a LAM process.
+.SH SYNOPSIS
+doom [-h] [-signo] nodes [processes]
+.SH OPTIONS
+.TP 10
+.B \-h
+Print the command help menu.
+.TP
+.B \-signo
+Deliver the signal signo.
+.SH DESCRIPTION
+Most MPI users will probably not need to use the
+.I doom
+command; see lamclean(1).  This command is only installed if LAM/MPI
+was configured with the 
+.I --with-trillium
+switch.
+.PP
+The
+.I doom
+command delivers a signal to one or more processes on one or more nodes.
+The signal is specified with the
+.I \-signo
+option.
+Possible signals are:
+.TP 5
+4
+terminate
+.TP
+5
+suspend execution
+.TP
+6
+continue execution
+.TP
+7
+user defined
+.TP
+8
+user defined
+.PP
+If a signal is not specified as an option, 4 (terminate) is delivered.
+.PP
+If no processes are specified, all
+application processes on that node will receive the signal.
+Processes can be specified in several ways, a mixture
+of which may be used on the command line.
+They are:
+.TP 16
+iindex_list
+by the index printed by state(1)
+.TP
+ppid_list
+by process identifier
+.SH EXAMPLES
+.TP 4
+doom n0-7 i2
+Terminate all processes with LAM index 2 on nodes 0 through 7.
+.TP
+doom h p9287-9290
+Terminate local processes with process IDs 9287 through 9290.
+.TP
+doom -5 n0-7,11
+Suspend execution of all application processes on nodes 0 through 7 and 11.
+.SH SEE ALSO
+state(1),
+lamclean(1)

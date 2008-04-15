@@ -1,0 +1,33 @@
+
+This file lists some known bugs in MICO 2.3.9 release which needs to
+be solved in later releases. Please report any new problem with MICO
+2.3.9 to mico-devel@mico.org mailing list.
+
+
+single-threaded build bugs
+--------------------------
+Following bugs are inherited from standard MICO prior to this release,
+so they apply to MICO 2.3.8 and older releases too. Anyway
+single-threaded build of 2.3.9 should be stable as a build of
+2.3.8. Any instability should be reported as a regression.
+
+- udp transport is not reliable while delivering oneway requests on top of ST-build
+- udp transport is broken on FreeBSD 4.7
+- MICO documentation is out-of-date
+- compilation of CSL2 fails with gcc3.3/gcc3.4
+- test case1.idl in test/idl/error fails
+- compilation of test/idl/25 fails.
+- IDL compiler doesn't generate error on wrong operation context
+- IDL compiler handles forward declared interface of already defined
+  interface in wrong way.
+- in process calls don't go thorough portable interceptors
+
+
+multi-threaded build bugs
+-------------------------
+
+- all bugs from single-threaded build above
+- poa/account-3 demo various asserts
+- test/poa/activator crashes
+- micod (implementation repository) is not working reliable
+

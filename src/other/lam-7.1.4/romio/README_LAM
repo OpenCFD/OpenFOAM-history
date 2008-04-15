@@ -1,0 +1,68 @@
+25 March 2003
+
+Please note that this is *NOT* a vanilla 1.2.5.1 distribution of the
+ROMIO package from Argonne National Labs.  Various customizations had
+to be applied to the configuration process.  More to the point -- if
+replace this copy of ROMIO with a newer version, it will likely not
+work.  :-(
+
+- The LAM Team
+
+-----------------------------------------------------------------------------
+
+Local modifications:
+====================
+
+- Modified configure[.in] to not add any -O* flags -- only use the
+  ones passed in from the top-level configure script.
+- Not all systems have snprintf(); replaced snprintf() in
+  test/noncontig_coll2.c with strncpy()/null termination.
+- Removed "MAKE=@MAKE@" from Makefile.in; allow the run--time
+  specification to determine what it should be, not configure-time.
+- Fixed weak symbols issue with gcc 3.2.x in fortran function names;
+  must extern the function in conjunction with "#pragma weak" (fix
+  suggested by ROMIO maintainers; will be in some future version of
+  ROMIO).
+- Removed man/man/MPI_Info_* MPI_Type_* so that they won't replace the
+  corresponding LAM man pages.
+- Essentially re-wrote util/romioinstall to do LAM-specific things
+  (e.g., rename and move the resulting library).  Also allowed it to
+  do uninstall.
+- Hacked configure.in to add -DHAVE_STATUS_SET_BYTES to the LAM CFLAGS
+- Changed adio/common/set_statsb.c to have a short subroutine to set
+  status->st_length so that ROMIO knows how to set the number of bytes
+  received in an MPI_Status object.  Thanks to Nina Thiessen for
+  bringing this to our attention.
+- Added bogusness to "use" unused arugments in the following files:
+	mpi-io/delete.c
+	mpi-io/rd_atalle.c
+	mpi-io/read_alle.c
+	mpi-io/wr_atalle.c
+	mpi-io/write_alle.c
+	mpi-io/read_orde.c
+	mpi-io/write_orde.c
+	adio/common/ad_init.c
+	adio/common/ad_end.c
+	adio/common/ad_seek.c
+	adio/common/stats_setb.c
+	adio/ad_xfs/ad_xfs_seek.c
+- adio/common/ad_write_coll.c: assign *error_code even #if
+  PRINT_ERR_MSG so that the compiler doesn't complain about the unused
+  argument.
+- adio/ad_xfs/ad_xfs_open.c: changed old_umask to be of type (unsigned
+  int). 
+- adio/ad_nfs/ad_nfs_open.c: changed old_umask to be of type (unsigned
+  int). 
+- adtion/common/ad_write_coll.c: changed some while(1) statements to
+  while(!done) to silence picky compiler warnings.
+- Changed configure.in, aclocal.m4, configure (since we can't run
+  autoconf) and adio/common/as_fstype.c to properly check for struct
+  statfs.f_fstypename on Linux and BSD systems instead of relying on
+  some compiler predefined preprocessor macro.  The previous approach
+  didn't work on OpenBSD 2.8.
+- Changed configure.in/configure -- the line reading:
+        CFLAGS="$CFLAGS -g -std1 -warnprotos -verbose -DAIO_PRIORITY_DEFAULT"
+  to
+        CFLAGS="$CFLAGS -g -verbose -DAIO_PRIORITY_DEFAULT"
+  because it is not a valid assumption that on Alpha architectures you
+  will alsways be compiling with the alpha compilers.

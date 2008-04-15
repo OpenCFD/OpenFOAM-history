@@ -1,0 +1,48 @@
+.TH LAM_RTRSTORE 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+lam_rtrstore \- Store LAM trace data.
+.SH SYNOPSIS
+.HP
+int lam_rtrstore (int node, int list, char *buffer, int length);
+.SH DESCRIPTION
+The client function,
+.IR lam_rtrstore() ,
+delivers trace data from a local buffer to the trace daemon.
+In theory, the trace transport system can be used for any random data.
+In practice, it is used to move trace data between the monitored
+processes and a trace visualization system.
+.PP
+Any process can transfer trace data at any time and any number of times.
+In theory, the trace daemon on any node can be used.
+In practise, always use the local trace daemon, and set the
+.I node
+argument to LOCAL.
+.PP
+Traces are organized within the daemon in lists.
+The
+.I list
+argument selects the list.
+This enables trace readers to selectively read trace data.
+Trace data is read out of the daemon with rtrget(2) and related functions.
+.PP
+Any length of buffer is accepted and
+.I lam_rtrstore()
+will send messages to the trace daemon in MAXNMSGLEN (the network
+packet size) byte packets.
+.PP
+The trace daemon will accept trace data and store it until the total
+currently stored exceeds a pre-compiled maximum.
+At that point, if an existing list with a positive number is selected,
+oldest traces are dropped.
+If a new list with a positive number is selected, the current traces are
+ignored and
+.I lam_rtrstore()
+has no effect.
+.SH BUGS
+By packetizing a large buffer in smaller messages, the trace daemon
+remains totally stateless but daemon requests from other sources
+may be interspersed between the packets.
+To be completely safe, a trace record should not span a MAXNMSGLEN
+boundary in the trace buffer.
+.SH SEE ALSO
+lam_rtrget(2)

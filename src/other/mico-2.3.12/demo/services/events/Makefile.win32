@@ -1,0 +1,55 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and\or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and\or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+
+RELATIVE  = ..\..\..
+!include ..\..\MakeVars.win32
+
+all:  server.exe server2.exe server3.exe client.exe client2.exe
+
+
+CXXFLAGS  = $(COS_CXXFLAGS) $(CXXFLAGS)
+LDLIBS    = $(COS_LDLIBS) $(LDLIBS)
+LDFLAGS   = $(COS_LDFLAGS) $(LDFLAGS)
+DEPS      = $(COS_DEPS) $(DEPS)
+
+INSTALL_DIR     = events
+INSTALL_SRCS    = Makefile client.cc client2.cc server.cc server2.cc server3.cc
+INSTALL_SCRIPTS = runit
+
+server.exe: $(OBJS) server.obj 
+	$(LD)  $(LDFLAGS) server.obj $(LDLIBS) /out:$@
+
+server2.exe: $(OBJS) server2.obj 
+	$(LD)  $(LDFLAGS) server2.obj $(LDLIBS) /out:$@
+
+server3.exe: $(OBJS) server3.obj 
+	$(LD)  $(LDFLAGS) server3.obj $(LDLIBS) /out:$@
+
+client.exe: $(OBJS) client.obj 
+	$(LD)  $(LDFLAGS) client.obj $(LDLIBS) /out:$@
+
+client2.exe: $(OBJS) client2.obj 
+	$(LD)  $(LDFLAGS) client2.obj $(LDLIBS) /out:$@
+
+clean:
+	-$(RM) /f /q 2> nul  .depend *.o core server server2 client client2 server3 *~ *.exe *.obj *.pdb
+	-$(DELETE)

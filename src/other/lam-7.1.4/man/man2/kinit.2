@@ -1,0 +1,29 @@
+.TH KINIT 2 "July, 2007" "LAM 7.1.4" "LAM LOCAL LIBRARY"
+.SH NAME
+kinit \- Initialize a LAM process.
+.SH SYNOPSIS
+int kinit (int priority);
+.SH DESCRIPTION
+.I kinit()
+initializes all internal runtime LAM data structures, most notably
+those necessary for interfacing with the LAM daemon.  The
+.I priority
+argument sets the calling process's message synchronizing priority.
+Every LAM process must call
+.I kinit()
+prior to any other LAM function, however this is usually done
+as part of a call to kenter(2).
+.PP
+.I kinit()
+calls kattach(2) after initialization to register the process with
+the local LAM daemon.
+.SH ERRORS
+.TP 20
+ENOKDESCRIPTORS
+The LAM daemon is out of process descriptors and is unable to attach
+additional processes.
+.TP
+ENOKERNEL
+The LAM daemon is not running.
+.SH SEE ALSO
+kexit(2), kattach(2), kenter(2)

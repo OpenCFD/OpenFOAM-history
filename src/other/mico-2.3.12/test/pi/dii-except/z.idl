@@ -1,0 +1,9 @@
+interface Z {
+  exception E{};
+
+  //! method will be called using DII from client and from server
+  void dii() raises(E);
+
+  //! method calls Z::dii() using DII from server and returns exception repoid
+  string stat();
+};

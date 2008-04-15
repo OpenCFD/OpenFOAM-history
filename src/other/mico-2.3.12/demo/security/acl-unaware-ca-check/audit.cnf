@@ -1,0 +1,27 @@
+# Test
+
+/Audit
+{
+(
+ server:Any * [PrincipalAuth, Invocation, SessionAuth]
+)
+}
+
+/Audit/d1
+{
+
+(
+ server:Any IDL:Account:1.0 [Authorization]
+ Initiator = [/CN=Account Manager/emailAddress=manager@objectsecurity.com]
+ DayOfWeek = [Wed ]
+ Time = [2001/05/29:11:15:00-2001/05/30:16:00:00]
+ SuccessFailure = [ false]
+)
+
+(server:Any IDL:Bank:1.0 [Invocation]
+ Initiator = [/CN=Account Manager/emailAddress=manager@objectsecurity.com]
+ DayOfWeek = [Tue]
+)
+
+}
+

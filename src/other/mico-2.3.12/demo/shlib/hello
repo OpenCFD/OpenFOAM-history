@@ -1,0 +1,16 @@
+#!/bin/sh
+
+PATH=../../daemon:../../coss/naming:../../imr:../../ir:$PATH
+ADDR=inet:`uname -n`:14333
+
+# we need an implementation repository, that is why we start micod
+micod -ORBIIOPAddr $ADDR &
+micod_pid=$!
+sleep 1
+
+trap "kill $micod_pid" 0
+
+imr create HelloWorld library `pwd`/server.s? IDL:HelloWorld:1.0 \
+  -ORBImplRepoAddr $ADDR
+
+./client local: -ORBImplRepoAddr $ADDR #-ORBDebugLevel 5

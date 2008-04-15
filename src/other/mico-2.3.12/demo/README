@@ -1,0 +1,65 @@
+
+To compile any of the examples you should copy this directory to your home
+directory, change into one of the demo directories and type make:
+	cp -r INSTDIR/doc/mico/examples ~/
+	cd ~/examples/account
+	gmake
+where INSTDIR is the direcory MICO was installed in. If gmake cannot find 
+mico-c++, mico-ld, or idl you should source the mico-setup script to setup
+paths. If your shell is one of csh,tcsh type:
+	source INSTDIR/lib/mico-setup.csh
+If your shell is one of sh,ash,bash,ksh,zsh type:
+	. INSTDIR/lib/mico-setup.sh
+
+Here is a short description of the examples:
+
+bench:
+  simple performance measurements. run shellscript 'bench'.
+
+shlib:
+  example how to use dynamic object loading. run shellscript 'hello'.
+
+services:
+  CORBA services examples.
+
+dynany:
+  some examples how to use DynAny.
+
+interop:
+  shows MICO's interoperability with other CORBA products.
+
+siegel:
+  example from Siegel's CORBA book.
+
+henning:
+  patches for the examples form Henning and Vinoski's CORBA book.
+
+ssl:
+  SSL example. run shellscript 'ssl'.
+
+interceptor:
+  how to use interceptors. run shellscript 'runit'.
+
+poa:
+  how to use the Portable Object Adapter (POA)
+
+mfc:
+  how to use MICO in conjunction with the Microsoft Foundation Classes
+  (MFC)
+
+random:
+  accesses a random number service on the internet (www.random.org)
+
+com-interworking:
+  CORBA/COM oneway interworking example
+
+codesets:
+  Example showing how to use automatic character set translation
+
+mcast:
+  Fault tolerance example using UDP multicasts
+
+generic:
+  Demonstrates the implementation of a generic client and server
+  using DII, DSI and DynAny
+

@@ -1,0 +1,64 @@
+#! /bin/sh -f
+#
+# shld.aix outfile-base version infile infile ...
+#
+# This shell script provides a wrapper for ld under AIX in order to
+# create the .exp file required for linking.  Its arguments consist
+# of the name and arguments that would normally be provided to the
+# ld command.  This script extracts the names of the object files
+# from the argument list, creates a .exp file describing all of the
+# symbols exported by those files, and then invokes "ldCmd" to
+# perform the real link.
+#
+# Inspired by ldAix from the tcl distribution.
+
+args=''
+outfile=''
+ofiles=''
+libdirs=''
+
+die () {
+  echo "$1" >&2
+  exit 1
+}
+
+for arg in ` echo "$LIBRARY_PATH" | tr : ' ' `
+do
+  libdirs="$libdirs '-L$arg'"
+done
+
+while [ $# -gt 0 ]
+do
+  case "$1" in
+  -o)
+    shift
+    test $# -gt 0 || die "missing arg for -o"
+    outfile="$1"
+    ;;
+  *.o | *.o0)
+    ofiles="$ofiles '$1'"
+    args="$args '$1'"
+    ;;
+  -L*)
+    libdirs="$libdirs '$1'"
+    ;;
+  -nolibs)
+    ;;
+  *)
+    args="$args '$1'"
+    ;;
+  esac
+  shift
+done
+
+test "X$ofiles"  != X || die "no input files"
+test "X$outfile" != X || die "no output file"
+
+outfile=` echo "$outfile" | sed -e 's/\.\(so\|o\)$//' `'.@SOEXT@'
+
+ldcmd="@SHARED_CC@ @LDSOFLAGS@ @DLFLAGS@ $libdirs @LDFLAGS@ \
+ -o '$outfile' $args @LIBS@"
+
+echo "$ldcmd"
+eval "$ldcmd"
+exit $?

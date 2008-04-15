@@ -1,0 +1,102 @@
+*** policy.h.orig	Wed Mar  5 00:06:37 2003
+--- policy.h	Wed Mar  5 00:09:12 2003
+***************
+*** 28,43 ****
+  {
+  
+  class Policy;
+! typedef Policy *Policy_ptr;
+  typedef Policy_ptr PolicyRef;
+! typedef ObjVar< Policy > Policy_var;
+! typedef ObjOut< Policy > Policy_out;
+  
+  class DomainManager;
+! typedef DomainManager *DomainManager_ptr;
+  typedef DomainManager_ptr DomainManagerRef;
+! typedef ObjVar< DomainManager > DomainManager_var;
+! typedef ObjOut< DomainManager > DomainManager_out;
+  
+  class ConstructionPolicy;
+  typedef ConstructionPolicy *ConstructionPolicy_ptr;
+--- 28,43 ----
+  {
+  
+  class Policy;
+! //typedef Policy *Policy_ptr;
+  typedef Policy_ptr PolicyRef;
+! //typedef ObjVar< Policy > Policy_var;
+! //typedef ObjOut< Policy > Policy_out;
+  
+  class DomainManager;
+! //typedef DomainManager *DomainManager_ptr;
+  typedef DomainManager_ptr DomainManagerRef;
+! //typedef ObjVar< DomainManager > DomainManager_var;
+! //typedef ObjOut< DomainManager > DomainManager_out;
+  
+  class ConstructionPolicy;
+  typedef ConstructionPolicy *ConstructionPolicy_ptr;
+***************
+*** 55,61 ****
+  namespace CORBA
+  {
+  
+! typedef CORBA::ULong PolicyType;
+  typedef PolicyType& PolicyType_out;
+  
+  /*
+--- 55,61 ----
+  namespace CORBA
+  {
+  
+! //typedef CORBA::ULong PolicyType;
+  typedef PolicyType& PolicyType_out;
+  
+  /*
+***************
+*** 101,114 ****
+  };
+  
+  
+! typedef IfaceSequenceTmpl< Policy_var,Policy_ptr> PolicyList;
+  typedef TSeqVar< IfaceSequenceTmpl< Policy_var,Policy_ptr> > PolicyList_var;
+  typedef TSeqOut< IfaceSequenceTmpl< Policy_var,Policy_ptr> > PolicyList_out;
+  
+! enum SetOverrideType {
+!   SET_OVERRIDE = 0,
+!   ADD_OVERIDE
+! };
+  
+  typedef SetOverrideType& SetOverrideType_out;
+  
+--- 101,114 ----
+  };
+  
+  
+! //typedef IfaceSequenceTmpl< Policy_var,Policy_ptr> PolicyList;
+  typedef TSeqVar< IfaceSequenceTmpl< Policy_var,Policy_ptr> > PolicyList_var;
+  typedef TSeqOut< IfaceSequenceTmpl< Policy_var,Policy_ptr> > PolicyList_out;
+  
+! //enum SetOverrideType {
+! //  SET_OVERRIDE = 0,
+! //  ADD_OVERIDE
+! //};
+  
+  typedef SetOverrideType& SetOverrideType_out;
+  
+***************
+*** 198,204 ****
+  };
+  
+  
+! typedef IfaceSequenceTmpl< DomainManager_var,DomainManager_ptr> DomainManagerList;
+  typedef TSeqVar< IfaceSequenceTmpl< DomainManager_var,DomainManager_ptr> > DomainManagerList_var;
+  typedef TSeqOut< IfaceSequenceTmpl< DomainManager_var,DomainManager_ptr> > DomainManagerList_out;
+  
+--- 198,204 ----
+  };
+  
+  
+! //typedef IfaceSequenceTmpl< DomainManager_var,DomainManager_ptr> DomainManagerList;
+  typedef TSeqVar< IfaceSequenceTmpl< DomainManager_var,DomainManager_ptr> > DomainManagerList_var;
+  typedef TSeqOut< IfaceSequenceTmpl< DomainManager_var,DomainManager_ptr> > DomainManagerList_out;
+  

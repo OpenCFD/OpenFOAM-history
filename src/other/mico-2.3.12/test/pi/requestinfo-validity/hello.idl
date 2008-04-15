@@ -1,0 +1,7 @@
+// -*- c++ -*-
+
+interface HelloWorld {
+    exception Exc {
+    };
+    void hello() raises (Exc);
+};

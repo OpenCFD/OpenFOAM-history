@@ -1,0 +1,4 @@
+#!/bin/sh
+
+deploytool -deploy ConverterApp.ear localhost
+

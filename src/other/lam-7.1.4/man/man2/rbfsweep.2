@@ -1,0 +1,62 @@
+.TH RBFPARMS 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rbfparms, rbfsweep, rbfsweep1, rbfudie, rbfwipe
+\- Control LAM remote buffers.
+.SH SYNOPSIS
+.nf
+#include <bfreq.h>
+
+int rbfparms (int node, int *parms);
+int rbfsweep (int node);
+int rbfsweep1 (int node, int event);
+int rbfwipe (int node);
+.fi
+.SH DESCRIPTION
+The remote function
+.I rbfparms()
+sets overall buffer parameters on the given
+.IR node .
+.PP
+Updated values are supplied in a buffer parameter structure,
+.IR bfparms ,
+defined in <bfreq.h>.
+.PP
+.RS
+.ta 1i 2i
+.nf
+struct bfparms {
+	int	bfp_maxspace;
+	int	bfp_nspace;
+};
+.fi
+.DT
+.RE
+.PP
+Not all fields in the structure control buffer parameters.
+The same structure is used to return overall buffer status with rbfstate(2).
+The controllable fields are listed below.
+If set to -1, the current value in the remote buffer daemon is
+maintained, otherwise the value is updated.
+.TP 18
+bfp_maxspace
+maximum space that a buffer daemon will allocate for message buffers
+.SS Cleaning Buffers
+A prematurely terminated application will frequently leave messages
+in buffers.
+.PP
+.I rbfsweep()
+clears all buffered messages on a given
+.IR node .
+.PP
+.I rbfsweep1()
+clears all messages with a given
+.I event
+on a given
+.IR node .
+.PP
+.I rbfwipe()
+completely resets the state of the buffer daemon on a given
+.IR node .
+All buffered messages and any other information are lost.
+.SH SEE ALSO
+bfctl(1), rbfstate(2)

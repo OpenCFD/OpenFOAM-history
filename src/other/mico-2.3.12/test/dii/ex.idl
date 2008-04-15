@@ -1,0 +1,7 @@
+exception SomeExcept {
+  string msg;
+};
+
+interface SomeIface {
+  void f () raises (SomeExcept);
+};

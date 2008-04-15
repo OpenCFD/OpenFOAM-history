@@ -1,0 +1,14 @@
+# Configuration file for Domain mapping
+
+[/C=EN/L=Cambridge/O=ObjectSecurity Ltd./OU=Account Server/CN=accserv.objectsecurity.com/emailAddress=accserv@objectsecurity.com]/        /Access
+[/C=EN/L=Cambridge/O=ObjectSecurity Ltd./OU=Account Server/CN=accserv.objectsecurity.com/emailAddress=accserv@objectsecurity.com]/        /Audit
+
+# Access Domain for Bank Factory
+[/C=EN/L=Cambridge/O=ObjectSecurity Ltd./OU=Account Server/CN=accserv.objectsecurity.com/emailAddress=accserv@objectsecurity.com]/RootPOA/MyPOA/ /Access/Bank
+
+# Access Domain for Account Objects
+[/C=EN/L=Cambridge/O=ObjectSecurity Ltd./OU=Account Server/CN=accserv.objectsecurity.com/emailAddress=accserv@objectsecurity.com]/RootPOA/AccountPOA/ /Access/Accounts
+
+[/C=EN/L=Cambridge/O=ObjectSecurity Ltd./OU=Account Server/CN=accserv.objectsecurity.com/emailAddress=accserv@objectsecurity.com]/RootPOA/AccountPOA/ /Audit/d1
+
+# Final comments

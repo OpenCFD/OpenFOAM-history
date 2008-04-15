@@ -1,0 +1,42 @@
+This example shows a simple scenario in which the load-balancing function of 
+the naming service is utilized.  It is about a client looking for a printer 
+and asking the latter to print a message.  There are two printers in the 
+example.  The shell script 'printer_test' of the example demonstrates 
+three cases.
+
+- case 1 : The naming service does not do load-balancing
+- case 2 : The naming service is launched with the "--lb round_robin" option
+- case 3 : The naming service is launched with the "--lb random" option
+
+The two printers are named 'Laser_Admin.Printer' and 
+'InkJet_Marketing.Printer' respectively. In each case, the client is made to
+resolve the name 'Laser_Admin.Printer' ten times.  After each resolve()
+operation, the client invokes the print() method on the printer whose
+reference was returned in the operation, causing the printer to print
+a short message to the standard output.
+
+Case 1 should show the printer named 'Laser_Admin.Printer' printing the
+short message ten times.  Case 2 should show each of the two printers
+printing it five times.  In case 3, each of the two printers prints a random
+number of times.
+
+In case 1, the naming service uses both the ID and kind portions of the name
+component 'Laser_Admin.Printer' to look for an object reference to return
+during a resolve() operation.  The ID is the string preceding the 
+character '.', while the kind is the string following the character.  
+Only the object reference bound to that name is returned.  In cases 2 and 3, 
+it uses only the kind portion, which is 'Printer', of the name component to 
+look for an object reference.  An object reference bound to a name with a 
+kind value of 'Printer' is treated by the naming service as a potential 
+candidate to return during the operation.  How the naming service chooses 
+a reference from a list of potential candidates is determined by the name of 
+the load-balancing algorithm specified during the startup of the 
+naming service.  The names of the algorithms implemented so far are 
+'round_robin' and 'random'.
+
+If there are more than one name component in the name passed to the naming
+service during a resolve() operation, for example, 
+'SubsidiaryA.CompanyA/Laser_Admin.Printer' (which consists of two 
+name components 'SubsidiaryA.CompanyA' and 'Laser_Admin.Printer', only the 
+last name component, that is, 'Laser_Admin.Printer', is used by the '
+naming service to look for potential candidates.

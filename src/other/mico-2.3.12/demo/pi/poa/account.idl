@@ -1,0 +1,13 @@
+// -*- c++ -*-
+
+interface Account {
+    exception BigAmount {};
+    void deposit( in unsigned long amount, out unsigned long prev );
+    void withdraw( in unsigned long amount, out unsigned long prev ) raises(BigAmount);
+    long balance();
+};
+
+interface Bank {
+    Account create ();
+    void shutdown ();
+};

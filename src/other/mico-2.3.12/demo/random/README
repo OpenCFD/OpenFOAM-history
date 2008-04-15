@@ -1,0 +1,18 @@
+
+This demo retrieves true random numbers from a CORBA server on the internet,
+so running the client requires a live internet connection.
+
+  See http://www.random.org/
+  and http://www.random.org/corba.html
+
+The file "random.ior" contains the current IOR of the server. If the client
+fails to connect to the server, please check the above URL to see if the
+reference has changed.
+
+This demo was kindly contributed by
+*--------------------------------------------------------------------------*
+|       Frank Schneider                 Department of Computer Science III |
+|     Phone: ++49 241 80 21312            RWTH Aachen, Ahornstr. 55        |
+|   Fax: ++49 241 8888 218                  52074 Aachen, Germany          |
+| mailto:frank@i3.informatik.rwth-aachen.de                                |
+*--------------------------------------------------------------------------*

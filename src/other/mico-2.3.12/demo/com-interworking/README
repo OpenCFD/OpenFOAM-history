@@ -1,0 +1,42 @@
+
+Usage:
+	idl --codegen-midl <file.idl>
+
+This generates a <file.midl> that is the translation of the
+input file.
+
+Example:
+	idl --no-codegen-c++ --codegen-midl account.idl
+
+This generates the file:
+	account.midl
+
+If you use Windows95/98/NT the GUIDS are automatically generated.
+If you use another S.O. instead of GUIDS, it generates a sequence
+of XXX.. that you must replace with GUIDS manually.
+
+SOME CORBA IDL TYPES ARE NOT TRANSLATED, i.e:
+	any
+	exceptions
+	Native
+	Value
+	ValueBox
+	ValueMember
+	TypeCode
+	etc.
+
+The use of these types causes error when compiling with midl.
+
+This directory contains an example of the interworking:
+	clientCOM   ->   serverCOM   ->   server (CORBA)
+          (EXE)            (EXE)             (DLL)
+
+Build it with "nmake /f Makefile.win32".
+
+Check the macro SRCDIR to point to your correct path to mico diretcory.
+It is supposed that the win32-bin directory is a subdirectory of mico.
+If it is not, change the macro WIN32_BIN to point to win32-bin directory.
+
+Register severCOM with "serverCOM /REGSERVER".
+
+Use the batch file "example" to start the example.

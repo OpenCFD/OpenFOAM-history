@@ -1,0 +1,1 @@
+exec eventd -ORBDebug All=/tmp/mico.evd.log -ORBGIOPVersion 1.2 -ORBIIOPVersion 1.2 -ORBIIOPAddr inet:$1:27565 -ORBConfFile ./micorc -ORBRequestLimit 1

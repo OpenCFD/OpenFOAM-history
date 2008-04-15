@@ -1,0 +1,19 @@
+
+
+
+exception CannotCreateJunk { string reason; string tag; };
+
+interface Junk {
+    readonly attribute string tag;
+    void     remove();
+};
+
+interface JunkCount {
+    readonly attribute long nc_count;
+    readonly attribute long obj_count;
+};
+
+interface JunkFactory {
+    Junk create(in string tag) raises ( CannotCreateJunk );
+    JunkCount junk_count();
+};

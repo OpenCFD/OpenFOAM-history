@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# run Server
+./server -ORBIIOPAddr inet:localhost:8912&
+server_pid=$!
+
+trap "kill $server_pid > /dev/null 2> /dev/null" 0
+
+sleep 2
+
+# run client
+./client -ORBBindAddr inet:localhost:8912 -ORBIIOPAddr inet:localhost:8913
+

@@ -1,0 +1,7 @@
+
+interface Foo {
+};
+
+interface Bar {
+    void create(out Foo val);
+};

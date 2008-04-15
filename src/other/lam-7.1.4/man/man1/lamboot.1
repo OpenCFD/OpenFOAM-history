@@ -1,0 +1,388 @@
+.TH LAMBOOT 1 "July, 2007" "LAM 7.1.4" "LAM TOOLS"
+.SH NAME
+lamboot \- Start a LAM multicomputer.
+.SH SYNOPSIS
+.hy 0
+.HP
+.na
+lamboot
+[-b]
+[-d]
+[-h]
+[-H]
+[-l]
+[-s]
+[-v]
+[-V]
+[-x]
+[-nn]
+[-np]
+[-c conf file]
+[-prefix /lam/install/path/]
+[-sessionprefix value]
+[-sessionsuffix value]
+[-withlamprefixpath value]
+[-ssi key value]
+[bhost]
+.hy 1
+.br
+.SH OPTIONS
+.TP 8
+.B \-b
+Assume local and remote shell are the same.  This means that only one
+remote shell invocation is used to each node.  If
+.B \-b
+is not used, two remote shell invocations are used to each node.
+.TP
+.B \-d
+Turn on debugging output.  This implies -v.
+.TP
+.B \-h
+Print the command help menu.
+.TP
+.B \-l
+Delay hostname-to-IP-address resolution.
+.TP
+.B \-prefix
+Use the LAM installation specified in 
+/lam/install/path/.  Not compatible with LAM/MPI versions prior to 7.1.
+.TP
+.B \-s
+Close stdio on the local node.
+.TP
+.B -ssi key value
+Send arguments to various SSI modules.  See the "SSI" section, below.
+.TP
+.B \-v
+Be verbose.
+.TP
+.B \-x
+Run in fault tolerant mode.
+.TP
+.B \-H
+Do not display the command header.
+.TP
+.B \-nn
+Don't add "-n" to the remote agent command line
+.TP
+.B \-np
+Do not force the execution of $HOME/.profile on remote hosts
+.TP
+.B \-session-prefix value
+Set the session prefix, overriding LAM_MPI_SESSION_PREFIX.
+.TP
+.B \-session-suffix value
+Set the session suffix, overriding LAM_MPI_SESSION_SUFFIX.
+.TP
+.B \-withlamprefixpath value
+Override the internal installation path.  For internal use only, do
+not use unless you know what you are doing.
+.SH ENVIRONMENT VARIABLES
+.TP 10
+.B LAM_MPI_SESSION_PREFIX
+.TP
+.B LAM_MPI_SESSION_SUFFIX
+It is possible to change the session directory used by LAM/MPI,
+normally of the form:
+.TP
+tmpdir/lam-username@hostname[-suffix]
+.TP
+tmpdir 
+will be set to
+.I LAM_MPI_SESSION_PREFIX
+if set.  Otherwise, it will fall back to the value of 
+.IR TMPDIR .
+If neither of these are set, the default is /tmp.
+.TP
+suffix
+can be overridden by the 
+.I LAM_MPI_SESSION_SUFFIX 
+environment variable.  If
+.I LAM_MPI_SESSION_SUFFIX
+is not set and LAM is running under a supported batch scheduling
+system, 
+.I $suffix
+will be a value unique to the currently running job.
+.SH DESCRIPTION
+The
+.I lamboot
+tool starts the LAM software on each of the machines specified in the
+boot schema,
+.IR bhost .
+The boot schema specifies the hostnames of nodes to be used in the
+run-time MPI environment, and optionally lists how may CPUs LAM may
+used on each node.
+The user may wish to first run the recon(1) tool to verify that LAM can
+be started.
+.PP
+Starting LAM is a three step procedure.  In the first step, hboot(1)
+is invoked on each of the specified machines.  Then each machine
+allocates a dynamic port and communicates it back to
+.I lamboot
+which collects them.  In the third step,
+.I lamboot
+gives each machine the list of machines/ports in order to form a fully
+connected topology.  If any machine was not able to start, or if a
+timeout period expires before the first step completes,
+.I lamboot
+invokes lamwipe(1) to terminate LAM and reports the error.
+.PP
+The
+.I bhost 
+file is a LAM boot schema written in the host file syntax.  See
+bhost(5).  Instead of the command line, a boot schema can be specified
+in the LAMBHOST environment variable.  Otherwise a default file,
+lam-bhost.def, is used.  LAM searches for
+.I bhost
+first in the local directory and then in the installation directory
+under etc/.
+.PP
+In addition,
+.I lamboot
+uses a process schema for the individual LAM nodes.  A process schema
+(see conf(5)) is a description of the processes which constitute the
+operating system on a node.  In general, the system administrator
+maintains this file -- LAM/MPI users will generally not need to change
+this file.  It is also possible for the user to customize the LAM
+software with a private process schema.
+.SS The bhost file
+The format of the
+.I bhost
+file is documented in the bhost(5) man page.
+.PP
+.I lamboot
+will resolve all names in
+.I bhost
+on the node in which 
+.I lamboot
+was invoked (the origin node).  After that, LAM will only use IP
+addresses, not names.  Specifically, the name resolution configuration
+on all other nodes is not used.  Hence, the the origin node must be
+able to resolve all the names in
+.I bhost
+to addresses that are reachable by all other nodes.  
+.PP 
+A common mistake is to list
+.I localhost
+(or any name that resolves to the special address 127.0.0.1 -- the
+loopback TCP/IP device) in a
+.I bhost
+file that contains other nodes.  In this case, the address 127.0.0.1
+would be sent to each of the other nodes as the address of the origin
+node.  If the other nodes try to use 127.0.0.1 to contact the origin
+node, they will actually be contacting themselves, and would
+eventually timeout and fail.
+.PP 
+The IP addresses obtained from
+.I bhost
+are used for LAM's meta messages: startup and shutdown of jobs,
+out-of-band messages used for coordination, etc.  The amount of
+traffic is fairly low (unless using the "lamd" mode of MPI message
+passing, in which case all MPI traffic will also utilize LAM's meta
+messages for transport -- see mpirun(1)).  When using the TCP RPI,
+these IP addresses are also used for MPI message passing via direct
+sockets between each pair of nodes.
+.PP 
+A common case is where a "master" node has multiple network interface
+cards (NICs) -- one that is connected to a public network, and one
+that is connected to a private network where parallel jobs are to be
+run.  To include the master node in a
+.I bhost
+file, the IP name (or address) of the NIC on the private network
+should be listed in
+.IR bhost .
+This ensures that all the other nodes can reach the master node on the
+private network.
+.PP 
+As another example, some configurations have multiple TCP/IP NICs in
+each node of a parallel job.  One NIC is considered "slow" (e.g.,
+10Mbps), while the other is considered "fast" (e.g., 100Mbps).  It is
+desirable to allow LAM to take advantage of the higher bandwidth on
+the "fast" network for MPI messages.  As such,
+.I bhost
+should list the IP names (or addresses) of all the "fast" NICs.
+However, if the LAM RPI does not use TCP/IP (e.g., the Myrinet/GM
+RPI), the
+.I bhost
+file should probably list the "slow" NICs so that LAM's meta message
+traffic does not cause overhead and potentially detract from
+performance on the "fast" network from other high-performance
+applications.
+.SS Delaying hostname lookups
+.PP
+Normally, name resolution of hostnames is done on the machines where
+.I lamboot
+is invoked.  This is done for optimization reasons, so that the list
+of hostnames only needs to be resolved once (potentially minimizing
+the amount of DNS or other hostname-lookup network traffic).
+.PP
+However, in some non-uniform networking environments, this is not
+sufficient because each host may have a different IP address on each
+of its peers.  For example, host A may have address Z on host B, but
+have address Y on host C.
+.PP
+The 
+.I -l
+option to 
+.I lamboot
+will cause LAM to distribute hostnames to each node rather than a
+fully resolved set of IP addresses.  Hence, each node where LAM is
+booted will do its own name resolution on the list of hostnames.
+.SS SSI (System Services Interface)
+The
+.I -ssi
+switch allows the passing of parameters to various SSI modules.  LAM's
+SSI modules are described in detail in lamssi(7).  SSI modules have
+direct impact on MPI programs because they allow tunable parameters to
+be set at run time (such as which boot device driver to use, what
+parameters to pass to that driver, etc.).
+.PP
+The 
+.I -ssi
+switch takes two arguments:
+.I key
+and 
+.IR value .
+The
+.I key
+argument generally specifies which SSI module will receive the value.
+For example, the
+.I key
+"boot" is used to select which RPI to be used for starting processes
+on remote nodes.  The
+.I value 
+argument is the value that is passed.  For example:
+.TP 4
+lamboot -ssi boot tm
+Tells LAM to use the "tm" boot module for native launching in PBSPro /
+OpenPBS environments (the tm boot module does not require a boot
+schema).
+.TP
+lamboot -ssi boot rsh -ssi rsh_agent "ssh -x" boot_schema
+Tells LAM to use the "rsh" boot module, and tells the rsh module to
+use "ssh -x" as the specific agent to launch executables on remote
+nodes.
+.PP
+And so on.  LAM's boot SSI modules are described in lamssi_boot(7).
+This page should be consulted for specific actions that are taken by,
+and how to tweak the run-time behavior of each boot module.
+.PP
+The 
+.I -ssi
+switch can be used multiple times to specify different
+.I key
+and/or
+.I value
+arguments.  If the same
+.I key
+is specified more than once, the
+.IR value s
+are concatenated with a comma (",") separating them.
+.PP
+Note that the 
+.I -ssi
+switch is simply a shortcut for setting environment variables.  The
+same effect may be accomplished by setting corresponding environment
+variables before running
+.IR lamboot .
+The form of the environment variables that LAM sets are:
+.IR LAM_MPI_SSI_key=value .
+.PP
+Note that the
+.I -ssi
+switch overrides any previously set environment variables.  Also note
+that unknown
+.I key
+arguments are still set as environment variable -- they are not
+checked (by
+.IR lamwipe )
+for correctness.  Illegal or incorrect 
+.I value
+arguments may or may not be reported -- it depends on the specific SSI
+module.
+.SS Remote Executable Invocation
+.PP
+All tweakable aspects of launching executables on remote nodes during 
+.I lamboot
+are discussed in lamssi(7) and lamssi_boot(7).  Topics include (but
+are not limited to): discovery of remote shell, run-time overrides of
+the agent use to launch remote executables (e.g., rsh and ssh), etc.
+.SS Closing stdio
+The stdio of each LAM daemon on a remote host that is launched by 
+.I lamboot
+is closed by default.  Normally, the stdio of the LAM daemon launched
+on the local host is left open so that the internal LAM tstdio(3)
+package works properly.  However, it is sometimes desirable to close
+the stdio of the local LAM daemon as well.  For example:
+.PP
+.RS
+rsh somenode lamboot -s hostfile
+.RE
+.PP
+This is because
+.I rsh
+waits for two conditions before exiting: 
+.I lamboot
+to exit, and stdout / stderr to be closed.  Without
+.IR -s ,
+stdout / stderr would not be closed, and 
+.I rsh
+(and
+.IR ssh )
+will hang even though 
+.I lamboot
+had completed.
+.I -s
+causes the stdout / stderr of the local LAM daemon to be closed upon
+invocation, which will allow 
+.I rsh
+to complete.  Using
+.I -s
+will not affect
+.I lamboot
+in any other way, but it will prevent the tstdio(3) package from
+working properly.
+.SS Fault Tolerance
+If the
+.I \-x
+option is given, LAM runs in fault tolerant mode.  In this mode, nodes
+exchange ``heart beat'' messages periodically to make sure all nodes
+are running and the links connecting them are operational.  When a
+node's heart beats stop, it is declared ``dead'' and all LAM nodes
+(and processes) are notified.  This allows users to write fault
+tolerant applications that can degrade gracefully, or fully recover by
+replacing the defunct node with another (see lamgrow(1)).  Since this
+mode introduces a performance penalty, it is not activated by default.
+.SH EXAMPLES
+.TP 4
+lamboot -v
+Start LAM on the machines described in the default boot schema.
+Report about important steps as they are done.
+.TP 4
+lamboot -d hostfile
+Start LAM on the machines described in file
+.IR hostfile .
+Provide incredibly detailed reports on what is happening at each stage
+in the boot process.
+.TP
+lamboot mynodes
+Start LAM on the machines described in the boot schema
+.IR mynodes .
+Operate silently.
+.SH FILES
+.TP 34
+laminstalldir/etc/lam-bhost.def 
+default boot schema file, where "laminstalldir" is the directory where
+LAM/MPI was installed
+.TP
+laminstalldir/etc/lam-conf.lamd
+default process schema file for LAM nodes
+.SH SEE ALSO
+recon(1), lamwipe(1), hboot(1), tstdio(3), bhost(5), conf(5),
+lam-helpfile(5), lamssi(7), lamssi_boot(7)
+\"  LocalWords:  RELEASEDATE RELEASEVERSION bdhvxH bhost hostnames recon hboot
+\"  LocalWords:  LAMBHOST def conf localhost loopback NICs NIC myrinet rsh csh
+\"  LocalWords:  LAMRSH setenv tcsh tstdio somenode lamgrow mynodes lam LAMBOOT
+\"  LocalWords:  helpfile lamboot bdhlvxH ssi br TP hostname IP lamd mpirun RPI
+\"  LocalWords:  Mbps DNS lamssi tm PBSPro OpenPBS tweakable hostfile ve stdout
+\"  LocalWords:  stderr laminstalldir

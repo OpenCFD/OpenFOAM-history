@@ -1,0 +1,24 @@
+#! /bin/sh -f
+
+args=''
+libdirs=''
+
+for arg in ` echo "$LIBRARY_PATH" | tr : ' ' `
+do
+  libdirs="$libdirs '-L$arg'"
+done
+
+for arg
+do
+  case "$arg" in
+  -L*)
+    libdirs="$libdirs '$arg'"
+    ;;
+  *)
+    args="$args '$arg'"
+    ;;
+  esac
+done
+
+eval "@CXX@ @DLFLAGS@ $libdirs @LDFLAGS@ $args @BASE_LIBS@"
+exit $?

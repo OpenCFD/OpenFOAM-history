@@ -1,0 +1,77 @@
+#
+# MICO --- a free CORBA implementation
+# Copyright (C) 1997 Kay Roemer & Arno Puder
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Send comments and/or bug reports to:
+#                mico@informatik.uni-frankfurt.de
+#
+RELATIVE=..\..
+!include ..\..\MakeVars.win32
+
+CXXFLAGS = -I. -I..\..\include\windows -I..\..\include $(CXXFLAGS) $(EHFLAGS)
+LDFLAGS  = /LIBPATH:..\..\orb $(LDFLAGS)
+LDLIBS   = mico$(VERSION).lib $(CONFLIBS)
+IDLFLAGS = -B..\..
+
+# generated files
+
+GEN  = yacc.output account.cc account.h browser.cc browser.h
+SRCS = yacc.cc scanner.cc account.cc browser.cc cg.cc dii.cc \
+  parser.cc diiproxy.cc accountI.cc browserI.cc
+OBJS = $(SRCS:.cc=.obj)
+
+JGEN=parser.java sym.java
+JSRCS=$(JGEN) Node.java RelationNode.java ConceptNode.java \
+  ConceptualGraph.java DIIException.java Proxy.java parser.java scanner.java \
+  Node.java TransportLayer.java MyCanvas.java CanvasObject.java \
+  CanvasBoxText.java DII.java CanvasHandler.java \
+  CanvasArrow.java CGEditor.java CanvasLine.java EntryBox.java AlertBox.java \
+  EditLinearForm.java CGParser.java View.java GlobalVars.java \
+  BorderPanel.java CGTemplates.java CanvasIcon.java IRBrowser.java \
+  DIIRequest.java IRBrowserProxy.java DIIString.java DIIBoolean.java \
+  DIIObject.java DIISequence.java DIIFrame.java IRFrame.java StatusLine.java
+JOBJS=$(JSRCS:.java=.class)
+
+GENERATED = $(GEN) $(JGEN)
+
+# normal rules
+
+all: diiproxy.exe $(JOBJS)
+
+w95-all: all
+
+diiproxy.exe: $(OBJS)
+	$(LINK) $(LINKFLAGS) /LIBPATH:..\..\win32-bin\lib $(OBJS) \
+	     idl$(VERSION).lib wsock32.lib $(LDLIBS) /out:$@
+
+account.cc account.h: account.idl
+	$(IDL) $(IDLFLAGS) --no-poa --boa account.idl
+
+browser.cc browser.h: browser.idl
+	$(IDL) $(IDLFLAGS) --no-poa --boa browser.idl
+
+
+# dependencies
+
+parser.java sym.java: parser.cup
+
+# cleaning
+
+clean:
+	-$(RM) diiproxy *.o *.a *~ *.rpo *.class
+	-$(RM) .depend TAGS core nohup.out $(GENERATED)
+

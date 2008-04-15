@@ -1,0 +1,32 @@
+.TH RPDOOM 2 "July, 2007" "LAM 7.1.4" "LAM REMOTE LIBRARY"
+.SH NAME
+rpdoom \- Signal LAM processes on a remote node.
+.SH SYNOPSIS
+.nf
+#include <preq.h>
+#include <lam_ksignal.h>
+
+int rpdoom(int node, int sflags, int svalue, int signum);
+.fi
+.SH ARGUMENTS
+.TP 12
+node
+target node where selected processes are running
+.TP
+sflags
+selection method - See rpstate(2).
+.TP
+svalue
+selection matching value, if required, otherwise ignored
+.TP
+signum
+signal number, defined in <lam_ksignal.h> - See lam_ksignal(2).
+.SH ERRORS
+.TP 18
+ENOTPROCESS
+A specific process was selected but it does not exist.
+.TP
+EINVAL
+The signal number is invalid.
+.SH SEE ALSO
+lam_ksignal(2), kdoom(2)

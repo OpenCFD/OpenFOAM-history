@@ -1,0 +1,27 @@
+
+Interoperability test with JDK 1.3
+==================================
+
+As of version 1.3 of Sun's JDK, a basic ORB implementation is part of
+the JDK distribution. This README explains how to make JDK1.3 and MICO
+interoperate. The setup is the same as for the VisiBroker
+interoperability test.
+
+- install JDK 1.3.
+- do "make" in this directory
+- run server object "account_svr". Server will write its IOR
+  to a file called "account.ref"
+- run Java client with "java Client"
+- Client should print "The balance is 450"
+- to run the applet version, run "run_applet". The "Current
+  balance" field should display the current balance of the
+  account server object (450 in this case)
+- or you can just run the shell script account...
+
+Note that the demo programs contained in this directory are identical
+with the ones in ../visibroker except for some deprectated features
+that had to be changed in the Java implementation.
+
+Also note that the graphical IR browser that is shipped with MICO in
+mico/tools/ir-browser requires JDK 1.1.5
+

@@ -1,0 +1,1 @@
+./server -ORBIIOPAddr inet:`uname -n`:12466 -ORBSSLcert ServerCert.pem -ORBSSLkey ServerKey.pem -ORBSSLverify 0 

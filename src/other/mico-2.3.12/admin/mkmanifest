@@ -1,0 +1,20 @@
+#!/bin/sh
+
+NEWFILES=no
+LANG=C
+LC_ALL=C
+
+allfiles () {
+    cut -f 1 -d\  < MANIFEST
+    find . -type f | grep -v /CVS/ | grep -v "\.arch-ids" | grep -v "{arch}"
+}
+
+for i in `allfiles | sort | uniq -u`; do
+    NEWFILES=yes
+    echo "$i	***** new file *****" >> MANIFEST
+done
+
+if test $NEWFILES = "yes"; then
+    sort -o MANIFEST MANIFEST
+    echo "new files found, check MANIFEST for '**** new file ****'"
+fi

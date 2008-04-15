@@ -1,0 +1,87 @@
+#!/bin/sh
+#clear
+#echo Starting in `pwd`
+
+#set -x
+
+PATH=../../../daemon:../../../coss/naming:../../../imr:../../../ir:../../../idl:../../../cpp:$PATH
+export PATH
+ADDR=inet:`uname -n`:12456
+IRADDR=inet:`uname -n`:12500
+NSDADDR=inet:`uname -n`:12501
+BANK=inet:`uname -n`:13000
+PERSON=inet:`uname -n`:13001
+
+MICOINC=$MICODIR/include
+
+IDLPAR="-I$MICOINC"
+
+printf "Starting IRD ..."
+ird --db=ir-db -ORBIIOPAddr $IRADDR 2>/dev/null &
+ird_pid=$!
+sleep 2
+echo $ird_pid > ird.pid
+echo done.
+
+if [ ! -f ir-db.idl ]
+then
+
+printf "Send ir_base.idl to IR ..."
+idl $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/mico/ir_base.idl
+echo "done."
+
+printf "Send ir.idl to IR ..."
+idl $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/mico/ir.idl
+echo "done."
+
+printf "Send CosObjectIdentity.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosObjectIdentity.idl
+echo "done."
+
+printf "Send CosRelationships.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosRelationships.idl
+echo "done."
+
+printf "Send CosGraphs.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosGraphs.idl
+echo "done."
+
+printf "Send CosNaming.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosNaming.idl
+echo "done."
+
+printf "Send CosLifeCycle.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosLifeCycle.idl
+echo "done."
+
+printf "Send CosCompoundLifeCycle.idl to IR ..."
+idl   $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosCompoundLifeCycle.idl
+echo "done."
+
+printf "Send CosContainment.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosContainment.idl
+echo "done."
+
+printf "Send CosReference.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosReference.idl
+echo "done."
+
+printf "Send CosLifeCycleContainment.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosLifeCycleContainment.idl
+echo "done."
+
+printf "Send CosLifeCycleReference.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir $MICOINC/coss/CosLifeCycleReference.idl
+echo "done."
+
+printf "Send Documents.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir Documents.idl
+echo "done."
+
+printf "Send Test.idl to IR ..."
+idl  $IDLPAR -ORBIfaceRepoAddr $IRADDR --no-codegen-c++ --feed-ir Test.idl
+echo "done."
+
+fi
+
+

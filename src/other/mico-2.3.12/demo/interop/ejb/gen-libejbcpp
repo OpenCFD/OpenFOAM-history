@@ -1,0 +1,48 @@
+#!/bin/sh
+
+
+if test \! -d java; then
+  echo "Error: directory 'java' is missing"
+  exit
+fi
+
+if test \! -d javax; then
+  echo "Error: directory 'javax' is missing"
+  exit
+fi
+
+MICO_HOME=../../..
+
+
+IDL=$MICO_HOME/idl/idl
+IDL_INCL="-I$MICO_HOME/include/mico -I$MICO_HOME/include"
+CC_INCL="-I$MICO_HOME/include"
+CXX=$MICO_HOME/admin/mico-c++
+
+
+idls=`find */* -name "*.idl" -print`
+
+for i in $idls; do
+    echo "Processing '$i'"
+    b=`basename $i .idl`
+    d=`dirname $i`
+    $IDL -I. $IDL_INCL -DprimaryKey=primKey $i
+    mv $b.cc $d
+    mv $b.h $d
+done
+
+
+ccs=`find */* -name "*.cc" -print`
+
+for i in $ccs; do
+    echo "Compiling '$i'"
+    b=`basename $i .cc`
+    d=`dirname $i`
+    $CXX -c -I. $i
+    mv $b.o $d
+done
+
+echo "Creating libejbcpp.a"
+os=`find */* -name "*.o" -print`
+ar cr libejbcpp.a $os
+

@@ -1,0 +1,7 @@
+
+/*
+ * Constant definition is not a typedef
+ */
+
+const long c1 = 1;
+const c1 c2 = 2;

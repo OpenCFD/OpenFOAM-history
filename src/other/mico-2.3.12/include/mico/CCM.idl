@@ -1,0 +1,460 @@
+/*
+ *  Mico --- a free CORBA implementation
+ *  Copyright Frank Pilhofer
+ *
+ *  This file is part of MicoCCM, written by Frank Pilhofer.
+ *  The MICO CORBA Component Project was sponsored by Alcatel.
+ */
+
+module Components {
+
+  typePrefix Components "omg.org";
+
+  /*
+   * ----------------------------------------------------------------------
+   * External Interfaces
+   * ----------------------------------------------------------------------
+   */
+
+  /*
+   * Base Types
+   */
+
+  typedef string FeatureName;
+  typedef sequence<FeatureName> NameList;
+
+  exception InvalidName {};
+  exception InvalidConfiguration {};
+  exception AlreadyConnected {};
+  exception InvalidConnection {};
+  exception NoConnection {};
+  exception ExceededConnectionLimit {};
+  exception CookieRequired {};
+
+  valuetype PortDescription {
+    public FeatureName name;
+    public string type_id;
+  };
+
+  valuetype Cookie {
+    public sequence<octet> CookieValue;
+  };
+
+  abstract valuetype EventBase {};
+
+  /*
+   * Facets
+   */
+
+  valuetype FacetDescription : PortDescription {
+    public Object facet_ref;
+  };
+
+  typedef sequence<FacetDescription> FacetDescriptions;
+
+  interface Navigation {
+    Object provide_facet (in FeatureName name)
+      raises (InvalidName);
+
+    FacetDescriptions get_all_facets ();
+
+    FacetDescriptions get_named_facets (in NameList names)
+      raises (InvalidName);
+
+    boolean same_component (in Object ref);
+  };
+
+  /*
+   * Receptacles
+   */
+
+  valuetype ConnectionDescription {
+    public Cookie ck;
+    public Object objref;
+  };
+
+  typedef sequence<ConnectionDescription> ConnectionDescriptions;
+
+  valuetype ReceptacleDescription : PortDescription {
+    public boolean is_multiplex;
+    public ConnectionDescriptions connections;
+  };
+
+  typedef sequence<ReceptacleDescription> ReceptacleDescriptions;
+
+  interface Receptacles {
+    Cookie connect (in FeatureName name, in Object connection)
+      raises (InvalidName, InvalidConnection,
+	      AlreadyConnected, ExceededConnectionLimit);
+
+    void disconnect (in FeatureName name, in Cookie ck)
+      raises (InvalidName, InvalidConnection,
+	      CookieRequired, NoConnection);
+
+    ConnectionDescriptions get_connections (in FeatureName name)
+      raises (InvalidName);
+
+    ReceptacleDescriptions get_all_receptacles ();
+
+    ReceptacleDescriptions get_named_receptacles (in NameList names)
+      raises (InvalidName);
+  };
+
+  /*
+   * Events
+   */
+
+  exception BadEventType {
+    string expected_event_type;
+  };
+
+  interface EventConsumerBase {
+    void push_event (in EventBase evt)
+      raises (BadEventType);
+  };
+
+  // for consumer ports
+
+  valuetype ConsumerDescription : PortDescription {
+    public EventConsumerBase consumer;
+  };
+
+  typedef sequence<ConsumerDescription> ConsumerDescriptions;
+
+  // for emitter ports
+
+  valuetype EmitterDescription : PortDescription {
+    public EventConsumerBase consumer;
+  };
+
+  typedef sequence<EmitterDescription> EmitterDescriptions;
+
+  // for publisher ports
+
+  valuetype SubscriberDescription {
+    public Cookie ck;
+    public EventConsumerBase consumer;
+  };
+
+  typedef sequence<SubscriberDescription> SubscriberDescriptions;
+
+  valuetype PublisherDescription : PortDescription {
+    public SubscriberDescriptions consumers;
+  };
+
+  typedef sequence<PublisherDescription> PublisherDescriptions;
+
+  // events interface
+
+  interface Events {
+    EventConsumerBase get_consumer (in FeatureName sink_name)
+      raises (InvalidName);
+
+    // for consumer ports
+    
+    ConsumerDescriptions get_all_consumers ();
+
+    ConsumerDescriptions get_named_consumers (in NameList names);
+
+    // for publisher ports
+
+    Cookie subscribe (in FeatureName publisher_name,
+		      in EventConsumerBase subscriber)
+      raises (InvalidName);
+
+    void unsubscribe (in FeatureName publisher_name,
+		      in Cookie ck)
+      raises (InvalidName, InvalidConnection);
+
+    PublisherDescriptions get_all_publishers ();
+
+    PublisherDescriptions get_named_publishers (in NameList names);
+
+    // for emitter ports
+
+    void connect_consumer (in FeatureName emitter_name,
+			   in EventConsumerBase consumer)
+      raises (InvalidName, AlreadyConnected);
+
+    EventConsumerBase disconnect_consumer (in FeatureName source_name)
+      raises (InvalidName, NoConnection);
+
+    EmitterDescriptions get_all_emitters ();
+
+    EmitterDescriptions get_named_emitters (in NameList names);
+
+  };
+
+  /*
+   * CCMObject
+   */
+
+  interface CCMHome;
+
+  valuetype ComponentPortDescription {
+    public FacetDescriptions facets;
+    public ReceptacleDescriptions receptacles;
+    public ConsumerDescriptions consumers;
+    public EmitterDescriptions emitters;
+    public PublisherDescriptions publishers;
+  };
+
+  interface CCMObject : Navigation, Receptacles, Events {
+    Object get_component_def ();
+    CCMHome get_ccm_home ();
+    /* PrimaryKeyBase get_primary_key (); */
+    void configuration_complete ();
+    void remove ();
+    ComponentPortDescription get_all_ports ();
+  };
+
+  /*
+   * Homes
+   */
+
+  exception DuplicateKeyValue {};
+  exception UnknownKeyValue {};
+  exception InvalidKey {};
+
+  interface CCMHome {
+    Object get_component_def ();
+    Object get_home_def ();
+    void remove_component (in CCMObject comp);
+  };
+
+  typedef sequence<CCMHome> CCMHomes;
+
+  interface KeylessCCMHome {
+    CCMObject create_component ();
+  };
+
+  exception HomeNotFound {};
+
+  interface HomeFinder {
+    CCMHome find_home_by_component_type (in string comp_repid)
+      raises (HomeNotFound);
+    CCMHome find_home_by_home_type (in string home_repid)
+      raises (HomeNotFound);
+    CCMHome find_home_by_name (in string home_name);
+  };
+
+  /*
+   * Configurator
+   */
+
+  exception WrongComponentType {};
+
+  interface Configurator {
+    void configure (in CCMObject comp)
+      raises (WrongComponentType);
+  };
+
+  valuetype ConfigValue {
+    public FeatureName name;
+    public any value;
+  };
+
+  typedef sequence<ConfigValue> ConfigValues;
+
+  interface StandardConfigurator : Configurator {
+    void set_configuration (in ConfigValues descr);
+  };
+
+  /*
+   * ----------------------------------------------------------------------
+   * Internal Interfaces
+   * ----------------------------------------------------------------------
+   */
+
+  /*
+   * Context
+   */
+
+  /*
+   * typedef SecurityLevel2::Credentials Principal;
+   */
+
+  exception IllegalState {};
+
+  local interface CCMContext {
+    /*
+     * Principal get_caller_principal ();
+     * boolean get_rollback_only ()
+     * Transaction::UserTransaction get_user_transaction ();
+     * boolean is_caller_in_role (string role);
+     * void set_rollback_only ();
+     */
+    CCMHome get_CCM_home ();
+  };
+
+  local interface SessionContext : CCMContext {
+    Object get_CCM_object () raises (IllegalState);
+  };
+
+  /*
+   * ----------------------------------------------------------------------
+   * Callback Interfaces
+   * ----------------------------------------------------------------------
+   */
+
+  /*
+   * Component base interfaces
+   */
+
+  enum CCMExceptionReason {
+    SYSTEM_ERROR,
+    CREATE_ERROR,
+    REMOVE_ERROR,
+    DUPLICATE_KEY,
+    FIND_ERROR,
+    OBJECT_NOT_FOUND,
+    NO_SUCH_ENTITY
+  };
+
+  exception CCMException {
+    CCMExceptionReason reason;
+  };
+
+  local interface EnterpriseComponent {
+  };
+
+  local interface SessionComponent : EnterpriseComponent {
+    void set_session_context (in SessionContext ctx)
+      raises (CCMException);
+    void ccm_activate () raises (CCMException);
+    void ccm_passivate () raises (CCMException);
+    void ccm_remove () raises (CCMException);
+  };
+
+  local interface HomeExecutorBase {
+  };
+
+  local interface ExecutorLocator : EnterpriseComponent {
+    Object obtain_executor (in string name)
+      raises (CCMException);
+    void release_executor (in Object exc)
+      raises (CCMException);
+    void configurationComplete ()
+      raises (InvalidConfiguration);
+  };
+
+  /*
+   * ----------------------------------------------------------------------
+   * Deployment Interfaces
+   * ----------------------------------------------------------------------
+   */
+
+  exception UnknownImplId {};
+  exception InvalidLocation {};
+  exception CreateFailure {};
+  exception RemoveFailure {};
+  exception InstallationFailure {};
+  exception InvalidAssembly {};
+
+  interface Container;
+  typedef sequence<Container> Containers;
+
+  interface ComponentServer;
+  typedef sequence<ComponentServer> ComponentServers;
+
+  typedef string UUID;
+  typedef string Location;
+
+  interface ComponentInstallation {
+    void install (in UUID implUUID, in Location component_loc)
+      raises (InvalidLocation, InstallationFailure);
+    void replace (in UUID implUUID, in Location component_loc)
+      raises (InvalidLocation, InstallationFailure);
+    void remove (in UUID implUUID)
+      raises (UnknownImplId, RemoveFailure);
+    Location get_implementation (in UUID implUUID)
+      raises (UnknownImplId, InstallationFailure);
+  };
+
+  interface Assembly;
+  interface AssemblyFactory {
+    Cookie create (in Location assembly_loc)
+      raises (InvalidLocation, CreateFailure);
+    Assembly lookup (in Cookie c)
+      raises (InvalidAssembly);
+    void destroy (in Cookie c)
+      raises (InvalidAssembly, RemoveFailure);
+  };
+
+  enum AssemblyState {
+    INACTIVE,
+    INSERVICE
+  };
+
+  interface Assembly {
+    void build () raises (CreateFailure);
+    void tear_down () raises (RemoveFailure);
+    AssemblyState get_state ();
+  };
+
+  interface ServerActivator {
+    ComponentServer create_component_server (in ConfigValues config)
+      raises (CreateFailure, InvalidConfiguration);
+    void remove_component_server (in ComponentServer server)
+      raises (RemoveFailure);
+    ComponentServers get_component_servers ();
+  };
+
+  interface ComponentServer {
+    readonly attribute ConfigValues configuration;
+    ServerActivator get_server_activator ();
+    Container create_container (in ConfigValues config)
+      raises (CreateFailure, InvalidConfiguration);
+    void remove_container (in Container cref)
+      raises (RemoveFailure);
+    Containers get_containers ();
+    void remove ()
+      raises (RemoveFailure);
+  };
+
+  interface Container {
+    readonly attribute ConfigValues configuration;
+    ComponentServer get_component_server ();
+    CCMHome install_home (in string id,
+			  in string entrypt,
+			  in ConfigValues config)
+      raises (InvalidConfiguration, InstallationFailure);
+    void remove_home (in CCMHome href)
+      raises (RemoveFailure);
+    CCMHomes get_homes ();
+    void remove ()
+      raises (RemoveFailure);
+  };
+};
+
+/*
+ * Need private versions of ServerActivator and ComponentServer
+ * to facilitate interprocess communication between them.
+ *
+ * The ServerActivator needs to set ConfigValues upon ComponentServer,
+ * and ConfigValues needs to call back ServerActivator with its object
+ * reference after startup.
+ *
+ * The MicoCCMD interface implements the ServerActivator, Component-
+ * Installation and AssemblyFactory interfaces.
+ */
+
+module MICOCCM {
+
+  typePrefix MICOCCM "mico.org";
+
+  interface MicoCCMD :
+    Components::ServerActivator,
+    Components::ComponentInstallation,
+    Components::AssemblyFactory
+  {
+    Object exec (in string prog, in Components::NameList args,
+		 in string iorfile)
+      raises (Components::CreateFailure);
+    void callback (in string token, in Object csref);
+  };
+
+  interface ComponentServer : Components::ComponentServer {
+    void set_config_values (in Components::ConfigValues config);
+  };
+};

@@ -1,0 +1,16 @@
+MyInterceptor3::send_request
+MyInterceptor2::send_request
+MyInterceptor1::send_request
+MyServerInterceptor3::receive_request_service_contexts
+MyServerInterceptor2::receive_request_service_contexts
+MyServerInterceptor1::receive_request_service_contexts
+MyServerInterceptor1::receive_request
+MyServerInterceptor2::receive_request
+MyServerInterceptor3::receive_request
+MyServerInterceptor1::send_exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+MyServerInterceptor2::send_exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyServerInterceptor3::send_exception: IDL:Exc:1.0
+MyInterceptor1::receive exception: IDL:Exc:1.0
+MyInterceptor2::receive exception: IDL:omg.org/CORBA/NO_PERMISSION:1.0
+MyInterceptor3::receive exception: IDL:omg.org/CORBA/UNKNOWN:1.0
+client: IDL:omg.org/CORBA/UNKNOWN:1.0

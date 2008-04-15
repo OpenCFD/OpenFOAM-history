@@ -1,0 +1,38 @@
+Copyright (c) 2001-2003 The Trustees of Indiana University.  
+                        All rights reserved.
+Copyright (c) 1998-2001 University of Notre Dame. 
+                        All rights reserved.
+Copyright (c) 1994-1998 The Ohio State University.  
+                        All rights reserved.
+
+This file is part of the LAM/MPI software package.  For license
+information, see the LICENSE file in the top level directory of the
+LAM/MPI source distribution.
+
+$HEADER$
+
+
+
+These examples are meant to both be an introduction to MPI as well as
+show how to compile LAM programs.  Note that the MPI 2 C++ and ROMIO
+examples only use the "mpicc", "mpic++", and "mpif77" LAM wrapper
+compilers -- no additional compiler flags are necessary, as the
+wrapper compilers supply all needed information.
+
+alltoall        -- shows an all-to-all communication pattern, only in C
+fault           -- fault tolerant master/slave, only in C
+hello           -- canonical "hello world" example program in parallel
+mandelbrot      -- master/slave, only in C
+mpi2c++         -- simple "ring" program in C++
+                   Will only be valid if you compiled MPI 2 C++
+                   bindings support into LAM.  See the INSTALL and
+                   RELEASE_NOTES files.
+pi              -- canonical programs to approximate pi, in both C and
+                   Fortran. 
+ring            -- canonical program that shows a ring communication
+                   pattern, only in C
+romio           -- simple ROMIO program in C
+                   Will only be valid if you compiled ROMIO support
+                   into LAM.  See the INSTALL and RELEASE_NOTES files.
+trivial         -- simple send and receive message, C and F77
+wave1d          -- crystalline programming, only in F77

@@ -1,0 +1,14 @@
+interface Account {
+
+  struct Holder {
+    string name;
+    unsigned short age;
+  };
+
+  void set_holder (in Holder h);
+  Holder get_holder ();
+
+  void deposit (in unsigned long amount);
+  void withdraw (in unsigned long amount);
+  long balance ();
+};

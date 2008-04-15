@@ -1,0 +1,40 @@
+/* -*- c -*-
+ *
+ * Copyright (c) 2001-2002 The Trustees of Indiana University.  
+ *                         All rights reserved.
+ * Copyright (c) 1998-2001 University of Notre Dame. 
+ *                         All rights reserved.
+ * Copyright (c) 1994-1998 The Ohio State University.  
+ *                         All rights reserved.
+ * 
+ * This file is part of the LAM/MPI software package.  For license
+ * information, see the LICENSE file in the top level directory of the
+ * LAM/MPI source distribution.
+ * 
+ * $HEADER$
+ * 
+ * 
+ *
+ *	$Id: patchlevel.h.in,v 1.2 2002/10/09 20:57:25 brbarret Exp $
+ *
+ *	Function:	- patch level
+ */
+
+#ifndef _LAM_PATCHLEVEL_H
+#define _LAM_PATCHLEVEL_H
+
+/*
+ * This file is not included anywhere in LAM; the real version number
+ * is in VERSION in the top-level LAM source tree (which gets
+ * substituted into lam_config.h -- part of <mpi.h>).  However, some
+ * 3rd party MPI tools have come to rely on it to obtain the version
+ * number in various configuration scripts.  So we'll leave it here.
+ * It's ok to AC_OUTPUT this file from configure since we don't
+ * include it anywhere -- no dependencies will get whacked because no
+ * one includes this file.
+ */
+
+#define LAM_VERSION		"@LAM_VERSION@"
+
+
+#endif

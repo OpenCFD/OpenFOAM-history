@@ -1,0 +1,243 @@
+
+version 2.3.9
+
+- add win32 makefile into test/mt/stress test (Sorin Mustaca)
+- update MANIFEST
+- fix installation of runit script from PI dii demo
+- add BUGS file
+- some fixes and additions into demo and test directories for Win32
+  platform (Sorin Mustaca) 
+- update MANIFEST
+- some fixes for multi-threaded build on Win32/VC++ platform (Sorin
+  Mustaca) 
+- don't use poll on Win32 in tcp transport
+- remove duplicated odm.cnf file from audit-aware security demo
+- add warning about unsupported gcc compiler for MT build into
+  configure.in
+- fix compilation of test/idl/26 in MT build while using gcc3.2.2
+- additional Win32 pthreads makefile fixes (Sorin Mustaca)
+- implement better handling of MICORC file on Win32 platform (Sorin
+  Mustaca) 
+- implement ServerlessObject reference count locking
+- implement locking of GIOP connection reference counter
+- fix crash in GIOPConn::output_handler/do_write on MT-build
+- small improvements in test-suite
+- another set of win32/vc++ fixes (Sorin Mustaca)
+- fix CSL2 compilation failure on FreeBSD 5.0
+- fix compilation failure of CSL2 audit-book demo when using gcc3.2.1
+- fix PI calls handling in ORBInvokeRec::init_invoke
+- increase version number to 2.3.9
+- don't use -copt=-O2 -copt=fPIC while using Comeau C/C++
+- change idl --config option to include CCM and security services
+  information 
+- various improvements in test suite
+- fix some compilation failures in test directory
+- omit test/idl/25 from compiling
+- initialize PI requestinfo even when callback is null in
+  ORBInvokeRec::init_invoke 
+- remove generation of ssliop.cc.diffs from orb/Makefile
+- merge from MICO 2.3.8
+- fix remaining issues in CSL2 with regarding to std namespace usage
+  avoidance 
+- fix DII Request calling PI send_poll/receive_other interception
+  points 
+- update from bootstrap
+- fix bootstrap: create pch directory when pre-compiled headers are
+  used 
+- add bootstrap role into top-level makefile
+- fix make generate in daemon directory
+- fix and improve make generate role in orb, orb/security, ir and ccm
+  directories 
+- fix --include-prefix to support skeleton and implementation
+  generation 
+- IDL enhancement: add --include-prefix <prefix> option
+- move temporarily created MARSHAL exception out of the invocation
+  path 
+- fix crashing of mkdepend when debugging is enabled
+- rename TypeCodeSeq.* to typecode_seq.*
+- fix final build once again
+- update configure.in for tru64/cxx6.5 platform
+- remove Comeau C/C++ related debug messages from configure.in
+- IDL enhancement: initialize constant defined inside module
+  (suggested by Scott Davis)
+- fix double check of POACurrent in
+  CORBA::ORB::_resolve_initial_references
+- fix incorrect ordering of object files in some tests' makefiles
+- use pch only in MICO core (orb,idl,ir,daemon)
+- some fixes for compilation failures in test directory
+- don't check for pthread_create in pthread library, but rather check
+  for standard open 
+- fix some problems in mkdepend
+- get rid of using namespace std in CORBA.h and other headers
+- fix CSL2 compilation failure on Solaris 8
+- fix mico-ccm compiler for generating incorrect code following strict
+  ANSI/ISO C++
+- fix ANSI/ISO C++ bugs: semicolon after a namespace/function block
+- fix checking of CA when -ORBSSLverify is specified with n>0 in CSL2
+- add some comeau specific options to configure.in
+  (const_string_literal, diag_suppress=997)
+- fix MICO CSL2 for some ANSI C++ bugs
+- fix final build compilation failure (reported by Michael Schloh)
+- move timebase.* from MICO security to the MICO core
+- add execinfo.h into orb_pch.h
+- set CONF_DLFLAGS while using Comeau C/C++ compiler (needed for
+  exception debugging)
+- fix unknown pragma warnings in orb/transport directory
+- add support for exception debugging (-ORBDebug Exception)
+- fix pre-linking in ccm directory
+- fix some other warnings in orb directory
+- add library list for pre-linking libmico (just for completion)
+- optimize includes for pre-compiled header usage (--enable-fast-pch
+  configure option)
+- fix some warnings emitted by Comeau C/C++ compiler
+- various iso c++ fixes in coss, demo and include directories
+- fix idl compiler for comeau+stlport5.x and comeau+dinkumware4.0
+- add basic support for Comeau C/C++ compiler
+
+snapshot 2002-12-11
+
+- merge fixes from MICO CVS 2002-12-10
+- fix coss makefiles for VC++ (Sorin Mustaca)
+- add some testing scripts
+- fix compilation of some pi tests (gcc3.2.1+comeau)
+- clone exception only if it is not null - fixes crashes caused by
+  previous fix
+- clone exceptions setting to ServerRequestInfo/ClientRequestInfo
+- fix for crash in IIOPServer::handle_invoke_reply while using oneway
+  requests
+- some Win32 VC++ fixes (Sorin Mustaca)
+- fix comparison of _var type instance with NULL in PI
+- fix demos for using only cout for output (instead of printf and cerr)
+  (only those which are start by cd demo; make run)
+- add run rule into various makefiles in demo directory
+- fix for invalid usage of target_most_derived_interface operation
+  in AuditServerInterceptor of CSL2
+- fix running of test/pi/oneway-* tests
+- fix client and server request info validity issues
+- fix minor codes and completion status of exceptions thrown from PI
+  operations 
+- initialize CSL2 Audit interceptor only when user supply some CSL2
+  option on command-line
+- fix gcc3.2.x implicit typename warning
+- fix ClientRequestInfo::received_exception for checking interception
+  point
+- fix RequestInfo::exceptions attribute implementation (throw
+  CORBA::NO_RESOURCES when exception list is not available)
+- fix handling of user exception in
+  ServerRequestInfo::sending_exception operation 
+- rewrite PI flow stack core
+- change bench demo to use POA instead of BOA
+- fix handling of CSL2 parameters in ORB_init
+- fix micod for standard MICO parameters handling
+- fix configure.in for checking for vprintf (fixes gcc3.3 compilation
+  failures in cpp directory)
+- fix UDP transport
+- remove Id CVS keyword from sources
+- some Win32 VC++ fixes (Srinivas Rao N)
+- fix client-side memory-leak in PI while executing operation with context
+- fix calling of PI interception points while executing oneway request
+  on server-side 
+- fix single-threaded build (broken by recent PICurrent fixes)
+- make some enhancements in test/mt/stress
+- fix PI for ::contexts and ::operation_context operations
+- fix makefile of pi demo (for hello->current move)
+- rename demo/pi/hello into demo/pi/current
+- implement MT-safe PortableInterceptor::Current
+- fix make dep in coss directory
+- fix memory-leak in PI (introduced by fixing c++ mapping issues)
+- change to use recursive mutexes inside PI core (fix for dead-lock
+  while making ORB mediated call from inside PI)
+- change Property Service from using BOA to POA and make it MT-safe
+- add constructor with Mutex params to the MICOMT::Locked class
+- fix compilation of x11/gtkmico/qtmico demos with CSL2 enabled
+- fix crashing in PI code while handling operation with out
+  parameter(s)
+- fix issues with incorrect usage of c++ mapping in PI
+- small IOP::Codec improvement in encode/decode operations
+- don't use -D_GNU_SOURCE on other OSes than GNU/Linux
+- get rid of warnings generated by -Wall
+- remove methods block and isblocking from x11/qt/gtk dispatchers
+- make CORBA::Dispatcher's methods: isblocking and block non-abstract
+- added the first CSIv2 interoperability demo (against Adiron CSIv2
+  Testbed), for more information please look into
+  mico/demo/csiv2/interop directory
+- fixed SSLProfile::encode when using CSIv2
+- reformated CSIv2/PI code following ObjectSecurity style guidelines
+- fixed configure for checking for multi-threaded QT library when
+  configuring MT build
+- fixed GUI-based dispatchers (x11/qt/gtk) code and demos
+- fixed demos for compilation with gcc 3.x
+- fixed orb/transport/* files for warnings while compiling by gcc 3.x
+  with -Wall parameter 
+- fixed configure test for dynamic loading while using gcc 3.1.x
+
+snapshot 2002-07-15
+
+- removed CSL2 audit code from send_other interception point of
+  audit interceptor
+- merged in MICO CVS from 2002-07-10
+- fixed for waiting on condition variable with unlocked mutex
+- fixed for crashing in IIOPServer::handle_invoke_reply when request
+  is canceled
+- fixed CCM for basic run on top of MT build
+- fixed some MT API (CondVar::ctor, CondVar::wait, CondVar::timedwait,
+  Thread::terminate, Thread::wait)
+- fixed ir.idl, ir_base.idl and policy.idl for including them more
+  than once
+- fixed ORB::run, ORB::perform_work and ORB::work_pending for MT
+- changed micod from BOA-based to POA-based
+- fixed for crash on ORB::cancel when called by IIOPServer::shutdown
+- changed imr client to not connect to OAMediator, There is only
+  POAMediator on our micod server
+- changed micod to use thread pool concurrency model with at most one
+  thread in thread pool
+- fixed to allow redo in IIOPProxy::kill_conn
+- fixed POA etherealization, ie. don't force DISCARD state in POA
+  destroy operation even it is required by spec. - now POA destroy is
+  a bit non-compliant.
+
+snapshot 2002-06-17
+
+- fixed CSL2 audit-book demo for audit usage. ie. audit is not
+  supported on client side.
+- fixed PI mem-leak while throwing exception from interceptor
+- fixed CSL2 mem-leaks
+- fixed CSL2 for removal below
+- removed obsolete and MT-unsafe ORB::get_principal method
+- fixed CSL2 sources for incorrect usage of c++ mapping
+- fixed CSL2 sources for warnings generated by '-Wall'
+- fixed DB audit for inserting 'now' instead of 'timestamp('now')'
+  value
+- fixed servant_to_id for case of RETAIN value of retention policy
+- revert more strict POACurrent, now it's possible to use it in
+  ServerRequestInterceptor::receive_request interception point
+- fixed ORB::destroy for destroy all registered PIs
+- fixed setting of blocking/non-blocking mode on TCP socket
+
+snapshot 2002-05-21
+
+- fixed server crashing while using SSL connection with MICO lib with
+  CSL2 support
+- fixed and enhanced final build
+- made POA Current more strict ie. fixed throwing of NoContext in
+  ServerRequestInterceptor::receive_request interception point
+- fixed POA Current crash while call it from PI interception point
+  (test added) 
+- added PI collocated server/client demo
+- fixed PI for missing destroy operation on
+  PortableInterceptor::Interceptor interface
+- fixed PI for filling ServerRequestInfo::object_id with object id
+  instead of repository id
+- updated POA to CORBA 2.5
+
+snapshot 2002-05-08
+
+- fixed Mutex::trylock method to return correct status on success
+- fixed SSL transport for locking under-laying transport 
+- fixed SSL transport for providing OpenSSL library with required locking
+  callback functions
+- fixed SSL transport for use with thread per connection concurrency model
+- fixed mico specific bind method for use on top of GIOP 1.2
+- changed to not disable MT-unsafe part of MICO like services and CCM,
+  just only warn user about it
+- fixed linking of programs with '-lpthread' twice

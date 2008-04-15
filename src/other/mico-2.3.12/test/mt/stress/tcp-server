@@ -1,0 +1,3 @@
+#!/bin/sh
+ADDR=inet:localhost:7788
+./server -ORBIIOPAddr $ADDR $@ > ref 

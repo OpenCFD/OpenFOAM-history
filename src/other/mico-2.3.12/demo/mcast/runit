@@ -1,0 +1,20 @@
+#!/bin/sh
+
+MICORC=/dev/null
+export MICORC
+
+# insert your multicast/broadcast address here ...
+ADDR=inet-dgram:224.0.0.1:12123
+
+./server 1 -ORBIIOPAddr $ADDR -ORBNoResolve -POAImplName Hello &
+server1_pid=$!
+
+./server 2 -ORBIIOPAddr $ADDR -ORBNoResolve -POAImplName Hello &
+server2_pid=$!
+
+sleep 1
+
+trap "kill $server1_pid $server2_pid" 0
+
+./client $ADDR
+
