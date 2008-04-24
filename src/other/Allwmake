@@ -109,16 +109,16 @@ fi
 ( cd malloc && ./Allwmake )
 
 
-#if [ "$MICO_ARCH_PATH" -a ! -r $MICO_ARCH_PATH/lib/libmico${MICO_VERSION}.a ]
-#then
-#(
-#    cd $MICO_PATH
-#    gmake distclean
-#    ./configure --prefix=$MICO_ARCH_PATH --disable-shared --without-x
-#    gmake
-#    gmake install
-#    gmake distclean
-#)
-#fi
+if [ "$MICO_ARCH_PATH" -a ! -r $MICO_ARCH_PATH/lib/libmico${MICO_VERSION}.a ]
+then
+(
+    cd $MICO_PATH
+    gmake distclean
+    ./configure --prefix=$MICO_ARCH_PATH --disable-shared --without-x
+    gmake
+    gmake install
+    gmake distclean
+)
+fi
 
 # ----------------------------------------------------------------- end-of-file
