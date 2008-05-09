@@ -149,4 +149,8 @@ fi
 # compile other 3rd party libraries
 #
 
+# cd-adapco's ccmio library
+[ -e libccmio ] || ln -s libccmio-2.6.1 libccmio
+wmake libso libccmio
+
 # ----------------------------------------------------------------- end-of-file
