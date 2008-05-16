@@ -14,7 +14,7 @@ then
 (
     cd $OPENMPI_HOME
 
-    gmake distclean
+    make distclean
     rm -rf $OPENMPI_ARCH_PATH
 
     ./configure \
@@ -28,9 +28,9 @@ then
         # --with-openib=/usr/local/ofed \
         # --with-openib-libdir=/usr/local/ofed/lib64
 
-    gmake
-    gmake install
-    gmake distclean
+    make
+    make install
+    make distclean
 )
 fi
 
@@ -39,7 +39,7 @@ then
 (
     cd $LAMHOME
 
-    gmake distclean
+    make distclean
     rm -rf $LAM_ARCH_PATH
 
     ./configure \
@@ -51,9 +51,9 @@ then
         --without-profiling \
         --without-fc
 
-    gmake
-    gmake install
-    gmake distclean
+    make
+    make install
+    make distclean
 )
 fi
 
@@ -113,11 +113,11 @@ if [ "$MICO_ARCH_PATH" -a ! -r $MICO_ARCH_PATH/lib/libmico${MICO_VERSION}.a ]
 then
 (
     cd $MICO_PATH
-    gmake distclean
+    make distclean
     ./configure --prefix=$MICO_ARCH_PATH --disable-shared --without-x
-    gmake
-    gmake install
-    gmake distclean
+    make
+    make install
+    make distclean
 )
 fi
 
