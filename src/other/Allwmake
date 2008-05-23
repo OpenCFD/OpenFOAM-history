@@ -106,7 +106,20 @@ then
 fi
 
 
+
 ( cd malloc && ./Allwmake )
+
+
+# Build Metis
+( cd metis-5.0pre2 &&  wmake libso GKlib && wmake libso libmetis)
+
+
+# Build parMetis. Requires mpi!
+if [ -d $FOAM_MPI_LIBBIN ]
+then
+    ( cd ParMetis-3.1 && wmake libso METISLib && wmake libso ParMETISLib)
+fi
+
 
 
 if [ "$MICO_ARCH_PATH" -a ! -r $MICO_ARCH_PATH/lib/libmico${MICO_VERSION}.a ]
