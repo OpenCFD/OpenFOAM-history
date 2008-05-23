@@ -133,15 +133,26 @@ MPICH)
 
 esac
 
+# Build Metis
+( cd metis-5.0pre2 && wmake libso GKlib && wmake libso libmetis )
+
+# Build parMetis. Requires mpi!
+if [ -d $FOAM_MPI_LIBBIN ]
+then
+   ( cd ParMetis-3.1 && wmake libso METISLib && wmake libso ParMETISLib )
+fi
+
+
+
 if [ "$MICO_ARCH_PATH" -a ! -r $MICO_ARCH_PATH/lib/libmico${MICO_VERSION}.a ]
 then
 (
    cd $MICO_PATH
-   gmake distclean
+   make distclean
    ./configure --prefix=$MICO_ARCH_PATH --disable-shared --without-x
-   gmake
-   gmake install
-   gmake distclean
+   make
+   make install
+   make distclean
 )
 fi
 
@@ -149,7 +160,7 @@ fi
 # compile other 3rd party libraries
 #
 
-# cd-adapco's ccmio library
+# CD-adapco's ccmio library
 [ -e libccmio ] || ln -s libccmio-2.6.1 libccmio
 wmake libso libccmio
 
