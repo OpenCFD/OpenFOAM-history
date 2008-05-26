@@ -29,6 +29,7 @@
 
 #include <mico/assert.h>
 #include <stddef.h> // for wchar_t
+#include <cstring>  // Added by OpenCFD for gcc-4.3.0
 #ifndef _POCKET_PC
 #include <sys/types.h>
 #include <errno.h>
@@ -89,7 +90,7 @@
 
 #ifdef BUILD_MICO_DLL
 #undef  MICO_EXPORT
-#define MICO_EXPORT /**/ 
+#define MICO_EXPORT /**/
 #else // BUILD_MICO_DLL
 #undef  MICO_EXPORT
 #define MICO_EXPORT __declspec(dllimport)
