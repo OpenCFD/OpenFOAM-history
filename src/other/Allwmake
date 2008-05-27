@@ -1,123 +1,145 @@
 #!/bin/sh
 set -x
 
-if [ "$WM_CC" ]      ; then export CC="$WM_CC"; fi
-if [ "$WM_CXX" ]     ; then export CXX="$WM_CXX"; fi
-if [ "$WM_CFLAGS" ]  ; then export CFLAGS="$WM_CFLAGS"; fi
-if [ "$WM_CXXFLAGS" ]; then export CXXFLAGS="$WM_CXXFLAGS"; fi
-if [ "$WM_LDFLAGS" ]  ; then export LDFLAGS="$WM_LDFLAGS"; fi
+# export WM settings in a form that GNU configure recognizes
+[ -n "$WM_CC" ]         &&  export CC="$WM_CC"
+[ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
+[ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
+[ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
+[ -n "$WM_LDFLAGS" ]    &&  export LDFLAGS="$WM_LDFLAGS"
 
 wmake libso zlib-1.2.1
 
-if [ "$WM_MPLIB" = "OPENMPI" -a ! -r $OPENMPI_ARCH_PATH/lib/libmpi.a -a ! -r $OPENMPI_ARCH_PATH/lib/libmpi.so ]
-then
-(
-    cd $OPENMPI_HOME
+( cd malloc && ./Allwmake )
 
-    make distclean
-    rm -rf $OPENMPI_ARCH_PATH
+#
+# compile specific mpi libraries
+#
+case "$WM_MPLIB" in
+OPENMPI)
+   if [ -r $OPENMPI_ARCH_PATH/lib/libmpi.so ]
+   then
+      echo "have $WM_MPLIB shared library"
+   elif [ -r $OPENMPI_ARCH_PATH/lib/libmpi.a ]
+   then
+      echo "have $WM_MPLIB static library"
+   else
+   (
+      cd $OPENMPI_HOME
 
-    ./configure \
-        --prefix=$OPENMPI_ARCH_PATH \
-        --disable-mpirun-prefix-by-default \
-        --disable-orterun-prefix-by-default \
-        --enable-shared --disable-static \
-        --disable-mpi-f77 --disable-mpi-f90 --disable-mpi-cxx \
-        --disable-mpi-profile
-        # These lines enable Infiniband support
-        # --with-openib=/usr/local/ofed \
-        # --with-openib-libdir=/usr/local/ofed/lib64
+      gmake distclean
+      rm -rf $OPENMPI_ARCH_PATH
 
-    make
-    make install
-    make distclean
-)
-fi
+      ./configure \
+          --prefix=$OPENMPI_ARCH_PATH \
+          --disable-mpirun-prefix-by-default \
+          --disable-orterun-prefix-by-default \
+          --enable-shared --disable-static \
+          --disable-mpi-f77 --disable-mpi-f90 --disable-mpi-cxx \
+          --disable-mpi-profile
+          # These lines enable Infiniband support
+          # --with-openib=/usr/local/ofed \
+          # --with-openib-libdir=/usr/local/ofed/lib64
 
-if [ "$WM_MPLIB" = "LAM" -a ! -r $LAM_ARCH_PATH/lib/libmpi.a -a ! -r $LAM_ARCH_PATH/lib/libmpi.so ]
-then
-(
-    cd $LAMHOME
+      gmake
+      gmake install
+      gmake distclean
+   )
+   fi
+   ;;
 
-    make distclean
-    rm -rf $LAM_ARCH_PATH
+LAM)
+   if [ -r $LAM_ARCH_PATH/lib/libmpi.so ]
+   then
+      echo "have $WM_MPLIB shared library"
+   elif [ -r $LAM_ARCH_PATH/lib/libmpi.a ]
+   then
+      echo "have $WM_MPLIB static library"
+   else
+   (
+      cd $LAMHOME
 
-    ./configure \
-        --prefix=$LAM_ARCH_PATH \
-        --enable-shared \
-        --disable-static \
-        --without-romio \
-        --without-mpi2cpp \
-        --without-profiling \
-        --without-fc
+      gmake distclean
+      rm -rf $LAM_ARCH_PATH
 
-    make
-    make install
-    make distclean
-)
-fi
+      ./configure \
+          --prefix=$LAM_ARCH_PATH \
+          --enable-shared \
+          --disable-static \
+          --without-romio \
+          --without-mpi2cpp \
+          --without-profiling \
+          --without-fc
 
-if [ "$WM_MPLIB" = "MPICH" -a ! -r $MPICH_ARCH_PATH/lib/libmpich.a -a ! -r $MPICH_ARCH_PATH/lib/libmpich.so ]
-then
-(
-    cd $MPICH_PATH
+      gmake
+      gmake install
+      gmake distclean
+   )
+   fi
+   ;;
 
-    make distclean
-    rm -rf $MPICH_ARCH_PATH
-    rm util/machines/machines.*
+MPICH)
+   if [ -r $MPICH_ARCH_PATH/lib/libmpich.so ]
+   then
+      echo "have $WM_MPLIB shared library"
+   elif [ -r $MPICH_ARCH_PATH/lib/libmpich.a ]
+   then
+      echo "have $WM_MPLIB static library"
+   else
+   (
+      cd $MPICH_PATH
 
-    ./configure \
-        --without-mpe \
-        --disable-f77 \
-        --disable-f90 \
-        --disable-f90modules \
-        --disable-c++ \
-        --disable-mpedbg \
-        --disable-devdebug \
-        --disable-debug \
-        --enable-sharedlib=$MPICH_ARCH_PATH/lib \
-        --with-device=ch_p4 \
-        -prefix=$MPICH_ARCH_PATH
-    make
-    make install
-    make distclean
+      make distclean
+      rm -rf $MPICH_ARCH_PATH
+      rm util/machines/machines.*
 
-    if [ -r $MPICH_ARCH_PATH ]
-    then
-    (
-        cd $MPICH_ARCH_PATH/bin
-        for file in *
-        do
+      ./configure \
+          --without-mpe \
+          --disable-f77 \
+          --disable-f90 \
+          --disable-f90modules \
+          --disable-c++ \
+          --disable-mpedbg \
+          --disable-devdebug \
+          --disable-debug \
+          --enable-sharedlib=$MPICH_ARCH_PATH/lib \
+          --with-device=ch_p4 \
+          -prefix=$MPICH_ARCH_PATH
+      make
+      make install
+      make distclean
+
+      if [ -r $MPICH_ARCH_PATH ]
+      then
+         cd $MPICH_ARCH_PATH/bin
+         for file in *
+         do
             sed s%$MPICH_ARCH_PATH%'$MPICH_ARCH_PATH'%g $file > temp.$$
             mv temp.$$ $file
             chmod ugo+rx $file
-        done
+         done
 
-        cd $MPICH_ARCH_PATH/lib
+         cd $MPICH_ARCH_PATH/lib
 
-        if [ -r libmpich.so.1.0 ]
-        then
+         if [ -r libmpich.so.1.0 ]
+         then
             rm *.so
             ln -s libmpich.so.1.0 libmpich.so
-        fi
-    )
-    fi
-)
-fi
+         fi
+      fi
+   )
+   fi
+   ;;
 
-
-
-( cd malloc && ./Allwmake )
-
+esac
 
 # Build Metis
-( cd metis-5.0pre2 &&  wmake libso GKlib && wmake libso libmetis)
-
+( cd metis-5.0pre2 && wmake libso GKlib && wmake libso libmetis )
 
 # Build parMetis. Requires mpi!
 if [ -d $FOAM_MPI_LIBBIN ]
 then
-    ( cd ParMetis-3.1 && wmake libso METISLib && wmake libso ParMETISLib)
+   ( cd ParMetis-3.1 && wmake libso METISLib && wmake libso ParMETISLib )
 fi
 
 
@@ -125,13 +147,21 @@ fi
 if [ "$MICO_ARCH_PATH" -a ! -r $MICO_ARCH_PATH/lib/libmico${MICO_VERSION}.a ]
 then
 (
-    cd $MICO_PATH
-    make distclean
-    ./configure --prefix=$MICO_ARCH_PATH --disable-shared --without-x
-    make
-    make install
-    make distclean
+   cd $MICO_PATH
+   make distclean
+   ./configure --prefix=$MICO_ARCH_PATH --disable-shared --without-x
+   make
+   make install
+   make distclean
 )
 fi
+
+#
+# compile other 3rd party libraries
+#
+
+# CD-adapco's ccmio library
+[ -e libccmio ] || ln -s libccmio-2.6.1 libccmio
+wmake libso libccmio
 
 # ----------------------------------------------------------------- end-of-file
