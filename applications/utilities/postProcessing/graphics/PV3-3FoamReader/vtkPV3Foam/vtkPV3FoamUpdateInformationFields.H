@@ -22,59 +22,76 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-Description
+InClass
+    vtkPV3Foam
 
 \*---------------------------------------------------------------------------*/
 
-#include "pointZone.H"
-#include "dictionary.H"
+#ifndef vtkPV3FoamUpdateInformationFields_H
+#define vtkPV3FoamUpdateInformationFields_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-autoPtr<pointZone> pointZone::New
+template<template<class> class patchType, class meshType>
+void Foam::vtkPV3Foam::updateInformationFields
 (
-    const word& name,
-    const dictionary& dict,
-    const label index,
-    const pointZoneMesh& bm
+    vtkDataArraySelection *arraySelection
 )
 {
     if (debug)
     {
-        Info<< "pointZone::New(const word&, const dictionary&, const label, "
-               "const pointZoneMesh&) : constructing pointZone"
-            << endl;
+        Info<< "entered Foam::vtkPV3Foam::updateInformationFields" << endl;
     }
 
-    word patchType(dict.lookup("type"));
+    // preserve the currently selected values
+    const stringList selectedEntries = getSelectedArrayEntries
+    (
+        arraySelection
+    );
+    arraySelection->RemoveAllArrays();
 
-    dictionaryConstructorTable::iterator cstrIter =
-        dictionaryConstructorTablePtr_->find(patchType);
+    // Search for list of objects for this time
+    IOobjectList objects(dbPtr_(), dbPtr_().timeName());
+    // Populate the GUI volume/point field arrays
 
-    if (cstrIter == dictionaryConstructorTablePtr_->end())
-    {
-        FatalIOErrorIn
-        (
-            "pointZone::New(const word&, const dictionary&, "
-            "const label, const pointZoneMesh&)",
-            dict
-        )   << "Unknown pointZone type " << patchType << endl << endl
-            << "Valid pointZone types are :" << endl
-            << dictionaryConstructorTablePtr_->toc()
-            << exit(FatalIOError);
-    }
+    //- Add volume fields to GUI
+    addFields<GeometricField<scalar, patchType, meshType> >
+    (
+        arraySelection,
+        objects
+    );
+    addFields<GeometricField<vector, patchType, meshType> >
+    (
+        arraySelection,
+        objects
+    );
+    addFields<GeometricField<sphericalTensor, patchType, meshType> >
+    (
+        arraySelection,
+        objects
+    );
+    addFields<GeometricField<symmTensor, patchType, meshType> >
+    (
+        arraySelection,
+        objects
+    );
+    addFields<GeometricField<tensor, patchType, meshType> >
+    (
+        arraySelection,
+        objects
+    );
 
-    return autoPtr<pointZone>(cstrIter()(name, dict, index, bm));
+    // restore the currently enabled values
+    setSelectedArrayEntries
+    (
+        arraySelection,
+        selectedEntries
+    );
 }
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace Foam
+#endif
 
 // ************************************************************************* //

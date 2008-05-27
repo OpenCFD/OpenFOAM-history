@@ -22,65 +22,75 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+InClass
+    vtkPV3Foam
+
 \*---------------------------------------------------------------------------*/
 
-#include "IOsampledSurfaces.H"
+#ifndef vtkPV3FoamAddFields_H
+#define vtkPV3FoamAddFields_H
+
+// FOAM includes
+#include "SortableList.H"
+
+// VTK includes
+#include "vtkDataArraySelection.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::IOsampledSurfaces::IOsampledSurfaces
+template<class GeoField>
+Foam::label Foam::vtkPV3Foam::addFields
 (
-    const objectRegistry& obr,
-    const fileName& dictName,
-    const bool loadFromFiles
+    vtkDataArraySelection *fieldSelection,
+    const IOobjectList& objects,
+    const string& suffix
 )
-:
-    IOdictionary
-    (
-        IOobject
-        (
-            dictName,
-            obr.time().system(),
-            obr,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        )
-    ),
-    sampledSurfaces(obr, *this, loadFromFiles)
-{}
-
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::IOsampledSurfaces::~IOsampledSurfaces()
-{}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-bool Foam::IOsampledSurfaces::read()
 {
-    if (regIOobject::read())
+    IOobjectList fieldObjects(objects.lookupClass(GeoField::typeName));
+
+    SortableList<word> fields(fieldObjects.size());
+
+    label count = 0;
+    forAllConstIter(IOobjectList, fieldObjects, iter)
     {
-        sampledSurfaces::read(*this);
-        return true;
+        fields[count++] = iter()->name();
     }
-    else
+
+    if (count)
     {
-        return false;
+        fields.sort();
+
+        forAll(fields, fieldI)
+        {
+            if (debug)
+            {
+                Info<<"add region " << GeoField::typeName
+                    << ":" << fields[fieldI] << endl;
+            }
+
+            if (suffix.size())
+            {
+                fieldSelection->AddArray
+                (
+                    (fields[fieldI] + suffix).c_str()
+                );
+            }
+            else
+            {
+                fieldSelection->AddArray
+                (
+                    fields[fieldI].c_str()
+                );
+            }
+        }
     }
+
+    return count;
 }
-
-
-void Foam::IOsampledSurfaces::write()
-{
-    sampledSurfaces::write();
-}
-
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

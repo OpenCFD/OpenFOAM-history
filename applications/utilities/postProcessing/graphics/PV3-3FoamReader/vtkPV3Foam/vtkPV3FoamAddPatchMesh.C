@@ -22,56 +22,68 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-Global
-    calcDivPhi
-
 Description
-    Calculates and writes the divergence of the flux field phi
 
 \*---------------------------------------------------------------------------*/
 
-#include "calc.H"
-#include "fvc.H"
+#include "vtkPV3Foam.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// Foam includes
+#include "polyPatch.H"
+#include "primitivePatch.H"
+#include "vtkPV3FoamInsertNextPoint.H"
 
-void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
+// VTK includes
+#include "vtkCellArray.h"
+#include "vtkPolyData.h"
+#include "vtkUnstructuredGrid.h"
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::vtkPV3Foam::addPatchMesh
+(
+    const polyPatch& p,
+    vtkPolyData *vtkmesh
+)
 {
-    bool writeResults = !args.options().found("noWrite");
-
-    Info<< "    Reading phi" << endl;
-    surfaceScalarField phi
-    (
-        IOobject
-        (
-            "phi",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ
-        ),
-        mesh
-    );
-
-    Info<< "    Calculating divPhi" << endl;
-    volScalarField divPhi
-    (
-        IOobject
-        (
-            "divPhi",
-            runTime.timeName(),
-            mesh
-        ),
-        fvc::div(phi)
-    );
-
-    Info<< "div(phi) max/min : "
-        << max(divPhi).value() << " "
-        << min(divPhi).value() << endl;
-
-    if (writeResults)
+    if (debug)
     {
-        divPhi.write();
+        Info<< "Adding patch: " << p.name() << endl;
     }
+
+    // Convert Foam mesh vertices to VTK
+    const Foam::pointField& points = p.localPoints();
+
+    vtkPoints *vtkpoints = vtkPoints::New();
+    vtkpoints->Allocate(points.size());
+    forAll(points, i)
+    {
+        vtkPV3FoamInsertNextPoint(vtkpoints, points[i]);
+    }
+
+    vtkmesh->SetPoints(vtkpoints);
+    vtkpoints->Delete();
+
+
+    // Add faces as polygons
+    const faceList& faces = p.localFaces();
+
+    vtkCellArray * vtkcells = vtkCellArray::New();
+    vtkcells->Allocate(faces.size());
+    forAll(faces, faceI)
+    {
+        const face& f = faces[faceI];
+        vtkIdType nodeIds[f.size()];
+
+        forAll (f, fp)
+        {
+            nodeIds[fp] = f[fp];
+        }
+        vtkcells->InsertNextCell(f.size(), nodeIds);
+    }
+
+    vtkmesh->SetPolys(vtkcells);
+    vtkcells->Delete();
 }
 
 

@@ -23,47 +23,44 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-    Calculate the dual of a polyMesh. Adheres to all the feature&patch edges
 
 \*---------------------------------------------------------------------------*/
 
-#include "argList.H"
-#include "Time.H"
-#include "polyDualMesh.H"
-#include "mathematicalConstants.H"
+#include "vtkPV3Foam.H"
 
-using namespace Foam;
+// Foam includes
+#include "vtkPV3FoamInsertNextPoint.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// VTK includes
+#include "vtkPoints.h"
+#include "vtkPolyData.h"
 
-int main(int argc, char *argv[])
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::vtkPV3Foam::addPointZoneMesh
+(
+    const fvMesh& mesh,
+    const labelList& pointLabels,
+    vtkPolyData* vtkmesh
+)
 {
-    argList::noParallel();
-    argList::validArgs.append("feature angle[0-180]");
+    if (debug)
+    {
+        Info<< "entered add point zone mesh" << endl;
+    }
 
-#   include "setRootCase.H"
-#   include "createTime.H"
-#   include "createPolyMesh.H"
+    const pointField& meshPoints = mesh.points();
 
-    scalar featureAngle(readScalar(IStringStream(args.additionalArgs()[0])()));
+    vtkPoints *vtkpoints = vtkPoints::New();
+    vtkpoints->Allocate(pointLabels.size());
 
-    scalar minCos = Foam::cos(featureAngle * mathematicalConstant::pi/180.0);
+    forAll(pointLabels, pointI)
+    {
+        vtkPV3FoamInsertNextPoint(vtkpoints, meshPoints[pointLabels[pointI]]);
+    }
 
-    Info<< "Feature:" << featureAngle << endl
-        << "minCos :" << minCos << endl
-        << endl;
-
-    polyDualMesh dualMesh(mesh, minCos);
-
-    runTime++;
-
-    Pout<< "Writing dualMesh to " << runTime.timeName() << endl;
-
-    dualMesh.write();
-
-    Info << "End\n" << endl;
-
-    return 0;
+    vtkmesh->SetPoints(vtkpoints);
+    vtkpoints->Delete();
 }
 
 

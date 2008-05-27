@@ -22,11 +22,13 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-Global
-    calcDivU
+Application
+    divU
 
 Description
-    Calculates and writes the divergence of velocity field U
+    Calculates and writes the divergence of the velocity field U.
+    The -noWrite option just outputs the max/min values without writing the
+    field.
 
 \*---------------------------------------------------------------------------*/
 
@@ -39,40 +41,44 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 {
     bool writeResults = !args.options().found("noWrite");
 
-    Info<< "    Reading U" << endl;
-    volVectorField U
+    IOobject Uheader
     (
-        IOobject
-        (
-            "U",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ
-        ),
-        mesh
+        "U",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ
     );
 
-    Info<< "    Calculating divU" << endl;
-    volScalarField divU
-    (
-        IOobject
-        (
-            "divU",
-            runTime.timeName(),
-            mesh
-        ),
-        fvc::div(U)
-    );
-
-    Info<< "div(phi) max/min : "
-        << max(divU).value() << " "
-        << min(divU).value() << endl;
-
-    if (writeResults)
+    if (Uheader.headerOk())
     {
-        divU.write();
+        Info<< "    Reading U" << endl;
+        volVectorField U(Uheader, mesh);
+
+        Info<< "    Calculating divU" << endl;
+        volScalarField divU
+        (
+            IOobject
+            (
+                "divU",
+                runTime.timeName(),
+                mesh
+            ),
+            fvc::div(U)
+        );
+
+        Info<< "div(U) max/min : "
+            << max(divU).value() << " "
+            << min(divU).value() << endl;
+
+        if (writeResults)
+        {
+            divU.write();
+        }
+    }
+    else
+    {
+        Info<< "    No U" << endl;
     }
 }
-
 
 // ************************************************************************* //
