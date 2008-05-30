@@ -27,7 +27,7 @@ OPENMPI)
    (
       cd $OPENMPI_HOME
 
-      gmake distclean
+      make distclean
       rm -rf $OPENMPI_ARCH_PATH
 
       ./configure \
@@ -41,9 +41,9 @@ OPENMPI)
           # --with-openib=/usr/local/ofed \
           # --with-openib-libdir=/usr/local/ofed/lib64
 
-      gmake
-      gmake install
-      gmake distclean
+      make
+      make install
+      make distclean
    )
    fi
    ;;
@@ -59,7 +59,7 @@ LAM)
    (
       cd $LAMHOME
 
-      gmake distclean
+      make distclean
       rm -rf $LAM_ARCH_PATH
 
       ./configure \
@@ -71,9 +71,9 @@ LAM)
           --without-profiling \
           --without-fc
 
-      gmake
-      gmake install
-      gmake distclean
+      make
+      make install
+      make distclean
    )
    fi
    ;;
