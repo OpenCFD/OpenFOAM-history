@@ -1,3 +1,0 @@
-
-This is the same example as ../hello, but compiles the component into
-a loadable shared library.

@@ -1,9 +1,0 @@
-interface A
-{
-	void hello();
-};
-
-interface B
-{
-	void sayHi();
-};

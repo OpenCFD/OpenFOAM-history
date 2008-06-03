@@ -1,7 +1,0 @@
-
-/*
- * constant declaration of improper type
- */
-
-typedef any _ANY;
-const _ANY c = 1;

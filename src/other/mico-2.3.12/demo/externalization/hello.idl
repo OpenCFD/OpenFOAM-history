@@ -1,7 +1,0 @@
-#include <coss/CosExternalization.idl>
-
-interface Hello : ::CosStream::Streamable
-    {
-	attribute string hello_string;
-	string hello (in string s);
-    };

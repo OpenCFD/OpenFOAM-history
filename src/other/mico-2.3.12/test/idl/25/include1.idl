@@ -1,8 +1,0 @@
-
-typedef char CHAR;
-
-module M3 {
-  #pragma prefix "hello"
-  typedef short SHORT;
-};
-

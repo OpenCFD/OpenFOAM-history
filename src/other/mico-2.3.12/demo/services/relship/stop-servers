@@ -1,6 +1,0 @@
-#!/bin/sh
-
-if test -f pids; then
-  kill `cat pids`
-  rm -f pids
-fi

@@ -1,4 +1,0 @@
-
-interface bench {
-    void perform();
-};

@@ -1,9 +1,0 @@
-
-interface Callback {
-  void reply (in string msg);
-};
-
-interface Sender {
-  void message (in Callback obj, in string msg);
-};
-

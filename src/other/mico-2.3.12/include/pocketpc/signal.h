@@ -1,2 +1,0 @@
-
-// unsupported on PocketPC

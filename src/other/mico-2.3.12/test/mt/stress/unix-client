@@ -1,2 +1,0 @@
-#!/bin/sh
-cat ref|./client -ORBBindAddr unix:/tmp/mico-pipe $@

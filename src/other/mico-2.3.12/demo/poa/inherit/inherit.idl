@@ -1,9 +1,0 @@
-
-interface Base {
-  void BaseOp ();
-};
-
-interface Derived : Base {
-  void DerivedOp ();
-};
-
