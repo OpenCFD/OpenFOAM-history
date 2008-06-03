@@ -1,4 +1,0 @@
-EXE_INC = -DNDEBUG -D_REENTRANT=1
-
-LIB_LIBS = \
-    -ldl -lpthread

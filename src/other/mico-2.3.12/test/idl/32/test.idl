@@ -1,5 +1,0 @@
-
-local interface LocalTest {
-    void op();
-};
-

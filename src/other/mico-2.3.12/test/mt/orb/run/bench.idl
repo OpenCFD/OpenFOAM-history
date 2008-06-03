@@ -1,5 +1,0 @@
-
-interface bench {
-	void perform();
-	void shutdown();
-};

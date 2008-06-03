@@ -1,2 +1,0 @@
-./server -ORBIIOPAddr ssl:inet:`uname -n`:12466 -ORBSSLcert ServerCert.pem -ORBSSLkey ServerKey.pem -ORBSSLverify 0 -ODMConfig config.cnf -AuditConfig audit.cnf -AuditType file -AuditArchName server.log -POAImplName BankPOA
- 

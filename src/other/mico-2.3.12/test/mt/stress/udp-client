@@ -1,2 +1,0 @@
-#!/bin/sh
-cat ref|./client -ORBBindAddr inet-dgram:localhost:7788 $@

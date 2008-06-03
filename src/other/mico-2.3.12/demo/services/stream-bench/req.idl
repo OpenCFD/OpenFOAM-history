@@ -1,8 +1,0 @@
-// req.idl for benchmark
-
-typedef sequence<octet> transtype;
-
-interface bench
-{
-	oneway void receive(in transtype data); 
-};

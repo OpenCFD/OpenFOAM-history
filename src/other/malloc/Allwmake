@@ -1,9 +1,0 @@
-#!/bin/sh
-set -x
-
-wmake libso hoard
-wmake libo fbsdmalloc
-#wmake libo bsdmalloc
-#wmake libo gmalloc
-#wmake libo mmalloc
-#wmake libo g++malloc
