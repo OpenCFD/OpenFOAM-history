@@ -1,5 +1,0 @@
-
-#include "base.idl"
-
-interface derived : base { };
-

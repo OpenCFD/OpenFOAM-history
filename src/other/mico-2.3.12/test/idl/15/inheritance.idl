@@ -1,8 +1,0 @@
-
-interface Base {
-  void op1();
-};
-
-interface Derived : Base {
-  void op2();
-};

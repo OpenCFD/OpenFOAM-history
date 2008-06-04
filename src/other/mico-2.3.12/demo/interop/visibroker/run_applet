@@ -1,6 +1,0 @@
-#!/bin/sh
-
-sed -e s/@IOR@/`cat account.ref`/g \
-       < ClientApplet.html.in > ClientApplet.html
-
-appletviewer ClientApplet.html

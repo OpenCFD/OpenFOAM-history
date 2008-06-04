@@ -1,6 +1,0 @@
-
-interface Foo
-{
-  void op(in long object);
-};
-

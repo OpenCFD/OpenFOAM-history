@@ -1,5 +1,0 @@
-// -*- c++ -*-
-
-interface HelloWorld {
-  oneway void hello () context("a*");
-};

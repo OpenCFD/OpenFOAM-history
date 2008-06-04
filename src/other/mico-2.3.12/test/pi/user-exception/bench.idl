@@ -1,9 +1,0 @@
-
-exception Exc {
-};
-
-interface bench {
-    void perform()
-	raises(Exc);
-    void start_test();
-};

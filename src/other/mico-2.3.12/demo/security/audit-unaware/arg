@@ -1,1 +1,0 @@
--ORBBindAddr ssl:inet:penguin:12456 -ORBSSLcert manager.pem -ORBSSLkey key.pem -ORBSSLverify 0 

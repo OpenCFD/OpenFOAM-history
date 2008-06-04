@@ -1,3 +1,0 @@
-interface HelloWorld {
-  void hello (in string s);
-};

@@ -1,5 +1,0 @@
-// -*- c++ -*-
-
-interface Test {
-  void op(in double d);
-};

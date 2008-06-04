@@ -1,4 +1,0 @@
-interface simple {
-   void func ( in char id );
-   void flush ();
-};

@@ -1,9 +1,0 @@
-#!/bin/sh
-
-MICORC=/dev/null
-export MICORC
-
-ADDR=inet:`uname -n`:15672
-
-./server -ORBIIOPAddr $ADDR &
-./client $ADDR &

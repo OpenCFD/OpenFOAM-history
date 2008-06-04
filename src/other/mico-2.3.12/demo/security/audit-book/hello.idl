@@ -1,4 +1,0 @@
-interface Hello {
-  void hello_world();
-  void olleh ();
-};

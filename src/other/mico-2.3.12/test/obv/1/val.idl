@@ -1,9 +1,0 @@
-// -*- c++ -*-
-
-valuetype Val {
-  public long num;
-};
-
-interface Test {
-  Val op(in Val p1);
-};

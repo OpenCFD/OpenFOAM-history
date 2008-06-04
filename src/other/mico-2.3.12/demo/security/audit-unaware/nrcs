@@ -1,9 +1,0 @@
-#!/bin/sh
-
-ADDR=inet:`uname -n`:12456
-
-# Manager
-echo "Manager"
-./client -ORBBindAddr $ADDR 
-
-

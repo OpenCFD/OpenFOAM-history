@@ -1,7 +1,0 @@
-Running.
-before ORB_init...
-server: Hello World
-after ORB_init...
-client: send_request
-server: Hello World
-client: receive_reply
