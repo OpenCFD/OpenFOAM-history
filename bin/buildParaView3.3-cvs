@@ -1,0 +1,94 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 1991-2008 OpenCFD Ltd.
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software; you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by the
+#     Free Software Foundation; either version 2 of the License, or (at your
+#     option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM; if not, write to the Free Software Foundation,
+#     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+#
+# Script
+#     buildParaView3.3-cvs
+#
+# Description
+#     Build and install ParaView
+#     - run from folder above ParaView source folder or place the
+#       ParaView source under $WM_PROJECT_INST_DIR
+#
+#------------------------------------------------------------------------------
+. $WM_PROJECT_DIR/bin/tools/buildParaViewFunctions
+
+# set -x
+
+PARAVIEW_SRC="ParaView3.3-cvs"
+PARAVIEW_MAJOR_VERSION="3.3"
+VERBOSE=OFF
+
+
+# User options
+# ~~~~~~~~~~~~
+
+# MPI suport
+INCLUDE_MPI=OFF
+MPI_MAX_PROCS=32
+
+# Python
+# note: script will try to determine python library. If it fails, specify the
+#       path using the PYTHON_LIBRARY variable
+INCLUDE_PYTHON=OFF
+#PYTHON_LIBRARY="/usr/lib64/libpython2.5.so.1.0"
+PYTHON_LIBRARY=""
+
+# MESA graphics
+INCLUDE_MESA=OFF
+
+
+# No further editing should be required below this line
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+set +x
+
+# Provide a shortcut for repeated builds - use with caution
+if [ "$#" -gt 0 ]
+then
+   CMAKE_SKIP=YES
+fi
+
+
+# Initialisation
+#~~~~~~~~~~~~~~~
+initialiseVariables
+
+
+# Set configure options
+#~~~~~~~~~~~~~~~~~~~~~~
+addMpiSupport       # set MPI specific options
+addPythonSupport    # set python specific options
+addMesaSupport      # set MESA specific options
+
+
+# Build and install
+# ~~~~~~~~~~~~~~~~~
+buildParaView
+installParaView
+
+
+echo "done"
+
+#------------------------------------------------------------------------------
