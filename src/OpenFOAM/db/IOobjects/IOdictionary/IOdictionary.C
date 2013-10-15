@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,6 +26,7 @@ License
 #include "IOdictionary.H"
 #include "objectRegistry.H"
 #include "Pstream.H"
+#include "Time.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -40,14 +41,12 @@ bool IOdictionary::writeDictionaries
 }
 
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-Foam::IOdictionary::IOdictionary(const IOobject& io)
-:
-    regIOobject(io)
+bool Foam::IOdictionary::readFile()
 {
     // Temporary warning
-    if (debug && io.readOpt() == IOobject::MUST_READ)
+    if (debug && readOpt() == IOobject::MUST_READ)
     {
         WarningIn("IOdictionary::IOdictionary(const IOobject&)")
             << "Dictionary " << name()
@@ -59,13 +58,16 @@ Foam::IOdictionary::IOdictionary(const IOobject& io)
 
     // Everyone check or just master
     bool masterOnly =
-        regIOobject::fileModificationChecking == timeStampMaster
-     || regIOobject::fileModificationChecking == inotifyMaster;
+        global()
+     && (
+            regIOobject::fileModificationChecking == timeStampMaster
+         || regIOobject::fileModificationChecking == inotifyMaster
+        );
 
 
     // Check if header is ok for READ_IF_PRESENT
     bool isHeaderOk = false;
-    if (io.readOpt() == IOobject::READ_IF_PRESENT)
+    if (readOpt() == IOobject::READ_IF_PRESENT)
     {
         if (masterOnly)
         {
@@ -85,14 +87,30 @@ Foam::IOdictionary::IOdictionary(const IOobject& io)
     if
     (
         (
-            io.readOpt() == IOobject::MUST_READ
-         || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
+            readOpt() == IOobject::MUST_READ
+         || readOpt() == IOobject::MUST_READ_IF_MODIFIED
         )
      || isHeaderOk
     )
     {
-        readFile(masterOnly);
+        return regIOobject::read(masterOnly, IOstream::ASCII, typeName);
     }
+    else
+    {
+        return false;
+    }
+}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::IOdictionary::IOdictionary(const IOobject& io)
+:
+    regIOobject(io)
+{
+    globalObject() = true;
+
+    readFile();
 
     dictionary::name() = IOobject::objectPath();
 }
@@ -102,56 +120,9 @@ Foam::IOdictionary::IOdictionary(const IOobject& io, const dictionary& dict)
 :
     regIOobject(io)
 {
-    // Temporary warning
-    if (debug && io.readOpt() == IOobject::MUST_READ)
-    {
-        WarningIn
-        (
-            "IOdictionary::IOdictionary(const IOobject& const dictionary&)"
-        )   << "Dictionary " << name()
-            << " constructed with IOobject::MUST_READ"
-            " instead of IOobject::MUST_READ_IF_MODIFIED." << nl
-            << "Use MUST_READ_IF_MODIFIED if you need automatic rereading."
-            << endl;
-    }
+    globalObject() = true;
 
-    // Everyone check or just master
-    bool masterOnly =
-        regIOobject::fileModificationChecking == timeStampMaster
-     || regIOobject::fileModificationChecking == inotifyMaster;
-
-
-    // Check if header is ok for READ_IF_PRESENT
-    bool isHeaderOk = false;
-    if (io.readOpt() == IOobject::READ_IF_PRESENT)
-    {
-        if (masterOnly)
-        {
-            if (Pstream::master())
-            {
-                isHeaderOk = headerOk();
-            }
-            Pstream::scatter(isHeaderOk);
-        }
-        else
-        {
-            isHeaderOk = headerOk();
-        }
-    }
-
-
-    if
-    (
-        (
-            io.readOpt() == IOobject::MUST_READ
-         || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
-        )
-     || isHeaderOk
-    )
-    {
-        readFile(masterOnly);
-    }
-    else
+    if (!readFile())
     {
         dictionary::operator=(dict);
     }
@@ -164,6 +135,8 @@ Foam::IOdictionary::IOdictionary(const IOobject& io, Istream& is)
 :
     regIOobject(io)
 {
+    globalObject() = true;
+
     dictionary::name() = IOobject::objectPath();
     // Note that we do construct the dictionary null and read in afterwards
     // so that if there is some fancy massaging due to a functionEntry in
@@ -179,6 +152,113 @@ Foam::IOdictionary::~IOdictionary()
 
 
 // * * * * * * * * * * * * * * * Members Functions * * * * * * * * * * * * * //
+
+Foam::fileName Foam::IOdictionary::filePath() const
+{
+    if (instance().isAbsolute())
+    {
+        fileName objectPath = instance()/name();
+
+        if (isFile(objectPath))
+        {
+            Pout<< "IOdictionary : returning absolute:" << objectPath << endl;
+            return objectPath;
+        }
+        else
+        {
+            Pout<< "IOdictionary : absolute not found:" << objectPath << endl;
+            return fileName::null;
+        }
+    }
+    else
+    {
+        fileName path = this->path();
+        fileName objectPath = path/name();
+        //Pout<< "IOdictionary : objectPath:" << objectPath << endl;
+
+        if
+        (
+            instance() == time().system()
+         || instance() == time().constant()
+        )
+        {
+            // Constant & system come from global case
+
+            if (time().processorCase())
+            {
+                fileName parentObjectPath =
+                    rootPath()/time().globalCaseName()
+                   /instance()/db().dbDir()/local()/name();
+
+                if (isFile(parentObjectPath))
+                {
+                    Pout<< "IOdictionary : returning parent:"
+                        << parentObjectPath << endl;
+                    return parentObjectPath;
+                }
+                else
+                {
+                    Pout<< "IOdictionary : parent not found:"
+                        << parentObjectPath << endl;
+                    return fileName::null;
+                }
+            }
+            else if (isFile(objectPath))
+            {
+                Pout<< "IOdictionary : returning local:"
+                    << objectPath << endl;
+                return objectPath;
+            }
+            else
+            {
+
+                Pout<< "IOdictionary : local not found:"
+                    << objectPath << endl;
+                return fileName::null;
+            }
+        }
+        // Dictionary from time directory
+        else if (isFile(objectPath))
+        {
+            Pout<< "IOdictionary : returning time:"
+                << objectPath << endl;
+            return objectPath;
+        }
+        else
+        {
+            // Check for approximately same time
+            if (!isDir(path))
+            {
+                word newInstancePath = time().findInstancePath
+                (
+                    instant(instance())
+                );
+
+                if (newInstancePath.size())
+                {
+                    fileName fName
+                    (
+                        rootPath()/caseName()
+                       /newInstancePath/db().dbDir()/local()/name()
+                    );
+
+                    if (isFile(fName))
+                    {
+                        Pout<< "IOdictionary : returning similar time:"
+                            << fName << endl;
+
+                        return fName;
+                    }
+                }
+            }
+
+            Pout<< "IOdictionary : time not found:"
+                << objectPath << endl;
+            return fileName::null;
+        }
+    }
+}
+
 
 const Foam::word& Foam::IOdictionary::name() const
 {

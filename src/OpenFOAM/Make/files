@@ -178,6 +178,8 @@ $(functionEntries)/removeEntry/removeEntry.C
 IOdictionary = db/IOobjects/IOdictionary
 $(IOdictionary)/IOdictionary.C
 $(IOdictionary)/IOdictionaryIO.C
+$(IOdictionary)/localIOdictionary.C
+$(IOdictionary)/localIOdictionaryIO.C
 
 db/IOobjects/IOMap/IOMapName.C
 

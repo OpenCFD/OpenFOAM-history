@@ -368,6 +368,10 @@ public:
 
             //- Search the case for the time directory path
             //  corresponding to the given instance
+            word findInstancePath(const fileName& path, const instant&) const;
+
+            //- Search the case for the time directory path
+            //  corresponding to the given instance
             word findInstancePath(const instant&) const;
 
             //- Search the case for the time closest to the given time

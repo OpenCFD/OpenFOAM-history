@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -78,6 +78,14 @@ public:
 
 
 protected:
+
+        //- Read everywhere or only on master and scatter
+        bool read
+        (
+            const bool masterOnly,
+            const IOstream::streamFormat format,
+            const word& typeName
+        );
 
         //- To flag master-only reading of objects
         static bool masterOnlyReading;
@@ -272,6 +280,15 @@ public:
 
             //- Write using setting from DB
             virtual bool write() const;
+
+
+        // Other
+
+            //- Is object global
+            virtual bool global() const
+            {
+                return false;
+            }
 
 
     // Member operators

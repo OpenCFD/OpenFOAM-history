@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -151,6 +151,9 @@ private:
         //- Register object created from this IOobject with registry if true
         bool registerObject_;
 
+        //- Is object same for all processors
+        bool globalObject_;
+
         //- IOobject state
         objectState objState_;
 
@@ -214,7 +217,8 @@ public:
             const objectRegistry& registry,
             readOption r=NO_READ,
             writeOption w=NO_WRITE,
-            bool registerObject=true
+            bool registerObject=true,
+            bool globalObject = false
         );
 
         //- Construct from path, registry, io options
@@ -291,6 +295,18 @@ public:
                 return registerObject_;
             }
 
+            //- Is object same for all processors
+            bool& globalObject()
+            {
+                return globalObject_;
+            }
+
+            //- Is object same for all processors
+            bool globalObject() const
+            {
+                return globalObject_;
+            }
+
 
         // Read/write options
 
@@ -357,7 +373,7 @@ public:
 
             //- Return complete path + object name if the file exists
             //  either in the case/processor or case otherwise null
-            fileName filePath() const;
+            virtual fileName filePath() const;
 
 
         // Reading

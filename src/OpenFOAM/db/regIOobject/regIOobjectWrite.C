@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -58,6 +58,8 @@ bool Foam::regIOobject::writeObject
         return false;
     }
 
+    bool isGlobal = true;
+
     if
     (
         instance() != time().timeName()
@@ -68,9 +70,10 @@ bool Foam::regIOobject::writeObject
     )
     {
         const_cast<regIOobject&>(*this).instance() = time().timeName();
-    }
 
-    mkDir(path());
+        // Mark as written to local directory
+        isGlobal = false;
+    }
 
     if (OFstream::debug)
     {
@@ -81,30 +84,51 @@ bool Foam::regIOobject::writeObject
 
     bool osGood = false;
 
+
+    // Everyone check or just master
+    bool masterOnly =
+        isGlobal
+     && (
+            regIOobject::fileModificationChecking == timeStampMaster
+         || regIOobject::fileModificationChecking == inotifyMaster
+        );
+
+
+    if (Pstream::master() || !masterOnly)
     {
-        // Try opening an OFstream for object
-        OFstream os(objectPath(), fmt, ver, cmp);
+        mkDir(path());
 
-        // If any of these fail, return (leave error handling to Ostream class)
-        if (!os.good())
         {
-            return false;
+            // Try opening an OFstream for object
+            OFstream os(objectPath(), fmt, ver, cmp);
+
+            // If any of these fail, return (leave error handling to Ostream
+            // class)
+            if (!os.good())
+            {
+                return false;
+            }
+
+            if (!writeHeader(os))
+            {
+                return false;
+            }
+
+            // Write the data to the Ostream
+            if (!writeData(os))
+            {
+                return false;
+            }
+
+            writeEndDivider(os);
+
+            osGood = os.good();
         }
-
-        if (!writeHeader(os))
-        {
-            return false;
-        }
-
-        // Write the data to the Ostream
-        if (!writeData(os))
-        {
-            return false;
-        }
-
-        writeEndDivider(os);
-
-        osGood = os.good();
+    }
+    else
+    {
+        // Or scatter the master osGood?
+        osGood = true;
     }
 
     if (OFstream::debug)
@@ -132,5 +156,6 @@ bool Foam::regIOobject::write() const
         time().writeCompression()
     );
 }
+
 
 // ************************************************************************* //

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,22 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::IOdictionary
+    Foam::localIOdictionary
 
 Description
-    IOdictionary is derived from dictionary and IOobject to give the dictionary
+    localIOdictionary is derived from dictionary and IOobject to give the
+    dictionary
     automatic IO functionality via the objectRegistry.  To facilitate IO,
     IOdictioanry is provided with a constructor from IOobject and writeData and
     write functions.
 
 SourceFiles
-    IOdictionary.C
-    IOdictionaryIO.C
+    localIOdictionary.C
+    localIOdictionaryIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef IOdictionary_H
-#define IOdictionary_H
+#ifndef localIOdictionary_H
+#define localIOdictionary_H
 
 #include "dictionary.H"
 #include "regIOobject.H"
@@ -48,23 +49,26 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class IOdictionary Declaration
+                           Class localIOdictionary Declaration
 \*---------------------------------------------------------------------------*/
 
-class IOdictionary
+class localIOdictionary
 :
     public regIOobject,
     public dictionary
 {
-    // Private data
-
-        static bool writeDictionaries;
-
 
     // Private Member Functions
 
         //- Wrapper around readFile. Returns true if file read.
         bool readFile();
+
+
+protected:
+
+    // Protected data
+
+        static bool writeDictionaries;
 
 
 public:
@@ -75,28 +79,24 @@ public:
     // Constructors
 
         //- Construct given an IOobject
-        IOdictionary(const IOobject&);
+        localIOdictionary(const IOobject&);
 
         //- Construct given an IOobject and dictionary
-        IOdictionary
-        (
-            const IOobject&,
-            const dictionary&
-        );
+        localIOdictionary(const IOobject&, const dictionary&);
 
         //- Construct given an IOobject and Istream
-        IOdictionary(const IOobject&, Istream&);
+        localIOdictionary(const IOobject&, Istream&);
 
 
     //- Destructor
-    virtual ~IOdictionary();
+    virtual ~localIOdictionary();
 
 
     // Member functions
 
-        //- Return complete path + object name if the file exists
-        //  either in the case/processor or case otherwise null
-        virtual fileName filePath() const;
+//        //- Return complete path + object name if the file exists
+//        //  either in the case/processor or case otherwise null
+//        virtual fileName filePath() const;
 
         //- Name function is needed to disambiguate those inherited
         //  from regIOobject and dictionary
@@ -108,16 +108,16 @@ public:
         //- WriteData function required for regIOobject write operation
         virtual bool writeData(Ostream&) const;
 
-        //- Is object global
-        virtual bool global() const
-        {
-            return true;
-        }
+//        //- Is object global
+//        virtual bool global() const
+//        {
+//            return true;
+//        }
 
     // Member operators
 
-        //- Assignment of other IOdictionary's entries to this IOdictionary
-        void operator=(const IOdictionary&);
+        //- Assignment of other localIOdictionary's entries to this localIOdictionary
+        void operator=(const localIOdictionary&);
 };
 
 

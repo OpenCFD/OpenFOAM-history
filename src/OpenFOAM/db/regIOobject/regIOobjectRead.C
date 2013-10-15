@@ -28,6 +28,104 @@ License
 #include "Time.H"
 #include "Pstream.H"
 
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+bool Foam::regIOobject::read
+(
+    const bool masterOnly,
+    const IOstream::streamFormat format,
+    const word& typeName
+)
+{
+    bool ok = true;
+    if (Pstream::master() || !masterOnly)
+    {
+        if (IFstream::debug)
+        {
+            Pout<< "regIOobject::read() : "
+                << "reading object " << name()
+                << " from file " << endl;
+        }
+
+        // Set flag for e.g. codeStream
+        bool oldFlag = regIOobject::masterOnlyReading;
+        regIOobject::masterOnlyReading = masterOnly;
+
+        // Read file
+        ok = readData(readStream(typeName));
+        close();
+
+        regIOobject::masterOnlyReading = oldFlag;
+    }
+
+    if (masterOnly && Pstream::parRun())
+    {
+        // Scatter master data using communication scheme
+
+        const List<Pstream::commsStruct>& comms =
+        (
+            (Pstream::nProcs() < Pstream::nProcsSimpleSum)
+          ? Pstream::linearCommunication()
+          : Pstream::treeCommunication()
+        );
+
+        // Master reads headerclassname from file. Make sure this gets
+        // transfered as well as contents.
+        Pstream::scatter
+        (
+            comms,
+            const_cast<word&>(headerClassName()),
+            Pstream::msgType(),
+            Pstream::worldComm
+        );
+        Pstream::scatter(comms, note(), Pstream::msgType(), Pstream::worldComm);
+
+
+        // Get my communication order
+        const Pstream::commsStruct& myComm = comms[Pstream::myProcNo()];
+
+        // Reveive from up
+        if (myComm.above() != -1)
+        {
+            if (IFstream::debug)
+            {
+                Pout<< "regIOobject::read() : "
+                    << "reading object " << name()
+                    << " from processor " << myComm.above()
+                    << endl;
+            }
+
+            IPstream fromAbove
+            (
+                Pstream::scheduled,
+                myComm.above(),
+                0,
+                Pstream::msgType(),
+                Pstream::worldComm,
+                format
+            );
+            ok = readData(fromAbove);
+        }
+
+        // Send to my downstairs neighbours
+        forAll(myComm.below(), belowI)
+        {
+            OPstream toBelow
+            (
+                Pstream::scheduled,
+                myComm.below()[belowI],
+                0,
+                Pstream::msgType(),
+                Pstream::worldComm,
+                format
+            );
+            bool okWrite = writeData(toBelow);
+            ok = ok && okWrite;
+        }
+    }
+    return ok;
+}
+
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -174,97 +272,13 @@ bool Foam::regIOobject::read()
     // e.g. GeometricField.
 
     bool masterOnly =
-        regIOobject::fileModificationChecking == timeStampMaster
-     || regIOobject::fileModificationChecking == inotifyMaster;
-
-    bool ok = true;
-    if (Pstream::master() || !masterOnly)
-    {
-        if (IFstream::debug)
-        {
-            Pout<< "regIOobject::read() : "
-                << "reading object " << name()
-                << " from file " << endl;
-        }
-
-        // Set flag for e.g. codeStream
-        bool oldFlag = regIOobject::masterOnlyReading;
-        regIOobject::masterOnlyReading = masterOnly;
-
-        // Read file
-        ok = readData(readStream(type()));
-        close();
-
-        regIOobject::masterOnlyReading = oldFlag;
-    }
-
-    if (masterOnly && Pstream::parRun())
-    {
-        // Scatter master data using communication scheme
-
-        const List<Pstream::commsStruct>& comms =
-        (
-            (Pstream::nProcs() < Pstream::nProcsSimpleSum)
-          ? Pstream::linearCommunication()
-          : Pstream::treeCommunication()
+        global()
+     && (
+            regIOobject::fileModificationChecking == timeStampMaster
+         || regIOobject::fileModificationChecking == inotifyMaster
         );
 
-        // Master reads headerclassname from file. Make sure this gets
-        // transfered as well as contents.
-        Pstream::scatter
-        (
-            comms,
-            const_cast<word&>(headerClassName()),
-            Pstream::msgType(),
-            Pstream::worldComm
-        );
-        Pstream::scatter(comms, note(), Pstream::msgType(), Pstream::worldComm);
-
-
-        // Get my communication order
-        const Pstream::commsStruct& myComm = comms[Pstream::myProcNo()];
-
-        // Reveive from up
-        if (myComm.above() != -1)
-        {
-            if (IFstream::debug)
-            {
-                Pout<< "regIOobject::read() : "
-                    << "reading object " << name()
-                    << " from processor " << myComm.above()
-                    << endl;
-            }
-
-            // Note: use ASCII for now - binary IO of dictionaries is
-            // not currently supported
-            IPstream fromAbove
-            (
-                Pstream::scheduled,
-                myComm.above(),
-                0,
-                Pstream::msgType(),
-                Pstream::worldComm,
-                IOstream::ASCII
-            );
-            ok = readData(fromAbove);
-        }
-
-        // Send to my downstairs neighbours
-        forAll(myComm.below(), belowI)
-        {
-            OPstream toBelow
-            (
-                Pstream::scheduled,
-                myComm.below()[belowI],
-                0,
-                Pstream::msgType(),
-                Pstream::worldComm,
-                IOstream::ASCII
-            );
-            writeData(toBelow);
-        }
-    }
-    return ok;
+    return read(masterOnly, IOstream::BINARY, type());
 }
 
 

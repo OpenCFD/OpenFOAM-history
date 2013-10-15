@@ -158,6 +158,7 @@ Foam::IOobject::IOobject
     rOpt_(ro),
     wOpt_(wo),
     registerObject_(registerObject),
+    globalObject_(false),
     objState_(GOOD)
 {
     if (objectRegistry::debug)
@@ -177,7 +178,8 @@ Foam::IOobject::IOobject
     const objectRegistry& registry,
     readOption ro,
     writeOption wo,
-    bool registerObject
+    bool registerObject,
+    bool globalObject
 )
 :
     name_(name),
@@ -189,6 +191,7 @@ Foam::IOobject::IOobject
     rOpt_(ro),
     wOpt_(wo),
     registerObject_(registerObject),
+    globalObject_(globalObject),
     objState_(GOOD)
 {
     if (objectRegistry::debug)
@@ -218,6 +221,7 @@ Foam::IOobject::IOobject
     rOpt_(ro),
     wOpt_(wo),
     registerObject_(registerObject),
+    globalObject_(false),
     objState_(GOOD)
 {
     if (!fileNameComponents(path, instance_, local_, name_))
@@ -322,6 +326,9 @@ Foam::fileName Foam::IOobject::filePath() const
     if (instance().isAbsolute())
     {
         fileName objectPath = instance()/name();
+
+Pout<< "IOobject : objectPath:" << objectPath << endl;
+
         if (isFile(objectPath))
         {
             return objectPath;
@@ -336,30 +343,25 @@ Foam::fileName Foam::IOobject::filePath() const
         fileName path = this->path();
         fileName objectPath = path/name();
 
+Pout<< "IOobject : objectPath:" << objectPath << endl;
+
         if (isFile(objectPath))
         {
             return objectPath;
         }
         else
         {
-            if
-            (
-                time().processorCase()
-             && (
-                    instance() == time().system()
-                 || instance() == time().constant()
-                )
-            )
-            {
-                fileName parentObjectPath =
-                    rootPath()/time().globalCaseName()
-                   /instance()/db_.dbDir()/local()/name();
-
-                if (isFile(parentObjectPath))
-                {
-                    return parentObjectPath;
-                }
-            }
+//            if (globalObject() && time().processorCase())
+//            {
+//                fileName parentObjectPath =
+//                    rootPath()/time().globalCaseName()
+//                   /instance()/db_.dbDir()/local()/name();
+//
+//                if (isFile(parentObjectPath))
+//                {
+//                    return parentObjectPath;
+//                }
+//            }
 
             if (!isDir(path))
             {
@@ -487,6 +489,7 @@ void Foam::IOobject::operator=(const IOobject& io)
     local_ = io.local_;
     rOpt_ = io.rOpt_;
     wOpt_ = io.wOpt_;
+    globalObject_ = io.globalObject_;
     objState_ = io.objState_;
 }
 

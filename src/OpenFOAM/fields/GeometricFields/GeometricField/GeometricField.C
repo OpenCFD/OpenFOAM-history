@@ -84,7 +84,8 @@ void Foam::GeometricField<Type, PatchField, GeoMesh>::readFields()
             IOobject::NO_WRITE,
             false
         ),
-        this->readStream(typeName)
+        this->readStream(typeName),
+        false                           // non-global
     );
 
     this->close();
