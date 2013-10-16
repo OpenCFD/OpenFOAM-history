@@ -60,6 +60,7 @@ class IOdictionary
 
         static bool writeDictionaries;
 
+        const bool global_;
 
     // Private Member Functions
 
@@ -75,17 +76,18 @@ public:
     // Constructors
 
         //- Construct given an IOobject
-        IOdictionary(const IOobject&);
+        IOdictionary(const IOobject&, const bool global = true);
 
         //- Construct given an IOobject and dictionary
         IOdictionary
         (
             const IOobject&,
-            const dictionary&
+            const dictionary&,
+            const bool global = true
         );
 
         //- Construct given an IOobject and Istream
-        IOdictionary(const IOobject&, Istream&);
+        IOdictionary(const IOobject&, Istream&, const bool global = true);
 
 
     //- Destructor
@@ -111,7 +113,7 @@ public:
         //- Is object global
         virtual bool global() const
         {
-            return true;
+            return global_;
         }
 
     // Member operators

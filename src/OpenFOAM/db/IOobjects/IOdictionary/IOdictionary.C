@@ -104,11 +104,12 @@ bool Foam::IOdictionary::readFile()
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::IOdictionary::IOdictionary(const IOobject& io)
+Foam::IOdictionary::IOdictionary(const IOobject& io, const bool global)
 :
-    regIOobject(io)
+    regIOobject(io),
+    global_(global)
 {
-    globalObject() = true;
+    globalObject() = global_;
 
     readFile();
 
@@ -116,11 +117,17 @@ Foam::IOdictionary::IOdictionary(const IOobject& io)
 }
 
 
-Foam::IOdictionary::IOdictionary(const IOobject& io, const dictionary& dict)
+Foam::IOdictionary::IOdictionary
+(
+    const IOobject& io,
+    const dictionary& dict,
+    const bool global
+)
 :
-    regIOobject(io)
+    regIOobject(io),
+    global_(global)
 {
-    globalObject() = true;
+    globalObject() = global_;
 
     if (!readFile())
     {
@@ -131,11 +138,17 @@ Foam::IOdictionary::IOdictionary(const IOobject& io, const dictionary& dict)
 }
 
 
-Foam::IOdictionary::IOdictionary(const IOobject& io, Istream& is)
+Foam::IOdictionary::IOdictionary
+(
+    const IOobject& io,
+    Istream& is,
+    const bool global
+)
 :
-    regIOobject(io)
+    regIOobject(io),
+    global_(global)
 {
-    globalObject() = true;
+    globalObject() = global_;
 
     dictionary::name() = IOobject::objectPath();
     // Note that we do construct the dictionary null and read in afterwards
@@ -184,7 +197,7 @@ Foam::fileName Foam::IOdictionary::filePath() const
         {
             // Constant & system come from global case
 
-            if (time().processorCase())
+            if (time().processorCase() && global())
             {
                 fileName parentObjectPath =
                     rootPath()/time().globalCaseName()
