@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
 
 # Source tutorial run functions
@@ -41,10 +41,12 @@ done
 
 # create validation plot
 # test if gnuplot exists on the system
-type -P gnuplot &>/dev/null || {
+if ! which gnuplot > /dev/null 2>&1
+then
     echo "gnuplot not found - skipping graph creation" >&2
     exit 1
-}
+fi
+
 graphName="OF_vs_ANAYTICAL.eps"
 
 echo "Creating graph of u+ vs y+ to $graphName"
