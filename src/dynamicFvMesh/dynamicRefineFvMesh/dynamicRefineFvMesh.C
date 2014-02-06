@@ -1264,8 +1264,11 @@ bool Foam::dynamicRefineFvMesh::update()
             readScalar(refineDict.lookup("lowerRefineLevel"));
         const scalar upperRefineLevel =
             readScalar(refineDict.lookup("upperRefineLevel"));
-        const scalar unrefineLevel =
-            readScalar(refineDict.lookupOrDefault("unrefineLevel", GREAT));
+        const scalar unrefineLevel = refineDict.lookupOrDefault<scalar>
+        (
+            "unrefineLevel",
+            GREAT
+        );
         const label nBufferLayers =
             readLabel(refineDict.lookup("nBufferLayers"));
 
