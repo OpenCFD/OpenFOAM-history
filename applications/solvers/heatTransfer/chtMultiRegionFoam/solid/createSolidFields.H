@@ -11,10 +11,10 @@
         Info<< "*** Reading solid mesh thermophysical properties for region "
             << solidRegions[i].name() << nl << endl;
 
-        Info<< "    Adding to thermos\n" << endl;
+        Info<< "    Adding to thermo models\n" << endl;
         thermos.set(i, solidThermo::New(solidRegions[i]));
 
-        Info<< "    Adding to radiations\n" << endl;
+        Info<< "    Adding to radiation models\n" << endl;
         radiations.set(i, radiation::radiationModel::New(thermos[i].T()));
 
         Info<< "    Adding fvOptions\n" << endl;
