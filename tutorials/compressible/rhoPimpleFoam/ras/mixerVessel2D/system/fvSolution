@@ -62,14 +62,8 @@ solvers
 
     pFinal
     {
-        solver          GAMG;
-        tolerance       1e-6;
+        $p;
         relTol          0;
-        smoother        GaussSeidel;
-        cacheAgglomeration true;
-        nCellsInCoarsestLevel 20;
-        agglomerator    faceAreaPair;
-        mergeLevels     1;
     }
 
     "(U|h|k|epsilon)"
