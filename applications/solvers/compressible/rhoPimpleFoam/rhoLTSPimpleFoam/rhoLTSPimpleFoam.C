@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    rhoLTSPorousMRFPimpleFoam
+    rhoLTSPimpleFoam
 
 Description
     Transient solver for laminar or turbulent flow of compressible fluids
