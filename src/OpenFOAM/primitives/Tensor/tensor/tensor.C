@@ -281,7 +281,6 @@ Foam::tensor Foam::eigenVectors(const tensor& t)
 }
 
 
-// Return eigenvalues in ascending order of absolute values
 Foam::vector Foam::eigenValues(const symmTensor& t)
 {
     scalar i = 0;
