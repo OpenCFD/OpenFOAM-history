@@ -9,27 +9,57 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-2
-(
-    atmosphere
-    {
-        type            patch;
-        nFaces          1024;
-        startFace       93568;
-    }
-    walls
-    {
-        type            wall;
-        inGroups        1(wall);
-        nFaces          5376;
-        startFace       94592;
-    }
-)
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default             none;
+
+    div(rhoPhi,U)       Gauss linearUpwind grad(U);
+    div(phiVdj,Vdj)     Gauss linear;
+    div(phi,alpha)      Gauss vanLeer;
+    div(phirb,alpha)    Gauss vanLeer;
+    div(rhoPhi,k)       Gauss limitedLinear 1;
+    div(rhoPhi,epsilon) Gauss limitedLinear 1;
+
+    div((muEff*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p_rgh;
+    alpha;
+}
+
 
 // ************************************************************************* //

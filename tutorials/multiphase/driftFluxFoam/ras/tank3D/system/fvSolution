@@ -17,42 +17,23 @@ FoamFile
 
 solvers
 {
-    rho
+    "alpha.*"
     {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-5;
-        relTol          0.1;
-    }
+        nAlphaCorr      1;
+        nAlphaSubCycles 4;
 
-    rhoFinal
-    {
-        $rho;
-        tolerance       1e-5;
-        relTol          0;
-    }
-
-    U
-    {
         solver          smoothSolver;
         smoother        symGaussSeidel;
-        tolerance       1e-5;
-        relTol          0.1;
-    }
-
-    UFinal
-    {
-        solver          smoothSolver;
-        smoother        symGaussSeidel;
-        tolerance       1e-5;
+        tolerance       1e-6;
         relTol          0;
+        minIter         1;
     }
 
-    p
+    p_rgh
     {
         solver          GAMG;
-        tolerance       1e-6;
-        relTol          0.05;
+        tolerance       1e-7;
+        relTol          0.01;
         smoother        GaussSeidel;
         cacheAgglomeration true;
         nCellsInCoarsestLevel 20;
@@ -60,38 +41,32 @@ solvers
         mergeLevels     1;
     }
 
-    pFinal
+    p_rghFinal
     {
-        $p;
+        $p_rgh;
         relTol          0;
     }
 
-    "(U|h|k|epsilon)"
+    "(U|k|epsilon)"
     {
         solver          smoothSolver;
         smoother        symGaussSeidel;
-        tolerance       1e-5;
+        tolerance       1e-7;
         relTol          0.1;
+        minIter         1;
     }
 
-    "(U|h|k|epsilon)Final"
+    "(U|k|epsilon)Final"
     {
-        $U;
-        tolerance       1e-5;
+        $k;
         relTol          0;
     }
 }
 
 PIMPLE
 {
-    nOuterCorrectors 1;
     nCorrectors     2;
     nNonOrthogonalCorrectors 0;
-    momentumPredictor yes;
-    rhoMin          rhoMin [ 1 -3 0 0 0 ] 0.5;
-    rhoMax          rhoMax [ 1 -3 0 0 0 ] 2.0;
-    pRefCell        0;
-    pRefValue       1e5;
 }
 
 relaxationFactors
@@ -101,10 +76,7 @@ relaxationFactors
     }
     equations
     {
-        "U.*"           1;
-        "h.*"           1;
-        "k.*"           1;
-        "epsilon.*"     1;
+        ".*"       1;
     }
 }
 
