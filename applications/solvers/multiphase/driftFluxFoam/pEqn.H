@@ -17,7 +17,6 @@
     surfaceScalarField phig
     (
         (
-            fvc::interpolate(interface.sigmaK())*fvc::snGrad(alpha1)
           - ghf*fvc::snGrad(rho)
         )*rAUf*mesh.magSf()
     );

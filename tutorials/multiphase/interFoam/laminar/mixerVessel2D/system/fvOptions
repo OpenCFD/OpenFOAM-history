@@ -9,27 +9,29 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    class       dictionary;
+    location    "system";
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-2
-(
-    atmosphere
+MRF1
+{
+    type            MRFSource;
+    active          yes;
+    selectionMode   cellZone;
+    cellZone        rotor;
+
+    MRFSourceCoeffs
     {
-        type            patch;
-        nFaces          1024;
-        startFace       93568;
+        // Fixed patches (by default they 'move' with the MRF zone)
+        nonRotatingPatches ();
+
+        origin    (0 0 0);
+        axis      (0 0 1);
+        omega     constant 6.2831853;
     }
-    walls
-    {
-        type            wall;
-        inGroups        1(wall);
-        nFaces          5376;
-        startFace       94592;
-    }
-)
+}
+
 
 // ************************************************************************* //

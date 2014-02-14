@@ -22,41 +22,44 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    rhoLTSPimpleFoam
+    driftFluxFoam
 
 Description
-    Transient solver for laminar or turbulent flow of compressible fluids
-    with support for run-time selectable finite volume options, e.g. MRF,
-    explicit porosity.
+    Solver for 2 incompressible fluids using the mixture approach with the
+    drift-flux approximation for relative motion of the phases.
 
-    Uses the flexible PIMPLE (PISO-SIMPLE) solution for time-resolved and
-    pseudo-transient simulations with support for local time-stepping for
-    efficient steady-state solution.
+    Used for simulating the settling of the dispersed phase and other similar
+    separation problems.
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "psiThermo.H"
-#include "turbulenceModel.H"
-#include "fvIOoptionList.H"
-#include "fvcSmooth.H"
-#include "pimpleControl.H"
+#include "CMULES.H"
+#include "subCycle.H"
+#include "nearWallDist.H"
+#include "wallFvPatch.H"
 #include "bound.H"
+#include "Switch.H"
+#include "plasticViscosity.H"
+#include "yieldStress.H"
+#include "pimpleControl.H"
+#include "fvIOoptionList.H"
+#include "fixedFluxPressureFvPatchScalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
+
     #include "createTime.H"
     #include "createMesh.H"
-
-    pimpleControl pimple(mesh);
-
-    #include "setInitialrDeltaT.H"
+    #include "readGravitationalAcceleration.H"
     #include "createFields.H"
     #include "createFvOptions.H"
     #include "initContinuityErrs.H"
+
+    pimpleControl pimple(mesh);
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -65,32 +68,33 @@ int main(int argc, char *argv[])
     while (runTime.run())
     {
         #include "readTimeControls.H"
-        #include "compressibleCourantNo.H"
+        #include "CourantNo.H"
         #include "setDeltaT.H"
 
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "setrDeltaT.H"
-
-        if (pimple.nCorrPIMPLE() <= 1)
-        {
-            #include "rhoEqn.H"
-        }
-
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
-            turbulence->correct();
+            #include "alphaControls.H"
+
+            #include "calcVdj.H"
+            #include "alphaEqnSubCycle.H"
+            #include "correctViscosity.H"
 
             #include "UEqn.H"
-            #include "EEqn.H"
 
             // --- Pressure corrector loop
             while (pimple.correct())
             {
                 #include "pEqn.H"
+            }
+
+            if (pimple.turbCorr())
+            {
+                #include "kEpsilon.H"
             }
         }
 
