@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -136,7 +136,7 @@ void Foam::CloudFunctionObjectList<CloudType>::postEvolve()
 template<class CloudType>
 void Foam::CloudFunctionObjectList<CloudType>::postMove
 (
-    const typename CloudType::parcelType& p,
+    typename CloudType::parcelType& p,
     const label cellI,
     const scalar dt,
     const point& position0,

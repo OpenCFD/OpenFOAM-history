@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -118,9 +118,10 @@ public:
             //- Post-move hook
             virtual void postMove
             (
-                const parcelType& p,
+                parcelType& p,
                 const label cellI,
                 const scalar dt,
+                const point& position0,
                 bool& keepParticle
             );
 };
