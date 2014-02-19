@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,49 +23,22 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Table.H"
+#ifndef makeThermoParcelTurbulenceForces_h
+#define makeThermoParcelTurbulenceForces_h
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Type>
-Foam::Table<Type>::Table(const word& entryName, const dictionary& dict)
-:
-    DataEntry<Type>(entryName),
-    TableBase<Type>(entryName, dict)
-{
-    Istream& is(dict.lookup(entryName));
-    word entryType(is);
+#include "BrownianMotionForce.H"
 
-    token firstToken(is);
-    is.putBack(firstToken);
-    if (firstToken == token::BEGIN_SQR)
-    {
-        is >> this->dimensions_;
-    }
-    is  >> this->table_;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    TableBase<Type>::check();
-}
+#define makeThermoParcelTurbulenceForces(CloudType)                           \
+                                                                              \
+    makeParticleForceModelType(BrownianMotionForce, CloudType);
 
 
-template<class Type>
-Foam::Table<Type>::Table(const Table<Type>& tbl)
-:
-    DataEntry<Type>(tbl),
-    TableBase<Type>(tbl)
-{}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-template<class Type>
-Foam::Table<Type>::~Table()
-{}
-
-
-// * * * * * * * * * * * * * *  IOStream operators * * * * * * * * * * * * * //
-
-#include "TableIO.C"
-
+#endif
 
 // ************************************************************************* //
