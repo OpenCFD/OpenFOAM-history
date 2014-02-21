@@ -6,7 +6,7 @@
       + fvm::div(rhoPhi, U)
       + fvc::div
         (
-            (alpha1/(scalar(1.001) - alpha1))*((rhoc*rhod)/rho)*Vdj*Vdj,
+            (alpha1/(scalar(1.001) - alpha1))*((rho2*rho1)/rho)*Vdj*Vdj,
             "div(phiVdj,Vdj)"
         )
       - fvm::laplacian(muEff, U)

@@ -60,9 +60,8 @@
     );
 
 
-    dimensionedScalar rhoc(transportProperties.lookup("rhoc"));
-
-    dimensionedScalar rhod(transportProperties.lookup("rhod"));
+    dimensionedScalar rho1(transportProperties.lookup("rho1"));
+    dimensionedScalar rho2(transportProperties.lookup("rho2"));
 
     dimensionedScalar muc(transportProperties.lookup("muc"));
     dimensionedScalar muMax(transportProperties.lookup("muMax"));
@@ -104,7 +103,7 @@
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        alpha1*rhod + alpha2*rhoc
+        alpha1*rho1 + alpha2*rho2
     );
     rho.oldTime();
 
@@ -384,3 +383,6 @@
         );
         p_rgh = p - rho*gh;
     }
+
+
+    tmp<surfaceScalarField> tphiAlphaCorr0;

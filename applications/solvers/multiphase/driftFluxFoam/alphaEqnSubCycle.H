@@ -13,7 +13,7 @@
 
     surfaceScalarField phir
     (
-        rhoc*(mesh.Sf() & fvc::interpolate(Vdj/rho))
+        rho2*(mesh.Sf() & fvc::interpolate(Vdj/rho))
     );
 
     if (nAlphaSubCycles > 1)
@@ -64,10 +64,10 @@
 
     Info<< "Phase-1 volume fraction = "
         << alpha1.weightedAverage(mesh.Vsc()).value()
-        << "  Min(alpha) = " << min(alpha1).value()
-        << "  Max(alpha) = " << max(alpha1).value()
+        << "  Min(alpha1) = " << min(alpha1).value()
+        << "  Max(alpha1) = " << max(alpha1).value()
         << endl;
 
-    rhoPhi = phiAlpha*(rhod - rhoc) + phi*rhoc;
-    rho == alpha1*rhod + alpha2*rhoc;
+    rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2;
+    rho == alpha1*rho1 + alpha2*rho2;
 }
