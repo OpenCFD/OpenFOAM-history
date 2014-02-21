@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,34 +22,28 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::uniformFixedValuePointPatchField
+    Foam::zeroFixedValuePointPatchField
 
 Description
-    Enables the specification of a uniform fixed value boundary condition.
+    Enables the specification of a zero fixed value boundary condition.
 
     Example of the boundary condition specification:
     \verbatim
     inlet
     {
-        type            uniformFixedValue;
-        uniformValue    constant 0.2;
+        type            zeroFixedValue;
     }
     \endverbatim
 
-    The uniformValue entry is a DataEntry type, able to describe time
-    varying functions.  The example above gives the usage for supplying a
-    constant value.
-
 SourceFiles
-    uniformFixedValuePointPatchField.C
+    zeroFixedValuePointPatchField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef uniformFixedValuePointPatchField_H
-#define uniformFixedValuePointPatchField_H
+#ifndef zeroFixedValuePointPatchField_H
+#define zeroFixedValuePointPatchField_H
 
 #include "fixedValuePointPatchField.H"
-#include "DataEntry.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -57,36 +51,32 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-          Class uniformFixedValuePointPatchField Declaration
+          Class zeroFixedValuePointPatchField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
-class uniformFixedValuePointPatchField
+class zeroFixedValuePointPatchField
 :
     public fixedValuePointPatchField<Type>
 {
-    // Private data
-
-        autoPtr<DataEntry<Type> > uniformValue_;
-
 
 public:
 
     //- Runtime type information
-    TypeName("uniformFixedValue");
+    TypeName("zeroFixedValue");
 
 
     // Constructors
 
         //- Construct from patch and internal field
-        uniformFixedValuePointPatchField
+        zeroFixedValuePointPatchField
         (
             const pointPatch&,
             const DimensionedField<Type, pointMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        uniformFixedValuePointPatchField
+        zeroFixedValuePointPatchField
         (
             const pointPatch&,
             const DimensionedField<Type, pointMesh>&,
@@ -94,18 +84,18 @@ public:
         );
 
         //- Construct by mapping given patchField<Type> onto a new patch
-        uniformFixedValuePointPatchField
+        zeroFixedValuePointPatchField
         (
-            const uniformFixedValuePointPatchField<Type>&,
+            const zeroFixedValuePointPatchField<Type>&,
             const pointPatch&,
             const DimensionedField<Type, pointMesh>&,
             const pointPatchFieldMapper&
         );
 
         //- Construct as copy
-        uniformFixedValuePointPatchField
+        zeroFixedValuePointPatchField
         (
-            const uniformFixedValuePointPatchField<Type>&
+            const zeroFixedValuePointPatchField<Type>&
         );
 
         //- Construct and return a clone
@@ -113,7 +103,7 @@ public:
         {
             return autoPtr<pointPatchField<Type> >
             (
-                new uniformFixedValuePointPatchField<Type>
+                new zeroFixedValuePointPatchField<Type>
                 (
                     *this
                 )
@@ -121,9 +111,9 @@ public:
         }
 
         //- Construct as copy setting internal field reference
-        uniformFixedValuePointPatchField
+        zeroFixedValuePointPatchField
         (
-            const uniformFixedValuePointPatchField<Type>&,
+            const zeroFixedValuePointPatchField<Type>&,
             const DimensionedField<Type, pointMesh>&
         );
 
@@ -136,7 +126,7 @@ public:
         {
             return autoPtr<pointPatchField<Type> >
             (
-                new uniformFixedValuePointPatchField<Type>
+                new zeroFixedValuePointPatchField<Type>
                 (
                     *this,
                     iF
@@ -144,25 +134,6 @@ public:
             );
         }
 
-
-    // Member functions
-
-        // Access
-
-            //- Return the uniform value
-            const DataEntry<Type>& uniformValue() const
-            {
-                return uniformValue_;
-            }
-
-        // Evaluation functions
-
-            //- Update the coefficients associated with the patch field
-            virtual void updateCoeffs();
-
-
-        //- Write
-        virtual void write(Ostream&) const;
 };
 
 
@@ -173,7 +144,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#    include "uniformFixedValuePointPatchField.C"
+#    include "zeroFixedValuePointPatchField.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
