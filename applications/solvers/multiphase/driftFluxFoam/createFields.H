@@ -12,12 +12,12 @@
         mesh
     );
 
-    Info<< "Reading field alpha\n" << endl;
-    volScalarField alpha
+    Info<< "Reading field alpha1\n" << endl;
+    volScalarField alpha1
     (
         IOobject
         (
-            "alpha",
+            "alpha1",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
@@ -25,6 +25,8 @@
         ),
         mesh
     );
+
+    volScalarField alpha2("alpha2", scalar(1) - alpha1);
 
     Info<< "Reading field U\n" << endl;
     volVectorField U
@@ -102,7 +104,7 @@
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        alpha*rhod + (scalar(1) - alpha)*rhoc
+        alpha1*rhod + alpha2*rhoc
     );
     rho.oldTime();
 
@@ -136,7 +138,7 @@
         (
             plasticViscosityCoeff,
             plasticViscosityExponent,
-            alpha
+            alpha1
         )
     );
 

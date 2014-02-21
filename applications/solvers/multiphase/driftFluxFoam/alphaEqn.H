@@ -9,23 +9,25 @@
             fvc::flux
             (
                 phi,
-                alpha,
+                alpha1,
                 alphaScheme
             )
           + fvc::flux
             (
                 phir,
-                alpha,
+                alpha1,
                 alpharScheme
             )
         );
 
-        MULES::explicitSolve(alpha, phi, phiAlpha, 1, 0);
+        MULES::explicitSolve(alpha1, phi, phiAlpha, 1, 0);
     }
 
+    alpha2 = scalar(1) - alpha1;
+
     Info<< "Phase-1 volume fraction = "
-        << alpha.weightedAverage(mesh.Vsc()).value()
-        << "  Min(alpha) = " << min(alpha).value()
-        << "  Max(alpha) = " << max(alpha).value()
+        << alpha1.weightedAverage(mesh.Vsc()).value()
+        << "  Min(alpha) = " << min(alpha1).value()
+        << "  Max(alpha) = " << max(alpha1).value()
         << endl;
 }
