@@ -57,7 +57,7 @@
           - fvm::laplacian(mut/rho, alpha1)
         );
 
-        alpha1Eqn.solve();
+        alpha1Eqn.solve(mesh.solver("alpha1Diffusion"));
 
         phiAlpha += alpha1Eqn.flux();
     }
