@@ -58,7 +58,7 @@ fluxRequired
 {
     default         no;
     p_rgh;
-    alpha;
+    alpha1;
 }
 
 
