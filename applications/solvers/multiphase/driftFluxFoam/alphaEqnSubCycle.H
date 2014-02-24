@@ -50,6 +50,7 @@
 
     // Apply the diffusion term separately to allow implicit solution
     // and boundedness of the explicit advection
+    if (!MULESCorr)
     {
         fvScalarMatrix alpha1Eqn
         (

@@ -17,6 +17,7 @@
                 phi,
                 upwind<scalar>(mesh, phi)
             ).fvmDiv(phi, alpha1)
+          - fvm::laplacian(mut/rho, alpha1)
         );
 
         alpha1Eqn.solve();
