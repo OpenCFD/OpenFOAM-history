@@ -61,13 +61,14 @@
         alpha1Eqn.solve(mesh.solver("alpha1Diffusion"));
 
         phiAlpha += alpha1Eqn.flux();
-    }
+        alpha2 = 1.0 - alpha1;
 
-    Info<< "Phase-1 volume fraction = "
-        << alpha1.weightedAverage(mesh.Vsc()).value()
-        << "  Min(alpha1) = " << min(alpha1).value()
-        << "  Max(alpha1) = " << max(alpha1).value()
-        << endl;
+        Info<< "Phase-1 volume fraction = "
+            << alpha1.weightedAverage(mesh.Vsc()).value()
+            << "  Min(alpha1) = " << min(alpha1).value()
+            << "  Max(alpha1) = " << max(alpha1).value()
+            << endl;
+    }
 
     rhoPhi = phiAlpha*(rho1 - rho2) + phi*rho2;
     rho == alpha1*rho1 + alpha2*rho2;

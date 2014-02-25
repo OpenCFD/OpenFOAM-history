@@ -19,11 +19,11 @@ solvers
 {
     "alpha1.*"
     {
-        nAlphaCorr      5;
+        nAlphaCorr      2;
         nAlphaSubCycles 1;
 
-        MULESCorr       no; //yes;
-        nLimiterIter    5;
+        MULESCorr       yes;
+        nLimiterIter    3;
         alphaApplyPrevCorr  yes;
 
         solver          smoothSolver;
