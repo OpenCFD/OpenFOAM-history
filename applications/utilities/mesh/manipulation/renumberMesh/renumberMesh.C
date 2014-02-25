@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anispulation  |
 -------------------------------------------------------------------------------
 License
@@ -46,6 +46,9 @@ Description
 #include "zeroGradientFvPatchFields.H"
 #include "CuthillMcKeeRenumber.H"
 #include "fvMeshSubset.H"
+#include "cellSet.H"
+#include "faceSet.H"
+#include "pointSet.H"
 
 #ifdef FOAM_USE_ZOLTAN
 #   include "zoltanRenumber.H"
@@ -703,6 +706,7 @@ int main(int argc, char *argv[])
     bool writeMaps = false;
     bool orderPoints = false;
     label blockSize = 0;
+    bool renumberSets = true;
 
     // Construct renumberMethod
     autoPtr<IOdictionary> renumberDictPtr;
@@ -719,7 +723,6 @@ int main(int argc, char *argv[])
         const IOdictionary& renumberDict = renumberDictPtr();
 
         renumberPtr = renumberMethod::New(renumberDict);
-
 
         sortCoupledFaceCells = renumberDict.lookupOrDefault
         (
@@ -763,6 +766,8 @@ int main(int argc, char *argv[])
             Info<< "Writing renumber maps (new to old) to polyMesh." << nl
                 << endl;
         }
+
+        renumberSets = renumberDict.lookupOrDefault("renumberSets", true);
     }
     else
     {
@@ -863,6 +868,54 @@ int main(int argc, char *argv[])
 
     PtrList<surfaceTensorField> stFlds;
     ReadFields(mesh, objects, stFlds);
+
+    // Read sets
+    PtrList<cellSet> cellSets;
+    PtrList<faceSet> faceSets;
+    PtrList<pointSet> pointSets;
+    if (renumberSets)
+    {
+        // Read sets
+        IOobjectList objects(mesh, mesh.facesInstance(), "polyMesh/sets");
+        {
+            IOobjectList cSets(objects.lookupClass(cellSet::typeName));
+            if (cSets.size())
+            {
+                Info<< "Reading cellSets:" << endl;
+                forAllConstIter(IOobjectList, cSets, iter)
+                {
+                    cellSets.append(new cellSet(*iter()));
+                    Info<< "    " << cellSets.last().name() << endl;
+                }
+            }
+        }
+        {
+            IOobjectList fSets(objects.lookupClass(faceSet::typeName));
+            if (fSets.size())
+            {
+                Info<< "Reading faceSets:" << endl;
+                forAllConstIter(IOobjectList, fSets, iter)
+                {
+                    faceSets.append(new faceSet(*iter()));
+                    Info<< "    " << faceSets.last().name() << endl;
+                }
+            }
+        }
+        {
+            IOobjectList pSets(objects.lookupClass(pointSet::typeName));
+            if (pSets.size())
+            {
+                Info<< "Reading pointSets:" << endl;
+                forAllConstIter(IOobjectList, pSets, iter)
+                {
+                    pointSets.append(new pointSet(*iter()));
+                    Info<< "    " << pointSets.last().name() << endl;
+                }
+            }
+        }
+    }
+
+
 
     Info<< endl;
 
@@ -1058,7 +1111,6 @@ int main(int argc, char *argv[])
     mesh.updateMesh(map);
 
     // Update proc maps
-    if (cellProcAddressing.headerOk())
     if
     (
         cellProcAddressing.headerOk()
@@ -1073,7 +1125,6 @@ int main(int argc, char *argv[])
             UIndirectList<label>(cellProcAddressing, map().cellMap())
         );
     }
-    if (faceProcAddressing.headerOk())
     if
     (
         faceProcAddressing.headerOk()
@@ -1104,7 +1155,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-    if (pointProcAddressing.headerOk())
     if
     (
         pointProcAddressing.headerOk()
@@ -1228,7 +1278,6 @@ int main(int argc, char *argv[])
     Info<< "Writing mesh to " << mesh.facesInstance() << endl;
 
     mesh.write();
-    if (cellProcAddressing.headerOk())
     if
     (
         cellProcAddressing.headerOk()
@@ -1238,7 +1287,6 @@ int main(int argc, char *argv[])
         cellProcAddressing.instance() = mesh.facesInstance();
         cellProcAddressing.write();
     }
-    if (faceProcAddressing.headerOk())
     if
     (
         faceProcAddressing.headerOk()
@@ -1248,7 +1296,6 @@ int main(int argc, char *argv[])
         faceProcAddressing.instance() = mesh.facesInstance();
         faceProcAddressing.write();
     }
-    if (pointProcAddressing.headerOk())
     if
     (
         pointProcAddressing.headerOk()
@@ -1258,7 +1305,6 @@ int main(int argc, char *argv[])
         pointProcAddressing.instance() = mesh.facesInstance();
         pointProcAddressing.write();
     }
-    if (boundaryProcAddressing.headerOk())
     if
     (
         boundaryProcAddressing.headerOk()
@@ -1268,7 +1314,6 @@ int main(int argc, char *argv[])
         boundaryProcAddressing.instance() = mesh.facesInstance();
         boundaryProcAddressing.write();
     }
-
 
     if (writeMaps)
     {
@@ -1332,6 +1377,28 @@ int main(int argc, char *argv[])
             ),
             map().pointMap()
         ).write();
+    }
+
+    if (renumberSets)
+    {
+        forAll(cellSets, i)
+        {
+            cellSets[i].updateMesh(map());
+            cellSets[i].instance() = mesh.facesInstance();
+            cellSets[i].write();
+        }
+        forAll(faceSets, i)
+        {
+            faceSets[i].updateMesh(map());
+            faceSets[i].instance() = mesh.facesInstance();
+            faceSets[i].write();
+        }
+        forAll(pointSets, i)
+        {
+            pointSets[i].updateMesh(map());
+            pointSets[i].instance() = mesh.facesInstance();
+            pointSets[i].write();
+        }
     }
 
     Info<< "\nEnd.\n" << endl;
