@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -72,6 +72,24 @@ class snapParameters
 
         const Switch detectNearSurfacesSnap_;
 
+        const Switch detectBaffles_;
+
+        const Switch releasePoints_;
+
+        const Switch stringFeatures_;
+
+        const Switch avoidDiagonal_;
+
+
+        //- How often needs face splitting be run
+        label nFaceSplitInterval_;
+
+        //- When is angle too concave too split
+        scalar concaveAngle_;
+
+        //- When is face-split not sufficiently diagonal
+        scalar minAreaRatio_;
+
 
     // Private Member Functions
 
@@ -123,30 +141,78 @@ public:
                 return nSnap_;
             }
 
-            label nFeatureSnap() const
-            {
-                return nFeatureSnap_;
-            }
 
-            Switch explicitFeatureSnap() const
-            {
-                return explicitFeatureSnap_;
-            }
+            // Surface snapping specific
 
-            Switch implicitFeatureSnap() const
-            {
-                return implicitFeatureSnap_;
-            }
+                Switch detectNearSurfacesSnap() const
+                {
+                    return detectNearSurfacesSnap_;
+                }
 
-            Switch multiRegionFeatureSnap() const
-            {
-                return multiRegionFeatureSnap_;
-            }
 
-            Switch detectNearSurfacesSnap() const
-            {
-                return detectNearSurfacesSnap_;
-            }
+            // Feature edge snapping specific
+
+                label nFeatureSnap() const
+                {
+                    return nFeatureSnap_;
+                }
+
+                Switch explicitFeatureSnap() const
+                {
+                    return explicitFeatureSnap_;
+                }
+
+                Switch implicitFeatureSnap() const
+                {
+                    return implicitFeatureSnap_;
+                }
+
+                Switch multiRegionFeatureSnap() const
+                {
+                    return multiRegionFeatureSnap_;
+                }
+
+                Switch detectBaffles() const
+                {
+                    return detectBaffles_;
+                }
+
+                Switch releasePoints() const
+                {
+                    return releasePoints_;
+                }
+
+                Switch stringFeatures() const
+                {
+                    return stringFeatures_;
+                }
+
+                Switch avoidDiagonal() const
+                {
+                    return avoidDiagonal_;
+                }
+
+
+                // Face splitting
+
+
+                    label nFaceSplitInterval() const
+                    {
+                        return nFaceSplitInterval_;
+                    }
+
+                    scalar concaveAngle() const
+                    {
+                        return concaveAngle_;
+                    }
+
+                    scalar minAreaRatio() const
+                    {
+                        return minAreaRatio_;
+                    }
+
+
+
 
 };
 

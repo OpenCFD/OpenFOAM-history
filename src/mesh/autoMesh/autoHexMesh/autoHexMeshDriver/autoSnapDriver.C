@@ -43,6 +43,7 @@ Description
 #include "unitConversion.H"
 #include "localPointRegion.H"
 #include "PatchTools.H"
+#include "refinementFeatures.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -647,35 +648,6 @@ Foam::autoSnapDriver::autoSnapDriver
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::mapPolyMesh> Foam::autoSnapDriver::mergeZoneBaffles
-(
-    const List<labelPair>& baffles
-)
-{
-    labelList zonedSurfaces =
-        surfaceZonesInfo::getNamedSurfaces(meshRefiner_.surfaces().surfZones());
-
-    autoPtr<mapPolyMesh> map;
-
-    // No need to sync; all processors will have all same zonedSurfaces.
-    label nBaffles = returnReduce(baffles.size(), sumOp<label>());
-    if (zonedSurfaces.size() && nBaffles > 0)
-    {
-        // Merge any baffles
-        Info<< "Converting " << nBaffles << " baffles back into zoned faces ..."
-            << endl;
-
-        map = meshRefiner_.mergeBaffles(baffles);
-
-        Info<< "Converted baffles in = "
-            << meshRefiner_.mesh().time().cpuTimeIncrement()
-            << " s\n" << nl << endl;
-    }
-
-    return map;
-}
-
 
 Foam::scalarField Foam::autoSnapDriver::calcSnapDistance
 (
@@ -2454,10 +2426,45 @@ void Foam::autoSnapDriver::detectWarpedFaces
 }
 
 
+Foam::labelList Foam::autoSnapDriver::getInternalOrBaffleDuplicateFace() const
+{
+    const fvMesh& mesh = meshRefiner_.mesh();
+
+    labelList internalOrBaffleFaceZones;
+    {
+        List<surfaceZonesInfo::faceZoneType> fzTypes(2);
+        fzTypes[0] = surfaceZonesInfo::INTERNAL;
+        fzTypes[1] = surfaceZonesInfo::BAFFLE;
+        internalOrBaffleFaceZones = meshRefiner_.getZones(fzTypes);
+    }
+
+    List<labelPair> baffles
+    (
+        meshRefiner_.subsetBaffles
+        (
+            mesh,
+            internalOrBaffleFaceZones,
+            localPointRegion::findDuplicateFacePairs(mesh)
+        )
+    );
+
+    labelList faceToDuplicate(mesh.nFaces(), -1);
+    forAll(baffles, i)
+    {
+        const labelPair& p = baffles[i];
+        faceToDuplicate[p[0]] = p[1];
+        faceToDuplicate[p[1]] = p[0];
+    }
+
+    return faceToDuplicate;
+}
+
+
 void Foam::autoSnapDriver::doSnap
 (
     const dictionary& snapDict,
     const dictionary& motionDict,
+    const bool mergePatchFaces,
     const scalar featureCos,
     const scalar planarAngle,
     const snapParameters& snapParams
@@ -2469,10 +2476,6 @@ void Foam::autoSnapDriver::doSnap
         << "Morphing phase" << nl
         << "--------------" << nl
         << endl;
-
-    // Get the labels of added patches.
-    labelList adaptPatchIDs(meshRefiner_.meshedPatches());
-
 
     // faceZone handling
     // ~~~~~~~~~~~~~~~~~
@@ -2488,222 +2491,54 @@ void Foam::autoSnapDriver::doSnap
     //
     // internal
     // --------
-    // - baffles: contains all faces on faceZone so
-    //      - mesh checks check across baffles
-    //      - they get back merged into internal faces
+    // - baffles: need to be checked across
     // - duplicateFace: from face to duplicate face. Contains
     //   all faces on faceZone to prevents merging patch faces.
     //
     // baffle
     // ------
-    // - baffles: contains no faces on faceZone since need not be merged/checked
-    //   across
+    // - baffles: no need to be checked across
     // - duplicateFace: contains all faces on faceZone to prevent
     //   merging patch faces.
     //
     // boundary
     // --------
-    // - baffles: contains no faces on faceZone since need not be merged/checked
-    //   across
+    // - baffles: no need to be checked across. Also points get duplicated
+    //            so will no longer be baffles
     // - duplicateFace: contains no faces on faceZone since both sides can
     //   merge faces independently.
 
 
-    // Create baffles (pairs of faces that share the same points)
-    // Baffles stored as owner and neighbour face that have been created.
-    List<labelPair> baffles;
-    meshRefiner_.createZoneBaffles
+
+    // faceZones of type internal
+    const labelList internalFaceZones
     (
-        globalToMasterPatch_,
-        globalToSlavePatch_,
-        baffles
+        meshRefiner_.getZones
+        (
+            List<surfaceZonesInfo::faceZoneType>
+            (
+                1,
+                surfaceZonesInfo::INTERNAL
+            )
+        )
     );
 
-    // Maintain map from face to baffle face (-1 for non-baffle faces). Used
-    // later on to prevent patchface merging if faceType=baffle
-    labelList duplicateFace(mesh.nFaces(), -1);
 
-    forAll(baffles, i)
+    // Create baffles (pairs of faces that share the same points)
+    // Baffles stored as owner and neighbour face that have been created.
     {
-        const labelPair& baffle = baffles[i];
-        duplicateFace[baffle.first()] = baffle.second();
-        duplicateFace[baffle.second()] = baffle.first();
-    }
-
-    // Selectively 'forget' about the baffles, i.e. not check across them
-    // or merge across them.
-    {
-        const faceZoneMesh& fZones = mesh.faceZones();
-        const refinementSurfaces& surfaces = meshRefiner_.surfaces();
-        const PtrList<surfaceZonesInfo>& surfZones = surfaces.surfZones();
-
-        // Determine which
-        //  - faces to remove from list of baffles (so not merge)
-        //  - points to duplicate
-
-        // Per face if is on faceType 'baffle' or 'boundary'
-        labelList filterFace(mesh.nFaces(), -1);
-        label nFilterFaces = 0;
-        // Per point whether it need to be duplicated
-        PackedBoolList duplicatePoint(mesh.nPoints());
-        label nDuplicatePoints = 0;
-        forAll(surfZones, surfI)
-        {
-            const word& faceZoneName = surfZones[surfI].faceZoneName();
-
-            if (faceZoneName.size())
-            {
-                const surfaceZonesInfo::faceZoneType& faceType =
-                    surfZones[surfI].faceType();
-
-                if
-                (
-                    faceType == surfaceZonesInfo::BAFFLE
-                 || faceType == surfaceZonesInfo::BOUNDARY
-                )
-                {
-                    // Filter out all faces for this zone.
-                    label zoneI = fZones.findZoneID(faceZoneName);
-                    const faceZone& fZone = fZones[zoneI];
-                    forAll(fZone, i)
-                    {
-                        label faceI = fZone[i];
-                        filterFace[faceI] = zoneI;
-                        nFilterFaces++;
-                    }
-
-                    if (faceType == surfaceZonesInfo::BOUNDARY)
-                    {
-                        forAll(fZone, i)
-                        {
-                            label faceI = fZone[i];
-
-                            // Allow combining patch faces across this face
-                            duplicateFace[faceI] = -1;
-
-                            const face& f = mesh.faces()[faceI];
-                            forAll(f, fp)
-                            {
-                                if (!duplicatePoint[f[fp]])
-                                {
-                                    duplicatePoint[f[fp]] = 1;
-                                    nDuplicatePoints++;
-                                }
-                            }
-                        }
-                    }
-
-                    Info<< "Surface : " << surfaces.names()[surfI] << nl
-                        << "    faces to become baffle : "
-                        << returnReduce(nFilterFaces, sumOp<label>()) << nl
-                        << "    points to duplicate    : "
-                        << returnReduce(nDuplicatePoints, sumOp<label>())
-                        << endl;
-                }
-            }
-        }
-
-        // Duplicate points only if all points agree
-        syncTools::syncPointList
+        List<labelPair> baffles;
+        labelList originatingFaceZone;
+        meshRefiner_.createZoneBaffles
         (
-            mesh,
-            duplicatePoint,
-            andEqOp<unsigned int>(),    // combine op
-            0u                          // null value
+            identity(mesh.faceZones().size()),
+            baffles,
+            originatingFaceZone
         );
-        // Mark as duplicate (avoids combining patch faces) if one or both
-        syncTools::syncFaceList(mesh, duplicateFace, maxEqOp<label>());
-        // Mark as resulting from baffle/boundary face zone only if both agree
-        syncTools::syncFaceList(mesh, filterFace, minEqOp<label>());
-
-        // Duplicate points
-        if (returnReduce(nDuplicatePoints, sumOp<label>()) > 0)
-        {
-            // Collect all points (recount since syncPointList might have
-            // increased set)
-            nDuplicatePoints = 0;
-            forAll(duplicatePoint, pointI)
-            {
-                if (duplicatePoint[pointI])
-                {
-                    nDuplicatePoints++;
-                }
-            }
-            labelList candidatePoints(nDuplicatePoints);
-            nDuplicatePoints = 0;
-            forAll(duplicatePoint, pointI)
-            {
-                if (duplicatePoint[pointI])
-                {
-                    candidatePoints[nDuplicatePoints++] = pointI;
-                }
-            }
-
-
-            localPointRegion regionSide(mesh, candidatePoints);
-            autoPtr<mapPolyMesh> mapPtr = meshRefiner_.dupNonManifoldPoints
-            (
-                regionSide
-            );
-            meshRefinement::updateList(mapPtr().faceMap(), -1, filterFace);
-            meshRefinement::updateList(mapPtr().faceMap(), -1, duplicateFace);
-
-            // Update baffles and baffle-to-baffle addressing
-
-            const labelList& reverseFaceMap = mapPtr().reverseFaceMap();
-
-            forAll(baffles, i)
-            {
-                labelPair& baffle = baffles[i];
-                baffle.first() = reverseFaceMap[baffle.first()];
-                baffle.second() = reverseFaceMap[baffle.second()];
-            }
-
-            if (debug&meshRefinement::MESH)
-            {
-                const_cast<Time&>(mesh.time())++;
-                Pout<< "Writing duplicatedPoints mesh to time "
-                    << meshRefiner_.timeName()
-                    << endl;
-                meshRefiner_.write
-                (
-                    meshRefinement::debugType(debug),
-                    meshRefinement::writeType
-                    (
-                        meshRefinement::writeLevel()
-                      | meshRefinement::WRITEMESH
-                    ),
-                    mesh.time().path()/"duplicatedPoints"
-                );
-            }
-        }
-
-
-        // Forget about baffles in a BAFFLE/BOUNDARY type zone
-        DynamicList<labelPair> newBaffles(baffles.size());
-        forAll(baffles, i)
-        {
-            const labelPair& baffle = baffles[i];
-            if
-            (
-                filterFace[baffle.first()] == -1
-             && filterFace[baffles[i].second()] == -1
-            )
-            {
-                newBaffles.append(baffle);
-            }
-        }
-
-        if (newBaffles.size() < baffles.size())
-        {
-            //Info<< "Splitting baffles into" << nl
-            //    << "    internal : " << newBaffles.size() << nl
-            //    << "    baffle   : " << baffles.size()-newBaffles.size()
-            //    << nl << endl;
-            baffles.transfer(newBaffles);
-        }
-        Info<< endl;
     }
+
+    // Duplicate points on faceZones of type boundary
+    meshRefiner_.dupNonManifoldBoundaryPoints();
 
 
     bool doFeatures = false;
@@ -2720,6 +2555,12 @@ void Foam::autoSnapDriver::doSnap
 
     bool meshOk = false;
 
+
+    // Get the labels of added patches.
+    labelList adaptPatchIDs(meshRefiner_.meshedPatches());
+
+
+
     {
         autoPtr<indirectPrimitivePatch> ppPtr
         (
@@ -2732,7 +2573,7 @@ void Foam::autoSnapDriver::doSnap
 
 
         // Distance to attract to nearest feature on surface
-        const scalarField snapDist(calcSnapDistance(mesh, snapParams, ppPtr()));
+        scalarField snapDist(calcSnapDistance(mesh, snapParams, ppPtr()));
 
 
         // Construct iterative mesh mover.
@@ -2774,13 +2615,27 @@ void Foam::autoSnapDriver::doSnap
         Info<< "Checked initial mesh in = "
             << mesh.time().cpuTimeIncrement() << " s\n" << nl << endl;
 
+        // Extract baffles across internal faceZones (for checking mesh quality
+        // across
+        labelPairList internalBaffles
+        (
+            meshRefiner_.subsetBaffles
+            (
+                mesh,
+                internalFaceZones,
+                localPointRegion::findDuplicateFacePairs(mesh)
+            )
+        );
+
+
+
         // Pre-smooth patch vertices (so before determining nearest)
         preSmoothPatch
         (
             meshRefiner_,
             snapParams,
             nInitErrors,
-            baffles,
+            internalBaffles,
             meshMoverPtr()
         );
 
@@ -2793,234 +2648,34 @@ void Foam::autoSnapDriver::doSnap
         List<pointConstraint> patchConstraints;
 
 
+        //- Any faces to split
+        DynamicList<label> splitFaces;
+        //- Indices in face to split across
+        DynamicList<labelPair> splits;
+
+
         for (label iter = 0; iter < nFeatIter; iter++)
         {
-            //if (doFeatures && (iter == 0 || iter == nFeatIter/2))
-            //{
-            //    Info<< "Splitting diagonal attractions" << endl;
-            //
-            //    indirectPrimitivePatch& pp = ppPtr();
-            //    motionSmoother& meshMover = meshMoverPtr();
-            //
-            //    // Calculate displacement at every patch point. Insert into
-            //    // meshMover.
-            //    // Calculate displacement at every patch point
-            //    pointField nearestPoint;
-            //    vectorField nearestNormal;
-            //
-            //    if (snapParams.detectNearSurfacesSnap())
-            //    {
-            //        nearestPoint.setSize(pp.nPoints(), vector::max);
-            //        nearestNormal.setSize(pp.nPoints(), vector::zero);
-            //    }
-            //
-            //    vectorField disp = calcNearestSurface
-            //    (
-            //        meshRefiner_,
-            //        snapDist,
-            //        pp,
-            //        nearestPoint,
-            //        nearestNormal
-            //    );
-            //
-            //
-            //    // Override displacement at thin gaps
-            //    if (snapParams.detectNearSurfacesSnap())
-            //    {
-            //        detectNearSurfaces
-            //        (
-            //            Foam::cos(degToRad(planarAngle)),// planar gaps
-            //            pp,
-            //            nearestPoint,   // surfacepoint from nearest test
-            //            nearestNormal,  // surfacenormal from nearest test
-            //
-            //            disp
-            //        );
-            //    }
-            //
-            //    // Override displacement with feature edge attempt
-            //    const label iter = 0;
-            //    calcNearestSurfaceFeature
-            //    (
-            //        snapParams,
-            //        false,   // avoidSnapProblems
-            //        iter,
-            //        featureCos,
-            //        scalar(iter+1)/nFeatIter,
-            //        snapDist,
-            //        disp,
-            //        meshMover,
-            //        patchAttraction,
-            //        patchConstraints
-            //    );
-            //
-            //
-            //    const labelList& bFaces = ppPtr().addressing();
-            //    DynamicList<label> splitFaces(bFaces.size());
-            //    DynamicList<labelPair> splits(bFaces.size());
-            //
-            //    forAll(bFaces, faceI)
-            //    {
-            //        const labelPair split
-            //        (
-            //            findDiagonalAttraction
-            //            (
-            //                ppPtr(),
-            //                patchAttraction,
-            //                patchConstraints,
-            //                faceI
-            //            )
-            //        );
-            //
-            //        if (split != labelPair(-1, -1))
-            //        {
-            //            splitFaces.append(bFaces[faceI]);
-            //            splits.append(split);
-            //        }
-            //    }
-            //
-            //    Info<< "Splitting "
-            //        << returnReduce(splitFaces.size(), sumOp<label>())
-            //        << " faces along diagonal attractions" << endl;
-            //
-            //    autoPtr<mapPolyMesh> mapPtr = meshRefiner_.splitFaces
-            //    (
-            //        splitFaces,
-            //        splits
-            //    );
-            //
-            //    const labelList& faceMap = mapPtr().faceMap();
-            //    meshRefinement::updateList(faceMap, -1, duplicateFace);
-            //    const labelList& reverseFaceMap = mapPtr().reverseFaceMap();
-            //    forAll(baffles, i)
-            //    {
-            //        labelPair& baffle = baffles[i];
-            //        baffle.first() = reverseFaceMap[baffle.first()];
-            //        baffle.second() = reverseFaceMap[baffle.second()];
-            //    }
-            //
-            //    meshMoverPtr.clear();
-            //    ppPtr.clear();
-            //
-            //    ppPtr = meshRefinement::makePatch(mesh, adaptPatchIDs);
-            //    meshMoverPtr.reset
-            //    (
-            //        new motionSmoother
-            //        (
-            //            mesh,
-            //            ppPtr(),
-            //            adaptPatchIDs,
-            //            meshRefinement::makeDisplacementField
-            //            (
-            //                pointMesh::New(mesh),
-            //                adaptPatchIDs
-            //            ),
-            //            motionDict
-            //        )
-            //    );
-            //
-            //    if (debug&meshRefinement::MESH)
-            //    {
-            //        const_cast<Time&>(mesh.time())++;
-            //        Info<< "Writing split diagonal mesh to time "
-            //            << meshRefiner_.timeName() << endl;
-            //        meshRefiner_.write
-            //        (
-            //            meshRefinement::debugType(debug),
-            //            meshRefinement::writeType
-            //            (
-            //                meshRefinement::writeLevel()
-            //              | meshRefinement::WRITEMESH
-            //            ),
-            //            mesh.time().path()/meshRefiner_.timeName()
-            //        );
-            //    }
-            //}
-            //else
-            //if
-            //(
-            //    doFeatures
-            // && (iter == 1 || iter == nFeatIter/2+1 || iter == nFeatIter-1)
-            //)
-            //{
-            //    Info<< "Splitting warped faces" << endl;
-            //
-            //    const labelList& bFaces = ppPtr().addressing();
-            //    DynamicList<label> splitFaces(bFaces.size());
-            //    DynamicList<labelPair> splits(bFaces.size());
-            //
-            //    detectWarpedFaces
-            //    (
-            //        featureCos,
-            //        ppPtr(),
-            //
-            //        splitFaces,
-            //        splits
-            //    );
-            //
-            //    Info<< "Splitting "
-            //        << returnReduce(splitFaces.size(), sumOp<label>())
-            //        << " faces along diagonal to avoid warpage" << endl;
-            //
-            //    autoPtr<mapPolyMesh> mapPtr = meshRefiner_.splitFaces
-            //    (
-            //        splitFaces,
-            //        splits
-            //    );
-            //
-            //    const labelList& faceMap = mapPtr().faceMap();
-            //    meshRefinement::updateList(faceMap, -1, duplicateFace);
-            //    const labelList& reverseFaceMap = mapPtr().reverseFaceMap();
-            //    forAll(baffles, i)
-            //    {
-            //        labelPair& baffle = baffles[i];
-            //        baffle.first() = reverseFaceMap[baffle.first()];
-            //        baffle.second() = reverseFaceMap[baffle.second()];
-            //    }
-            //
-            //    meshMoverPtr.clear();
-            //    ppPtr.clear();
-            //
-            //    ppPtr = meshRefinement::makePatch(mesh, adaptPatchIDs);
-            //    meshMoverPtr.reset
-            //    (
-            //        new motionSmoother
-            //        (
-            //            mesh,
-            //            ppPtr(),
-            //            adaptPatchIDs,
-            //            meshRefinement::makeDisplacementField
-            //            (
-            //                pointMesh::New(mesh),
-            //                adaptPatchIDs
-            //            ),
-            //            motionDict
-            //        )
-            //    );
-            //
-            //    if (debug&meshRefinement::MESH)
-            //    {
-            //        const_cast<Time&>(mesh.time())++;
-            //        Info<< "Writing split warped mesh to time "
-            //            << meshRefiner_.timeName() << endl;
-            //        meshRefiner_.write
-            //        (
-            //            meshRefinement::debugType(debug),
-            //            meshRefinement::writeType
-            //            (
-            //                meshRefinement::writeLevel()
-            //              | meshRefinement::WRITEMESH
-            //            ),
-            //            mesh.time().path()/meshRefiner_.timeName()
-            //        );
-            //    }
-            //}
-
-
-
             Info<< nl
                 << "Morph iteration " << iter << nl
                 << "-----------------" << endl;
+
+            // Splitting iteration?
+            bool doSplit = false;
+            if
+            (
+                doFeatures
+             && snapParams.nFaceSplitInterval() > 0
+             && (
+                    (iter == nFeatIter-1)
+                 || (iter > 0 && (iter%snapParams.nFaceSplitInterval()) == 0)
+                )
+            )
+            {
+                doSplit = true;
+            }
+
+
 
             indirectPrimitivePatch& pp = ppPtr();
             motionSmoother& meshMover = meshMoverPtr();
@@ -3065,18 +2720,26 @@ void Foam::autoSnapDriver::doSnap
             // Override displacement with feature edge attempt
             if (doFeatures)
             {
+                splitFaces.clear();
+                splits.clear();
                 disp = calcNearestSurfaceFeature
                 (
                     snapParams,
-                    true,   // avoidSnapProblems
+                    !doSplit,       // alignMeshEdges
                     iter,
                     featureCos,
                     scalar(iter+1)/nFeatIter,
+
                     snapDist,
                     disp,
+                    nearestNormal,
                     meshMover,
+
                     patchAttraction,
-                    patchConstraints
+                    patchConstraints,
+
+                    splitFaces,
+                    splits
                 );
             }
 
@@ -3108,7 +2771,7 @@ void Foam::autoSnapDriver::doSnap
             (
                 snapParams,
                 nInitErrors,
-                baffles,
+                internalBaffles,
                 meshMover
             );
 
@@ -3148,66 +2811,190 @@ void Foam::autoSnapDriver::doSnap
 
             // Use current mesh as base mesh
             meshMover.correct();
+
+
+
+            // See if any faces need splitting
+            label nTotalSplit = returnReduce(splitFaces.size(), sumOp<label>());
+            if (nTotalSplit && doSplit)
+            {
+                // Filter out baffle faces from faceZones of type
+                // internal/baffle
+
+                labelList duplicateFace(getInternalOrBaffleDuplicateFace());
+
+                {
+                    labelList oldSplitFaces(splitFaces.xfer());
+                    List<labelPair> oldSplits(splits.xfer());
+                    forAll(oldSplitFaces, i)
+                    {
+                        if (duplicateFace[oldSplitFaces[i]] == -1)
+                        {
+                            splitFaces.append(oldSplitFaces[i]);
+                            splits.append(oldSplits[i]);
+                        }
+                    }
+                    nTotalSplit = returnReduce
+                    (
+                        splitFaces.size(),
+                        sumOp<label>()
+                    );
+                }
+
+                // Update mesh
+                meshRefiner_.splitFacesUndo
+                (
+                    splitFaces,
+                    splits,
+                    motionDict,
+
+                    duplicateFace,
+                    internalBaffles
+                );
+
+                // Redo meshMover
+                meshMoverPtr.clear();
+                ppPtr.clear();
+
+                // Update mesh mover
+                ppPtr = meshRefinement::makePatch(mesh, adaptPatchIDs);
+                meshMoverPtr.reset
+                (
+                    new motionSmoother
+                    (
+                        mesh,
+                        ppPtr(),
+                        adaptPatchIDs,
+                        meshRefinement::makeDisplacementField
+                        (
+                            pointMesh::New(mesh),
+                            adaptPatchIDs
+                        ),
+                        motionDict
+                    )
+                );
+
+                // Update snapping distance
+                snapDist = calcSnapDistance(mesh, snapParams, ppPtr());
+
+
+                if (debug&meshRefinement::MESH)
+                {
+                    const_cast<Time&>(mesh.time())++;
+                    Info<< "Writing split-faces mesh to time "
+                        << meshRefiner_.timeName() << endl;
+                    meshRefiner_.write
+                    (
+                        meshRefinement::debugType(debug),
+                        meshRefinement::writeType
+                        (
+                            meshRefinement::writeLevel()
+                          | meshRefinement::WRITEMESH
+                        ),
+                        mesh.time().path()/meshRefiner_.timeName()
+                    );
+                }
+            }
+
+
+            if (debug&meshRefinement::MESH)
+            {
+                forAll(internalBaffles, i)
+                {
+                    const labelPair& p = internalBaffles[i];
+                    const point& fc0 = mesh.faceCentres()[p[0]];
+                    const point& fc1 = mesh.faceCentres()[p[1]];
+
+                    if (mag(fc0-fc1) > meshRefiner_.mergeDistance())
+                    {
+                        FatalErrorIn("autoSnapDriver::doSnap(..)")
+                            << "Separated baffles : f0:" << p[0]
+                            << " centre:" << fc0
+                            << " f1:" << p[1] << " centre:" << fc1
+                            << " distance:" << mag(fc0-fc1)
+                            << exit(FatalError);
+                    }
+                }
+            }
         }
     }
 
 
     // Merge any introduced baffles (from faceZones of faceType 'internal')
     {
-        autoPtr<mapPolyMesh> mapPtr = mergeZoneBaffles(baffles);
+        autoPtr<mapPolyMesh> mapPtr = meshRefiner_.mergeZoneBaffles
+        (
+            true,   // internal zones
+            false   // baffle zones
+        );
 
         if (mapPtr.valid())
         {
-            forAll(duplicateFace, faceI)
+            if (debug & meshRefinement::MESH)
             {
-                if (duplicateFace[faceI] != -1)
-                {
-                    duplicateFace[faceI] = mapPtr().reverseFaceMap()[faceI];
-                }
+                const_cast<Time&>(mesh.time())++;
+                Info<< "Writing baffle-merged mesh to time "
+                    << meshRefiner_.timeName() << endl;
+                meshRefiner_.write
+                (
+                    meshRefinement::debugType(debug),
+                    meshRefinement::writeType
+                    (
+                        meshRefinement::writeLevel()
+                      | meshRefinement::WRITEMESH
+                    ),
+                    meshRefiner_.timeName()
+                );
             }
         }
     }
 
     // Repatch faces according to nearest. Do not repatch baffle faces.
     {
-        autoPtr<mapPolyMesh> mapPtr = repatchToSurface
-        (
-            snapParams,
-            adaptPatchIDs,
-            duplicateFace
-        );
-        meshRefinement::updateList(mapPtr().faceMap(), -1, duplicateFace);
+        labelList duplicateFace(getInternalOrBaffleDuplicateFace());
+
+        repatchToSurface(snapParams, adaptPatchIDs, duplicateFace);
     }
 
-    // Repatching might have caused faces to be on same patch and hence
-    // mergeable so try again to merge coplanar faces. Do not merge baffle
-    // faces to ensure they both stay the same.
-    label nChanged = meshRefiner_.mergePatchFacesUndo
-    (
-        featureCos,     // minCos
-        featureCos,     // concaveCos
-        meshRefiner_.meshedPatches(),
-        motionDict,
-        duplicateFace   // faces not to merge
-    );
+    if (mergePatchFaces)
+    {
+        labelList duplicateFace(getInternalOrBaffleDuplicateFace());
 
-    nChanged += meshRefiner_.mergeEdgesUndo(featureCos, motionDict);
+        // Repatching might have caused faces to be on same patch and hence
+        // mergeable so try again to merge coplanar faces. Do not merge baffle
+        // faces to ensure they both stay the same.
+        label nChanged = meshRefiner_.mergePatchFacesUndo
+        (
+            featureCos,     // minCos
+            featureCos,     // concaveCos
+            meshRefiner_.meshedPatches(),
+            motionDict,
+            duplicateFace   // faces not to merge
+        );
 
-    if (nChanged > 0 && debug & meshRefinement::MESH)
+        nChanged += meshRefiner_.mergeEdgesUndo(featureCos, motionDict);
+
+        if (nChanged > 0 && debug & meshRefinement::MESH)
+        {
+            const_cast<Time&>(mesh.time())++;
+            Info<< "Writing patchFace merged mesh to time "
+                << meshRefiner_.timeName() << endl;
+            meshRefiner_.write
+            (
+                meshRefinement::debugType(debug),
+                meshRefinement::writeType
+                (
+                    meshRefinement::writeLevel()
+                  | meshRefinement::WRITEMESH
+                ),
+                meshRefiner_.timeName()
+            );
+        }
+    }
+
+    if (debug & meshRefinement::MESH)
     {
         const_cast<Time&>(mesh.time())++;
-        Info<< "Writing patchFace merged mesh to time "
-            << meshRefiner_.timeName() << endl;
-        meshRefiner_.write
-        (
-            meshRefinement::debugType(debug),
-            meshRefinement::writeType
-            (
-                meshRefinement::writeLevel()
-              | meshRefinement::WRITEMESH
-            ),
-            meshRefiner_.timeName()
-        );
     }
 }
 

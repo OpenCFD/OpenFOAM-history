@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -107,7 +107,6 @@ private:
 
         //- From surface region to patch
         const labelList globalToSlavePatch_;
-
 
 
     // Private Member Functions
@@ -371,6 +370,14 @@ private:
                     const List<extrudeMode>& extrudeStatus
                 );
 
+                //- After adding to mesh get the new baffles
+                static List<labelPair> getBafflesOnAddedMesh
+                (
+                    const polyMesh& mesh,
+                    const labelList& newToOldFaces,
+                    const List<labelPair>& baffles
+                );
+
                 //- Collect layer faces and layer cells into bools
                 //  for ease of handling
                 static void getLayerCellsFaces
@@ -394,6 +401,15 @@ private:
                 ) const;
 
                 //- Write cellSet,faceSet for layers
+                bool writeLayerSets
+                (
+                    const fvMesh& mesh,
+                    const labelList& cellNLayers,
+                    const scalarField& faceRealThickness
+                ) const;
+
+                //- Write volFields,cellSet,faceSet for layers depending
+                //  on write level
                 bool writeLayerData
                 (
                     const fvMesh& mesh,
@@ -596,6 +612,7 @@ public:
                 const dictionary& shrinkDict,
                 const dictionary& motionDict,
                 const layerParameters& layerParams,
+                const bool mergePatchFaces,         // merging patch faces
                 const bool preBalance,              // balance before adding?
                 decompositionMethod& decomposer,
                 fvMeshDistribute& distributor
