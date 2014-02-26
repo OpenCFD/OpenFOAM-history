@@ -17,7 +17,12 @@
                 phi,
                 upwind<scalar>(mesh, phi)
             ).fvmDiv(phi, alpha1)
-          - fvm::laplacian(mut/rho, alpha1)
+          - fv::gaussLaplacianScheme<scalar, scalar>
+            (
+                mesh,
+                linear<scalar>(mesh),
+                fv::uncorrectedSnGrad<scalar>(mesh)
+            ).fvmLaplacian(fvc::interpolate(mut/rho), alpha1)
         );
 
         alpha1Eqn.solve();
@@ -33,7 +38,7 @@
 
         if (alphaApplyPrevCorr && tphiAlphaCorr0.valid())
         {
-            Info<< "Applying the previous iteration compression flux" << endl;
+            Info<< "Applying the previous iteration correction flux" << endl;
             #ifdef LTSSOLVE
             MULES::LTScorrect(alpha1, phiAlpha, tphiAlphaCorr0(), 1, 0);
             #else
@@ -45,8 +50,6 @@
 
         // Cache the upwind-flux
         tphiAlphaCorr0 = tphiAlphaUD;
-
-        alpha2 = 1.0 - alpha1;
     }
 
     for (int aCorr=0; aCorr<nAlphaCorr; aCorr++)
@@ -99,14 +102,14 @@
             MULES::explicitSolve(alpha1, phi, phiAlpha, 1, 0);
             #endif
         }
-
-        alpha2 = 1.0 - alpha1;
     }
 
     if (alphaApplyPrevCorr && MULESCorr)
     {
         tphiAlphaCorr0 = phiAlpha - tphiAlphaCorr0;
     }
+
+    alpha2 = 1.0 - alpha1;
 
     Info<< "Phase-1 volume fraction = "
         << alpha1.weightedAverage(mesh.Vsc()).value()

@@ -176,6 +176,18 @@ public:
             const word& patchType
         );
 
+        //- Construct from components
+        polyPatch
+        (
+            const word& name,
+            const label size,
+            const label start,
+            const label index,
+            const polyBoundaryMesh& bm,
+            const word& physicalType,
+            const wordList& inGroups
+        );
+
         //- Construct from dictionary
         polyPatch
         (
