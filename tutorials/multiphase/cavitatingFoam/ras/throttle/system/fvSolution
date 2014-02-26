@@ -33,7 +33,6 @@ solvers
         relTol          0;
     }
 
-
     p
     {
         solver          GAMG;
@@ -76,6 +75,14 @@ PIMPLE
 {
     nCorrectors     3;
     nNonOrthogonalCorrectors 0;
+}
+
+relaxationFactors
+{
+    equations
+    {
+        ".*" 1;
+    }
 }
 
 
