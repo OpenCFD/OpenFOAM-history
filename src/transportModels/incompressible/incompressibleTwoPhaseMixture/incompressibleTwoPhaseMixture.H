@@ -124,6 +124,12 @@ public:
             return rho2_;
         };
 
+        //- Return const-access to the mixture velocity
+        const volVectorField& U() const
+        {
+            return U_;
+        }
+
         //- Return the dynamic laminar viscosity
         tmp<volScalarField> mu() const;
 
