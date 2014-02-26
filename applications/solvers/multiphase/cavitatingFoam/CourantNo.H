@@ -37,7 +37,7 @@ if (mesh.nInternalFaces())
 {
     scalarField sumPhi
     (
-        fvc::surfaceSum(mag(phiv))().internalField()
+        fvc::surfaceSum(mag(phi))().internalField()
     );
 
     CoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
@@ -54,7 +54,7 @@ if (mesh.nInternalFaces())
     )*runTime.deltaTValue();
 }
 
-Info<< "phiv Courant Number mean: " << meanCoNum
+Info<< "phi Courant Number mean: " << meanCoNum
     << " max: " << CoNum
     << " acoustic max: " << acousticCoNum
     << endl;

@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     #include "readControls.H"
     #include "createFields.H"
     #include "initContinuityErrs.H"
-    #include "compressibleCourantNo.H"
+    #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
     pimpleControl pimple(mesh);
