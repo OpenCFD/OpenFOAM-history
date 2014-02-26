@@ -9,45 +9,38 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    class       volScalarField;
+    object      p_rgh;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-5
-(
-    leftWall
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    //- Set patchGroups for constraint patches
+    #include "${WM_PROJECT_DIR}/etc/caseDicts/setConstraintTypes"
+
+    wall
     {
-        type            wall;
-        nFaces          50;
-        startFace       4432;
+        type            fixedFluxPressure;
+        phi             phiAbs;
+        value           uniform 0;
     }
-    rightWall
+
+    upperWall
     {
-        type            wall;
-        nFaces          50;
-        startFace       4482;
+        type            totalPressure;
+        p0              uniform 0;
+        U               U;
+        phi             phi;
+        rho             rho;
+        psi             none;
+        gamma           1;
+        value           uniform 0;
     }
-    lowerWall
-    {
-        type            wall;
-        nFaces          62;
-        startFace       4532;
-    }
-    atmosphere
-    {
-        type            patch;
-        nFaces          46;
-        startFace       4594;
-    }
-    defaultFaces
-    {
-        type            empty;
-        inGroups        1(empty);
-        nFaces          4536;
-        startFace       4640;
-    }
-)
+}
 
 // ************************************************************************* //

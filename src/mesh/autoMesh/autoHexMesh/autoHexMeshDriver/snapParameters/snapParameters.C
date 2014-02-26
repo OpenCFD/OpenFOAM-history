@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,7 +44,17 @@ Foam::snapParameters::snapParameters(const dictionary& dict)
     detectNearSurfacesSnap_
     (
         dict.lookupOrDefault("detectNearSurfacesSnap", true)
-    )
+    ),
+    detectBaffles_(dict.lookupOrDefault("detectBaffles", true)),
+    releasePoints_(dict.lookupOrDefault("releasePoints", false)),
+    stringFeatures_(dict.lookupOrDefault("stringFeatures", true)),
+    avoidDiagonal_(dict.lookupOrDefault("avoidDiagonal", false)),
+    nFaceSplitInterval_
+    (
+        dict.lookupOrDefault("nFaceSplitInterval", labelMin)
+    ),
+    concaveAngle_(dict.lookupOrDefault("concaveAngle", 45)),
+    minAreaRatio_(dict.lookupOrDefault("minAreaRatio", 0.3))
 {}
 
 

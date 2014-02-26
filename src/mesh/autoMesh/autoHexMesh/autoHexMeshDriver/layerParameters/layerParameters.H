@@ -114,6 +114,8 @@ private:
 
         scalar featureAngle_;
 
+        scalar mergePatchFacesAngle_;
+
         scalar concaveAngle_;
 
         label nGrow_;
@@ -245,6 +247,11 @@ public:
             scalar featureAngle() const
             {
                 return featureAngle_;
+            }
+
+            scalar mergePatchFacesAngle() const
+            {
+                return mergePatchFacesAngle_;
             }
 
             scalar concaveAngle() const
