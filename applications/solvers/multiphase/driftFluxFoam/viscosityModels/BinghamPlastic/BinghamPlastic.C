@@ -63,13 +63,13 @@ Foam::viscosityModels::BinghamPlastic::correctionNu
            *(
                 pow
                 (
-                    (scalar)10,
+                    scalar(10),
                     yieldStressExponent_
-                   *(max(alpha_, (scalar)0) + yieldStressOffset_)
+                   *(max(alpha_, scalar(0)) + yieldStressOffset_)
                 )
               - pow
                 (
-                    (scalar)10,
+                    scalar(10),
                     yieldStressExponent_*yieldStressOffset_
                 )
             )

@@ -120,9 +120,9 @@ Foam::viscosityModels::plastic::correctionNu
        *(
             pow
             (
-                (scalar)10,
+                scalar(10),
                 plasticViscosityExponent_*alpha_
-            ) - (scalar)1
+            ) - scalar(1)
         );
 }
 

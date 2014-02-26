@@ -66,7 +66,7 @@ Foam::relativeVelocityModels::simple::Ur() const
 {
     return
         V0_
-       *pow((scalar)10, -a_*max(alphaD_, (scalar)0))
+       *pow(scalar(10), -a_*max(alphaD_, scalar(0)))
        /max(alphaC_, residualAlpha_);
 }
 
