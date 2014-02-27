@@ -1121,6 +1121,38 @@ int main(int argc, char *argv[])
     );
 
 
+    // Refinement parameters
+    const refinementParameters refineParams(refineDict);
+
+    // Snap parameters
+    const snapParameters snapParams(snapDict);
+
+
+
+    // Add all the cellZones and faceZones
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // 1. cellZones relating to surface (faceZones added later)
+
+    const labelList namedSurfaces
+    (
+        surfaceZonesInfo::getNamedSurfaces(surfaces.surfZones())
+    );
+
+    labelList surfaceToCellZone = surfaceZonesInfo::addCellZonesToMesh
+    (
+        surfaces.surfZones(),
+        namedSurfaces,
+        mesh
+    );
+
+
+    // 2. cellZones relating to locations
+
+    refineParams.addCellZonesToMesh(mesh);
+
+
+
     // Add all the surface regions as patches
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1128,6 +1160,8 @@ int main(int argc, char *argv[])
     //  (faceZone surfaces)
     labelList globalToMasterPatch;
     labelList globalToSlavePatch;
+
+
     {
         Info<< nl
             << "Adding patches for surface regions" << nl
@@ -1148,6 +1182,7 @@ int main(int argc, char *argv[])
 
         const labelList& surfaceGeometry = surfaces.surfaces();
         const PtrList<dictionary>& surfacePatchInfo = surfaces.patchInfo();
+        const polyBoundaryMesh& pbm = mesh.boundaryMesh();
 
         forAll(surfaceGeometry, surfI)
         {
@@ -1157,7 +1192,9 @@ int main(int argc, char *argv[])
 
             Info<< surfaces.names()[surfI] << ':' << nl << nl;
 
-            if (surfaces.surfZones()[surfI].faceZoneName().empty())
+            const word& fzName = surfaces.surfZones()[surfI].faceZoneName();
+
+            if (fzName.empty())
             {
                 // 'Normal' surface
                 forAll(regNames, i)
@@ -1188,7 +1225,7 @@ int main(int argc, char *argv[])
 
                     Info<< setf(ios_base::left)
                         << setw(6) << patchI
-                        << setw(20) << mesh.boundaryMesh()[patchI].type()
+                        << setw(20) << pbm[patchI].type()
                         << setw(30) << regNames[i] << nl;
 
                     globalToMasterPatch[globalRegionI] = patchI;
@@ -1228,7 +1265,7 @@ int main(int argc, char *argv[])
 
                         Info<< setf(ios_base::left)
                             << setw(6) << patchI
-                            << setw(20) << mesh.boundaryMesh()[patchI].type()
+                            << setw(20) << pbm[patchI].type()
                             << setw(30) << regNames[i] << nl;
 
                         globalToMasterPatch[globalRegionI] = patchI;
@@ -1260,11 +1297,26 @@ int main(int argc, char *argv[])
 
                         Info<< setf(ios_base::left)
                             << setw(6) << patchI
-                            << setw(20) << mesh.boundaryMesh()[patchI].type()
+                            << setw(20) << pbm[patchI].type()
                             << setw(30) << slaveName << nl;
 
                         globalToSlavePatch[globalRegionI] = patchI;
                     }
+                }
+
+                // For now: have single faceZone per surface. Use first
+                // region in surface for patch for zoneing
+                if (regNames.size())
+                {
+                    label globalRegionI = surfaces.globalRegion(surfI, 0);
+
+                    meshRefiner.addFaceZone
+                    (
+                        fzName,
+                        pbm[globalToMasterPatch[globalRegionI]].name(),
+                        pbm[globalToSlavePatch[globalRegionI]].name(),
+                        surfaces.surfZones()[surfI].faceType()
+                    );
                 }
             }
 
@@ -1273,6 +1325,73 @@ int main(int argc, char *argv[])
         Info<< "Added patches in = "
             << mesh.time().cpuTimeIncrement() << " s" << nl << endl;
     }
+
+
+
+    // Add all information for all the remaining faceZones
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    wordPairHashTable zonesToFaceZone;
+    forAll(mesh.faceZones(), zoneI)
+    {
+        const word& fzName = mesh.faceZones()[zoneI].name();
+
+        label mpI, spI;
+        surfaceZonesInfo::faceZoneType fzType;
+        bool hasInfo = meshRefiner.getFaceZoneInfo(fzName, mpI, spI, fzType);
+
+        if (!hasInfo)
+        {
+            // faceZone does not originate from a surface but presumably
+            // from a cellZone pair instead
+            string::size_type i = fzName.find("_to_");
+            if (i != string::npos)
+            {
+                word cz0 = fzName.substr(0, i);
+                word cz1 = fzName.substr(i+4, fzName.size()-i+4);
+                zonesToFaceZone.insert(Pair<word>(cz0, cz1), fzName);
+            }
+        }
+    }
+
+    if (zonesToFaceZone.size())
+    {
+        autoRefineDriver::addFaceZones
+        (
+            meshRefiner,
+            refineParams,
+            zonesToFaceZone
+        );
+    }
+
+
+
+    // Re-do intersections on meshed boundaries since they use an extrapolated
+    // other side
+    {
+        const labelList adaptPatchIDs(meshRefiner.meshedPatches());
+
+        const polyBoundaryMesh& pbm = mesh.boundaryMesh();
+
+        label nFaces = 0;
+        forAll(adaptPatchIDs, i)
+        {
+            nFaces += pbm[adaptPatchIDs[i]].size();
+        }
+
+        labelList faceLabels(nFaces);
+        nFaces = 0;
+        forAll(adaptPatchIDs, i)
+        {
+            const polyPatch& pp = pbm[adaptPatchIDs[i]];
+            forAll(pp, i)
+            {
+                faceLabels[nFaces++] = pp.start()+i;
+            }
+        }
+        meshRefiner.updateIntersections(faceLabels);
+    }
+
 
 
     // Parallel
@@ -1312,14 +1431,13 @@ int main(int argc, char *argv[])
     const Switch wantSnap(meshDict.lookup("snap"));
     const Switch wantLayers(meshDict.lookup("addLayers"));
 
-    // Refinement parameters
-    const refinementParameters refineParams(refineDict);
+    const Switch keepHex(meshDict.lookupOrDefault("keepHex", false));
 
-    // Snap parameters
-    const snapParameters snapParams(snapDict);
-
-    // Layer addition parameters
-    const layerParameters layerParams(layerDict, mesh.boundaryMesh());
+    if (keepHex)
+    {
+        Info<< "Avoiding generating non-(split)hex cells." << nl
+            << endl;
+    }
 
 
     if (wantRefine)
@@ -1348,6 +1466,7 @@ int main(int argc, char *argv[])
             refineParams,
             snapParams,
             refineParams.handleSnapProblems(),
+            keepHex,        // keepHex
             motionDict
         );
 
@@ -1387,6 +1506,7 @@ int main(int argc, char *argv[])
         (
             snapDict,
             motionDict,
+            !keepHex,       // mergePatchFaces
             curvature,
             planarAngle,
             snapParams
@@ -1407,6 +1527,9 @@ int main(int argc, char *argv[])
     if (wantLayers)
     {
         cpuTime timer;
+
+        // Layer addition parameters
+        const layerParameters layerParams(layerDict, mesh.boundaryMesh());
 
         autoLayerDriver layerDriver
         (
@@ -1433,6 +1556,7 @@ int main(int argc, char *argv[])
             layerDict,
             motionDict,
             layerParams,
+            !keepHex,       //mergePatchFaces
             preBalance,
             decomposer,
             distributor

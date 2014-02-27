@@ -38,6 +38,7 @@ License
 #include "indexedOctree.H"
 #include "snapParameters.H"
 #include "PatchTools.H"
+#include "pyramidPointFaceRef.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -222,8 +223,8 @@ void Foam::autoSnapDriver::calcNearestFace
     const scalarField& faceSnapDist,
     vectorField& faceDisp,
     vectorField& faceSurfaceNormal,
-    labelList& faceSurfaceGlobalRegion,
-    vectorField& faceRotation
+    labelList& faceSurfaceGlobalRegion
+    //vectorField& faceRotation
 ) const
 {
     const fvMesh& mesh = meshRefiner_.mesh();
@@ -407,38 +408,38 @@ void Foam::autoSnapDriver::calcNearestFace
     }
 
 
-    // Determine rotation
-    // ~~~~~~~~~~~~~~~~~~
-
-    // Determine rotation axis
-    faceRotation.setSize(pp.size());
-    faceRotation = vector::zero;
-
-    forAll(faceRotation, faceI)
-    {
-        // Note: extend to >180 degrees checking
-        faceRotation[faceI] =
-            pp.faceNormals()[faceI]
-          ^ faceSurfaceNormal[faceI];
-    }
-
-    if (debug&meshRefinement::ATTRACTION)
-    {
-        dumpMove
-        (
-            mesh.time().path()
-          / "faceDisp_" + name(iter) + ".obj",
-            pp.faceCentres(),
-            pp.faceCentres() + faceDisp
-        );
-        dumpMove
-        (
-            mesh.time().path()
-          / "faceRotation_" + name(iter) + ".obj",
-            pp.faceCentres(),
-            pp.faceCentres() + faceRotation
-        );
-    }
+    //// Determine rotation
+    //// ~~~~~~~~~~~~~~~~~~
+    //
+    //// Determine rotation axis
+    //faceRotation.setSize(pp.size());
+    //faceRotation = vector::zero;
+    //
+    //forAll(faceRotation, faceI)
+    //{
+    //    // Note: extend to >180 degrees checking
+    //    faceRotation[faceI] =
+    //        pp.faceNormals()[faceI]
+    //      ^ faceSurfaceNormal[faceI];
+    //}
+    //
+    //if (debug&meshRefinement::ATTRACTION)
+    //{
+    //    dumpMove
+    //    (
+    //        mesh.time().path()
+    //      / "faceDisp_" + name(iter) + ".obj",
+    //        pp.faceCentres(),
+    //        pp.faceCentres() + faceDisp
+    //    );
+    //    dumpMove
+    //    (
+    //        mesh.time().path()
+    //      / "faceRotation_" + name(iter) + ".obj",
+    //        pp.faceCentres(),
+    //        pp.faceCentres() + faceRotation
+    //    );
+    //}
 }
 
 
@@ -823,6 +824,56 @@ Foam::pointIndexHit Foam::autoSnapDriver::findMultiPatchPoint
 }
 
 
+void Foam::autoSnapDriver::writeStats
+(
+    const indirectPrimitivePatch& pp,
+    const PackedBoolList& isMasterPoint,
+    const List<pointConstraint>& patchConstraints
+) const
+{
+    const labelList& meshPoints = pp.meshPoints();
+
+    label nMasterPoints = 0;
+    label nPlanar = 0;
+    label nEdge = 0;
+    label nPoint = 0;
+
+    forAll(patchConstraints, pointI)
+    {
+        if (isMasterPoint[meshPoints[pointI]])
+        {
+            nMasterPoints++;
+
+            if (patchConstraints[pointI].first() == 1)
+            {
+                nPlanar++;
+            }
+            else if (patchConstraints[pointI].first() == 2)
+            {
+                nEdge++;
+            }
+            else if (patchConstraints[pointI].first() == 3)
+            {
+                nPoint++;
+            }
+        }
+    }
+
+    reduce(nMasterPoints, sumOp<label>());
+    reduce(nPlanar, sumOp<label>());
+    reduce(nEdge, sumOp<label>());
+    reduce(nPoint, sumOp<label>());
+    Info<< "total master points :" << nMasterPoints
+        << " of which attracted to :" << nl
+        << "    feature point   : " << nPoint << nl
+        << "    feature edge    : " << nEdge << nl
+        << "    nearest surface : " << nPlanar << nl
+        << "    rest            : " << nMasterPoints-nPoint-nEdge-nPlanar
+        << nl
+        << endl;
+}
+
+
 void Foam::autoSnapDriver::featureAttractionUsingReconstruction
 (
     const label iter,
@@ -1019,7 +1070,6 @@ void Foam::autoSnapDriver::featureAttractionUsingReconstruction
 void Foam::autoSnapDriver::featureAttractionUsingReconstruction
 (
     const label iter,
-    const bool avoidSnapProblems,
     const scalar featureCos,
 
     const indirectPrimitivePatch& pp,
@@ -1443,7 +1493,6 @@ void Foam::autoSnapDriver::releasePointsNextToMultiPatch
 }
 
 
-// If only two attractions and across face return the face indices
 Foam::labelPair Foam::autoSnapDriver::findDiagonalAttraction
 (
     const indirectPrimitivePatch& pp,
@@ -1460,50 +1509,424 @@ Foam::labelPair Foam::autoSnapDriver::findDiagonalAttraction
 
     if (f.size() >= 4)
     {
-        forAll(f, fp)
+        for (label startFp = 0; startFp < f.size()-2; startFp++)
         {
-            label pointI = f[fp];
-            if (patchConstraints[pointI].first() >= 2)
+            label minFp = f.rcIndex(startFp);
+
+            for
+            (
+                label endFp = f.fcIndex(f.fcIndex(startFp));
+                endFp < f.size() && endFp != minFp;
+                endFp++
+            )
             {
-                // Attract to feature edge or point
-                if (attractIndices[0] == -1)
+                if
+                (
+                    patchConstraints[f[startFp]].first() >= 2
+                 && patchConstraints[f[endFp]].first() >= 2
+                )
                 {
-                    // First attraction. Store
-                    attractIndices[0] = fp;
-                }
-                else if (attractIndices[1] == -1)
-                {
-                    // Second attraction. Check if not consecutive to first
-                    // attraction
-                    label fp0 = attractIndices[0];
-                    if (f.fcIndex(fp0) == fp || f.fcIndex(fp) == fp0)
-                    {
-                        // Consecutive. Skip.
-                        attractIndices = labelPair(-1, -1);
-                        break;
-                    }
-                    else
-                    {
-                        attractIndices[1] = fp;
-                    }
-                }
-                else
-                {
-                    // More than two attractions. Skip.
-                    attractIndices = labelPair(-1, -1);
+                    attractIndices = labelPair(startFp, endFp);
                     break;
                 }
             }
         }
+    }
+    return attractIndices;
+}
 
 
-        if (attractIndices[1] == -1)
+bool Foam::autoSnapDriver::isSplitAlignedWithFeature
+(
+    const scalar featureCos,
+    const point& p0,
+    const pointConstraint& pc0,
+    const point& p1,
+    const pointConstraint& pc1
+) const
+{
+    vector d(p1-p0);
+    scalar magD = mag(d);
+    if (magD < VSMALL)
+    {
+        // Two diagonal points already colocated?
+        return false;
+    }
+    else
+    {
+        d /= magD;
+
+        // Is diagonal d aligned with at least one of the feature
+        // edges?
+
+        if (pc0.first() == 2 && mag(d & pc0.second()) > featureCos)
         {
-            // Found only one attraction. Skip.
-            attractIndices = labelPair(-1, -1);
+            return true;
+        }
+        else if (pc1.first() == 2 && mag(d & pc1.second()) > featureCos)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
+
+
+// Is situation very concave
+bool Foam::autoSnapDriver::isConcave
+(
+    const point& c0,
+    const vector& area0,
+    const point& c1,
+    const vector& area1,
+    const scalar concaveCos
+) const
+{
+    vector n0 = area0;
+    scalar magN0 = mag(n0);
+    if (magN0 < VSMALL)
+    {
+        // Zero area face. What to return? For now disable splitting.
+        return true;
+    }
+    n0 /= magN0;
+
+    // Distance from c1 to plane of face0
+    scalar d = (c1-c0)&n0;
+
+    if (d <= 0)
+    {
+        // Convex (face1 centre on 'inside' of face0)
+        return false;
+    }
+    else
+    {
+        // Is a bit or very concave?
+        vector n1 = area1;
+        scalar magN1 = mag(n1);
+        if (magN1 < VSMALL)
+        {
+            // Zero area face. See above
+            return true;
+        }
+        n1 /= magN1;
+
+        if ((n0&n1) < concaveCos)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
+
+
+Foam::labelPair Foam::autoSnapDriver::findDiagonalAttraction
+(
+    const scalar featureCos,
+    const scalar concaveCos,
+    const scalar minAreaRatio,
+    const indirectPrimitivePatch& pp,
+    const vectorField& patchAttr,
+    const List<pointConstraint>& patchConstraints,
+    const vectorField& nearestAttr,
+    const vectorField& nearestNormal,
+    const label faceI,
+
+    DynamicField<point>& points0,
+    DynamicField<point>& points1
+) const
+{
+    const face& localF = pp.localFaces()[faceI];
+
+    labelPair attractIndices(-1, -1);
+
+    if (localF.size() >= 4)
+    {
+        const pointField& localPts = pp.localPoints();
+
+        //// Estimate cell centre taking patchAttraction into account
+        //// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        //// (is this necessary?)
+        //const polyMesh& mesh = meshRefiner_.mesh();
+        //label meshFaceI = pp.addressing()[faceI];
+        //const face& meshF = mesh.faces()[meshFaceI];
+        //label cellI = mesh.faceOwner()[meshFaceI];
+        //const labelList& cPoints = mesh.cellPoints(cellI);
+        //
+        //point cc(mesh.points()[meshF[0]]);
+        //for (label i = 1; i < meshF.size(); i++)
+        //{
+        //    cc += mesh.points()[meshF[i]]+patchAttr[localF[i]];
+        //}
+        //forAll(cPoints, i)
+        //{
+        //    label pointI = cPoints[i];
+        //    if (findIndex(meshF, pointI) == -1)
+        //    {
+        //        cc += mesh.points()[pointI];
+        //    }
+        //}
+        //cc /= cPoints.size();
+        ////const point& cc = mesh.cellCentres()[cellI];
+        //
+        //const scalar vol = pyrVol(pp, patchAttr, localF, cc);
+        //const scalar area = localF.mag(localPts);
+
+
+
+        // Try all diagonal cuts
+        // ~~~~~~~~~~~~~~~~~~~~~
+
+        face f0(3);
+        face f1(3);
+
+        for (label startFp = 0; startFp < localF.size()-2; startFp++)
+        {
+            label minFp = localF.rcIndex(startFp);
+
+            for
+            (
+                label endFp = localF.fcIndex(localF.fcIndex(startFp));
+                endFp < localF.size() && endFp != minFp;
+                endFp++
+            )
+            {
+                label startPtI = localF[startFp];
+                label endPtI = localF[endFp];
+
+                const pointConstraint& startPc = patchConstraints[startPtI];
+                const pointConstraint& endPc = patchConstraints[endPtI];
+
+                if (startPc.first() >= 2 && endPc.first() >= 2)
+                {
+                    if (startPc.first() == 2 || endPc.first() == 2)
+                    {
+                        // Check if
+                        // - sameish feature edge normal
+                        // - diagonal aligned with feature edge normal
+                        point start = localPts[startPtI]+patchAttr[startPtI];
+                        point end = localPts[endPtI]+patchAttr[endPtI];
+
+                        if
+                        (
+                           !isSplitAlignedWithFeature
+                            (
+                                featureCos,
+                                start,
+                                startPc,
+                                end,
+                                endPc
+                            )
+                        )
+                        {
+                            // Attract to different features. No need to
+                            // introduce split
+                            continue;
+                        }
+                    }
+
+
+
+                    // Form two faces
+                    // ~~~~~~~~~~~~~~
+                    // Predict position of faces. End points of the faces
+                    // attract to the feature
+                    // and all the other points just attract to the nearest
+
+                    // face0
+
+                    f0.setSize(endFp-startFp+1);
+                    label i0 = 0;
+                    for (label fp = startFp; fp <= endFp; fp++)
+                    {
+                        f0[i0++] = localF[fp];
+                    }
+
+                    // Get compact face and points
+                    const face compact0(identity(f0.size()));
+                    points0.clear();
+                    points0.append(localPts[f0[0]] + patchAttr[f0[0]]);
+                    for (label fp=1; fp < f0.size()-1; fp++)
+                    {
+                        label pI = f0[fp];
+                        points0.append(localPts[pI] + nearestAttr[pI]);
+                    }
+                    points0.append
+                    (
+                        localPts[f0.last()] + patchAttr[f0.last()]
+                    );
+
+
+                    // face1
+
+                    f1.setSize(localF.size()+2-f0.size());
+                    label i1 = 0;
+                    for
+                    (
+                        label fp = endFp;
+                        fp != startFp;
+                        fp = localF.fcIndex(fp)
+                    )
+                    {
+                        f1[i1++] = localF[fp];
+                    }
+                    f1[i1++] = localF[startFp];
+
+
+                    // Get compact face and points
+                    const face compact1(identity(f1.size()));
+                    points1.clear();
+                    points1.append(localPts[f1[0]] + patchAttr[f1[0]]);
+                    for (label fp=1; fp < f1.size()-1; fp++)
+                    {
+                        label pI = f1[fp];
+                        points1.append(localPts[pI] + nearestAttr[pI]);
+                    }
+                    points1.append
+                    (
+                        localPts[f1.last()] + patchAttr[f1.last()]
+                    );
+
+
+
+                    // Avoid splitting concave faces
+                    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                    if
+                    (
+                        isConcave
+                        (
+                            compact0.centre(points0),
+                            compact0.normal(points0),
+                            compact1.centre(points1),
+                            compact1.normal(points1),
+                            concaveCos
+                        )
+                    )
+                    {
+                        //// Dump to obj
+                        //Pout<< "# f0:" << f0 << endl;
+                        //forAll(p, i)
+                        //{
+                        //    meshTools::writeOBJ(Pout, points0[i]);
+                        //}
+                        //Pout<< "# f1:" << f1 << endl;
+                        //forAll(p, i)
+                        //{
+                        //    meshTools::writeOBJ(Pout, points1[i]);
+                        //}
+                    }
+                    else
+                    {
+                        // Existing areas
+                        const scalar area0 = f0.mag(localPts);
+                        const scalar area1 = f1.mag(localPts);
+
+                        if
+                        (
+                            area0/area1 >= minAreaRatio
+                         && area1/area0 >= minAreaRatio
+                        )
+                        {
+                            attractIndices = labelPair(startFp, endFp);
+                        }
+                    }
+                }
+            }
         }
     }
     return attractIndices;
+}
+
+
+void Foam::autoSnapDriver::splitDiagonals
+(
+    const scalar featureCos,
+    const scalar concaveCos,
+    const scalar minAreaRatio,
+
+    const indirectPrimitivePatch& pp,
+    const vectorField& nearestAttraction,
+    const vectorField& nearestNormal,
+
+    vectorField& patchAttraction,
+    List<pointConstraint>& patchConstraints,
+    DynamicList<label>& splitFaces,
+    DynamicList<labelPair>& splits
+) const
+{
+    const labelList& bFaces = pp.addressing();
+
+    splitFaces.clear();
+    splitFaces.setCapacity(bFaces.size());
+    splits.clear();
+    splits.setCapacity(bFaces.size());
+
+
+    // Work arrays for storing points of face
+    DynamicField<point> facePoints0;
+    DynamicField<point> facePoints1;
+
+    forAll(bFaces, faceI)
+    {
+        const labelPair split
+        (
+            findDiagonalAttraction
+            (
+                featureCos,
+                concaveCos,
+                minAreaRatio,
+
+                pp,
+                patchAttraction,
+                patchConstraints,
+
+                nearestAttraction,
+                nearestNormal,
+                faceI,
+
+                facePoints0,
+                facePoints1
+            )
+        );
+
+        if (split != labelPair(-1, -1))
+        {
+            splitFaces.append(bFaces[faceI]);
+            splits.append(split);
+
+            const face& f = pp.localFaces()[faceI];
+
+            // Knock out other attractions on face
+            forAll(f, fp)
+            {
+                // Knock out any other constraints
+                if
+                (
+                    fp != split[0]
+                 && fp != split[1]
+                 && patchConstraints[f[fp]].first() >= 2
+                )
+                {
+                    patchConstraints[f[fp]] = pointConstraint
+                    (
+                        Tuple2<label, vector>
+                        (
+                            1,
+                            nearestNormal[f[fp]]
+                        )
+                    );
+                    patchAttraction[f[fp]] = nearestAttraction[f[fp]];
+                }
+            }
+        }
+    }
 }
 
 
@@ -1556,7 +1979,8 @@ void Foam::autoSnapDriver::avoidDiagonalAttraction
 
             if (cosAngle > featureCos)
             {
-                // Add the nearest of the other two points as
+                // The two feature edges are roughly in the same direction.
+                // Add the nearest of the other points in the face as
                 // attractor
                 label minFp = -1;
                 scalar minDistSqr = GREAT;
@@ -2258,8 +2682,8 @@ void Foam::autoSnapDriver::determineBaffleFeatures
 
     // Detect baffle edges. Assume initial mesh will have 0,90 or 180
     // (baffle) degree angles so smoothing should make 0,90
-    // to be less than 90.
-    const scalar baffleFeatureCos = Foam::cos(degToRad(91));
+    // to be less than 90. Choose reasonable value
+    const scalar baffleFeatureCos = Foam::cos(degToRad(110));
 
 
     autoPtr<OBJstream> baffleEdgeStr;
@@ -2518,7 +2942,8 @@ void Foam::autoSnapDriver::reverseAttractMeshPoints
         }
 
         Info<< "Initially selected " << returnReduce(nFeats, sumOp<label>())
-            << " points out of " << returnReduce(pp.nPoints(), sumOp<label>())
+            << " mesh points out of "
+            << returnReduce(pp.nPoints(), sumOp<label>())
             << " for reverse attraction." << endl;
 
         // Make sure is synchronised (note: check if constraint is already
@@ -2578,7 +3003,8 @@ void Foam::autoSnapDriver::reverseAttractMeshPoints
 
         Info<< "Selected "
             << returnReduce(attractPoints.size(), sumOp<label>())
-            << " points out of " << returnReduce(pp.nPoints(), sumOp<label>())
+            << " mesh points out of "
+            << returnReduce(pp.nPoints(), sumOp<label>())
             << " for reverse attraction." << endl;
     }
 
@@ -2724,13 +3150,19 @@ void Foam::autoSnapDriver::reverseAttractMeshPoints
 void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
 (
     const label iter,
-    const bool avoidSnapProblems,
-    const scalar featureCos,
     const bool multiRegionFeatureSnap,
+
+    const bool detectBaffles,
+    const bool releasePoints,
+    const bool stringFeatures,
+    const bool avoidDiagonal,
+
+    const scalar featureCos,
 
     const indirectPrimitivePatch& pp,
     const scalarField& snapDist,
     const vectorField& nearestDisp,
+    const vectorField& nearestNormal,
 
     const List<List<point> >& pointFaceSurfNormals,
     const List<List<point> >& pointFaceDisp,
@@ -2802,7 +3234,14 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
         rawPatchConstraints
     );
 
-
+    // Print a bit about the attraction from patch point to feature
+    if (debug)
+    {
+        const polyMesh& mesh = meshRefiner_.mesh();
+        const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
+        Info<< "Raw geometric feature analysis : ";
+        writeStats(pp, isMasterPoint, rawPatchConstraints);
+    }
 
     // Baffle handling
     // ~~~~~~~~~~~~~~~
@@ -2815,25 +3254,36 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
     // detected anything. So explicitly pick up feature edges on the pp
     // (after duplicating points & smoothing so will already have been
     // expanded) and match these to the features.
-    determineBaffleFeatures
-    (
-        iter,
-        featureCos,
+    if (detectBaffles)
+    {
+        determineBaffleFeatures
+        (
+            iter,
+            featureCos,
 
-        pp,
-        snapDist,
+            pp,
+            snapDist,
 
-        // Feature-point to pp point
-        pointAttractor,
-        pointConstraints,
-        // Feature-edge to pp point
-        edgeAttractors,
-        edgeConstraints,
-        // pp point to nearest feature
-        rawPatchAttraction,
-        rawPatchConstraints
-    );
+            // Feature-point to pp point
+            pointAttractor,
+            pointConstraints,
+            // Feature-edge to pp point
+            edgeAttractors,
+            edgeConstraints,
+            // pp point to nearest feature
+            rawPatchAttraction,
+            rawPatchConstraints
+        );
+    }
 
+    // Print a bit about the attraction from patch point to feature
+    if (debug)
+    {
+        const polyMesh& mesh = meshRefiner_.mesh();
+        const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
+        Info<< "After baffle feature analysis : ";
+        writeStats(pp, isMasterPoint, rawPatchConstraints);
+    }
 
 
     // Reverse lookup: Find nearest mesh point to feature edge
@@ -2863,6 +3313,14 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
         patchConstraints
     );
 
+    // Print a bit about the attraction from patch point to feature
+    if (debug)
+    {
+        const polyMesh& mesh = meshRefiner_.mesh();
+        const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
+        Info<< "Reverse attract feature analysis : ";
+        writeStats(pp, isMasterPoint, patchConstraints);
+    }
 
     // Dump
     if (debug&meshRefinement::ATTRACTION)
@@ -2900,38 +3358,38 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
     }
 
 
-    if (avoidSnapProblems)
+    //MEJ: any faces that have multi-patch points only keep the
+    //     multi-patch
+    //     points. The other points on the face will be dragged along
+    //     (hopefully)
+    if (releasePoints)
     {
-        //MEJ: any faces that have multi-patch points only keep the multi-patch
-        //     points. The other points on the face will be dragged along
-        //     (hopefully)
-        if (multiRegionFeatureSnap)
-        {
-            releasePointsNextToMultiPatch
-            (
-                iter,
-                featureCos,
+        releasePointsNextToMultiPatch
+        (
+            iter,
+            featureCos,
 
-                pp,
-                snapDist,
+            pp,
+            snapDist,
 
-                pointFaceCentres,
-                pointFacePatchID,
+            pointFaceCentres,
+            pointFacePatchID,
 
-                rawPatchAttraction,
-                rawPatchConstraints,
+            rawPatchAttraction,
+            rawPatchConstraints,
 
-                patchAttraction,
-                patchConstraints
-            );
-        }
+            patchAttraction,
+            patchConstraints
+        );
+    }
 
 
-        // Snap edges to feature edges
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Walk existing edges and snap remaining ones (that are marked as
-        // feature edges in rawPatchConstraints)
-
+    // Snap edges to feature edges
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Walk existing edges and snap remaining ones (that are marked as
+    // feature edges in rawPatchConstraints)
+    if (stringFeatures)
+    {
         stringFeatureEdges
         (
             iter,
@@ -2946,12 +3404,14 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
             patchAttraction,
             patchConstraints
         );
+    }
 
 
-        // Avoid diagonal attraction
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Attract one of the non-diagonal points.
-
+    // Avoid diagonal attraction
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Attract one of the non-diagonal points.
+    if (avoidDiagonal)
+    {
         avoidDiagonalAttraction
         (
             iter,
@@ -2961,6 +3421,7 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
             patchConstraints
         );
     }
+
 
     if (debug&meshRefinement::ATTRACTION)
     {
@@ -2983,11 +3444,27 @@ void Foam::autoSnapDriver::preventFaceSqueeze
 
     const indirectPrimitivePatch& pp,
     const scalarField& snapDist,
+    const vectorField& nearestAttraction,
 
     vectorField& patchAttraction,
     List<pointConstraint>& patchConstraints
 ) const
 {
+    autoPtr<OBJstream> strPtr;
+    if (debug&meshRefinement::ATTRACTION)
+    {
+        strPtr.reset
+        (
+            new OBJstream
+            (
+                meshRefiner_.mesh().time().path()
+              / "faceSqueeze_" + name(iter) + ".obj"
+            )
+        );
+        Info<< "Dumping faceSqueeze corrections to "
+            << strPtr().name() << endl;
+    }
+
     pointField points;
     face singleF;
     forAll(pp.localFaces(), faceI)
@@ -3022,16 +3499,19 @@ void Foam::autoSnapDriver::preventFaceSqueeze
 
         if (nConstraints == f.size())
         {
-            scalar oldArea = f.mag(pp.localPoints());
-            scalar newArea = singleF.mag(points);
-            if (newArea < 0.1*oldArea)
+            if (f.size() == 3)
             {
-                // For now remove the point with largest distance
+                // Triangle: knock out attraction altogether
+
+                // For now keep the points on the longest edge
                 label maxFp = -1;
                 scalar maxS = -1;
                 forAll(f, fp)
                 {
-                    scalar s = magSqr(patchAttraction[f[fp]]);
+                    const point& pt = pp.localPoints()[f[fp]];
+                    const point& nextPt = pp.localPoints()[f.nextLabel(fp)];
+
+                    scalar s = magSqr(pt-nextPt);
                     if (s > maxS)
                     {
                         maxS = s;
@@ -3040,9 +3520,52 @@ void Foam::autoSnapDriver::preventFaceSqueeze
                 }
                 if (maxFp != -1)
                 {
-                    label pointI = f[maxFp];
-                    // Lower attraction on pointI
-                    patchAttraction[pointI] *= 0.5;
+                    label pointI = f.prevLabel(maxFp);
+
+                    // Reset attraction on pointI to nearest
+
+                    const point& pt = pp.localPoints()[pointI];
+
+                    //Pout<< "** on triangle " << pp.faceCentres()[faceI]
+                    //    << " knocking out attraction to " << pointI
+                    //    << " at:" << pt
+                    //    << endl;
+
+                    patchAttraction[pointI] = nearestAttraction[pointI];
+
+                    if (strPtr.valid())
+                    {
+                        strPtr().write
+                        (
+                            linePointRef(pt, pt+patchAttraction[pointI])
+                        );
+                    }
+                }
+            }
+            else
+            {
+                scalar oldArea = f.mag(pp.localPoints());
+                scalar newArea = singleF.mag(points);
+                if (newArea < 0.1*oldArea)
+                {
+                    // For now remove the point with largest distance
+                    label maxFp = -1;
+                    scalar maxS = -1;
+                    forAll(f, fp)
+                    {
+                        scalar s = magSqr(patchAttraction[f[fp]]);
+                        if (s > maxS)
+                        {
+                            maxS = s;
+                            maxFp = fp;
+                        }
+                    }
+                    if (maxFp != -1)
+                    {
+                        label pointI = f[maxFp];
+                        // Lower attraction on pointI
+                        patchAttraction[pointI] *= 0.5;
+                    }
                 }
             }
         }
@@ -3053,15 +3576,20 @@ void Foam::autoSnapDriver::preventFaceSqueeze
 Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
 (
     const snapParameters& snapParams,
-    const bool avoidSnapProblems,
+    const bool alignMeshEdges,
     const label iter,
     const scalar featureCos,
     const scalar featureAttract,
     const scalarField& snapDist,
     const vectorField& nearestDisp,
+    const vectorField& nearestNormal,
     motionSmoother& meshMover,
     vectorField& patchAttraction,
-    List<pointConstraint>& patchConstraints
+    List<pointConstraint>& patchConstraints,
+
+    DynamicList<label>& splitFaces,
+    DynamicList<labelPair>& splits
+
 ) const
 {
     const Switch implicitFeatureAttraction = snapParams.implicitFeatureSnap();
@@ -3080,6 +3608,7 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
     const fvMesh& mesh = meshRefiner_.mesh();
 
 
+    const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
 
     // Per point, per surrounding face:
     // - faceSurfaceNormal
@@ -3112,7 +3641,7 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
         // normal of surface at point on surface
         vectorField faceSurfaceNormal(pp.size(), vector::zero);
         labelList faceSurfaceGlobalRegion(pp.size(), -1);
-        vectorField faceRotation(pp.size(), vector::zero);
+        //vectorField faceRotation(pp.size(), vector::zero);
 
         calcNearestFace
         (
@@ -3121,8 +3650,8 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
             faceSnapDist,
             faceDisp,
             faceSurfaceNormal,
-            faceSurfaceGlobalRegion,
-            faceRotation
+            faceSurfaceGlobalRegion
+            //faceRotation
         );
 
 
@@ -3173,7 +3702,6 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
         featureAttractionUsingReconstruction
         (
             iter,
-            avoidSnapProblems,
             featureCos,
 
             pp,
@@ -3192,6 +3720,18 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
 
     if (explicitFeatureAttraction)
     {
+        // Only do fancy stuff if alignMeshEdges
+        bool releasePoints = false;
+        bool stringFeatures = false;
+        bool avoidDiagonal = false;
+        if (alignMeshEdges)
+        {
+            releasePoints = snapParams.releasePoints();
+            stringFeatures = snapParams.stringFeatures();
+            avoidDiagonal = snapParams.avoidDiagonal();
+        }
+
+
         // Sample faces around each point and see if nearest surface normal
         // differs. For those find the nearest real feature edge/point and
         // store the correspondence. Then loop over feature edge/point
@@ -3201,13 +3741,19 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
         featureAttractionUsingFeatureEdges
         (
             iter,
-            avoidSnapProblems,
-            featureCos,
             multiRegionFeatureSnap,
+
+            snapParams.detectBaffles(),
+            releasePoints,
+            stringFeatures,
+            avoidDiagonal,
+
+            featureCos,
 
             pp,
             snapDist,
             nearestDisp,
+            nearestNormal,
 
             pointFaceSurfNormals,
             pointFaceDisp,
@@ -3219,6 +3765,46 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
         );
     }
 
+    if (!alignMeshEdges)
+    {
+        const scalar concaveCos = Foam::cos
+        (
+            degToRad(snapParams.concaveAngle())
+        );
+        const scalar minAreaRatio = snapParams.minAreaRatio();
+
+        Info<< "Experimental: introducing face splits to avoid rotating"
+            << " mesh edges. Splitting faces when" << nl
+            << indent << "- angle not concave by more than "
+            << snapParams.concaveAngle() << " degrees" << nl
+            << indent << "- resulting triangles of similar area "
+            << " (ratio within " << minAreaRatio << ")" << nl
+            << endl;
+
+        splitDiagonals
+        (
+            featureCos,
+            concaveCos,
+            minAreaRatio,
+            pp,
+
+            nearestDisp,
+            nearestNormal,
+
+            patchAttraction,
+            patchConstraints,
+            splitFaces,
+            splits
+        );
+
+        if (debug)
+        {
+            Info<< "Diagonal attraction feature correction : ";
+            writeStats(pp, isMasterPoint, patchConstraints);
+        }
+    }
+
+
     preventFaceSqueeze
     (
         iter,
@@ -3226,12 +3812,12 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
 
         pp,
         snapDist,
+        nearestDisp,
 
         patchAttraction,
         patchConstraints
     );
 
-    const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
     {
         vector avgPatchDisp = meshRefinement::gAverage
         (
@@ -3280,47 +3866,8 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
 
     // Count
     {
-        const labelList& meshPoints = pp.meshPoints();
-
-        label nMasterPoints = 0;
-        label nPlanar = 0;
-        label nEdge = 0;
-        label nPoint = 0;
-
-        forAll(patchConstraints, pointI)
-        {
-            if (isMasterPoint[meshPoints[pointI]])
-            {
-                nMasterPoints++;
-
-                if (patchConstraints[pointI].first() == 1)
-                {
-                    nPlanar++;
-                }
-                else if (patchConstraints[pointI].first() == 2)
-                {
-                    nEdge++;
-                }
-                else if (patchConstraints[pointI].first() == 3)
-                {
-                    nPoint++;
-                }
-            }
-        }
-
-        reduce(nMasterPoints, sumOp<label>());
-        reduce(nPlanar, sumOp<label>());
-        reduce(nEdge, sumOp<label>());
-        reduce(nPoint, sumOp<label>());
-        Info<< "Feature analysis : total master points:"
-            << nMasterPoints
-            << " attraction to :" << nl
-            << "    feature point   : " << nPoint << nl
-            << "    feature edge    : " << nEdge << nl
-            << "    nearest surface : " << nPlanar << nl
-            << "    rest            : " << nMasterPoints-nPoint-nEdge-nPlanar
-            << nl
-            << endl;
+        Info<< "Feature analysis : ";
+        writeStats(pp, isMasterPoint, patchConstraints);
     }
 
 

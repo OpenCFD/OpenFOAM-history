@@ -51,6 +51,8 @@ SourceFiles
 #include "pointFieldsFwd.H"
 #include "Tuple2.H"
 #include "pointIndexHit.H"
+#include "wordPairHashTable.H"
+#include "surfaceZonesInfo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,6 +75,7 @@ class removePoints;
 class localPointRegion;
 
 class snapParameters;
+
 
 /*---------------------------------------------------------------------------*\
                            Class meshRefinement Declaration
@@ -190,6 +193,15 @@ private:
         //  order changes.
         wordList meshedPatches_;
 
+        //- FaceZone to master patch name
+        HashTable<word, word> faceZoneToMasterPatch_;
+
+        //- FaceZone to slave patch name
+        HashTable<word, word> faceZoneToSlavePatch_;
+
+        //- FaceZone to method to handle faces
+        HashTable<surfaceZonesInfo::faceZoneType, word> faceZoneToType_;
+
 
     // Private Member Functions
 
@@ -215,9 +227,6 @@ private:
             labelList& neiLevel,
             pointField& neiCc
         ) const;
-
-        //- Find any intersection of surface. Store in surfaceIndex_.
-        void updateIntersections(const labelList& changedFaces);
 
         //- Remove cells. Put exposedFaces into exposedPatchIDs.
         autoPtr<mapPolyMesh> doRemoveCells
@@ -369,10 +378,25 @@ private:
                 const labelList& globalToSlavePatch
             ) const;
 
+            //- Calculate intersections. Return per face -1 or the global
+            //  surface region
+            void getIntersections
+            (
+                const labelList& surfacesToTest,
+                const pointField& neiCc,
+                const labelList& testFaces,
+
+                labelList& globalRegion1,
+                labelList& globalRegion2
+            ) const;
+
             //- Determine patches for baffles
             void getBafflePatches
             (
                 const labelList& globalToMasterPatch,
+                const pointField& locationsInMesh,
+                const wordList& regionsInMesh,
+
                 const labelList& neiLevel,
                 const pointField& neiCc,
                 labelList& ownPatch,
@@ -494,6 +518,16 @@ private:
                 labelList& cellToZone
             ) const;
 
+            //- Finds zone per cell for cells inside region for which name
+            //  is specified.
+            void findCellZoneInsideWalk
+            (
+                const pointField& locationsInMesh,
+                const wordList& regionsInMesh,
+                const labelList& blockedFace, // per face -1 or some index >= 0
+                labelList& cellToZone
+            ) const;
+
             //- Determines cell zone from cell region information.
             bool calcRegionToZone
             (
@@ -508,7 +542,7 @@ private:
             //  marked in namedSurfaceIndex regarded as blocked.
             void findCellZoneTopo
             (
-                const point& keepPoint,
+                const pointField& locationsInMesh,
                 const labelList& namedSurfaceIndex,
                 const labelList& surfaceToCellZone,
                 labelList& cellToZone
@@ -518,6 +552,26 @@ private:
             (
                 const labelList& cellToZone,
                 labelList& namedSurfaceIndex
+            ) const;
+
+            //- Put cells into cellZone, faces into faceZone
+            void zonify
+            (
+                const PackedBoolList& isMasterFace,
+                const labelList& cellToZone,
+                const labelList& neiCellZone,
+                const labelList& faceToZone,
+                const boolList& meshFlipMap,
+                polyTopoChange& meshMod
+            ) const;
+
+            //- Allocate faceZoneName
+            void allocateInterRegionFaceZone
+            (
+                const label ownZone,
+                const label neiZone,
+                wordPairHashTable& zonesToFaceZone,
+                HashTable<word, labelPair, typename labelPair::Hash<> >&
             ) const;
 
             //- Remove any loose standing cells
@@ -840,7 +894,9 @@ public:
                 Time& runTime,
                 const labelList& globalToMasterPatch,
                 const labelList& globalToSlavePatch,
-                const point& keepPoint
+                const pointField& locationsInMesh,
+                const wordList& regionsInMesh,
+                const pointField& locationsOutsideMesh
             );
 
             //- Split off (with optional buffer layers) unreachable areas
@@ -850,7 +906,10 @@ public:
                 const label nBufferLayers,
                 const labelList& globalToMasterPatch,
                 const labelList& globalToSlavePatch,
-                const point& keepPoint
+
+                const pointField& locationsInMesh,
+                const wordList& regionsInMesh,
+                const pointField& locationsOutsideMesh
             );
 
             //- Find boundary points that connect to more than one cell
@@ -861,6 +920,16 @@ public:
             //  region and split them.
             autoPtr<mapPolyMesh> dupNonManifoldPoints();
 
+            //- Find boundary points that are on faceZones of type boundary
+            //  and duplicate them
+            autoPtr<mapPolyMesh> dupNonManifoldBoundaryPoints();
+
+            //- Merge duplicate points
+            autoPtr<mapPolyMesh> mergePoints
+            (
+                const labelList& pointToDuplicate
+            );
+
             //- Create baffle for every internal face where ownPatch != -1.
             //  External faces get repatched according to ownPatch (neiPatch
             //  should be -1 for these)
@@ -870,25 +939,50 @@ public:
                 const labelList& neiPatch
             );
 
-            //- Create baffles for faces straddling zoned surfaces. Return
-            //  baffles.
-            autoPtr<mapPolyMesh> createZoneBaffles
+            //- Get zones of given type
+            labelList getZones
             (
-                const labelList& globalToMasterPatch,
-                const labelList& globalToSlavePatch,
-                List<labelPair>&
+                const List<surfaceZonesInfo::faceZoneType>& fzTypes
+            ) const;
+
+            //- Subset baffles according to zones
+            static List<labelPair> subsetBaffles
+            (
+                const polyMesh& mesh,
+                const labelList& zoneIDs,
+                const List<labelPair>& baffles
             );
 
-            //- Merge baffles. Gets pairs of faces.
+            //- Create baffles for faces on faceZones. Return created baffles
+            //  (= pairs of faces) and corresponding faceZone
+            autoPtr<mapPolyMesh> createZoneBaffles
+            (
+                const labelList& zoneIDs,
+                List<labelPair>& baffles,
+                labelList& originatingFaceZone
+            );
+
+            //- Merge baffles. Gets pairs of faces
             autoPtr<mapPolyMesh> mergeBaffles(const List<labelPair>&);
 
+            //- Merge all baffles on faceZones
+            autoPtr<mapPolyMesh> mergeZoneBaffles
+            (
+                const bool doInternalZones,
+                const bool doBaffleZones
+            );
+
             //- Put faces/cells into zones according to surface specification.
-            //  Returns null if no zone surfaces present. Region containing
-            //  the keepPoint will not be put into a cellZone.
+            //  Returns null if no zone surfaces present. Regions containing
+            //  locationsInMesh/regionsInMesh will be put in corresponding
+            //  cellZone. keepPoints is for backwards compatibility and sets
+            //  all yet unassigned cells to be non-zoned (zone = -1)
             autoPtr<mapPolyMesh> zonify
             (
-                const point& keepPoint,
-                const bool allowFreeStandingZoneFaces
+                const bool allowFreeStandingZoneFaces,
+                const pointField& locationsInMesh,
+                const wordList& regionsInMesh,
+                wordPairHashTable& zonesToFaceZone
             );
 
 
@@ -913,8 +1007,31 @@ public:
             //- Get patchIDs for patches added in addMeshedPatch.
             labelList meshedPatches() const;
 
+            //- Add/lookup faceZone and update information. Return index of
+            //  faceZone
+            label addFaceZone
+            (
+                const word& fzName,
+                const word& masterPatch,
+                const word& slavePatch,
+                const surfaceZonesInfo::faceZoneType& fzType
+            );
+
+            //- Lookup faceZone information. Return false if no information
+            //  for faceZone
+            bool getFaceZoneInfo
+            (
+                const word& fzName,
+                label& masterPatchID,
+                label& slavePatchID,
+                surfaceZonesInfo::faceZoneType& fzType
+            ) const;
+
             //- Select coupled faces that are not collocated
             void selectSeparatedCoupledFaces(boolList&) const;
+
+            //- Find any intersection of surface. Store in surfaceIndex_.
+            void updateIntersections(const labelList& changedFaces);
 
             //- Find region point is in. Uses optional perturbation to re-test.
             static label findRegion
@@ -925,19 +1042,43 @@ public:
                 const point& p
             );
 
+            static void findRegions
+            (
+                const polyMesh&,
+                const vector& perturbVec,
+                const pointField& locationsInMesh,
+                const pointField& locationsOutsideMesh,
+                const label nRegions,
+                labelList& cellRegion
+            );
+
             //- Split mesh. Keep part containing point.
             autoPtr<mapPolyMesh> splitMeshRegions
             (
                 const labelList& globalToMasterPatch,
                 const labelList& globalToSlavePatch,
-                const point& keepPoint
+                const pointField& locationsInMesh,
+                const pointField& locationsOutsideMesh
             );
 
             //- Split faces into two
-            autoPtr<mapPolyMesh> splitFaces
+            void doSplitFaces
             (
                 const labelList& splitFaces,
-                const labelPairList& splits
+                const labelPairList& splits,
+                polyTopoChange& meshMod
+            ) const;
+
+            //- Split faces along diagonal. Maintain mesh quality. Return
+            //  total number of faces split.
+            label splitFacesUndo
+            (
+                const labelList& splitFaces,
+                const labelPairList& splits,
+                const dictionary& motionDict,
+
+                labelList& duplicateFace,
+                List<labelPair>& baffles
             );
 
             //- Update local numbering for mesh redistribution
@@ -984,6 +1125,16 @@ public:
                 );
 
             // Merging coplanar faces and edges
+
+                //- Merge coplanar faces if sets are of size mergeSize
+                //  (usually 4)
+                label mergePatchFaces
+                (
+                    const scalar minCos,
+                    const scalar concaveCos,
+                    const label mergeSize,
+                    const labelList& patchIDs
+                );
 
                 //- Merge coplanar faces. preserveFaces is != -1 for faces
                 //  to be preserved

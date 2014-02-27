@@ -1203,7 +1203,8 @@ handleFeatureAngleLayerTerminations
 
     //Info<< "Added "
     //    << returnReduce(nPointCounter-nOldPointCounter, sumOp<label>())
-    //    << " point not to extrude." << endl;
+    //    << " point not to extrude due to minCos "
+    //    << minCos << endl;
 }
 
 
@@ -1225,7 +1226,19 @@ void Foam::medialAxisMeshMover::findIsolatedRegions
     const labelListList& pointFaces = pp.pointFaces();
 
 
-    Info<< typeName << " : Removing isolated regions ..." << endl;
+    Info<< typeName << " : Removing isolated regions ..."
+        << indent << "- if partially extruded faces make angle < "
+        << Foam::radToDeg(Foam::acos(minCosLayerTermination)) <<  nl;
+    if (detectExtrusionIsland)
+    {
+        Info<< indent << "- if exclusively surrounded by non-extruded points"
+            << nl;
+    }
+    else
+    {
+        Info<< indent << "- if exclusively surrounded by non-extruded faces"
+            << nl;
+    }
 
     // Keep count of number of points unextruded
     label nPointCounter = 0;
@@ -1234,19 +1247,21 @@ void Foam::medialAxisMeshMover::findIsolatedRegions
     {
         // Stop layer growth where mesh wraps around edge with a
         // large feature angle
-        handleFeatureAngleLayerTerminations
-        (
-            minCosLayerTermination,
-            isMasterPoint,
-            meshEdges,
+        if (minCosLayerTermination > -1)
+        {
+            handleFeatureAngleLayerTerminations
+            (
+                minCosLayerTermination,
+                isMasterPoint,
+                meshEdges,
 
-            extrudeStatus,
-            patchDisp,
-            nPointCounter
-        );
+                extrudeStatus,
+                patchDisp,
+                nPointCounter
+            );
 
-        syncPatchDisplacement(minThickness, patchDisp, extrudeStatus);
-
+            syncPatchDisplacement(minThickness, patchDisp, extrudeStatus);
+        }
 
 
         // Detect either:
@@ -1708,10 +1723,12 @@ void Foam::medialAxisMeshMover::calculateDisplacement
     const scalar featureAngle = readScalar(coeffDict.lookup("featureAngle"));
 
     //- Stop layer growth where mesh wraps around sharp edge
-    const scalar minCosLayerTermination = Foam::cos
+    scalar layerTerminationAngle = coeffDict.lookupOrDefault<scalar>
     (
-        degToRad(0.5*featureAngle)
+        "layerTerminationAngle",
+        0.5*featureAngle
     );
+    scalar minCosLayerTermination = Foam::cos(degToRad(layerTerminationAngle));
 
     //- Smoothing wanted patch thickness
     const label nSmoothPatchThickness = readLabel

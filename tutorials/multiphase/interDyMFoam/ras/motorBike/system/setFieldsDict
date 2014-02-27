@@ -9,45 +9,31 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    class       dictionary;
+    location    "system";
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-5
+defaultFieldValues
 (
-    leftWall
+    volScalarFieldValue alpha.water 0
+    volVectorFieldValue U ( 0 0 0 )
+);
+
+regions
+(
+    boxToCell
     {
-        type            wall;
-        nFaces          50;
-        startFace       4432;
+        //box ( -1 -0.5 0 ) ( -0.5 0.5 2 );
+        //box ( -0.5 -0.5 1.5 ) ( 1.5 0.5 2 );
+        box ( 0 -0.5 1.5 ) ( 2 0.5 1.75 );
+        fieldValues
+        (
+            volScalarFieldValue alpha.water 1
+        );
     }
-    rightWall
-    {
-        type            wall;
-        nFaces          50;
-        startFace       4482;
-    }
-    lowerWall
-    {
-        type            wall;
-        nFaces          62;
-        startFace       4532;
-    }
-    atmosphere
-    {
-        type            patch;
-        nFaces          46;
-        startFace       4594;
-    }
-    defaultFaces
-    {
-        type            empty;
-        inGroups        1(empty);
-        nFaces          4536;
-        startFace       4640;
-    }
-)
+ );
+
 
 // ************************************************************************* //
