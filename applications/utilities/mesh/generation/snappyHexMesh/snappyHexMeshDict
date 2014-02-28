@@ -74,8 +74,7 @@ geometry
 
 // Optional: avoid patch-face merging. Allows mesh to be used for
 //           refinement/unrefinement
-//keepHex true;
-
+//mergePatchFaces    off; // default on
 
 // Settings for the castellatedMesh generation.
 castellatedMeshControls

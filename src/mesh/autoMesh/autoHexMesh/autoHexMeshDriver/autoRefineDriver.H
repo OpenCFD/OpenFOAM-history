@@ -147,7 +147,7 @@ class autoRefineDriver
         //- Merge refined boundary faces (from exposing coarser cell)
         void mergePatchFaces
         (
-            const bool keepHex,
+            const bool geometricMerge,
             const refinementParameters& refineParams,
             const dictionary& motionDict
         );
@@ -187,7 +187,7 @@ public:
             const refinementParameters& refineParams,
             const snapParameters& snapParams,
             const bool prepareForSnapping,
-            const bool keepHexOnly,
+            const bool mergePatchFaces,
             const dictionary& motionDict
         );
 
