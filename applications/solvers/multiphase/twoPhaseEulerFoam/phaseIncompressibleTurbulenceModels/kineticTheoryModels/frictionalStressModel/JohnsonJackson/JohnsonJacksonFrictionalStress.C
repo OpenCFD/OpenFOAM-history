@@ -127,10 +127,12 @@ bool Foam::kineticTheoryModels::frictionalStressModels::JohnsonJackson::read()
 {
     coeffDict_ <<= dict_.subDict(typeName + "Coeffs");
 
-    Fr_.readIfPresent(coeffDict_);
-    eta_.readIfPresent(coeffDict_);
-    p_.readIfPresent(coeffDict_);
-    phi_.readIfPresent(coeffDict_);
+    Fr_.read(coeffDict_);
+    eta_.read(coeffDict_);
+    p_.read(coeffDict_);
+
+    phi_.read(coeffDict_);
+    phi_ *= constant::mathematical::pi/180.0;
 
     return true;
 }
