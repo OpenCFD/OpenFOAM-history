@@ -1431,12 +1431,16 @@ int main(int argc, char *argv[])
     const Switch wantSnap(meshDict.lookup("snap"));
     const Switch wantLayers(meshDict.lookup("addLayers"));
 
-    const Switch keepHex(meshDict.lookupOrDefault("keepHex", false));
+    const Switch mergePatchFaces
+    (
+        meshDict.lookupOrDefault("mergePatchFaces", true)
+    );
 
-    if (keepHex)
+    if (!mergePatchFaces)
     {
-        Info<< "Avoiding generating non-(split)hex cells." << nl
-            << endl;
+        Info<< "Not merging patch-faces of cell to preserve"
+            << " (split)hex cell shape."
+            << nl << endl;
     }
 
 
@@ -1466,7 +1470,7 @@ int main(int argc, char *argv[])
             refineParams,
             snapParams,
             refineParams.handleSnapProblems(),
-            keepHex,        // keepHex
+            mergePatchFaces,        // merge co-planar faces
             motionDict
         );
 
@@ -1506,7 +1510,7 @@ int main(int argc, char *argv[])
         (
             snapDict,
             motionDict,
-            !keepHex,       // mergePatchFaces
+            mergePatchFaces
             curvature,
             planarAngle,
             snapParams
@@ -1556,7 +1560,7 @@ int main(int argc, char *argv[])
             layerDict,
             motionDict,
             layerParams,
-            !keepHex,       //mergePatchFaces
+            mergePatchFaces,
             preBalance,
             decomposer,
             distributor

@@ -1182,7 +1182,7 @@ void Foam::autoRefineDriver::addFaceZones
 
 void Foam::autoRefineDriver::mergePatchFaces
 (
-    const bool keepHex,
+    const bool geometricMerge,
     const refinementParameters& refineParams,
     const dictionary& motionDict
 )
@@ -1194,17 +1194,7 @@ void Foam::autoRefineDriver::mergePatchFaces
 
     const fvMesh& mesh = meshRefiner_.mesh();
 
-    if (keepHex)
-    {
-        meshRefiner_.mergePatchFaces
-        (
-            Foam::cos(degToRad(45.0)),
-            Foam::cos(degToRad(45.0)),
-            4,          // only merge faces split into 4
-            meshRefiner_.meshedPatches()
-        );
-    }
-    else
+    if (geometricMerge)
     {
         meshRefiner_.mergePatchFacesUndo
         (
@@ -1213,6 +1203,17 @@ void Foam::autoRefineDriver::mergePatchFaces
             meshRefiner_.meshedPatches(),
             motionDict,
             labelList(mesh.nFaces(), -1)
+        );
+    }
+    else
+    {
+        // Still merge refined boundary faces if all four are on same patch
+        meshRefiner_.mergePatchFaces
+        (
+            Foam::cos(degToRad(45.0)),
+            Foam::cos(degToRad(45.0)),
+            4,          // only merge faces split into 4
+            meshRefiner_.meshedPatches()
         );
     }
 
@@ -1236,7 +1237,7 @@ void Foam::autoRefineDriver::doRefine
     const refinementParameters& refineParams,
     const snapParameters& snapParams,
     const bool prepareForSnapping,
-    const bool keepHex,
+    const bool doMergePatchFaces,
     const dictionary& motionDict
 )
 {
@@ -1328,7 +1329,7 @@ void Foam::autoRefineDriver::doRefine
     // Do something about cells with refined faces on the boundary
     if (prepareForSnapping)
     {
-        mergePatchFaces(keepHex, refineParams, motionDict);
+        mergePatchFaces(doMergePatchFaces, refineParams, motionDict);
     }
 
 
