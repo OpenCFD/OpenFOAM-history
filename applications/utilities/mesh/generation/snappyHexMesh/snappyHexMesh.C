@@ -1510,7 +1510,7 @@ int main(int argc, char *argv[])
         (
             snapDict,
             motionDict,
-            mergePatchFaces
+            mergePatchFaces,
             curvature,
             planarAngle,
             snapParams

@@ -571,7 +571,7 @@ private:
                 const label ownZone,
                 const label neiZone,
                 wordPairHashTable& zonesToFaceZone,
-                HashTable<word, labelPair, typename labelPair::Hash<> >&
+                HashTable<word, labelPair, labelPair::Hash<> >&
             ) const;
 
             //- Remove any loose standing cells
