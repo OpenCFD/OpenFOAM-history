@@ -70,7 +70,7 @@ Foam::label Foam::dynamicRefineFvMesh::count
 
     return n;
 }
-q
+
 
 void Foam::dynamicRefineFvMesh::calculateProtectedCells
 (
