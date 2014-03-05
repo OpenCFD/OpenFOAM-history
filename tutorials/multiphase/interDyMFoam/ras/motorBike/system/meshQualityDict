@@ -9,48 +9,16 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    object      alpha1;
+    class       dictionary;
+    object      meshQualityDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
+// Include defaults parameters from master dictionary
+#include "$WM_PROJECT_DIR/etc/caseDicts/meshQualityDict"
 
-internalField   uniform 0.001;
+//- minFaceWeight (0 -> 0.5)
+minFaceWeight 0.02;
 
-boundaryField
-{
-    inlet
-    {
-        type            fixedValue;
-        value           $internalField;
-    }
-
-    outlet
-    {
-        type            inletOutlet;
-        inletValue      $internalField;
-    }
-
-    bottomWall
-    {
-        type            zeroGradient;
-    }
-
-    endWall
-    {
-        type            zeroGradient;
-    }
-
-    top
-    {
-        type            zeroGradient;
-    }
-
-    frontAndBack
-    {
-        type            empty;
-    }
-}
 
 // ************************************************************************* //

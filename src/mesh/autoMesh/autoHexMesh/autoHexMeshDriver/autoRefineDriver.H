@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,7 +34,8 @@ SourceFiles
 #ifndef autoRefineDriver_H
 #define autoRefineDriver_H
 
-#include "treeBoundBox.H"
+#include "wordPairHashTable.H"
+#include "labelList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -129,7 +130,11 @@ class autoRefineDriver
         );
 
         //- Add zones
-        void zonify(const refinementParameters& refineParams);
+        void zonify
+        (
+            const refinementParameters& refineParams,
+            wordPairHashTable& zonesToFaceZone
+        );
 
         void splitAndMergeBaffles
         (
@@ -142,10 +147,10 @@ class autoRefineDriver
         //- Merge refined boundary faces (from exposing coarser cell)
         void mergePatchFaces
         (
+            const bool geometricMerge,
             const refinementParameters& refineParams,
             const dictionary& motionDict
         );
-
 
         //- Disallow default bitwise copy construct
         autoRefineDriver(const autoRefineDriver&);
@@ -182,8 +187,18 @@ public:
             const refinementParameters& refineParams,
             const snapParameters& snapParams,
             const bool prepareForSnapping,
+            const bool mergePatchFaces,
             const dictionary& motionDict
         );
+
+        //- Helper: add faceZones and patches
+        static void addFaceZones
+        (
+            meshRefinement& meshRefiner,
+            const refinementParameters& refineParams,
+            const wordPairHashTable& zonesToFaceZone
+        );
+
 };
 
 

@@ -59,7 +59,15 @@ Foam::label Foam::dynamicRefineFvMesh::count
         {
             n++;
         }
+
+        // debug also serves to get-around Clang compiler trying to optimsie
+        // out this forAll loop under O3 optimisation
+        if (debug)
+        {
+            Info<< "n=" << n << endl;
+        }
     }
+
     return n;
 }
 
@@ -763,6 +771,7 @@ Foam::labelList Foam::dynamicRefineFvMesh::selectRefineCells
     const PackedBoolList& candidateCell
 ) const
 {
+Debug(0);
     // Every refined cell causes 7 extra cells
     label nTotToRefine = (maxCells - globalData().nTotalCells()) / 7;
 

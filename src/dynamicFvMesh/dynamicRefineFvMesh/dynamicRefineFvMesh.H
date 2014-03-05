@@ -77,7 +77,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class dynamicRefineFvMesh Declaration
+                     Class dynamicRefineFvMesh Declaration
 \*---------------------------------------------------------------------------*/
 
 class dynamicRefineFvMesh

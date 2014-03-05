@@ -124,6 +124,14 @@ Foam::layerParameters::layerParameters
         readScalar(dict.lookup("minThickness"))
     ),
     featureAngle_(readScalar(dict.lookup("featureAngle"))),
+    mergePatchFacesAngle_
+    (
+        dict.lookupOrDefault<scalar>
+        (
+            "mergePatchFacesAngle",
+            0.5*featureAngle_
+        )
+    ),
     concaveAngle_
     (
         dict.lookupOrDefault("concaveAngle", defaultConcaveAngle)

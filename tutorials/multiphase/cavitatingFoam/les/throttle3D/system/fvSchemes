@@ -29,9 +29,9 @@ divSchemes
 {
     default         none;
 
-    div(phiv,rho)   Gauss vanLeer;
-    div(phi,U)      Gauss LUST grad(U);
-    div(phiv,k)     Gauss LUST grad(k);
+    div(phi,rho)    Gauss vanLeer;
+    div(rhoPhi,U)   Gauss LUST grad(U);
+    div(phi,k)      Gauss LUST grad(k);
     div((muEff*dev(T(grad(U))))) Gauss linear;
 }
 
