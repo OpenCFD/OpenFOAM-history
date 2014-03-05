@@ -31,6 +31,7 @@ License
 #include "incompressiblePerfectGas.H"
 #include "rhoConst.H"
 #include "perfectFluid.H"
+#include "PengRobinsonGas.H"
 #include "adiabaticPerfectFluid.H"
 #include "hConstThermo.H"
 #include "janafThermo.H"
@@ -175,6 +176,41 @@ makeThermo
     specie
 );
 
+makeThermo
+(
+    rhoThermo,
+    heRhoThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleEnthalpy,
+    hConstThermo,
+    PengRobinsonGas,
+    specie
+);
+
+makeThermo
+(
+    rhoThermo,
+    heRhoThermo,
+    pureMixture,
+    polynomialTransport,
+    sensibleEnthalpy,
+    hPolynomialThermo,
+    PengRobinsonGas,
+    specie
+);
+
+makeThermo
+(
+    rhoThermo,
+    heRhoThermo,
+    pureMixture,
+    polynomialTransport,
+    sensibleEnthalpy,
+    janafThermo,
+    PengRobinsonGas,
+    specie
+);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
