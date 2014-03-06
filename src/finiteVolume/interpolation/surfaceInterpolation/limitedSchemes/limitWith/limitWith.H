@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,7 +26,20 @@ Class
 
 Description
     limitWith differencing scheme limits the specified scheme with the
-    specified limiter.
+    limiter provided by another scheme.
+
+    Example: limit the LUST scheme using the limiter of the filteredLinear2
+    scheme for momentum convection
+    \verbatim
+    divSchemes
+    {
+        .
+        .
+        div(phi,U)      Gauss limitWith LUST grad(U) filteredLinear2 0.5 0;
+        .
+        .
+    }
+    \endverbatim
 
 SourceFiles
     limitWith.C
