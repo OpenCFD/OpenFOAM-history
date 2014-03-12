@@ -1111,14 +1111,14 @@ void Foam::autoRefineDriver::addFaceZones
 (
     meshRefinement& meshRefiner,
     const refinementParameters& refineParams,
-    const wordPairHashTable& zonesToFaceZone
+    const HashTable<Pair<word> >& faceZoneToPatches
 )
 {
-    if (zonesToFaceZone.size())
+    if (faceZoneToPatches.size())
     {
         Info<< nl
-            << "Adding patches for inter-region zones" << nl
-            << "-------------------------------------" << nl
+            << "Adding patches for face zones" << nl
+            << "-----------------------------" << nl
             << endl;
 
         Info<< setf(ios_base::left)
@@ -1138,10 +1138,10 @@ void Foam::autoRefineDriver::addFaceZones
         const polyMesh& mesh = meshRefiner.mesh();
 
         // Add patches for added inter-region faceZones
-        forAllConstIter(wordPairHashTable, zonesToFaceZone, iter)
+        forAllConstIter(HashTable<Pair<word> >, faceZoneToPatches, iter)
         {
-            const Pair<word>& czNames = iter.key();
-            const word& fzName = iter();
+            const word& fzName = iter.key();
+            const Pair<word>& patchNames = iter();
 
             // Get any user-defined faceZone data
             surfaceZonesInfo::faceZoneType fzType;
@@ -1149,7 +1149,8 @@ void Foam::autoRefineDriver::addFaceZones
 
             const word& masterName = fzName;
             //const word slaveName = fzName + "_slave";
-            const word slaveName = czNames.second() + "_to_" + czNames.first();
+            //const word slaveName = czNames.second()+"_to_"+czNames.first();
+            const word& slaveName = patchNames.second();
 
             label mpI = meshRefiner.addMeshedPatch(masterName, patchInfo);
 
@@ -1315,7 +1316,20 @@ void Foam::autoRefineDriver::doRefine
     zonify(refineParams, zonesToFaceZone);
 
     // Create pairs of patches for faceZones
-    addFaceZones(meshRefiner_, refineParams, zonesToFaceZone);
+    {
+        HashTable<Pair<word> > faceZoneToPatches(zonesToFaceZone.size());
+        forAllConstIter(wordPairHashTable, zonesToFaceZone, iter)
+        {
+            const Pair<word>& czNames = iter.key();
+            const word& fzName = iter();
+
+            const word& masterName = fzName;
+            const word slaveName = czNames.second() + "_to_" + czNames.first();
+            Pair<word> patches(masterName, slaveName);
+            faceZoneToPatches.insert(fzName, patches);
+        }
+        addFaceZones(meshRefiner_, refineParams, faceZoneToPatches);
+    }
 
     // Pull baffles apart
     splitAndMergeBaffles
