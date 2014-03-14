@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,6 +36,7 @@ SourceFiles
 #ifndef basicMultiComponentMixture_H
 #define basicMultiComponentMixture_H
 
+#include "typeInfo.H"
 #include "volFields.H"
 #include "PtrList.H"
 #include "speciesTable.H"
@@ -64,6 +65,9 @@ protected:
 
 
 public:
+
+    //- Run time type information
+    TypeName("basicMultiComponentMixture");
 
     //- The base class of the mixture
     typedef basicMultiComponentMixture basicMixtureType;

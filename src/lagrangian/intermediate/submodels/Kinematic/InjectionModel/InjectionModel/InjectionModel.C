@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -593,7 +593,7 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
 
                         if (pPtr->move(td, dt))
                         {
-                            td.cloud().addParticle(pPtr);
+                            cloud.addParticle(pPtr);
                         }
                         else
                         {
@@ -699,7 +699,7 @@ void Foam::InjectionModel<CloudType>::injectSteadyState
                 );
 
             // Add the new parcel
-            td.cloud().addParticle(pPtr);
+            cloud.addParticle(pPtr);
 
             massAdded += pPtr->nParticle()*pPtr->mass();
             parcelsAdded++;
