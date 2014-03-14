@@ -24,7 +24,7 @@ runParallel -l log.icoFoam-random icoFoam 2
 cp system/controlDict-latestTime system/controlDict
 #- redistribute to 5 processors
 cp system/decomposeParDict-5 system/decomposeParDict
-runParallel -l log.redistributePar-5 redistributePar 5
+runParallel -l log.redistributePar-5 redistributePar 5 -cellDist
 #- run a bit more
 runParallel -l log.icoFoam-5 icoFoam 5
 
