@@ -31,19 +31,25 @@ Description
     Must be run on maximum number of source and destination processors.
     Balances mesh and writes new mesh to new time directory.
 
-    Can also work like decomposePar:
-    \verbatim
-        # Create empty processor directories (have to exist for argList)
-        mkdir processor0
-                ..
-        mkdir processorN
+Usage
 
-        # Copy undecomposed polyMesh
-        cp -r constant processor0
+    - redistributePar [OPTION]
 
-        # Distribute
-        mpirun -np ddd redistributePar -parallel
-    \endverbatim
+    \param -region regionName \n
+    Distribute named region.
+
+    \param -decompose \n
+    Remove any existing \a processor subdirectories and decomposes the
+    geometry. Equivalent to running without processor subdirectories.
+
+    \param -reconstruct \n
+    Reconstruct geometry. Equivalent to setting numberOfSubdomains 1 in
+    the decomposeParDict
+
+    \param -cellDist \n
+    Write the cell distribution as a labelList, for use with 'manual'
+    decomposition method or as a volScalarField for post-processing.
+
 \*---------------------------------------------------------------------------*/
 
 #include "fvMesh.H"
@@ -102,19 +108,6 @@ scalar getMergeDistance
 
     return mergeDist;
 }
-
-
-//void printMeshData(Ostream& os, const polyMesh& mesh)
-//{
-//    os  << "Number of points:           " << mesh.points().size() << nl
-//        << "          faces:            " << mesh.faces().size() << nl
-//        << "          internal faces:   " << mesh.faceNeighbour().size() << nl
-//        << "          cells:            " << mesh.cells().size() << nl
-//        << "          boundary patches: " << mesh.boundaryMesh().size() << nl
-//        << "          point zones:      " << mesh.pointZones().size() << nl
-//        << "          face zones:       " << mesh.faceZones().size() << nl
-//        << "          cell zones:       " << mesh.cellZones().size() << nl;
-//}
 
 
 void printMeshData(const polyMesh& mesh)
@@ -221,6 +214,23 @@ void writeDecomposition
     const labelList& decomp
 )
 {
+    // Write the decomposition as labelList for use with 'manual'
+    // decomposition method.
+    labelIOList cellDecomposition
+    (
+        IOobject
+        (
+            "cellDecomposition",
+            mesh.pointsInstance(),  // mesh read from pointsInstance
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        decomp
+    );
+    cellDecomposition.write();
+
     Info<< "Writing wanted cell distribution to volScalarField " << name
         << " for postprocessing purposes." << nl << endl;
 
@@ -434,6 +444,12 @@ int main(int argc, char *argv[])
         "specify the merge distance relative to the bounding box size "
         "(default 1e-6)"
     );
+    argList::addBoolOption
+    (
+        "cellDist",
+        "write cell distribution as a labelList - for use with 'manual' "
+        "decomposition method or as a volScalarField for post-processing."
+    );
 
 
     // Handle arguments
@@ -441,9 +457,10 @@ int main(int argc, char *argv[])
     // (replacement for setRootCase that does not abort)
 
     Foam::argList args(argc, argv);
-    const bool decompose = args.optionFound("decompose");
+    bool decompose = args.optionFound("decompose");
     const bool reconstruct = args.optionFound("reconstruct");
     bool overwrite = args.optionFound("overwrite");
+    bool writeCellDist = args.optionFound("cellDist");
 
     if (decompose)
     {
@@ -536,6 +553,9 @@ int main(int argc, char *argv[])
     {
         if (Pstream::master())
         {
+            // No processor0 -> decompose mode
+            decompose = true;
+
             // Read parent controlDict. Switch off parallel comms since
             // time construction does reduction on time being equal on all procs
             bool oldParRun = Pstream::parRun();
@@ -566,6 +586,9 @@ int main(int argc, char *argv[])
             mkDir(args.path());
         }
     }
+
+    // decompose option possibly switched on if no processor0 detected
+    Pstream::scatter(decompose);
 
 
     Info<< "Setting time to that of master or undecomposed case : "
@@ -687,14 +710,22 @@ int main(int argc, char *argv[])
 
             finalDecomp = decomposer().decompose(mesh, mesh.cellCentres());
             nDestProcs = decomposer().nDomains();
+
+            // Dump decomposition to volScalarField
+            if (writeCellDist)
+            {
+                // Note: on master make sure to write to processor0
+                const fileName oldCaseName(runTime.TimePaths::caseName());
+                if (Pstream::master() && masterCaseName.size())
+                {
+                    runTime.TimePaths::caseName() = masterCaseName;
+                }
+                writeDecomposition("cellDist", mesh, finalDecomp);
+                runTime.TimePaths::caseName() = oldCaseName;
+            }
         }
     }
 
-    // Dump decomposition to volScalarField
-    if (!overwrite)
-    {
-        writeDecomposition("decomposition", mesh, finalDecomp);
-    }
 
 
     // Create 0 sized mesh to do all the generation of zero sized
@@ -743,7 +774,7 @@ int main(int argc, char *argv[])
 
     // We don't want to map the decomposition (mapping already tested when
     // mapping the cell centre field)
-    IOobjectList::iterator iter = objects.find("decomposition");
+    IOobjectList::iterator iter = objects.find("cellDist");
     if (iter != objects.end())
     {
         objects.erase(iter);
@@ -917,12 +948,104 @@ int main(int argc, char *argv[])
 
     mesh.write();
 
-    // Now we've read all. Reset caseName on master
+    // Now we've written all. Reset caseName on master
     if (Pstream::master() && masterCaseName.size())
     {
         Info<< "Restoring caseName to " << masterCaseName << endl;
         runTime.TimePaths::caseName() = masterCaseName;
     }
+
+
+    if (decompose)
+    {
+        Info<< "Writing procXXXAddressing files to " << mesh.facesInstance()
+            << endl;
+        // Write maps
+        labelList cellMap(identity(map().nOldCells()));
+        map().distributeCellData(cellMap);
+        cellMap.setSize(mesh.nCells());
+
+        labelIOList
+        (
+            IOobject
+            (
+                "cellProcAddressing",
+                mesh.facesInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::NO_READ
+            ),
+            cellMap
+        ).write();
+
+        labelList faceMap(identity(map().nOldFaces()));
+        map().distributeFaceData(faceMap);
+        faceMap.setSize(mesh.nFaces());
+
+        labelIOList
+        (
+            IOobject
+            (
+                "faceProcAddressing",
+                mesh.facesInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::NO_READ
+            ),
+            faceMap
+        ).write();
+
+        labelList pointMap(identity(map().nOldPoints()));
+        map().distributePointData(pointMap);
+        pointMap.setSize(mesh.nPoints());
+
+        labelIOList
+        (
+            IOobject
+            (
+                "pointProcAddressing",
+                mesh.pointsInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::NO_READ
+            ),
+            pointMap
+        ).write();
+
+
+        labelList patchMap(identity(map().oldPatchSizes().size()));
+        const mapDistribute& distMap = map().patchMap();
+        // Use explicit distribute since we need to provide a null value
+        // (for new patches) and this is the only call that allow us to
+        // provide one ...
+        mapDistribute::distribute
+        (
+            Pstream::nonBlocking,
+            List<labelPair>(),
+            distMap.constructSize(),
+            distMap.constructMap(),
+            distMap.subMap(),
+            patchMap,
+            eqOp<label>(),
+            -1,
+            UPstream::msgType()
+        );
+        patchMap.setSize(mesh.boundaryMesh().size(), -1);
+
+        labelIOList
+        (
+            IOobject
+            (
+                "boundaryProcAddressing",
+                mesh.pointsInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::NO_READ
+            ),
+            patchMap
+        ).write();
+    }
+
 
 
     // Debugging: test mapped cellcentre field.
