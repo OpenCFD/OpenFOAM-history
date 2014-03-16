@@ -43,8 +43,8 @@ Usage
     geometry. Equivalent to running without processor subdirectories.
 
     \param -reconstruct \n
-    Reconstruct geometry. Equivalent to setting numberOfSubdomains 1 in
-    the decomposeParDict
+    Reconstruct geometry (like reconstructParMesh). Equivalent to setting
+    numberOfSubdomains 1 in the decomposeParDict
 
     \param -cellDist \n
     Write the cell distribution as a labelList, for use with 'manual'
@@ -935,37 +935,38 @@ int main(int argc, char *argv[])
     {
         mesh.setInstance(masterInstDir);
     }
-    Info<< "Writing redistributed mesh to " << mesh.pointsInstance() << nl
+
+
+    if (nDestProcs == 1)
+    {
+        if (Pstream::master())
+        {
+            Info<< "Setting caseName to " << runTime.globalCaseName()
+                << " to write reconstructed mesh and fields." << endl;
+            fileName masterCaseName = runTime.caseName();
+            runTime.TimePaths::caseName() = runTime.globalCaseName();
+
+            mesh.write();
+
+            // Now we've written all. Reset caseName on master
+            Info<< "Restoring caseName to " << masterCaseName << endl;
+            runTime.TimePaths::caseName() = masterCaseName;
+        }
+    }
+    else
+    {
+        mesh.write();
+    }
+    Info<< "Written redistributed mesh to " << mesh.pointsInstance() << nl
         << endl;
 
-    if (nDestProcs == 1 && Pstream::master())
-    {
-        Info<< "Setting caseName to " << runTime.globalCaseName()
-            << " to write reconstructed mesh and fields." << endl;
-        masterCaseName = runTime.caseName();
-        runTime.TimePaths::caseName() = runTime.globalCaseName();
-    }
 
-    mesh.write();
-
-    // Now we've written all. Reset caseName on master
-    if (Pstream::master() && masterCaseName.size())
-    {
-        Info<< "Restoring caseName to " << masterCaseName << endl;
-        runTime.TimePaths::caseName() = masterCaseName;
-    }
-
-
-    if (decompose)
+    if (decompose || nDestProcs == 1)
     {
         Info<< "Writing procXXXAddressing files to " << mesh.facesInstance()
             << endl;
-        // Write maps
-        labelList cellMap(identity(map().nOldCells()));
-        map().distributeCellData(cellMap);
-        cellMap.setSize(mesh.nCells());
 
-        labelIOList
+        labelIOList cellMap
         (
             IOobject
             (
@@ -975,14 +976,10 @@ int main(int argc, char *argv[])
                 mesh,
                 IOobject::NO_READ
             ),
-            cellMap
-        ).write();
+            0
+        );
 
-        labelList faceMap(identity(map().nOldFaces()));
-        map().distributeFaceData(faceMap);
-        faceMap.setSize(mesh.nFaces());
-
-        labelIOList
+        labelIOList faceMap
         (
             IOobject
             (
@@ -992,14 +989,10 @@ int main(int argc, char *argv[])
                 mesh,
                 IOobject::NO_READ
             ),
-            faceMap
-        ).write();
+            0
+        );
 
-        labelList pointMap(identity(map().nOldPoints()));
-        map().distributePointData(pointMap);
-        pointMap.setSize(mesh.nPoints());
-
-        labelIOList
+        labelIOList pointMap
         (
             IOobject
             (
@@ -1009,30 +1002,10 @@ int main(int argc, char *argv[])
                 mesh,
                 IOobject::NO_READ
             ),
-            pointMap
-        ).write();
-
-
-        labelList patchMap(identity(map().oldPatchSizes().size()));
-        const mapDistribute& distMap = map().patchMap();
-        // Use explicit distribute since we need to provide a null value
-        // (for new patches) and this is the only call that allow us to
-        // provide one ...
-        mapDistribute::distribute
-        (
-            Pstream::nonBlocking,
-            List<labelPair>(),
-            distMap.constructSize(),
-            distMap.constructMap(),
-            distMap.subMap(),
-            patchMap,
-            eqOp<label>(),
-            -1,
-            UPstream::msgType()
+            0
         );
-        patchMap.setSize(mesh.boundaryMesh().size(), -1);
 
-        labelIOList
+        labelIOList patchMap
         (
             IOobject
             (
@@ -1042,8 +1015,77 @@ int main(int argc, char *argv[])
                 mesh,
                 IOobject::NO_READ
             ),
-            patchMap
-        ).write();
+            0
+        );
+
+        // Decomposing: see how cells moved from undecomposed case
+        if (decompose)
+        {
+            cellMap = identity(map().nOldCells());
+            map().distributeCellData(cellMap);
+            cellMap.setSize(mesh.nCells());
+
+            faceMap = identity(map().nOldFaces());
+            map().distributeFaceData(faceMap);
+            faceMap.setSize(mesh.nFaces());
+
+            pointMap = identity(map().nOldPoints());
+            map().distributePointData(pointMap);
+            pointMap.setSize(mesh.nPoints());
+
+            patchMap = identity(map().oldPatchSizes().size());
+            const mapDistribute& patchDistMap = map().patchMap();
+            // Use explicit distribute since we need to provide a null value
+            // (for new patches) and this is the only call that allow us to
+            // provide one ...
+            mapDistribute::distribute
+            (
+                Pstream::nonBlocking,
+                List<labelPair>(),
+                patchDistMap.constructSize(),
+                patchDistMap.constructMap(),
+                patchDistMap.subMap(),
+                patchMap,
+                eqOp<label>(),
+                -1,
+                UPstream::msgType()
+            );
+            patchMap.setSize(mesh.boundaryMesh().size(), -1);
+        }
+        else if (nDestProcs == 1)
+        {
+            cellMap = identity(mesh.nCells());
+            map().cellMap().reverseDistribute(map().nOldCells(), cellMap);
+
+            faceMap = identity(mesh.nFaces());
+            map().faceMap().reverseDistribute(map().nOldFaces(), faceMap);
+
+            pointMap = identity(mesh.nPoints());
+            map().pointMap().reverseDistribute(map().nOldPoints(), pointMap);
+
+            const mapDistribute& patchDistMap = map().patchMap();
+            patchMap = identity(mesh.boundaryMesh().size());
+            patchDistMap.reverseDistribute
+            (
+                map().oldPatchSizes().size(),
+                -1,
+                patchMap
+            );
+        }
+
+        bool cellOk = cellMap.write();
+        bool faceOk = faceMap.write();
+        bool pointOk = pointMap.write();
+        bool patchOk = patchMap.write();
+        if (!cellOk || !faceOk || !pointOk || !patchOk)
+        {
+            WarningIn(args.executable())
+                << "Failed to write " << cellMap.objectPath()
+                << ", " << faceMap.objectPath()
+                << ", " << pointMap.objectPath()
+                << ", " << patchMap.objectPath()
+                << endl;
+        }
     }
 
 
