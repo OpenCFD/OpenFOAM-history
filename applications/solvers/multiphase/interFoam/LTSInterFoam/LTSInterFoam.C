@@ -82,14 +82,11 @@ int main(int argc, char *argv[])
         {
             #include "alphaControls.H"
 
-            if (pimple.firstIter() || alphaOuterCorrectors)
-            {
-                twoPhaseProperties.correct();
+            twoPhaseProperties.correct();
 
-                #define LTSSOLVE
-                #include "alphaEqnSubCycle.H"
-                #undef LTSSOLVE
-            }
+            #define LTSSOLVE
+            #include "alphaEqnSubCycle.H"
+            #undef LTSSOLVE
 
             turbulence->correct();
 

@@ -79,15 +79,12 @@ int main(int argc, char *argv[])
         {
             #include "alphaControls.H"
 
-            if (pimple.firstIter() || alphaOuterCorrectors)
-            {
-                threePhaseProperties.correct();
+            threePhaseProperties.correct();
 
-                #include "alphaEqnsSubCycle.H"
-                interface.correct();
+            #include "alphaEqnsSubCycle.H"
+            interface.correct();
 
-                #define twoPhaseProperties threePhaseProperties
-            }
+            #define twoPhaseProperties threePhaseProperties
 
             #include "UEqn.H"
 
