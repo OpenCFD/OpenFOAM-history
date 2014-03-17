@@ -2943,8 +2943,8 @@ void Foam::autoLayerDriver::addLayers
 
     // Create baffles (pairs of faces that share the same points)
     // Baffles stored as owner and neighbour face that have been created.
+    List<labelPair> baffles;
     {
-        List<labelPair> baffles;
         labelList originatingFaceZone;
         meshRefiner_.createZoneBaffles
         (
@@ -2952,7 +2952,6 @@ void Foam::autoLayerDriver::addLayers
             baffles,
             originatingFaceZone
         );
-
 
         if (debug&meshRefinement::MESH || debug&meshRefinement::LAYERINFO)
         {
@@ -2975,12 +2974,70 @@ void Foam::autoLayerDriver::addLayers
 
     // Duplicate points on faceZones of type boundary. Should normally already
     // be done by snapping phase
-    meshRefiner_.dupNonManifoldBoundaryPoints();
+    {
+        autoPtr<mapPolyMesh> map = meshRefiner_.dupNonManifoldBoundaryPoints();
+        if (map.valid())
+        {
+            const labelList& reverseFaceMap = map().reverseFaceMap();
+            forAll(baffles, i)
+            {
+                label f0 = reverseFaceMap[baffles[i].first()];
+                label f1 = reverseFaceMap[baffles[i].second()];
+                baffles[i] = labelPair(f0, f1);
+            }
+        }
+    }
+
+
+
+    // Now we have all patches determine the number of layer per patch
+    // This will be layerParams.numLayers() except for faceZones where one
+    // side does get layers and the other not in which case we want to
+    // suppress movement by explicitly setting numLayers 0
+    labelList numLayers(layerParams.numLayers());
+    {
+        labelHashSet layerIDs(patchIDs);
+        forAll(mesh.faceZones(), zoneI)
+        {
+            label mpI, spI;
+            surfaceZonesInfo::faceZoneType fzType;
+            bool hasInfo = meshRefiner_.getFaceZoneInfo
+            (
+                mesh.faceZones()[zoneI].name(),
+                mpI,
+                spI,
+                fzType
+            );
+            if (hasInfo)
+            {
+                const polyBoundaryMesh& pbm = mesh.boundaryMesh();
+                if (layerIDs.found(mpI) && !layerIDs.found(spI))
+                {
+                    // Only layers on master side. Fix points on slave side
+                    Info<< "On faceZone " << mesh.faceZones()[zoneI].name()
+                        << " adding layers to master patch " << pbm[mpI].name()
+                        << " only. Freezing points on slave patch "
+                        << pbm[spI].name() << endl;
+                    numLayers[spI] = 0;
+                }
+                else if (!layerIDs.found(mpI) && layerIDs.found(spI))
+                {
+                    // Only layers on slave side. Fix points on master side
+                    Info<< "On faceZone " << mesh.faceZones()[zoneI].name()
+                        << " adding layers to slave patch " << pbm[spI].name()
+                        << " only. Freezing points on master patch "
+                        << pbm[mpI].name() << endl;
+                    numLayers[mpI] = 0;
+                }
+            }
+        }
+    }
 
 
 
     // Duplicate points on faceZones that layers are added to
     labelList pointToDuplicate;
+
     {
         // Check outside of baffles for non-manifoldness
         PackedBoolList duplicatePoint(mesh.nPoints());
@@ -3004,7 +3061,7 @@ void Foam::autoLayerDriver::addLayers
             // Get number of layers per point from number of layers per patch
             setNumLayers
             (
-                layerParams.numLayers(),// per patch the num layers
+                numLayers,              // per patch the num layers
                 patchIDs,               // patches that are being moved
                 pp,                     // indirectpatch for all faces moving
 
@@ -3030,36 +3087,6 @@ void Foam::autoLayerDriver::addLayers
                     duplicatePoint[pp().meshPoints()[patchPointI]] = 1;
                 }
             }
-
-            // Take all the faceZones without extrusion and disable
-            // duplication. This should not be necessary but mesh shrinking
-            // moves points so they cannot be merged afterwards
-            labelHashSet layerIDs(patchIDs);
-            forAll(mesh.faceZones(), zoneI)
-            {
-                const faceZone& fZone = mesh.faceZones()[zoneI];
-
-                label mpI, spI;
-                surfaceZonesInfo::faceZoneType fzType;
-                bool hasInfo = meshRefiner_.getFaceZoneInfo
-                (
-                    mesh.faceZones()[zoneI].name(),
-                    mpI,
-                    spI,
-                    fzType
-                );
-                if (hasInfo && !layerIDs.found(mpI) && !layerIDs.found(spI))
-                {
-                    forAll(fZone, i)
-                    {
-                        const face& f = mesh.faces()[fZone[i]];
-                        forAll(f, fp)
-                        {
-                            duplicatePoint[f[fp]] = 0;
-                        }
-                    }
-                }
-            }
         }
 
 
@@ -3081,7 +3108,43 @@ void Foam::autoLayerDriver::addLayers
                 candidatePoints[n++] = pointI;
             }
         }
-        localPointRegion regionSide(mesh, candidatePoints);
+
+        // Not duplicate points on either side of baffles that don't get any
+        // layers
+        labelPairList nonDupBaffles;
+
+        {
+            // faceZones that are not being duplicated
+            DynamicList<label> nonDupZones(mesh.faceZones().size());
+
+            labelHashSet layerIDs(patchIDs);
+            forAll(mesh.faceZones(), zoneI)
+            {
+                label mpI, spI;
+                surfaceZonesInfo::faceZoneType fzType;
+                bool hasInfo = meshRefiner_.getFaceZoneInfo
+                (
+                    mesh.faceZones()[zoneI].name(),
+                    mpI,
+                    spI,
+                    fzType
+                );
+                if (hasInfo && !layerIDs.found(mpI) && !layerIDs.found(spI))
+                {
+                    nonDupZones.append(zoneI);
+                }
+            }
+            nonDupBaffles = meshRefinement::subsetBaffles
+            (
+                mesh,
+                nonDupZones,
+                localPointRegion::findDuplicateFacePairs(mesh)
+            );
+        }
+
+
+        const localPointRegion regionSide(mesh, nonDupBaffles, candidatePoints);
+
         autoPtr<mapPolyMesh> map = meshRefiner_.dupNonManifoldPoints
         (
             regionSide
@@ -3105,22 +3168,27 @@ void Foam::autoLayerDriver::addLayers
                     // Found slave. Mark both master and slave
                     pointToDuplicate[pointI] = newMasterPointI;
                     pointToDuplicate[newMasterPointI] = newMasterPointI;
-                    //str.write
-                    //(
-                    //    linePointRef
-                    //    (
-                    //        mesh.points()[pointI],
-                    //        mesh.points()[newMasterPointI]
-                    //    )
-                    //);
                 }
             }
+
+            // Update baffle numbering
+            {
+                const labelList& reverseFaceMap = map().reverseFaceMap();
+                forAll(baffles, i)
+                {
+                    label f0 = reverseFaceMap[baffles[i].first()];
+                    label f1 = reverseFaceMap[baffles[i].second()];
+                    baffles[i] = labelPair(f0, f1);
+                }
+            }
+
 
             if (debug&meshRefinement::MESH || debug&meshRefinement::LAYERINFO)
             {
                 const_cast<Time&>(mesh.time())++;
                 Info<< "Writing point-duplicate mesh to time "
                     << meshRefiner_.timeName() << endl;
+
                 meshRefiner_.write
                 (
                     meshRefinement::debugType(debug),
@@ -3228,7 +3296,7 @@ void Foam::autoLayerDriver::addLayers
 
         setNumLayers
         (
-            layerParams.numLayers(),    // per patch the num layers
+            numLayers,                  // per patch the num layers
             patchIDs,                   // patches that are being moved
             pp,                         // indirectpatch for all faces moving
 
@@ -3377,7 +3445,7 @@ void Foam::autoLayerDriver::addLayers
             makeLayerDisplacementField
             (
                 pointMesh::New(mesh),
-                layerParams.numLayers()
+                numLayers
             )
         );
 
@@ -3555,7 +3623,7 @@ void Foam::autoLayerDriver::addLayers
             }
 
 
-            // Mesh topo change engine
+            // Mesh topo change engine. Insert current mesh.
             polyTopoChange meshMod(mesh);
 
             // Grow layer of cells on to patch. Handles zero sized displacement.
@@ -3694,15 +3762,41 @@ void Foam::autoLayerDriver::addLayers
             }
 
 
-            const List<labelPair> internalBaffles
-            (
-                meshRefinement::subsetBaffles
+            //- Get baffles in newMesh numbering. Note that we cannot detect
+            //  baffles here since the points are duplicated
+            List<labelPair> internalBaffles;
+            {
+                // From old mesh face to corresponding newMesh boundary face
+                labelList meshToNewMesh(mesh.nFaces(), -1);
+                for
+                (
+                    label faceI = newMesh.nInternalFaces();
+                    faceI < newMesh.nFaces();
+                    faceI++
+                )
+                {
+                    meshToNewMesh[map().faceMap()[faceI]] = faceI;
+                }
+
+                List<labelPair> newMeshBaffles(baffles.size());
+                forAll(baffles, i)
+                {
+                    const labelPair& p = baffles[i];
+                    newMeshBaffles[i][0] = meshToNewMesh[p[0]];
+                    newMeshBaffles[i][1] = meshToNewMesh[p[1]];
+                }
+                internalBaffles = meshRefinement::subsetBaffles
                 (
                     newMesh,
                     internalFaceZones,
-                    localPointRegion::findDuplicateFacePairs(newMesh)
-                )
-            );
+                    newMeshBaffles
+                );
+
+                Info<< "Detected "
+                    << returnReduce(internalBaffles.size(), sumOp<label>())
+                    << " baffles across faceZones of type internal" << nl
+                    << endl;
+            }
 
             label nTotChanged = checkAndUnmark
             (
@@ -3828,11 +3922,52 @@ void Foam::autoLayerDriver::addLayers
 
 
 
+        // Update numbering of baffles
+        {
+            // From old mesh face to corresponding newMesh boundary face.
+            // (we cannot just use faceMap or reverseFaceMap here since
+            //  multiple faces originate from the old face)
+            labelList oldMeshToNewMesh(map().nOldFaces(), -1);
+            for
+            (
+                label faceI = mesh.nInternalFaces();
+                faceI < mesh.nFaces();
+                faceI++
+            )
+            {
+                oldMeshToNewMesh[map().faceMap()[faceI]] = faceI;
+            }
+
+            forAll(baffles, i)
+            {
+                labelPair& p = baffles[i];
+                p[0] = oldMeshToNewMesh[p[0]];
+                p[1] = oldMeshToNewMesh[p[1]];
+            }
+        }
+
+
+
         // Update numbering of pointToDuplicate
         {
             // The problem is that pointToDuplicate is valid for the old
             // boundary points which are now internal. We need to find the
             // corresponding new boundary point.
+
+
+            List<labelPair> mergePointBaffles
+            (
+                meshRefinement::subsetBaffles
+                (
+                    mesh,
+                    internalOrBaffleFaceZones,
+                    baffles
+                )
+            );
+            Info<< "Detected "
+                << returnReduce(mergePointBaffles.size(), sumOp<label>())
+                << " baffles to merge points across" << nl << endl;
+
 
             label nPointPairs = 0;
             forAll(pointToDuplicate, oldPointI)
@@ -3850,13 +3985,12 @@ void Foam::autoLayerDriver::addLayers
             //    new boundary point
             Map<label> oldPointToBoundaryPoint(2*nPointPairs);
 
-            forAll(internalOrBaffleFaceZones, i)
+            forAll(mergePointBaffles, i)
             {
-                label zoneI = internalOrBaffleFaceZones[i];
-                const faceZone& fz = mesh.faceZones()[zoneI];
-                forAll(fz, j)
+                const labelPair& baffle = mergePointBaffles[i];
+                forAll(baffle, j)
                 {
-                    const face& f = mesh.faces()[fz[j]];
+                    const face& f = mesh.faces()[baffle[j]];
                     forAll(f, fp)
                     {
                         label pointI = f[fp];
@@ -3875,26 +4009,25 @@ void Foam::autoLayerDriver::addLayers
             labelList oldPointToDuplicate(pointToDuplicate.xfer());
             pointToDuplicate.setSize(mesh.nPoints(), -1);
 
-            forAll(internalOrBaffleFaceZones, i)
+            forAll(mergePointBaffles, i)
             {
-                label zoneI = internalOrBaffleFaceZones[i];
-                const faceZone& fz = mesh.faceZones()[zoneI];
-                forAll(fz, j)
+                const labelPair& baffle = mergePointBaffles[i];
+                forAll(baffle, j)
                 {
-                    const face& f = mesh.faces()[fz[j]];
+                    const face& f = mesh.faces()[baffle[j]];
                     forAll(f, fp)
                     {
-                        label oldPointI = pointMap[f[fp]];
+                        label pointI = f[fp];
+                        label oldPointI = pointMap[pointI];
                         label oldDupI = oldPointToDuplicate[oldPointI];
                         if (oldDupI != -1)
                         {
-                            pointToDuplicate[f[fp]] =
-                                oldPointToBoundaryPoint[oldDupI];
+                            label newPointI = oldPointToBoundaryPoint[oldDupI];
+                            pointToDuplicate[pointI] = newPointI;
                         }
                     }
                 }
             }
-
 
 
             // Check

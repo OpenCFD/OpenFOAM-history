@@ -3594,7 +3594,7 @@ Foam::meshRefinement::dupNonManifoldBoundaryPoints()
     }
 
     label globalNPoints = returnReduce(n, sumOp<label>());
-    Info<< "Duplicating " << globalNPoints << " points on "
+    Info<< "Duplicating " << globalNPoints << " points on"
         << " faceZones of type "
         << surfaceZonesInfo::faceZoneTypeNames[surfaceZonesInfo::BOUNDARY]
         << endl;

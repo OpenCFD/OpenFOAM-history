@@ -19,56 +19,27 @@ solvers
 {
     p
     {
-        solver          GAMG;
-        tolerance       1e-07;
-        relTol          0.1;
-        smoother        GaussSeidel;
-        nPreSweeps      0;
-        nPostSweeps     2;
-        cacheAgglomeration on;
-        agglomerator    faceAreaPair;
-        nCellsInCoarsestLevel 10;
-        mergeLevels     1;
-
-        processorAgglomerator none;
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-06;
+        relTol          0;
     }
 
-    pFinal
-    {
-        $p;
-        tolerance       1e-6;
-        relTol          0;
-    };
-
-    "(U|nuTilda)"
+    U
     {
         solver          smoothSolver;
-        smoother        GaussSeidel;
-        tolerance       1e-08;
-        relTol          0.1;
+        smoother        symGaussSeidel;
+        tolerance       1e-05;
+        relTol          0;
     }
 }
 
-SIMPLE
+PISO
 {
+    nCorrectors     2;
     nNonOrthogonalCorrectors 0;
-}
-
-potentialFlow
-{
-    nNonOrthogonalCorrectors 10;
-}
-
-relaxationFactors
-{
-    p               0.3;
-    U               0.5;
-    nuTilda         0.5;
-}
-
-cache
-{
-    grad(U);
+    pRefCell        0;
+    pRefValue       0;
 }
 
 
