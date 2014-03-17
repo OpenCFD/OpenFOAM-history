@@ -71,11 +71,6 @@ drag
 
 virtualMass
 (
-    (particles in air)
-    {
-        type            constantCoefficient;
-        Cvm             0.5;
-    }
 );
 
 heatTransfer
