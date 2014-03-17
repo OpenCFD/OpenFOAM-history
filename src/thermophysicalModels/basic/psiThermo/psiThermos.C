@@ -29,6 +29,7 @@ License
 #include "specie.H"
 #include "perfectGas.H"
 #include "PengRobinsonGas.H"
+#include "rhoConst.H"
 #include "hConstThermo.H"
 #include "eConstThermo.H"
 #include "janafThermo.H"
@@ -52,6 +53,18 @@ namespace Foam
 {
 
 /* * * * * * * * * * * * * * * * * Enthalpy-based * * * * * * * * * * * * * */
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    constTransport,
+    sensibleEnthalpy,
+    hConstThermo,
+    rhoConst,
+    specie
+);
 
 makeThermo
 (
