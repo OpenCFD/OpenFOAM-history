@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,6 +25,13 @@ License
 
 #include "basicMultiComponentMixture.H"
 
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+
+namespace Foam
+{
+    defineTypeNameAndDebug(basicMultiComponentMixture, 0);
+}
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::basicMultiComponentMixture::basicMultiComponentMixture
@@ -39,6 +46,12 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
 {
     forAll(species_, i)
     {
+        if (debug)
+        {
+            Info<< "basicMultiComponentMixture: looking for " << species_[i]
+                << endl;
+        }
+
         IOobject header
         (
             species_[i],
@@ -50,6 +63,12 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
         // check if field exists and can be read
         if (header.headerOk())
         {
+            if (debug)
+            {
+                Info<< "basicMultiComponentMixture: reading " << species_[i]
+                    << endl;
+            }
+
             Y_.set
             (
                 i,
@@ -69,6 +88,12 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
         }
         else
         {
+            if (debug)
+            {
+                Info<< "basicMultiComponentMixture: specie " << species_[i]
+                    << " not found - looking for Ydefault" << endl;
+            }
+
             volScalarField Ydefault
             (
                 IOobject
