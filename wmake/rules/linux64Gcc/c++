@@ -2,6 +2,10 @@
 
 c++WARN     = -Wall -Wextra -Wno-unused-parameter -Wold-style-cast -Wnon-virtual-dtor
 
+# Suppress CGAL warnings
+c++CGALWARN = -Wall -Wextra -Wno-unused-parameter -Wno-old-style-cast -Wnon-virtual-dtor
+
+
 CC          = g++ -m64
 
 include $(RULES)/c++$(WM_COMPILE_OPTION)
