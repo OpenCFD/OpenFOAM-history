@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -52,7 +52,7 @@ class mapPolyMesh;
 class polyMesh;
 
 /*---------------------------------------------------------------------------*\
-                           Class mapDistributePolyMesh Declaration
+                     Class mapDistributePolyMesh Declaration
 \*---------------------------------------------------------------------------*/
 
 class mapDistributePolyMesh
@@ -62,35 +62,35 @@ class mapDistributePolyMesh
         const polyMesh& mesh_;
 
         //- Number of old live points
-        const label nOldPoints_;
+        label nOldPoints_;
 
         //- Number of old live faces
-        const label nOldFaces_;
+        label nOldFaces_;
 
         //- Number of old live cells
-        const label nOldCells_;
+        label nOldCells_;
 
         //- List of the old patch sizes
         labelList oldPatchSizes_;
 
         //- List of the old patch start labels
-        const labelList oldPatchStarts_;
+        labelList oldPatchStarts_;
 
         //- List of numbers of mesh points per old patch
-        const labelList oldPatchNMeshPoints_;
+        labelList oldPatchNMeshPoints_;
 
 
         //- Point distribute map
-        const mapDistribute pointMap_;
+        mapDistribute pointMap_;
 
         //- Face distribute map
-        const mapDistribute faceMap_;
+        mapDistribute faceMap_;
 
         //- Cell distribute map
-        const mapDistribute cellMap_;
+        mapDistribute cellMap_;
 
         //- Patch distribute map
-        const mapDistribute patchMap_;
+        mapDistribute patchMap_;
 
 
 
@@ -207,6 +207,9 @@ public:
 
 
         // Edit
+
+            //- Transfer the contents of the argument and annul the argument.
+            void transfer(mapDistributePolyMesh&);
 
             //- distribute list of point data
             template<class T>
