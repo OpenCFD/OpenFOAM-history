@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -242,6 +242,7 @@ void Foam::localPointRegion::countPointRegions
 void Foam::localPointRegion::calcPointRegions
 (
     const polyMesh& mesh,
+    const labelPairList& baffles,
     boolList& candidatePoint
 )
 {
@@ -423,6 +424,13 @@ void Foam::localPointRegion::calcPointRegions
             minEqOpFace(),
             Foam::dummyTransform()  // dummy transformation
         );
+        forAll(baffles, i)
+        {
+            label f0 = baffles[i].first();
+            label f1 = baffles[i].second();
+            minEqOpFace()(minRegion[f0], minRegion[f1]);
+            minRegion[f1] = minRegion[f0];
+        }
     }
 
 
@@ -469,7 +477,7 @@ Foam::localPointRegion::localPointRegion(const polyMesh& mesh)
         }
     }
 
-    calcPointRegions(mesh, candidatePoint);
+    calcPointRegions(mesh, labelPairList(0), candidatePoint);
 }
 
 
@@ -492,7 +500,31 @@ Foam::localPointRegion::localPointRegion
         candidatePoint[candidatePoints[i]] = true;
     }
 
-    calcPointRegions(mesh, candidatePoint);
+    calcPointRegions(mesh, labelPairList(0), candidatePoint);
+}
+
+
+Foam::localPointRegion::localPointRegion
+(
+    const polyMesh& mesh,
+    const labelPairList& baffles,
+    const labelList& candidatePoints
+)
+:
+    //nRegions_(0),
+    meshPointMap_(0),
+    pointRegions_(0),
+    meshFaceMap_(0),
+    faceRegions_(0)
+{
+    boolList candidatePoint(mesh.nPoints(), false);
+
+    forAll(candidatePoints, i)
+    {
+        candidatePoint[candidatePoints[i]] = true;
+    }
+
+    calcPointRegions(mesh, baffles, candidatePoint);
 }
 
 

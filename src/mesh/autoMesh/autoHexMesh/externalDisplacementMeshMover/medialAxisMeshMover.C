@@ -1226,7 +1226,7 @@ void Foam::medialAxisMeshMover::findIsolatedRegions
     const labelListList& pointFaces = pp.pointFaces();
 
 
-    Info<< typeName << " : Removing isolated regions ..."
+    Info<< typeName << " : Removing isolated regions ..." << nl
         << indent << "- if partially extruded faces make angle < "
         << Foam::radToDeg(Foam::acos(minCosLayerTermination)) <<  nl;
     if (detectExtrusionIsland)

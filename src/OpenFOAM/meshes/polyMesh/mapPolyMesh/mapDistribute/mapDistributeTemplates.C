@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -574,7 +574,14 @@ void Foam::mapDistribute::distribute
 
             {
                 // Set up 'send' to myself
-                List<T> mySubField(field, subMap[Pstream::myProcNo()]);
+                List<T> mySubField
+                (
+                    UIndirectList<T>
+                    (
+                        field,
+                        subMap[Pstream::myProcNo()]
+                    )
+                );
                 // Combine bits. Note that can reuse field storage
                 field.setSize(constructSize);
                 field = nullValue;

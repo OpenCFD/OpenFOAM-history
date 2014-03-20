@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -98,6 +98,21 @@ Foam::mapDistributePolyMesh::mapDistributePolyMesh
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::mapDistributePolyMesh::transfer(mapDistributePolyMesh& rhs)
+{
+    nOldPoints_ = rhs.nOldPoints_;
+    nOldFaces_ = rhs.nOldFaces_;
+    nOldCells_ = rhs.nOldCells_;
+    oldPatchSizes_.transfer(rhs.oldPatchSizes_);
+    oldPatchStarts_.transfer(rhs.oldPatchStarts_);
+    oldPatchNMeshPoints_.transfer(rhs.oldPatchNMeshPoints_);
+    pointMap_.transfer(rhs.pointMap_);
+    faceMap_.transfer(rhs.faceMap_);
+    cellMap_.transfer(rhs.cellMap_);
+    patchMap_.transfer(rhs.patchMap_);
+}
+
 
 void Foam::mapDistributePolyMesh::distributePointIndices(labelList& lst) const
 {

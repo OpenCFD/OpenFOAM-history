@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -41,10 +41,12 @@ Description
       a face on a coupled patch 'losing' its neighbour it will move the
       face into the oldInternalFaces patch.
 
-    - if a user supplied patch is used the mapping becomes a problem.
-    Do the new faces get the value of the internal face they came from?
-    What if e.g. the user supplied patch is a fixedValue 0? So for now
-    they get the face of existing patch face 0.
+    - if a user supplied patch is used it is up to the destination
+      patchField to handle exposed internal faces (mapping from face -1).
+      If not provided the default is to assign the internalField. All the
+      basic patch field types (e.g. fixedValue) will give a warning and
+      preferably derived patch field types should be used that know how to
+      handle exposed faces (e.g. use uniformFixedValue instead of fixedValue)
 
 SourceFiles
     fvMeshSubset.C
@@ -224,7 +226,8 @@ public:
                 const GeometricField<Type, fvPatchField, volMesh>&
             ) const;
 
-            //- Map surface field
+            //- Map surface field. Optionally negates value if flipping
+            //  a face (from exposing an internal face)
             template<class Type>
             static tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
             interpolate
@@ -232,14 +235,17 @@ public:
                 const GeometricField<Type, fvsPatchField, surfaceMesh>&,
                 const fvMesh& sMesh,
                 const labelList& patchMap,
-                const labelList& faceMap
+                const labelList& cellMap,
+                const labelList& faceMap,
+                const bool negateIfFlipped = true
             );
 
             template<class Type>
             tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
             interpolate
             (
-                const GeometricField<Type, fvsPatchField, surfaceMesh>&
+                const GeometricField<Type, fvsPatchField, surfaceMesh>&,
+                const bool negateIfFlipped = true
             ) const;
 
             //- Map point field
