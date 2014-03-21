@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,13 +49,6 @@ class ptscotchDecomp
     public decompositionMethod
 {
     // Private Member Functions
-
-        //- Insert list in front of list.
-        template<class Type>
-        static void prepend(const UList<Type>&, List<Type>&);
-        //- Insert list at end of list.
-        template<class Type>
-        static void append(const UList<Type>&, List<Type>&);
 
         //- Check and print error message
         static void check(const int, const char*);
@@ -154,12 +147,6 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-#   include "ptscotchDecompTemplates.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
