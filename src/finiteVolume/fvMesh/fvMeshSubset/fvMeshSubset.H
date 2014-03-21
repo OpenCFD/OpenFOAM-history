@@ -96,6 +96,8 @@ private:
         //- Patch mapping array
         labelList patchMap_;
 
+        mutable autoPtr<labelList> faceFlipMapPtr_;
+
 
     // Private Member Functions
 
@@ -197,6 +199,9 @@ public:
 
             //- Return face map
             const labelList& faceMap() const;
+
+            //- Return face map with sign to encode flipped faces
+            const labelList& faceFlipMap() const;
 
             //- Return cell map
             const labelList& cellMap() const;
