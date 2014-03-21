@@ -194,7 +194,7 @@ tmp<volScalarField> LaheyKEpsilon<BasicTurbulenceModel>::bubbleG() const
     tmp<volScalarField> bubbleG
     (
         Cp_
-       (
+       *(
             pow3(magUr)
           + pow(fluid.drag(gas).CdRe()*liquid.nu()/gas.d(), 4.0/3.0)
            *pow(magUr, 5.0/3.0)
