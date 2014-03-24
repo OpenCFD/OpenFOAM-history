@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -111,8 +111,8 @@ Foam::labelList Foam::structuredRenumber::renumber
 
 
     // Avoid subsetMesh, FaceCellWave going through proc boundaries
-    bool oldParRun = Pstream::parRun();
-    Pstream::parRun() = false;
+    const label nProcs = UPstream::nProcs();
+    UPstream::setParRun(0);
 
 
     // Work array. Used here to temporarily store the original-to-ordered
@@ -176,8 +176,7 @@ Foam::labelList Foam::structuredRenumber::renumber
     );
 
 
-    Pstream::parRun() = oldParRun;
-
+    UPstream::setParRun(nProcs);
 
     // And extract.
     // Note that distance is distance from face so starts at 1.
