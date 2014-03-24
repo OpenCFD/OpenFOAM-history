@@ -693,8 +693,16 @@ int main(int argc, char *argv[])
         );
 
         // Store added cells
+        if (mode == MESH)
         {
-            const labelListList addedCells(layerExtrude.addedCells());
+            const labelListList addedCells
+            (
+                layerExtrude.addedCells
+                (
+                    meshFromMesh,
+                    layerExtrude.layerFaces()
+                )
+            );
             forAll(addedCells, faceI)
             {
                 const labelList& aCells = addedCells[faceI];
