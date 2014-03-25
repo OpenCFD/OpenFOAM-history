@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -817,8 +817,8 @@ bool Foam::domainDecomposition::writeDecomposition(const bool decomposeSets)
             }
         }
 
-        // Set the precision of the points data to 10
-        IOstream::defaultPrecision(10);
+        // Set the precision of the points data to be min 10
+        IOstream::defaultPrecision(max(10u, IOstream::defaultPrecision()));
 
         procMesh.write();
 
