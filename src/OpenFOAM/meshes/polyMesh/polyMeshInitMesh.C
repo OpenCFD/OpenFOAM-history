@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -166,13 +166,14 @@ void Foam::polyMesh::initMesh(cellList& c)
     );
 
     string meshInfo =
-        "nPoints: " + Foam::name(nPoints())
-      + " nCells: " + Foam::name(nCells())
-      + " nFaces: " + Foam::name(nFaces())
-      + " nInternalFaces: " + Foam::name(this->nInternalFaces());
+        "nPoints:" + Foam::name(nPoints())
+      + "  nCells:" + Foam::name(this->nCells())
+      + "  nFaces:" + Foam::name(nFaces())
+      + "  nInternalFaces:" + Foam::name(this->nInternalFaces());
 
     owner_.note() = meshInfo;
     neighbour_.note() = meshInfo;
 }
+
 
 // ************************************************************************* //
