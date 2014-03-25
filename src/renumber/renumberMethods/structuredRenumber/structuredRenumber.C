@@ -111,8 +111,8 @@ Foam::labelList Foam::structuredRenumber::renumber
 
 
     // Avoid subsetMesh, FaceCellWave going through proc boundaries
-    const label nProcs = UPstream::nProcs();
-    UPstream::setParRun(0);
+    bool oldParRun = Pstream::parRun();
+    Pstream::parRun() = false;
 
 
     // Work array. Used here to temporarily store the original-to-ordered
@@ -176,7 +176,8 @@ Foam::labelList Foam::structuredRenumber::renumber
     );
 
 
-    UPstream::setParRun(nProcs);
+    Pstream::parRun() = oldParRun;
+
 
     // And extract.
     // Note that distance is distance from face so starts at 1.

@@ -52,12 +52,12 @@ Usage
 
 \*---------------------------------------------------------------------------*/
 
+#include "fvMeshDistribute.H"
 #include "fvMesh.H"
 #include "decompositionMethod.H"
 #include "PstreamReduceOps.H"
 #include "fvCFD.H"
-#include "fvMeshDistribute.H"
-#include "mapDistributePolyMesh.H"
+#include "IOmapDistributePolyMesh.H"
 #include "IOobjectList.H"
 #include "globalIndex.H"
 #include "loadOrCreateMesh.H"
@@ -913,17 +913,39 @@ int main(int argc, char *argv[])
     //Pout<< "Wanted distribution:"
     //    << distributor.countCells(finalDecomp) << nl << endl;
 
-    // Do actual sending/receiving of mesh
-    autoPtr<mapDistributePolyMesh> map = distributor.distribute(finalDecomp);
+    IOmapDistributePolyMesh map
+    (
+        IOobject
+        (
+            "procAddressing",
+            mesh.facesInstance(),
+            polyMesh::meshSubDir,
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        )
+    );
+    {
+        // Do actual sending/receiving of mesh
+        autoPtr<mapDistributePolyMesh> rawMap = distributor.distribute
+        (
+            finalDecomp
+        );
+        map.transfer(rawMap());
+    }
 
 
     //// Distribute any non-registered data accordingly
-    //map().distributeFaceData(faceCc);
+    //map.distributeFaceData(faceCc);
 
 
     // Print some statistics
     Info<< "After distribution:" << endl;
     printMeshData(mesh);
+
+
+    // Set the minimum write precision
+    IOstream::defaultPrecision(max(10u, IOstream::defaultPrecision()));
 
 
     if (!overwrite)
@@ -1021,20 +1043,38 @@ int main(int argc, char *argv[])
         // Decomposing: see how cells moved from undecomposed case
         if (decompose)
         {
-            cellMap = identity(map().nOldCells());
-            map().distributeCellData(cellMap);
-            cellMap.setSize(mesh.nCells());
+            cellMap = identity(map.nOldCells());
+            map.distributeCellData(cellMap);
 
-            faceMap = identity(map().nOldFaces());
-            map().distributeFaceData(faceMap);
-            faceMap.setSize(mesh.nFaces());
+            faceMap = identity(map.nOldFaces());
+            {
+                const mapDistribute& faceDistMap = map.faceMap();
 
-            pointMap = identity(map().nOldPoints());
-            map().distributePointData(pointMap);
-            pointMap.setSize(mesh.nPoints());
+                if (faceDistMap.subHasFlip() || faceDistMap.constructHasFlip())
+                {
+                    // Offset by 1
+                    faceMap = faceMap + 1;
+                }
+                // Apply face flips
+                mapDistribute::distribute
+                (
+                    Pstream::nonBlocking,
+                    List<labelPair>(),
+                    faceDistMap.constructSize(),
+                    faceDistMap.subMap(),
+                    faceDistMap.subHasFlip(),
+                    faceDistMap.constructMap(),
+                    faceDistMap.constructHasFlip(),
+                    faceMap,
+                    flipLabelOp()
+                );
+            }
 
-            patchMap = identity(map().oldPatchSizes().size());
-            const mapDistribute& patchDistMap = map().patchMap();
+            pointMap = identity(map.nOldPoints());
+            map.distributePointData(pointMap);
+
+            patchMap = identity(map.oldPatchSizes().size());
+            const mapDistribute& patchDistMap = map.patchMap();
             // Use explicit distribute since we need to provide a null value
             // (for new patches) and this is the only call that allow us to
             // provide one ...
@@ -1043,31 +1083,54 @@ int main(int argc, char *argv[])
                 Pstream::nonBlocking,
                 List<labelPair>(),
                 patchDistMap.constructSize(),
-                patchDistMap.constructMap(),
                 patchDistMap.subMap(),
+                patchDistMap.subHasFlip(),
+                patchDistMap.constructMap(),
+                patchDistMap.constructHasFlip(),
                 patchMap,
                 eqOp<label>(),
+                flipOp(),
                 -1,
                 UPstream::msgType()
             );
-            patchMap.setSize(mesh.boundaryMesh().size(), -1);
         }
         else if (nDestProcs == 1)
         {
             cellMap = identity(mesh.nCells());
-            map().cellMap().reverseDistribute(map().nOldCells(), cellMap);
+            map.cellMap().reverseDistribute(map.nOldCells(), cellMap);
 
             faceMap = identity(mesh.nFaces());
-            map().faceMap().reverseDistribute(map().nOldFaces(), faceMap);
+            {
+                const mapDistribute& faceDistMap = map.faceMap();
+
+                if (faceDistMap.subHasFlip() || faceDistMap.constructHasFlip())
+                {
+                    // Offset by 1
+                    faceMap = faceMap + 1;
+                }
+
+                mapDistribute::distribute
+                (
+                    Pstream::nonBlocking,
+                    List<labelPair>(),
+                    map.nOldFaces(),
+                    faceDistMap.constructMap(),
+                    faceDistMap.constructHasFlip(),
+                    faceDistMap.subMap(),
+                    faceDistMap.subHasFlip(),
+                    faceMap,
+                    flipLabelOp()
+                );
+            }
 
             pointMap = identity(mesh.nPoints());
-            map().pointMap().reverseDistribute(map().nOldPoints(), pointMap);
+            map.pointMap().reverseDistribute(map.nOldPoints(), pointMap);
 
-            const mapDistribute& patchDistMap = map().patchMap();
+            const mapDistribute& patchDistMap = map.patchMap();
             patchMap = identity(mesh.boundaryMesh().size());
             patchDistMap.reverseDistribute
             (
-                map().oldPatchSizes().size(),
+                map.oldPatchSizes().size(),
                 -1,
                 patchMap
             );

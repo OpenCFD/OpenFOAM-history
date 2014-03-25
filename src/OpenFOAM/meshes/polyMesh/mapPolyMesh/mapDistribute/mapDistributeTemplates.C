@@ -28,19 +28,106 @@ License
 #include "PstreamCombineReduceOps.H"
 #include "globalIndexAndTransform.H"
 #include "transformField.H"
+#include "flipOp.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
+template<class T, class CombineOp, class negateOp>
+void Foam::mapDistribute::flipAndCombine
+(
+    const UList<label>& map,
+    const bool hasFlip,
+    const UList<T>& rhs,
+    const CombineOp& cop,
+    const negateOp& negOp,
+    List<T>& lhs
+)
+{
+    if (hasFlip)
+    {
+        forAll(map, i)
+        {
+            if (map[i] > 0)
+            {
+                label index = map[i]-1;
+                cop(lhs[index], rhs[i]);
+            }
+            else if (map[i] < 0)
+            {
+                label index = -map[i]-1;
+                cop(lhs[index], negOp(rhs[i]));
+            }
+            else
+            {
+                FatalErrorIn("mapDistribute::combine(..)")
+                    << "At index " << i << " out of " << map.size()
+                    << " have illegal index " << map[i]
+                    << " for field " << rhs.size() << " with flipMap"
+                    << exit(FatalError);
+            }
+        }
+    }
+    else
+    {
+        forAll(map, i)
+        {
+            cop(lhs[map[i]], rhs[i]);
+        }
+    }
+}
+
+
+template<class T, class negateOp>
+T Foam::mapDistribute::accessAndFlip
+(
+    const UList<T>& fld,
+    const label index,
+    const bool hasFlip,
+    const negateOp& negOp
+)
+{
+    T t;
+    if (hasFlip)
+    {
+        if (index > 0)
+        {
+            t = fld[index-1];
+        }
+        else if (index < 0)
+        {
+            t = negOp(fld[-index-1]);
+        }
+        else
+        {
+            FatalErrorIn("mapDistribute::accessAndFlip(..)")
+                << "Illegal index " << index
+                << " into field of size " << fld.size()
+                << " with face-flipping"
+                << exit(FatalError);
+            t = fld[index];
+        }
+    }
+    else
+    {
+        t = fld[index];
+    }
+    return t;
+}
+
+
 // Distribute list.
-template<class T>
+template<class T, class negateOp>
 void Foam::mapDistribute::distribute
 (
     const Pstream::commsTypes commsType,
     const List<labelPair>& schedule,
     const label constructSize,
     const labelListList& subMap,
+    const bool subHasFlip,
     const labelListList& constructMap,
+    const bool constructHasFlip,
     List<T>& field,
+    const negateOp& negOp,
     const int tag
 )
 {
@@ -53,7 +140,7 @@ void Foam::mapDistribute::distribute
         List<T> subField(mySubMap.size());
         forAll(mySubMap, i)
         {
-            subField[i] = field[mySubMap[i]];
+            subField[i] = accessAndFlip(field, mySubMap[i], subHasFlip, negOp);
         }
 
         // Receive sub field from myself (subField)
@@ -61,10 +148,16 @@ void Foam::mapDistribute::distribute
 
         field.setSize(constructSize);
 
-        forAll(map, i)
-        {
-            field[map[i]] = subField[i];
-        }
+        flipAndCombine
+        (
+            map,
+            constructHasFlip,
+            subField,
+            eqOp<T>(),
+            negOp,
+            field
+        );
+
         return;
     }
 
@@ -81,7 +174,19 @@ void Foam::mapDistribute::distribute
             if (domain != Pstream::myProcNo() && map.size())
             {
                 OPstream toNbr(Pstream::blocking, domain, 0, tag);
-                toNbr << UIndirectList<T>(field, map);
+
+                List<T> subField(map.size());
+                forAll(subField, i)
+                {
+                    subField[i] = accessAndFlip
+                    (
+                        field,
+                        map[i],
+                        subHasFlip,
+                        negOp
+                    );
+                }
+                toNbr << subField;
             }
         }
 
@@ -91,7 +196,7 @@ void Foam::mapDistribute::distribute
         List<T> subField(mySubMap.size());
         forAll(mySubMap, i)
         {
-            subField[i] = field[mySubMap[i]];
+            subField[i] = accessAndFlip(field, mySubMap[i], subHasFlip, negOp);
         }
 
         // Receive sub field from myself (subField)
@@ -99,10 +204,15 @@ void Foam::mapDistribute::distribute
 
         field.setSize(constructSize);
 
-        forAll(map, i)
-        {
-            field[map[i]] = subField[i];
-        }
+        flipAndCombine
+        (
+            map,
+            constructHasFlip,
+            subField,
+            eqOp<T>(),
+            negOp,
+            field
+        );
 
         // Receive sub field from neighbour
         for (label domain = 0; domain < Pstream::nProcs(); domain++)
@@ -116,10 +226,15 @@ void Foam::mapDistribute::distribute
 
                 checkReceivedSize(domain, map.size(), subField.size());
 
-                forAll(map, i)
-                {
-                    field[map[i]] = subField[i];
-                }
+                flipAndCombine
+                (
+                    map,
+                    constructHasFlip,
+                    subField,
+                    eqOp<T>(),
+                    negOp,
+                    field
+                );
             }
         }
     }
@@ -130,15 +245,32 @@ void Foam::mapDistribute::distribute
         // allocate a new field for the results.
         List<T> newField(constructSize);
 
-        // Subset myself
-        UIndirectList<T> subField(field, subMap[Pstream::myProcNo()]);
-
-        // Receive sub field from myself (subField)
-        const labelList& map = constructMap[Pstream::myProcNo()];
-
-        forAll(map, i)
+        // Receive sub field from myself
         {
-            newField[map[i]] = subField[i];
+            const labelList& mySubMap = subMap[Pstream::myProcNo()];
+
+            List<T> subField(mySubMap.size());
+            forAll(subField, i)
+            {
+                subField[i] = accessAndFlip
+                (
+                    field,
+                    mySubMap[i],
+                    subHasFlip,
+                    negOp
+                );
+            }
+
+            // Receive sub field from myself (subField)
+            flipAndCombine
+            (
+                constructMap[Pstream::myProcNo()],
+                constructHasFlip,
+                subField,
+                eqOp<T>(),
+                negOp,
+                newField
+            );
         }
 
         // Schedule will already have pruned 0-sized comms
@@ -156,7 +288,20 @@ void Foam::mapDistribute::distribute
                 // I am send first, receive next
                 {
                     OPstream toNbr(Pstream::scheduled, recvProc, 0, tag);
-                    toNbr << UIndirectList<T>(field, subMap[recvProc]);
+
+                    const labelList& map = subMap[recvProc];
+                    List<T> subField(map.size());
+                    forAll(subField, i)
+                    {
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
+                    }
+                    toNbr << subField;
                 }
                 {
                     IPstream fromNbr(Pstream::scheduled, recvProc, 0, tag);
@@ -166,10 +311,15 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(recvProc, map.size(), subField.size());
 
-                    forAll(map, i)
-                    {
-                        newField[map[i]] = subField[i];
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        subField,
+                        eqOp<T>(),
+                        negOp,
+                        newField
+                    );
                 }
             }
             else
@@ -183,14 +333,32 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(sendProc, map.size(), subField.size());
 
-                    forAll(map, i)
-                    {
-                        newField[map[i]] = subField[i];
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        subField,
+                        eqOp<T>(),
+                        negOp,
+                        newField
+                    );
                 }
                 {
                     OPstream toNbr(Pstream::scheduled, sendProc, 0, tag);
-                    toNbr << UIndirectList<T>(field, subMap[sendProc]);
+
+                    const labelList& map = subMap[sendProc];
+                    List<T> subField(map.size());
+                    forAll(subField, i)
+                    {
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
+                    }
+                    toNbr << subField;
                 }
             }
         }
@@ -213,7 +381,19 @@ void Foam::mapDistribute::distribute
                 {
                     // Put data into send buffer
                     UOPstream toDomain(domain, pBufs);
-                    toDomain << UIndirectList<T>(field, map);
+
+                    List<T> subField(map.size());
+                    forAll(subField, i)
+                    {
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
+                    }
+                    toDomain << subField;
                 }
             }
 
@@ -222,11 +402,17 @@ void Foam::mapDistribute::distribute
 
             {
                 // Set up 'send' to myself
-                const labelList& mySubMap = subMap[Pstream::myProcNo()];
-                List<T> mySubField(mySubMap.size());
-                forAll(mySubMap, i)
+                const labelList& mySub = subMap[Pstream::myProcNo()];
+                List<T> mySubField(mySub.size());
+                forAll(mySub, i)
                 {
-                    mySubField[i] = field[mySubMap[i]];
+                    mySubField[i] = accessAndFlip
+                    (
+                        field,
+                        mySub[i],
+                        subHasFlip,
+                        negOp
+                    );
                 }
                 // Combine bits. Note that can reuse field storage
                 field.setSize(constructSize);
@@ -234,10 +420,15 @@ void Foam::mapDistribute::distribute
                 {
                     const labelList& map = constructMap[Pstream::myProcNo()];
 
-                    forAll(map, i)
-                    {
-                        field[map[i]] = mySubField[i];
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        mySubField,
+                        eqOp<T>(),
+                        negOp,
+                        field
+                    );
                 }
             }
 
@@ -256,10 +447,15 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(domain, map.size(), recvField.size());
 
-                    forAll(map, i)
-                    {
-                        field[map[i]] = recvField[i];
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        recvField,
+                        eqOp<T>(),
+                        negOp,
+                        field
+                    );
                 }
             }
         }
@@ -279,7 +475,13 @@ void Foam::mapDistribute::distribute
                     subField.setSize(map.size());
                     forAll(map, i)
                     {
-                        subField[i] = field[map[i]];
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
                     }
 
                     OPstream::write
@@ -325,7 +527,13 @@ void Foam::mapDistribute::distribute
                 subField.setSize(map.size());
                 forAll(map, i)
                 {
-                    subField[i] = field[map[i]];
+                    subField[i] = accessAndFlip
+                    (
+                        field,
+                        map[i],
+                        subHasFlip,
+                        negOp
+                    );
                 }
             }
 
@@ -340,10 +548,15 @@ void Foam::mapDistribute::distribute
                 const labelList& map = constructMap[Pstream::myProcNo()];
                 const List<T>& subField = sendFields[Pstream::myProcNo()];
 
-                forAll(map, i)
-                {
-                    field[map[i]] = subField[i];
-                }
+                flipAndCombine
+                (
+                    map,
+                    constructHasFlip,
+                    subField,
+                    eqOp<T>(),
+                    negOp,
+                    field
+                );
             }
 
 
@@ -364,10 +577,15 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(domain, map.size(), subField.size());
 
-                    forAll(map, i)
-                    {
-                        field[map[i]] = subField[i];
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        subField,
+                        eqOp<T>(),
+                        negOp,
+                        field
+                    );
                 }
             }
         }
@@ -382,16 +600,19 @@ void Foam::mapDistribute::distribute
 
 
 // Distribute list.
-template<class T, class CombineOp>
+template<class T, class CombineOp, class negateOp>
 void Foam::mapDistribute::distribute
 (
     const Pstream::commsTypes commsType,
     const List<labelPair>& schedule,
     const label constructSize,
     const labelListList& subMap,
+    const bool subHasFlip,
     const labelListList& constructMap,
+    const bool constructHasFlip,
     List<T>& field,
     const CombineOp& cop,
+    const negateOp& negOp,
     const T& nullValue,
     const int tag
 )
@@ -405,7 +626,7 @@ void Foam::mapDistribute::distribute
         List<T> subField(mySubMap.size());
         forAll(mySubMap, i)
         {
-            subField[i] = field[mySubMap[i]];
+            subField[i] = accessAndFlip(field, mySubMap[i], subHasFlip, negOp);
         }
 
         // Receive sub field from myself (subField)
@@ -414,10 +635,8 @@ void Foam::mapDistribute::distribute
         field.setSize(constructSize);
         field = nullValue;
 
-        forAll(map, i)
-        {
-            cop(field[map[i]], subField[i]);
-        }
+        flipAndCombine(map, constructHasFlip, subField, cop, negOp, field);
+
         return;
     }
 
@@ -434,7 +653,18 @@ void Foam::mapDistribute::distribute
             if (domain != Pstream::myProcNo() && map.size())
             {
                 OPstream toNbr(Pstream::blocking, domain, 0, tag);
-                toNbr << UIndirectList<T>(field, map);
+                List<T> subField(map.size());
+                forAll(subField, i)
+                {
+                    subField[i] = accessAndFlip
+                    (
+                        field,
+                        map[i],
+                        subHasFlip,
+                        negOp
+                    );
+                }
+                toNbr << subField;
             }
         }
 
@@ -444,7 +674,7 @@ void Foam::mapDistribute::distribute
         List<T> subField(mySubMap.size());
         forAll(mySubMap, i)
         {
-            subField[i] = field[mySubMap[i]];
+            subField[i] = accessAndFlip(field, mySubMap[i], subHasFlip, negOp);
         }
 
         // Receive sub field from myself (subField)
@@ -453,10 +683,7 @@ void Foam::mapDistribute::distribute
         field.setSize(constructSize);
         field = nullValue;
 
-        forAll(map, i)
-        {
-            cop(field[map[i]], subField[i]);
-        }
+        flipAndCombine(map, constructHasFlip, subField, cop, negOp, field);
 
         // Receive sub field from neighbour
         for (label domain = 0; domain < Pstream::nProcs(); domain++)
@@ -470,10 +697,15 @@ void Foam::mapDistribute::distribute
 
                 checkReceivedSize(domain, map.size(), subField.size());
 
-                forAll(map, i)
-                {
-                    cop(field[map[i]], subField[i]);
-                }
+                flipAndCombine
+                (
+                    map,
+                    constructHasFlip,
+                    subField,
+                    cop,
+                    negOp,
+                    field
+                );
             }
         }
     }
@@ -484,16 +716,36 @@ void Foam::mapDistribute::distribute
         // allocate a new field for the results.
         List<T> newField(constructSize, nullValue);
 
-        // Subset myself
-        UIndirectList<T> subField(field, subMap[Pstream::myProcNo()]);
-
-        // Receive sub field from myself (subField)
-        const labelList& map = constructMap[Pstream::myProcNo()];
-
-        forAll(map, i)
         {
-            cop(newField[map[i]], subField[i]);
+            const labelList& mySubMap = subMap[Pstream::myProcNo()];
+
+            // Subset myself
+            List<T> subField(mySubMap.size());
+            forAll(subField, i)
+            {
+                subField[i] = accessAndFlip
+                (
+                    field,
+                    mySubMap[i],
+                    subHasFlip,
+                    negOp
+                );
+            }
+
+            // Receive sub field from myself (subField)
+            const labelList& map = constructMap[Pstream::myProcNo()];
+
+            flipAndCombine
+            (
+                map,
+                constructHasFlip,
+                subField,
+                cop,
+                negOp,
+                newField
+            );
         }
+
 
         // Schedule will already have pruned 0-sized comms
         forAll(schedule, i)
@@ -510,7 +762,21 @@ void Foam::mapDistribute::distribute
                 // I am send first, receive next
                 {
                     OPstream toNbr(Pstream::scheduled, recvProc, 0, tag);
-                    toNbr << UIndirectList<T>(field, subMap[recvProc]);
+
+                    const labelList& map = subMap[recvProc];
+
+                    List<T> subField(map.size());
+                    forAll(subField, i)
+                    {
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
+                    }
+                    toNbr << subField;
                 }
                 {
                     IPstream fromNbr(Pstream::scheduled, recvProc, 0, tag);
@@ -519,10 +785,15 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(recvProc, map.size(), subField.size());
 
-                    forAll(map, i)
-                    {
-                        cop(newField[map[i]], subField[i]);
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        subField,
+                        cop,
+                        negOp,
+                        newField
+                    );
                 }
             }
             else
@@ -535,14 +806,33 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(sendProc, map.size(), subField.size());
 
-                    forAll(map, i)
-                    {
-                        cop(newField[map[i]], subField[i]);
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        subField,
+                        cop,
+                        negOp,
+                        newField
+                    );
                 }
                 {
                     OPstream toNbr(Pstream::scheduled, sendProc, 0, tag);
-                    toNbr << UIndirectList<T>(field, subMap[sendProc]);
+
+                    const labelList& map = subMap[sendProc];
+
+                    List<T> subField(map.size());
+                    forAll(subField, i)
+                    {
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
+                    }
+                    toNbr << subField;
                 }
             }
         }
@@ -565,7 +855,19 @@ void Foam::mapDistribute::distribute
                 {
                     // Put data into send buffer
                     UOPstream toDomain(domain, pBufs);
-                    toDomain << UIndirectList<T>(field, map);
+
+                    List<T> subField(map.size());
+                    forAll(subField, i)
+                    {
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
+                    }
+                    toDomain << subField;
                 }
             }
 
@@ -574,14 +876,20 @@ void Foam::mapDistribute::distribute
 
             {
                 // Set up 'send' to myself
-                List<T> mySubField
-                (
-                    UIndirectList<T>
+                const labelList& myMap = subMap[Pstream::myProcNo()];
+
+                List<T> mySubField(myMap.size());
+                forAll(myMap, i)
+                {
+                    mySubField[i] = accessAndFlip
                     (
                         field,
-                        subMap[Pstream::myProcNo()]
-                    )
-                );
+                        myMap[i],
+                        subHasFlip,
+                        negOp
+                    );
+                }
+
                 // Combine bits. Note that can reuse field storage
                 field.setSize(constructSize);
                 field = nullValue;
@@ -589,10 +897,15 @@ void Foam::mapDistribute::distribute
                 {
                     const labelList& map = constructMap[Pstream::myProcNo()];
 
-                    forAll(map, i)
-                    {
-                        cop(field[map[i]], mySubField[i]);
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        mySubField,
+                        cop,
+                        negOp,
+                        field
+                    );
                 }
             }
 
@@ -611,10 +924,15 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(domain, map.size(), recvField.size());
 
-                    forAll(map, i)
-                    {
-                        cop(field[map[i]], recvField[i]);
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        recvField,
+                        cop,
+                        negOp,
+                        field
+                    );
                 }
             }
         }
@@ -634,7 +952,13 @@ void Foam::mapDistribute::distribute
                     subField.setSize(map.size());
                     forAll(map, i)
                     {
-                        subField[i] = field[map[i]];
+                        subField[i] = accessAndFlip
+                        (
+                            field,
+                            map[i],
+                            subHasFlip,
+                            negOp
+                        );
                     }
 
                     OPstream::write
@@ -679,7 +1003,13 @@ void Foam::mapDistribute::distribute
                 subField.setSize(map.size());
                 forAll(map, i)
                 {
-                    subField[i] = field[map[i]];
+                    subField[i] = accessAndFlip
+                    (
+                        field,
+                        map[i],
+                        subHasFlip,
+                        negOp
+                    );
                 }
             }
 
@@ -694,10 +1024,15 @@ void Foam::mapDistribute::distribute
                 const labelList& map = constructMap[Pstream::myProcNo()];
                 const List<T>& subField = sendFields[Pstream::myProcNo()];
 
-                forAll(map, i)
-                {
-                    cop(field[map[i]], subField[i]);
-                }
+                flipAndCombine
+                (
+                    map,
+                    constructHasFlip,
+                    subField,
+                    cop,
+                    negOp,
+                    field
+                );
             }
 
 
@@ -718,10 +1053,15 @@ void Foam::mapDistribute::distribute
 
                     checkReceivedSize(domain, map.size(), subField.size());
 
-                    forAll(map, i)
-                    {
-                        cop(field[map[i]], subField[i]);
-                    }
+                    flipAndCombine
+                    (
+                        map,
+                        constructHasFlip,
+                        subField,
+                        cop,
+                        negOp,
+                        field
+                    );
                 }
             }
         }
@@ -748,7 +1088,19 @@ const
         {
             // Put data into send buffer
             UOPstream toDomain(domain, pBufs);
-            toDomain << UIndirectList<T>(field, map);
+
+            List<T> subField(map.size());
+            forAll(subField, i)
+            {
+                subField[i] = accessAndFlip
+                (
+                    field,
+                    map[i],
+                    subHasFlip_,
+                    flipOp()
+                );
+            }
+            toDomain << subField;
         }
     }
 
@@ -788,10 +1140,15 @@ void Foam::mapDistribute::receive(PstreamBuffers& pBufs, List<T>& field) const
                     << abort(FatalError);
             }
 
-            forAll(map, i)
-            {
-                field[map[i]] = recvField[i];
-            }
+            flipAndCombine
+            (
+                map,
+                constructHasFlip_,
+                recvField,
+                eqOp<T>(),
+                flipOp(),
+                field
+            );
         }
     }
 }
@@ -930,8 +1287,11 @@ void Foam::mapDistribute::distribute
             List<labelPair>(),
             constructSize_,
             subMap_,
+            subHasFlip_,
             constructMap_,
+            constructHasFlip_,
             fld,
+            flipOp(),
             tag
         );
     }
@@ -943,8 +1303,11 @@ void Foam::mapDistribute::distribute
             schedule(),
             constructSize_,
             subMap_,
+            subHasFlip_,
             constructMap_,
+            constructHasFlip_,
             fld,
+            flipOp(),
             tag
         );
     }
@@ -956,8 +1319,11 @@ void Foam::mapDistribute::distribute
             List<labelPair>(),
             constructSize_,
             subMap_,
+            subHasFlip_,
             constructMap_,
+            constructHasFlip_,
             fld,
+            flipOp(),
             tag
         );
     }
@@ -993,8 +1359,11 @@ void Foam::mapDistribute::reverseDistribute
             List<labelPair>(),
             constructSize,
             constructMap_,
+            constructHasFlip_,
             subMap_,
+            subHasFlip_,
             fld,
+            flipOp(),
             tag
         );
     }
@@ -1006,8 +1375,11 @@ void Foam::mapDistribute::reverseDistribute
             schedule(),
             constructSize,
             constructMap_,
+            constructHasFlip_,
             subMap_,
+            subHasFlip_,
             fld,
+            flipOp(),
             tag
         );
     }
@@ -1019,8 +1391,11 @@ void Foam::mapDistribute::reverseDistribute
             List<labelPair>(),
             constructSize,
             constructMap_,
+            constructHasFlip_,
             subMap_,
+            subHasFlip_,
             fld,
+            flipOp(),
             tag
         );
     }
@@ -1053,9 +1428,12 @@ void Foam::mapDistribute::reverseDistribute
             List<labelPair>(),
             constructSize,
             constructMap_,
+            constructHasFlip_,
             subMap_,
+            subHasFlip_,
             fld,
             eqOp<T>(),
+            flipOp(),
             nullValue,
             tag
         );
@@ -1068,9 +1446,12 @@ void Foam::mapDistribute::reverseDistribute
             schedule(),
             constructSize,
             constructMap_,
+            constructHasFlip_,
             subMap_,
+            subHasFlip_,
             fld,
             eqOp<T>(),
+            flipOp(),
             nullValue,
             tag
         );
@@ -1083,9 +1464,12 @@ void Foam::mapDistribute::reverseDistribute
             List<labelPair>(),
             constructSize,
             constructMap_,
+            constructHasFlip_,
             subMap_,
+            subHasFlip_,
             fld,
             eqOp<T>(),
+            flipOp(),
             nullValue,
             tag
         );
