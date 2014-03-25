@@ -8,3 +8,4 @@ cp system/decomposeParDict-2 system/decomposeParDict
 cp system/controlDict-startTime system/controlDict
 
 cleanCase
+rm -f constant/polyMesh/boundary
