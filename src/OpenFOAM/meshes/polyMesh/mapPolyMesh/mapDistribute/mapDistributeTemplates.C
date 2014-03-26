@@ -1252,29 +1252,11 @@ void Foam::mapDistribute::applyInverseTransforms
 
 
 //- Distribute data using default commsType.
-template<class T>
-void Foam::mapDistribute::distribute
-(
-    DynamicList<T>& fld,
-    const bool dummyTransform,
-    const int tag
-) const
-{
-    fld.shrink();
-
-    List<T>& fldList = static_cast<List<T>& >(fld);
-
-    distribute(fldList, dummyTransform, tag);
-
-    fld.setCapacity(fldList.size());
-}
-
-
-//- Distribute data using default commsType.
-template<class T>
+template<class T, class negateOp>
 void Foam::mapDistribute::distribute
 (
     List<T>& fld,
+    const negateOp& negOp,
     const bool dummyTransform,
     const int tag
 ) const
@@ -1291,7 +1273,7 @@ void Foam::mapDistribute::distribute
             constructMap_,
             constructHasFlip_,
             fld,
-            flipOp(),
+            negOp,
             tag
         );
     }
@@ -1307,7 +1289,7 @@ void Foam::mapDistribute::distribute
             constructMap_,
             constructHasFlip_,
             fld,
-            flipOp(),
+            negOp,
             tag
         );
     }
@@ -1323,7 +1305,7 @@ void Foam::mapDistribute::distribute
             constructMap_,
             constructHasFlip_,
             fld,
-            flipOp(),
+            negOp,
             tag
         );
     }
@@ -1333,6 +1315,38 @@ void Foam::mapDistribute::distribute
     {
         applyDummyTransforms(fld);
     }
+}
+
+
+//- Distribute data using default commsType.
+template<class T>
+void Foam::mapDistribute::distribute
+(
+    List<T>& fld,
+    const bool dummyTransform,
+    const int tag
+) const
+{
+    distribute(fld, flipOp(), dummyTransform, tag);
+}
+
+
+//- Distribute data using default commsType.
+template<class T>
+void Foam::mapDistribute::distribute
+(
+    DynamicList<T>& fld,
+    const bool dummyTransform,
+    const int tag
+) const
+{
+    fld.shrink();
+
+    List<T>& fldList = static_cast<List<T>& >(fld);
+
+    distribute(fldList, dummyTransform, tag);
+
+    fld.setCapacity(fldList.size());
 }
 
 

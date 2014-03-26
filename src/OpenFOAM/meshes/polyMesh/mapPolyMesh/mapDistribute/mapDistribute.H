@@ -650,7 +650,17 @@ public:
             template<class T>
             void distribute
             (
-                DynamicList<T>& fld,
+                List<T>& fld,
+                const bool dummyTransform = true,
+                const int tag = UPstream::msgType()
+            ) const;
+
+            //- Distribute data using default commsType.
+            template<class T, class negateOp>
+            void distribute
+            (
+                List<T>& fld,
+                const negateOp& negOp,
                 const bool dummyTransform = true,
                 const int tag = UPstream::msgType()
             ) const;
@@ -659,7 +669,7 @@ public:
             template<class T>
             void distribute
             (
-                List<T>& fld,
+                DynamicList<T>& fld,
                 const bool dummyTransform = true,
                 const int tag = UPstream::msgType()
             ) const;
