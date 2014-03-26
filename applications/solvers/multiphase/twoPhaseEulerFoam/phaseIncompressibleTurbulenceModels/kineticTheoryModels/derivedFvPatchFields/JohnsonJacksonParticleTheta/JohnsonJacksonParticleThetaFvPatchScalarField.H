@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,37 +22,37 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fixedFluxPressureFvPatchScalarField
-
-Group
-    grpInletBoundaryConditions grpWallBoundaryConditions
+    Foam::JohnsonJacksonParticleThetaFvPatchScalarField
 
 Description
-    This boundary condition sets the pressure gradient to the provided value
-    such that the flux on the boundary is that specified by the velocity
-    boundary condition.
+    Robin condition for the particulate granular temperature.
 
-    Example of the boundary condition specification:
+    References:
     \verbatim
-    myPatch
-    {
-        type            fixedFluxPressure;
-    }
+        "Multifluid Eulerian modeling of dense gas–solids fluidized bed
+        hydrodynamics: Influence of the dissipation parameters"
+        N Reuge
+        Chemical Engineering Science
+        Volume 63, Issue 22, Pages 5540-5551, November 2008
     \endverbatim
 
-SeeAlso
-    Foam::fixedGradientFvPatchField
+    \verbatim
+        "Frictional-collisional constitutive relations for granular materials,
+        with application to plane shearing"
+        P C Johnson and R Jackson
+        Journal of Fluid Mechanics
+        Volume 176, Pages 67-93, March 1987
+    \endverbatim
 
 SourceFiles
-    fixedFluxPressureFvPatchScalarField.C
+    JohnsonJacksonParticleThetaFvPatchScalarField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef fixedFluxPressureFvPatchScalarFields_H
-#define fixedFluxPressureFvPatchScalarFields_H
+#ifndef JohnsonJacksonParticleThetaFvPatchScalarField_H
+#define JohnsonJacksonParticleThetaFvPatchScalarField_H
 
-#include "fvPatchFields.H"
-#include "fixedGradientFvPatchFields.H"
+#include "mixedFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -60,56 +60,58 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-             Class fixedFluxPressureFvPatchScalarField Declaration
+        Class JohnsonJacksonParticleThetaFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
-class fixedFluxPressureFvPatchScalarField
+class JohnsonJacksonParticleThetaFvPatchScalarField
 :
-    public fixedGradientFvPatchScalarField
+    public mixedFvPatchScalarField
 {
     // Private data
 
-        //- Current time index (used for updating)
-        label curTimeIndex_;
+        //- Particle-wall restitution coefficient
+        dimensionedScalar restitutionCoefficient_;
+
+        //- Specularity coefficient
+        dimensionedScalar specularityCoefficient_;
 
 
 public:
 
     //- Runtime type information
-    TypeName("fixedFluxPressure");
+    TypeName("JohnsonJacksonParticleTheta");
 
 
     // Constructors
 
         //- Construct from patch and internal field
-        fixedFluxPressureFvPatchScalarField
+        JohnsonJacksonParticleThetaFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        fixedFluxPressureFvPatchScalarField
+        JohnsonJacksonParticleThetaFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
             const dictionary&
         );
 
-        //- Construct by mapping given fixedFluxPressureFvPatchScalarField onto
-        //  a new patch
-        fixedFluxPressureFvPatchScalarField
+        //- Construct by mapping onto a new patch
+        JohnsonJacksonParticleThetaFvPatchScalarField
         (
-            const fixedFluxPressureFvPatchScalarField&,
+            const JohnsonJacksonParticleThetaFvPatchScalarField&,
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
         );
 
         //- Construct as copy
-        fixedFluxPressureFvPatchScalarField
+        JohnsonJacksonParticleThetaFvPatchScalarField
         (
-            const fixedFluxPressureFvPatchScalarField&
+            const JohnsonJacksonParticleThetaFvPatchScalarField&
         );
 
         //- Construct and return a clone
@@ -117,14 +119,14 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new fixedFluxPressureFvPatchScalarField(*this)
+                new JohnsonJacksonParticleThetaFvPatchScalarField(*this)
             );
         }
 
         //- Construct as copy setting internal field reference
-        fixedFluxPressureFvPatchScalarField
+        JohnsonJacksonParticleThetaFvPatchScalarField
         (
-            const fixedFluxPressureFvPatchScalarField&,
+            const JohnsonJacksonParticleThetaFvPatchScalarField&,
             const DimensionedField<scalar, volMesh>&
         );
 
@@ -136,17 +138,29 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new fixedFluxPressureFvPatchScalarField(*this, iF)
+                new JohnsonJacksonParticleThetaFvPatchScalarField(*this, iF)
             );
         }
 
 
     // Member functions
 
-        //- Update the patch pressure gradient field from the given snGradp
-        virtual void updateCoeffs(const scalarField& snGradp);
+        // Mapping functions
 
-        //- Update the patch pressure gradient field
+            //- Map (and resize as needed) from self given a mapping object
+            virtual void autoMap
+            (
+                const fvPatchFieldMapper&
+            );
+
+            //- Reverse map the given fvPatchField onto this fvPatchField
+            virtual void rmap
+            (
+                const fvPatchScalarField&,
+                const labelList&
+            );
+
+        //- Update the coefficients
         virtual void updateCoeffs();
 
         //- Write
@@ -157,39 +171,6 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "volFields.H"
-
-namespace Foam
-{
-    template<class GradBC>
-    inline void setSnGrad
-    (
-        volScalarField::GeometricBoundaryField& bf,
-        const FieldField<fvsPatchField, scalar>& snGrad
-    )
-    {
-        forAll(bf, patchi)
-        {
-            if (isA<GradBC>(bf[patchi]))
-            {
-                refCast<GradBC>(bf[patchi]).updateCoeffs(snGrad[patchi]);
-            }
-        }
-    }
-
-    template<class GradBC>
-    inline void setSnGrad
-    (
-        volScalarField::GeometricBoundaryField& bf,
-        const tmp<FieldField<fvsPatchField, scalar> >& tsnGrad
-    )
-    {
-        setSnGrad<GradBC>(bf, tsnGrad());
-    }
-}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
