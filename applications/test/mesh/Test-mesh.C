@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,6 +38,102 @@ int main(int argc, char *argv[])
 
 #   include "setRootCase.H"
 #   include "createTime.H"
+
+
+    // Test READ_IF_PRESENT construction of fvMesh
+    if (false)
+    {
+        fileName meshDir = "polyMesh";
+
+        pointField points
+        (
+            pointIOField
+            (
+                IOobject
+                (
+                    "points",
+                    runTime.findInstance(meshDir, "points"),
+                    polyMesh::meshSubDir,
+                    runTime,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE
+                )
+            )
+        );
+        points += vector(111, 0.0, 0.0);
+
+
+        faceList faces
+        (
+            faceIOList
+            (
+                IOobject
+                (
+                    "faces",
+                    runTime.findInstance(meshDir, "faces"),
+                    polyMesh::meshSubDir,
+                    runTime,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE
+                )
+            )
+        );
+
+        Pout<< "faces:" << faces.size() << endl;
+        labelList owner
+        (
+            labelIOList
+            (
+                IOobject
+                (
+                    "owner",
+                    runTime.findInstance(meshDir, "faces"),
+                    polyMesh::meshSubDir,
+                    runTime,
+                    IOobject::READ_IF_PRESENT,
+                    IOobject::NO_WRITE
+                )
+            )
+        );
+
+        labelList neighbour
+        (
+            labelIOList
+            (
+                IOobject
+                (
+                    "neighbour",
+                    runTime.findInstance(meshDir, "faces"),
+                    polyMesh::meshSubDir,
+                    runTime,
+                    IOobject::READ_IF_PRESENT,
+                    IOobject::NO_WRITE
+                )
+            )
+        );
+
+        Pout<< "Create mesh for time = "
+            << runTime.timeName() << nl << endl;
+
+        fvMesh mesh
+        (
+            IOobject
+            (
+                fvMesh::defaultRegion,
+                runTime.timeName(),
+                runTime,
+                IOobject::READ_IF_PRESENT
+            ),
+            xferMoveTo<pointField>(points),
+            faces.xfer(),
+            owner.xfer(),
+            neighbour.xfer()
+        );
+
+        Info<< "points:" << mesh.points() << endl;
+    }
+
+
 
     Info<< "Create mesh, no clear-out\n" << endl;
     fvMesh mesh
