@@ -224,6 +224,13 @@ int main(int argc, char *argv[])
     // keep variable substitutions
     entry::disableFunctionEntries = 1;
 
+    Foam::argList::addOption
+    (
+        "templateDir",
+        "file",
+        "read case set-up templates from specified location"
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
 
@@ -242,6 +249,19 @@ int main(int argc, char *argv[])
     );
 
     fileName baseDir("${WM_PROJECT_DIR}/etc/templates");
+    if (args.optionFound("templateDir"))
+    {
+        baseDir = args["templateDir"];
+        if (!isDir(baseDir))
+        {
+            FatalErrorIn(args.executable())
+                << "templateDir " << baseDir
+                << " should point to the folder containing the "
+                << "case set-up templates" << abort(FatalError);
+        }
+    }
+
+    baseDir.toAbsolute();
     baseDir.expand();
 
     // read the solver

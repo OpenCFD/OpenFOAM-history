@@ -26,8 +26,8 @@ Class
 
 Description
     This source is designed to model the effect of solidification and melting
-    processes, e.g. windhield defrosting.  The phase change occurs between the
-    limiting temperatures of Tliquidus and Tsolidus.
+    processes, e.g. windhield defrosting.  The phase change occurs at the
+    melting temperature, \c Tmelt.
 
     The presence of the solid phase in the flow field is incorporated into the
     model as a momentum porosity contribution; the energy associated with the
@@ -42,6 +42,8 @@ Description
          modeling solidification processes, Metallurgical Transactions
          23B:651664, 1992.
 
+    The model generates a field \c \<name\>:alpha1 which can be visualised to
+    to show the melt distribution as a fraction [0-1]
 
     \heading Source usage
     Example usage:
@@ -55,18 +57,11 @@ Description
 
         enthalpyPorositySourceCoeffs
         {
-            Tliquidus       288;
-            Tsolidus        268;
+            Tmelt           273;
             L               334000;
             thermoMode      thermo;
             beta            50e-6;
-
-            // only for incompressible solvers:
-            // rhoName         rhoRef;
-            // rhoRef          1;
-
-            // only for solvers that do not define gravity:
-            g               (0 -9.81 0);
+            rhoRef          800;
         }
     }
     \endverbatim
@@ -74,13 +69,19 @@ Description
     Where:
     \table
         Property     | Description             | Required    | Default value
-        Tliquidus    | Temperature when liquid [K] | yes     |
-        Tsolidus     | Temperature when solid [K]  | yes     |
+        Tmelt        | Melting temperature [K] | yes         |
         L            | Latent heat of fusion [J/kg] | yes    |
+        relax        | Relaxation coefficient [0-1] | no     | 0.9
         thermoMode   | Thermo mode [thermo|lookup] | yes     |
-        beta         | Thermal expansion coefficient [1/K] | yes |
+        rhoRef       | Reference (solid) density | yes       |
         rhoName      | Name of density field   | no          | rho
-        rhoRef       | Reference density       | no          |
+        TName        | Name of temperature field | no        | T
+        CpName       | Name of specific heat capacity field | no | Cp
+        UName        | Name of velocity field  | no          | U
+        phiName      | Name of flux field      | no          | phi
+        Cu           | Model coefficient       | no          | 100000
+        q            | Model coefficient       | no          | 0.001
+        beta         | Thermal expansion coefficient [1/K] | yes |
         g            | Accelerartion due to gravity | no     |
     \endtable
 
@@ -128,11 +129,8 @@ private:
 
     // Private data
 
-        //- Solidification initiated when T > Tliquidus_ [K]
-        scalar Tliquidus_;
-
-        //- Solidification temperature [K]
-        scalar Tsolidus_;
+        //- Temperature at which melting occurs [K]
+        scalar Tmelt_;
 
         //- Latent heat of fusion [J/kg]
         scalar L_;
@@ -143,14 +141,23 @@ private:
         //- Thermodynamics mode
         thermoMode mode_;
 
+        //- Reference density - typically the solid density
+        scalar rhoRef_;
+
         //- Name of density field - default = "rho" (optional)
         word rhoName_;
 
         //- Name of temperature field - default = "T" (optional)
         word TName_;
 
+        //- Name of specific heat capacity field - default = "Cp" (optional)
+        word CpName_;
+
         //- Name of velocity field - default = "U" (optional)
         word UName_;
+
+        //- Name of flux field - default = "phi" (optional)
+        word phiName_;
 
         //- Mushy region momentum sink coefficient [1/s]; default = 10^5
         scalar Cu_;
@@ -164,23 +171,23 @@ private:
         //- Phase fraction indicator field
         volScalarField alpha1_;
 
-        //- Change in phase fraction indicator field
-        scalarField dAlpha1_;
-
         //- Current time index (used for updating)
         label curTimeIndex_;
 
+        //- Temperature change cached for source calculation when alpha1 updated
+        scalarField deltaT_;
+
 
     // Private Member Functions
-
-        //- Return the list of alpha1 boundary types
-        wordList alpha1BoundaryTypes() const;
 
         //- Flag to indicate whether to solve for given field
         bool solveField(const word& fieldName) const;
 
         //- Return the density field
-        tmp<volScalarField> rho() const;
+        tmp<volScalarField> rho(const surfaceScalarField& phi) const;
+
+        //- Return the specific heat capacity field
+        tmp<volScalarField> Cp() const;
 
         //- Return the gravity vector
         vector g() const;

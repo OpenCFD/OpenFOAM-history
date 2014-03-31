@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -104,7 +104,7 @@ Foam::forceSuSp Foam::PlessisMasliyahDragForce<CloudType>::calcCoupled
 {
     scalar alphac(alphac_[p.cell()]);
 
-    scalar cbrtAlphap(pow(1.0 - alphac, 1.0/3.0));
+    scalar cbrtAlphap(cbrt(1.0 - alphac));
 
     scalar A =
         26.8*pow3(alphac)

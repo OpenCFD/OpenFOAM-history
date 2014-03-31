@@ -1,0 +1,103 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // make the mesh a little more interesting...
+    {
+        name    c0;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        sourceInfo
+        {
+            box     (-100 -100 -100) (100 0.1 0.25);
+        }
+    }
+    {
+        name    c0;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        sourceInfo
+        {
+            box     (-100 -100 0.45) (100 0.1 100);
+        }
+    }
+    {
+        name    c0;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        sourceInfo
+        {
+            box     (-100 0.05 0.33) (100 0.1 0.38);
+        }
+    }
+    {
+        name    c0;
+        type    cellSet;
+        action  invert;
+    }
+
+    // create the iceZone
+    {
+        name    f0;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        sourceInfo
+        {
+            name    exterior_to_windshield;
+        }
+    }
+    {
+        name    iceZoneCells;
+        type    cellSet;
+        action  new;
+        source  faceToCell;
+        sourceInfo
+        {
+            set     f0;
+            option  owner;
+        }
+    }
+    {
+        name    iceZone;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set iceZoneCells;
+        }
+    }
+    // clean-up
+    {
+        name    f0;
+        type    faceSet;
+        action  remove;
+    }
+    {
+        name    iceZoneCells;
+        type    cellSet;
+        action  remove;
+    }
+);
+
+
+// ************************************************************************* //
