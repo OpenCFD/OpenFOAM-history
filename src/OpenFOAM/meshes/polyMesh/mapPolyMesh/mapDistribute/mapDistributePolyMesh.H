@@ -59,8 +59,6 @@ class mapDistributePolyMesh
 {
     // Private data
 
-        const polyMesh& mesh_;
-
         //- Number of old live points
         label nOldPoints_;
 
@@ -93,7 +91,6 @@ class mapDistributePolyMesh
         mapDistribute patchMap_;
 
 
-
     // Private Member Functions
 
         void calcPatchSizes();
@@ -101,13 +98,13 @@ class mapDistributePolyMesh
         //- Disallow default bitwise copy construct
         mapDistributePolyMesh(const mapDistributePolyMesh&);
 
-        //- Disallow default bitwise assignment
-        void operator=(const mapDistributePolyMesh&);
-
 
 public:
 
     // Constructors
+
+        //- Construct null
+        mapDistributePolyMesh();
 
         //- Construct from components. Note that mesh has to be changed already
         //  since uses mesh.nPoints etc as the new size.
@@ -132,18 +129,36 @@ public:
             const Xfer<labelListList>& constructPointMap,
             const Xfer<labelListList>& constructFaceMap,
             const Xfer<labelListList>& constructCellMap,
-            const Xfer<labelListList>& constructPatchMap
+            const Xfer<labelListList>& constructPatchMap,
+
+            const bool subFaceHasFlip = false,
+            const bool constructFaceHasFlip = false
         );
+
+        //- Construct from components
+        mapDistributePolyMesh
+        (
+            // mesh before changes
+            const label nOldPoints,
+            const label nOldFaces,
+            const label nOldCells,
+            const Xfer<labelList>& oldPatchStarts,
+            const Xfer<labelList>& oldPatchNMeshPoints,
+
+            // how to subset pieces of mesh to send across
+            const Xfer<mapDistribute>& pointMap,
+            const Xfer<mapDistribute>& faceMap,
+            const Xfer<mapDistribute>& cellMap,
+            const Xfer<mapDistribute>& patchMap
+        );
+
+        //- Construct from Istream
+        mapDistributePolyMesh(Istream&);
 
 
     // Member Functions
 
         // Access
-
-            const polyMesh& mesh() const
-            {
-                return mesh_;
-            }
 
             //- Number of points in mesh before distribution
             label nOldPoints() const
@@ -257,6 +272,19 @@ public:
                     "mapDistributePolyMesh::updateMesh(const mapPolyMesh&)"
                 );
             }
+
+    // Member operators
+
+        void operator=(const mapDistributePolyMesh&);
+
+
+    // IOstream operators
+
+        //- Read dictionary from Istream
+        friend Istream& operator>>(Istream&, mapDistributePolyMesh&);
+
+        //- Write dictionary to Ostream
+        friend Ostream& operator<<(Ostream&, const mapDistributePolyMesh&);
 };
 
 

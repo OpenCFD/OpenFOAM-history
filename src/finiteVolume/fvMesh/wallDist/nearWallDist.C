@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -115,13 +115,18 @@ Foam::nearWallDist::~nearWallDist()
 
 void Foam::nearWallDist::correct()
 {
-    if (mesh_.changing())
+    if (mesh_.topoChanging())
     {
         // Update size of GeometricBoundaryField
-        forAll(mesh_.boundary(), patchI)
-        {
-            operator[](patchI).setSize(mesh_.boundary()[patchI].size());
-        }
+        volScalarField::GeometricBoundaryField::operator=
+        (
+            volScalarField::GeometricBoundaryField
+            (
+                mesh_.boundary(),
+                mesh_.V(),           // Dummy internal field,
+                calculatedFvPatchScalarField::typeName
+            )
+        );
     }
 
     doAll();

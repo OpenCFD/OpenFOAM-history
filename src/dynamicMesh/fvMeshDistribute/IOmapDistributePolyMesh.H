@@ -22,22 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::flipOp
+    Foam::IOmapDistributePolyMesh
 
 Description
-    Class containing functor to negate primitives. Dummy for all other types.
-
-    Used in mesh transformations where face can flip.
+    IOmapDistributePolyMesh is derived from mapDistributePolyMesh and
+    IOobject to give the mapDistributePolyMesh
+    automatic IO functionality via the objectRegistry.
 
 SourceFiles
-    flipOp.C
+    IOmapDistributePolyMesh.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef flipOp_H
-#define flipOp_H
+#ifndef IOmapDistributePolyMesh_H
+#define IOmapDistributePolyMesh_H
 
-#include "fieldTypes.H"
+#include "mapDistributePolyMesh.H"
+#include "regIOobject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -45,51 +46,42 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class flipOp Declaration
+                           Class IOmapDistributePolyMesh Declaration
 \*---------------------------------------------------------------------------*/
 
-class flipOp
+class IOmapDistributePolyMesh
+:
+    public regIOobject,
+    public mapDistributePolyMesh
 {
+
 public:
 
-    template<class Type>
-    Type operator()(const Type& val) const
-    {
-        return val;
-    }
+    //- Runtime type information
+    TypeName("mapDistributePolyMesh");
+
+    // Constructors
+
+        //- Construct given an IOobject
+        IOmapDistributePolyMesh(const IOobject&);
+
+        //- Construct given an IOobject and mapDistributePolyMesh
+        IOmapDistributePolyMesh(const IOobject&, const mapDistributePolyMesh&);
+
+
+    //- Destructor
+    virtual ~IOmapDistributePolyMesh();
+
+
+    // Member functions
+
+        //- ReadData function required for regIOobject read operation
+        virtual bool readData(Istream&);
+
+        //- WriteData function required for regIOobject write operation
+        virtual bool writeData(Ostream&) const;
+
 };
-
-
-class noOp
-{
-public:
-
-    template<class Type>
-    Type operator()(const Type& val) const
-    {
-        return val;
-    }
-};
-
-
-class flipLabelOp
-{
-public:
-
-    label operator()(const label& val) const
-    {
-        return -val;
-    }
-};
-
-
-// Template specialisation for primitives that support negation
-template<> scalar flipOp::operator()(const scalar&) const;
-template<> vector flipOp::operator()(const vector&) const;
-template<> sphericalTensor flipOp::operator()(const sphericalTensor&) const;
-template<> symmTensor flipOp::operator()(const symmTensor&) const;
-template<> tensor flipOp::operator()(const tensor&) const;
-template<> triad flipOp::operator()(const triad&) const;
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

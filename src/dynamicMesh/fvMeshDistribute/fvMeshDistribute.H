@@ -82,6 +82,14 @@ class fvMeshDistribute
 
     // Private Member Functions
 
+        static void inplaceRenumberWithFlip
+        (
+            const labelUList& oldToNew,
+            const bool oldToNewHasFlip,
+            const bool lstHasFlip,
+            labelUList& lst
+        );
+
         //- Find indices with value
         static labelList select
         (

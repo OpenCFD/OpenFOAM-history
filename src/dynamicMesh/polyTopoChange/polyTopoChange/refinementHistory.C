@@ -662,17 +662,7 @@ void Foam::refinementHistory::countProc
 
             if (parent >= 0)
             {
-                string oldPrefix;
-                if (debug)
-                {
-                    oldPrefix = Pout.prefix();
-                    Pout.prefix() = "  " + oldPrefix;
-                }
                 countProc(parent, newProcNo, splitCellProc, splitCellNum);
-                if (debug)
-                {
-                    Pout.prefix() = oldPrefix;
-                }
             }
         }
     }
@@ -881,7 +871,9 @@ void Foam::refinementHistory::distribute(const mapDistributePolyMesh& map)
     // Remove all entries. Leave storage intact.
     splitCells_.clear();
 
-    visibleCells_.setSize(map.mesh().nCells());
+    const polyMesh& mesh = dynamic_cast<const polyMesh&>(db());
+
+    visibleCells_.setSize(mesh.nCells());
     visibleCells_ = -1;
 
     for (label procI = 0; procI < Pstream::nProcs(); procI++)
