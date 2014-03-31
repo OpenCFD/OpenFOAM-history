@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -118,6 +118,12 @@ Note:
         +------+ 0
 
 
+    When constructing from components optionally a 'flip' on
+    the maps can be specified. This will interpret the map
+    values as index+flip, similar to e.g. faceProcAddressing. The flip
+    will only be applied to fieldTypes (scalar, vector, .. triad)
+
+
 SourceFiles
     mapDistribute.C
     mapDistributeTemplates.C
@@ -163,6 +169,13 @@ class mapDistribute
         //- Maps from subsetted data to new reconstructed data
         labelListList constructMap_;
 
+        //- Whether subMap includes flip or not
+        bool subHasFlip_;
+
+        //- Whether constructMap includes flip or not
+        bool constructHasFlip_;
+
+
         // Optional transformation
 
             //- For every globalIndexAndTransform::transformPermutations
@@ -177,7 +190,7 @@ class mapDistribute
         mutable autoPtr<List<labelPair> > schedulePtr_;
 
 
-   // Private Member Functions
+    // Private Member Functions
 
         static void checkReceivedSize
         (
@@ -241,6 +254,25 @@ class mapDistribute
             const TransformOp& top
         ) const;
 
+        template<class T, class CombineOp, class negateOp>
+        static void flipAndCombine
+        (
+            const UList<label>& map,
+            const bool hasFlip,
+            const UList<T>& rhs,
+            const CombineOp& cop,
+            const negateOp& negOp,
+            List<T>& lhs
+        );
+
+        template<class T, class negateOp>
+        static T accessAndFlip
+        (
+            const UList<T>& fld,
+            const label index,
+            const bool hasFlip,
+            const negateOp& negOp
+        );
 
 public:
 
@@ -358,7 +390,6 @@ public:
         };
 
 
-
     // Declare name of the class and its debug switch
     ClassName("mapDistribute");
 
@@ -373,7 +404,9 @@ public:
         (
             const label constructSize,
             const Xfer<labelListList>& subMap,
-            const Xfer<labelListList>& constructMap
+            const Xfer<labelListList>& constructMap,
+            const bool subHasFlip = false,
+            const bool constructHasFlip = false
         );
 
         //- Construct from components
@@ -383,7 +416,9 @@ public:
             const Xfer<labelListList>& subMap,
             const Xfer<labelListList>& constructMap,
             const Xfer<labelListList>& transformElements,
-            const Xfer<labelList>& transformStart
+            const Xfer<labelList>& transformStart,
+            const bool subHasFlip = false,
+            const bool constructHasFlip = false
         );
 
         //- Construct from reverse addressing: per data item the send
@@ -453,6 +488,9 @@ public:
         //- Construct copy
         mapDistribute(const mapDistribute&);
 
+        //- Construct from Istream
+        mapDistribute(Istream&);
+
 
     // Member Functions
 
@@ -492,6 +530,30 @@ public:
             labelListList& constructMap()
             {
                 return constructMap_;
+            }
+
+            //- Does subMap include a sign
+            bool subHasFlip() const
+            {
+                return subHasFlip_;
+            }
+
+            //- Does subMap include a sign
+            bool& subHasFlip()
+            {
+                return subHasFlip_;
+            }
+
+            //- Does constructMap include a sign
+            bool constructHasFlip() const
+            {
+                return constructHasFlip_;
+            }
+
+            //- Does constructMap include a sign
+            bool& constructHasFlip()
+            {
+                return constructHasFlip_;
             }
 
             //- For every globalIndexAndTransform::transformPermutations
@@ -550,30 +612,36 @@ public:
 
             //- Distribute data. Note:schedule only used for Pstream::scheduled
             //  for now, all others just use send-to-all, receive-from-all.
-            template<class T>
+            template<class T, class negateOp>
             static void distribute
             (
                 const Pstream::commsTypes commsType,
                 const List<labelPair>& schedule,
                 const label constructSize,
                 const labelListList& subMap,
+                const bool subHasFlip,
                 const labelListList& constructMap,
+                const bool constructHasFlip,
                 List<T>&,
+                const negateOp& negOp,
                 const int tag = UPstream::msgType()
             );
 
             //- Distribute data. If multiple processors writing to same
             //  position adds contributions using cop.
-            template<class T, class CombineOp>
+            template<class T, class CombineOp, class negateOp>
             static void distribute
             (
                 const Pstream::commsTypes commsType,
                 const List<labelPair>& schedule,
                 const label constructSize,
                 const labelListList& subMap,
+                const bool subHasFlip,
                 const labelListList& constructMap,
+                const bool constructHasFlip,
                 List<T>&,
                 const CombineOp& cop,
+                const negateOp& negOp,
                 const T& nullValue,
                 const int tag = UPstream::msgType()
             );
@@ -582,7 +650,17 @@ public:
             template<class T>
             void distribute
             (
-                DynamicList<T>& fld,
+                List<T>& fld,
+                const bool dummyTransform = true,
+                const int tag = UPstream::msgType()
+            ) const;
+
+            //- Distribute data using default commsType.
+            template<class T, class negateOp>
+            void distribute
+            (
+                List<T>& fld,
+                const negateOp& negOp,
                 const bool dummyTransform = true,
                 const int tag = UPstream::msgType()
             ) const;
@@ -591,7 +669,7 @@ public:
             template<class T>
             void distribute
             (
-                List<T>& fld,
+                DynamicList<T>& fld,
                 const bool dummyTransform = true,
                 const int tag = UPstream::msgType()
             ) const;
@@ -676,9 +754,18 @@ public:
 
         void operator=(const mapDistribute&);
 
+    // IOstream operators
+
+        //- Read dictionary from Istream
+        friend Istream& operator>>(Istream&, mapDistribute&);
+
+        //- Write dictionary to Ostream
+        friend Ostream& operator<<(Ostream&, const mapDistribute&);
+
 };
 
 
+// Template specialisation for primitives that do not need transform
 template<>
 void mapDistribute::transform::operator()
 (

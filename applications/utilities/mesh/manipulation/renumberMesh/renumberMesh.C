@@ -639,6 +639,11 @@ int main(int argc, char *argv[])
     );
 
 
+#   include "setRootCase.H"
+#   include "createTime.H"
+    runTime.functionObjects().off();
+
+
 // Force linker to include zoltan symbols. This section is only needed since
 // Zoltan is a static library
 #ifdef FOAM_USE_ZOLTAN
@@ -646,10 +651,6 @@ int main(int argc, char *argv[])
     (void)zoltanRenumber::typeName;
 #endif
 
-
-#   include "setRootCase.H"
-#   include "createTime.H"
-    runTime.functionObjects().off();
 
     // Get times list
     instantList Times = runTime.times();

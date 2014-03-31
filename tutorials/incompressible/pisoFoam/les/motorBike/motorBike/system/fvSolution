@@ -29,6 +29,8 @@ solvers
         agglomerator    faceAreaPair;
         nCellsInCoarsestLevel 10;
         mergeLevels     1;
+
+        processorAgglomerator none;
     }
 
     pFinal

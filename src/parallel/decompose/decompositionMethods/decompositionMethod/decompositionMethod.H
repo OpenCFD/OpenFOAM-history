@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -231,6 +231,19 @@ public:
                 const label nLocalCoarse,
                 const bool global,
                 CompactListList<label>& cellCells
+            );
+
+            //- Helper: determine (local or global) cellCells and face weights
+            //  from mesh agglomeration.
+            //  Uses mag of faceArea as weights
+            static void calcCellCells
+            (
+                const polyMesh& mesh,
+                const labelList& agglom,
+                const label nLocalCoarse,
+                const bool parallel,
+                CompactListList<label>& cellCells,
+                CompactListList<scalar>& cellCellWeights
             );
 
             //- Helper: extract constraints:

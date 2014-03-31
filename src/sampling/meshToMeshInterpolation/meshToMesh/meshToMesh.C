@@ -270,9 +270,12 @@ void Foam::meshToMesh::calculate()
             List<labelPair>(),
             tgtRegion_.nCells(),
             map.constructMap(),
+            false,
             map.subMap(),
+            false,
             tgtToSrcCellAddr_,
             ListPlusEqOp<label>(),
+            flipOp(),
             labelList()
         );
 
@@ -283,9 +286,12 @@ void Foam::meshToMesh::calculate()
             List<labelPair>(),
             tgtRegion_.nCells(),
             map.constructMap(),
+            false,
             map.subMap(),
+            false,
             tgtToSrcCellWght_,
             ListPlusEqOp<scalar>(),
+            flipOp(),
             scalarList()
         );
 

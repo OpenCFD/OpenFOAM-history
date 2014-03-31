@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -202,6 +202,7 @@ void subsetSurfaceFields
 (
     const fvMesh& mesh,
     const fvMesh& subMesh,
+    const labelList& cellMap,
     const labelList& faceMap,
     const labelHashSet& addedPatches
 )
@@ -225,6 +226,7 @@ void subsetSurfaceFields
                 fld,
                 subMesh,
                 patchMap,
+                cellMap,
                 faceMap
             )
         );
@@ -824,6 +826,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -831,6 +834,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -838,6 +842,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -845,6 +850,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -852,6 +858,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );

@@ -1331,7 +1331,7 @@ int main(int argc, char *argv[])
     // Add all information for all the remaining faceZones
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    wordPairHashTable zonesToFaceZone;
+    HashTable<Pair<word> > faceZoneToPatches;
     forAll(mesh.faceZones(), zoneI)
     {
         const word& fzName = mesh.faceZones()[zoneI].name();
@@ -1349,18 +1349,25 @@ int main(int argc, char *argv[])
             {
                 word cz0 = fzName.substr(0, i);
                 word cz1 = fzName.substr(i+4, fzName.size()-i+4);
-                zonesToFaceZone.insert(Pair<word>(cz0, cz1), fzName);
+                word slaveName(cz1 + "_to_" + cz0);
+                faceZoneToPatches.insert(fzName, Pair<word>(fzName, slaveName));
+            }
+            else
+            {
+                // Add as fzName + fzName_slave
+                const word slaveName = fzName + "_slave";
+                faceZoneToPatches.insert(fzName, Pair<word>(fzName, slaveName));
             }
         }
     }
 
-    if (zonesToFaceZone.size())
+    if (faceZoneToPatches.size())
     {
         autoRefineDriver::addFaceZones
         (
             meshRefiner,
             refineParams,
-            zonesToFaceZone
+            faceZoneToPatches
         );
     }
 

@@ -196,7 +196,7 @@ public:
         (
             meshRefinement& meshRefiner,
             const refinementParameters& refineParams,
-            const wordPairHashTable& zonesToFaceZone
+            const HashTable<Pair<word> >& faceZoneToPatches
         );
 
 };

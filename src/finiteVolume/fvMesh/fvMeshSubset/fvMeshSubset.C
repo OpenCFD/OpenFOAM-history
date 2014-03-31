@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -364,7 +364,8 @@ Foam::fvMeshSubset::fvMeshSubset(const fvMesh& baseMesh)
     pointMap_(0),
     faceMap_(0),
     cellMap_(0),
-    patchMap_(0)
+    patchMap_(0),
+    faceFlipMapPtr_()
 {}
 
 
@@ -402,6 +403,10 @@ void Foam::fvMeshSubset::setCellSubset
             << "Should be between 0 and " << oldPatches.size()-1
             << abort(FatalError);
     }
+
+
+    // Clear demand driven data
+    faceFlipMapPtr_.clear();
 
 
     cellMap_ = globalCellMap.toc();
@@ -803,6 +808,8 @@ void Foam::fvMeshSubset::setLargeCellSubset
             << abort(FatalError);
     }
 
+    // Clear demand driven data
+    faceFlipMapPtr_.clear();
 
     // Get the cells for the current region.
     cellMap_.setSize(oldCells.size());
@@ -1406,6 +1413,44 @@ const labelList& Foam::fvMeshSubset::faceMap() const
     checkCellSubset();
 
     return faceMap_;
+}
+
+
+const labelList& Foam::fvMeshSubset::faceFlipMap() const
+{
+    if (!faceFlipMapPtr_.valid())
+    {
+        const labelList& subToBaseFace = faceMap();
+        const labelList& subToBaseCell = cellMap();
+
+        faceFlipMapPtr_.reset(new labelList(subToBaseFace.size()));
+        labelList& faceFlipMap = faceFlipMapPtr_();
+
+        // Only exposed internal faces might be flipped (since we don't do
+        // any cell renumbering, just compacting)
+        label subInt = subMesh().nInternalFaces();
+        const labelList& subOwn = subMesh().faceOwner();
+        const labelList& own = baseMesh_.faceOwner();
+
+        for (label subFaceI = 0; subFaceI < subInt; subFaceI++)
+        {
+            faceFlipMap[subFaceI] = subToBaseFace[subFaceI]+1;
+        }
+        for (label subFaceI = subInt; subFaceI < subOwn.size(); subFaceI++)
+        {
+            label faceI = subToBaseFace[subFaceI];
+            if (subToBaseCell[subOwn[subFaceI]] == own[faceI])
+            {
+                faceFlipMap[subFaceI] = faceI+1;
+            }
+            else
+            {
+                faceFlipMap[subFaceI] = -faceI-1;
+            }
+        }
+    }
+
+    return faceFlipMapPtr_();
 }
 
 

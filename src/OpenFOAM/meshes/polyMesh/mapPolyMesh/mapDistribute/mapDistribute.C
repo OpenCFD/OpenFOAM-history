@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -313,8 +313,20 @@ void Foam::mapDistribute::printLayout(Ostream& os) const
     forAll(constructMap_, procI)
     {
         const labelList& construct = constructMap_[procI];
-        minIndex[procI] = min(minIndex[procI], min(construct));
-        maxIndex[procI] = max(maxIndex[procI], max(construct));
+        if (constructHasFlip_)
+        {
+            forAll(construct, i)
+            {
+                label index = mag(construct[i])-1;
+                minIndex[procI] = min(minIndex[procI], index);
+                maxIndex[procI] = max(maxIndex[procI], index);
+            }
+        }
+        else
+        {
+            minIndex[procI] = min(minIndex[procI], min(construct));
+            maxIndex[procI] = max(maxIndex[procI], max(construct));
+        }
     }
 
     label localSize;
@@ -327,7 +339,10 @@ void Foam::mapDistribute::printLayout(Ostream& os) const
         localSize = maxIndex[Pstream::myProcNo()]+1;
     }
 
-    os  << "Layout: (constructSize:" << constructSize_ << ")" << endl
+    os  << "Layout: (constructSize:" << constructSize_
+        << " subHasFlip:" << subHasFlip_
+        << " constructHasFlip:" << constructHasFlip_
+        << ")" << endl
         << "local (processor " << Pstream::myProcNo() << "):" << endl
         << "    start : 0" << endl
         << "    size  : " << localSize << endl;
@@ -651,6 +666,8 @@ void Foam::mapDistribute::exchangeAddressing
 Foam::mapDistribute::mapDistribute()
 :
     constructSize_(0),
+    subHasFlip_(false),
+    constructHasFlip_(false),
     schedulePtr_()
 {}
 
@@ -660,12 +677,16 @@ Foam::mapDistribute::mapDistribute
 (
     const label constructSize,
     const Xfer<labelListList>& subMap,
-    const Xfer<labelListList>& constructMap
+    const Xfer<labelListList>& constructMap,
+    const bool subHasFlip,
+    const bool constructHasFlip
 )
 :
     constructSize_(constructSize),
     subMap_(subMap),
     constructMap_(constructMap),
+    subHasFlip_(subHasFlip),
+    constructHasFlip_(constructHasFlip),
     schedulePtr_()
 {}
 
@@ -677,12 +698,16 @@ Foam::mapDistribute::mapDistribute
     const Xfer<labelListList>& subMap,
     const Xfer<labelListList>& constructMap,
     const Xfer<labelListList>& transformElements,
-    const Xfer<labelList>& transformStart
+    const Xfer<labelList>& transformStart,
+    const bool subHasFlip,
+    const bool constructHasFlip
 )
 :
     constructSize_(constructSize),
     subMap_(subMap),
     constructMap_(constructMap),
+    subHasFlip_(subHasFlip),
+    constructHasFlip_(constructHasFlip),
     transformElements_(transformElements),
     transformStart_(transformStart),
     schedulePtr_()
@@ -696,6 +721,8 @@ Foam::mapDistribute::mapDistribute
 )
 :
     constructSize_(0),
+    subHasFlip_(false),
+    constructHasFlip_(false),
     schedulePtr_()
 {
     if (sendProcs.size() != recvProcs.size())
@@ -772,6 +799,8 @@ Foam::mapDistribute::mapDistribute
 )
 :
     constructSize_(0),
+    subHasFlip_(false),
+    constructHasFlip_(false),
     schedulePtr_()
 {
     // Construct per processor compact addressing of the global elements
@@ -830,6 +859,8 @@ Foam::mapDistribute::mapDistribute
 )
 :
     constructSize_(0),
+    subHasFlip_(false),
+    constructHasFlip_(false),
     schedulePtr_()
 {
     // Construct per processor compact addressing of the global elements
@@ -891,6 +922,8 @@ Foam::mapDistribute::mapDistribute
 )
 :
     constructSize_(0),
+    subHasFlip_(false),
+    constructHasFlip_(false),
     schedulePtr_()
 {
     // Construct per processor compact addressing of the global elements
@@ -997,6 +1030,8 @@ Foam::mapDistribute::mapDistribute
 )
 :
     constructSize_(0),
+    subHasFlip_(false),
+    constructHasFlip_(false),
     schedulePtr_()
 {
     // Construct per processor compact addressing of the global elements
@@ -1109,6 +1144,8 @@ Foam::mapDistribute::mapDistribute(const mapDistribute& map)
     constructSize_(map.constructSize_),
     subMap_(map.subMap_),
     constructMap_(map.constructMap_),
+    subHasFlip_(map.subHasFlip_),
+    constructHasFlip_(map.constructHasFlip_),
     transformElements_(map.transformElements_),
     transformStart_(map.transformStart_),
     schedulePtr_()
@@ -1120,10 +1157,18 @@ Foam::mapDistribute::mapDistribute(const Xfer<mapDistribute>& map)
     constructSize_(map().constructSize_),
     subMap_(map().subMap_.xfer()),
     constructMap_(map().constructMap_.xfer()),
+    subHasFlip_(map().subHasFlip_),
+    constructHasFlip_(map().constructHasFlip_),
     transformElements_(map().transformElements_.xfer()),
     transformStart_(map().transformStart_.xfer()),
     schedulePtr_()
 {}
+
+
+Foam::mapDistribute::mapDistribute(Istream& is)
+{
+    is  >> *this;
+}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -1139,6 +1184,8 @@ void Foam::mapDistribute::transfer(mapDistribute& rhs)
     constructSize_ = rhs.constructSize_;
     subMap_.transfer(rhs.subMap_);
     constructMap_.transfer(rhs.constructMap_);
+    subHasFlip_ = rhs.subHasFlip_;
+    constructHasFlip_ = rhs.constructHasFlip_;
     transformElements_.transfer(rhs.transformElements_);
     transformStart_.transfer(rhs.transformStart_);
     schedulePtr_.clear();
@@ -1222,7 +1269,13 @@ void Foam::mapDistribute::compact(const boolList& elemIsUsed, const int tag)
                 subField.setSize(map.size());
                 forAll(map, i)
                 {
-                    subField[i] = elemIsUsed[map[i]];
+                    subField[i] = accessAndFlip
+                    (
+                        elemIsUsed,
+                        map[i],
+                        constructHasFlip_,
+                        noOp()          // do not flip elemIsUsed value
+                    );
                 }
 
                 OPstream::write
@@ -1246,7 +1299,13 @@ void Foam::mapDistribute::compact(const boolList& elemIsUsed, const int tag)
             recvFields[Pstream::myProcNo()].setSize(map.size());
             forAll(map, i)
             {
-                recvFields[Pstream::myProcNo()][i] = elemIsUsed[map[i]];
+                recvFields[Pstream::myProcNo()][i] = accessAndFlip
+                (
+                    elemIsUsed,
+                    map[i],
+                    constructHasFlip_,
+                    noOp()              // do not flip elemIsUsed value
+                );
             }
         }
 
@@ -1296,13 +1355,17 @@ void Foam::mapDistribute::compact(const boolList& elemIsUsed, const int tag)
         forAll(map, i)
         {
             label destinationI = map[i];
+            if (constructHasFlip_)
+            {
+                destinationI = mag(destinationI)-1;
+            }
 
             // Is element is used on destination side
             if (elemIsUsed[destinationI])
             {
                 maxConstructIndex = max(maxConstructIndex, destinationI);
 
-                newMap[newI++] = destinationI;
+                newMap[newI++] = map[i];
             }
         }
         if (newI < map.size())
@@ -1335,9 +1398,40 @@ void Foam::mapDistribute::operator=(const mapDistribute& rhs)
     constructSize_ = rhs.constructSize_;
     subMap_ = rhs.subMap_;
     constructMap_ = rhs.constructMap_;
+    subHasFlip_ = rhs.subHasFlip_;
+    constructHasFlip_ = rhs.constructHasFlip_;
     transformElements_ = rhs.transformElements_;
     transformStart_ = rhs.transformStart_;
     schedulePtr_.clear();
+}
+
+
+// * * * * * * * * * * * * * * Istream Operator  * * * * * * * * * * * * * * //
+
+Foam::Istream& Foam::operator>>(Istream& is, mapDistribute& map)
+{
+    is.fatalCheck("operator>>(Istream&, mapDistribute&)");
+
+    is  >> map.constructSize_ >> map.subMap_ >> map.constructMap_
+        >> map.subHasFlip_ >> map.constructHasFlip_
+        >> map.transformElements_ >> map.transformStart_;
+
+    return is;
+}
+
+
+// * * * * * * * * * * * * * * Ostream Operator  * * * * * * * * * * * * * * //
+
+Foam::Ostream& Foam::operator<<(Ostream& os, const mapDistribute& map)
+{
+    os  << map.constructSize_ << token::NL
+        << map.subMap_ << token::NL
+        << map.constructMap_ << token::NL
+        << map.subHasFlip_ << token::SPACE << map.constructHasFlip_ << token::NL
+        << map.transformElements_ << token::NL
+        << map.transformStart_;
+
+    return os;
 }
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -365,6 +365,210 @@ void Foam::decompositionMethod::calcCellCells
     //        Pout<< "    nbr:" << cCells[i] << endl;
     //    }
     //}
+}
+
+
+void Foam::decompositionMethod::calcCellCells
+(
+    const polyMesh& mesh,
+    const labelList& agglom,
+    const label nLocalCoarse,
+    const bool parallel,
+    CompactListList<label>& cellCells,
+    CompactListList<scalar>& cellCellWeights
+)
+{
+    const labelList& faceOwner = mesh.faceOwner();
+    const labelList& faceNeighbour = mesh.faceNeighbour();
+    const polyBoundaryMesh& patches = mesh.boundaryMesh();
+
+
+    // Create global cell numbers
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    globalIndex globalAgglom
+    (
+        nLocalCoarse,
+        Pstream::msgType(),
+        Pstream::worldComm,
+        parallel
+    );
+
+
+    // Get agglomerate owner on other side of coupled faces
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    labelList globalNeighbour(mesh.nFaces()-mesh.nInternalFaces());
+
+    forAll(patches, patchI)
+    {
+        const polyPatch& pp = patches[patchI];
+
+        if (pp.coupled() && (parallel || !isA<processorPolyPatch>(pp)))
+        {
+            label faceI = pp.start();
+            label bFaceI = pp.start() - mesh.nInternalFaces();
+
+            forAll(pp, i)
+            {
+                globalNeighbour[bFaceI] = globalAgglom.toGlobal
+                (
+                    agglom[faceOwner[faceI]]
+                );
+
+                bFaceI++;
+                faceI++;
+            }
+        }
+    }
+
+    // Get the cell on the other side of coupled patches
+    syncTools::swapBoundaryFaceList(mesh, globalNeighbour);
+
+
+    // Count number of faces (internal + coupled)
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // Number of faces per coarse cell
+    labelList nFacesPerCell(nLocalCoarse, 0);
+
+    for (label faceI = 0; faceI < mesh.nInternalFaces(); faceI++)
+    {
+        label own = agglom[faceOwner[faceI]];
+        label nei = agglom[faceNeighbour[faceI]];
+
+        nFacesPerCell[own]++;
+        nFacesPerCell[nei]++;
+    }
+
+    forAll(patches, patchI)
+    {
+        const polyPatch& pp = patches[patchI];
+
+        if (pp.coupled() && (parallel || !isA<processorPolyPatch>(pp)))
+        {
+            label faceI = pp.start();
+            label bFaceI = pp.start()-mesh.nInternalFaces();
+
+            forAll(pp, i)
+            {
+                label own = agglom[faceOwner[faceI]];
+
+                label globalNei = globalNeighbour[bFaceI];
+                if
+                (
+                   !globalAgglom.isLocal(globalNei)
+                 || globalAgglom.toLocal(globalNei) != own
+                )
+                {
+                    nFacesPerCell[own]++;
+                }
+
+                faceI++;
+                bFaceI++;
+            }
+        }
+    }
+
+
+    // Fill in offset and data
+    // ~~~~~~~~~~~~~~~~~~~~~~~
+
+    cellCells.setSize(nFacesPerCell);
+    cellCellWeights.setSize(nFacesPerCell);
+
+    nFacesPerCell = 0;
+
+    labelList& m = cellCells.m();
+    scalarList& w = cellCellWeights.m();
+    const labelList& offsets = cellCells.offsets();
+
+    // For internal faces is just offsetted owner and neighbour
+    for (label faceI = 0; faceI < mesh.nInternalFaces(); faceI++)
+    {
+        label own = agglom[faceOwner[faceI]];
+        label nei = agglom[faceNeighbour[faceI]];
+
+        label ownIndex = offsets[own] + nFacesPerCell[own]++;
+        label neiIndex = offsets[nei] + nFacesPerCell[nei]++;
+
+        m[ownIndex] = globalAgglom.toGlobal(nei);
+        w[ownIndex] = mag(mesh.faceAreas()[faceI]);
+        m[neiIndex] = globalAgglom.toGlobal(own);
+        w[ownIndex] = mag(mesh.faceAreas()[faceI]);
+    }
+
+    // For boundary faces is offsetted coupled neighbour
+    forAll(patches, patchI)
+    {
+        const polyPatch& pp = patches[patchI];
+
+        if (pp.coupled() && (parallel || !isA<processorPolyPatch>(pp)))
+        {
+            label faceI = pp.start();
+            label bFaceI = pp.start()-mesh.nInternalFaces();
+
+            forAll(pp, i)
+            {
+                label own = agglom[faceOwner[faceI]];
+
+                label globalNei = globalNeighbour[bFaceI];
+
+                if
+                (
+                   !globalAgglom.isLocal(globalNei)
+                 || globalAgglom.toLocal(globalNei) != own
+                )
+                {
+                    label ownIndex = offsets[own] + nFacesPerCell[own]++;
+                    m[ownIndex] = globalNei;
+                    w[ownIndex] = mag(mesh.faceAreas()[faceI]);
+                }
+
+                faceI++;
+                bFaceI++;
+            }
+        }
+    }
+
+
+    // Check for duplicates connections between cells
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Done as postprocessing step since we now have cellCells.
+    label newIndex = 0;
+    labelHashSet nbrCells;
+
+
+    if (cellCells.size() == 0)
+    {
+        return;
+    }
+
+    label startIndex = cellCells.offsets()[0];
+
+    forAll(cellCells, cellI)
+    {
+        nbrCells.clear();
+        nbrCells.insert(globalAgglom.toGlobal(cellI));
+
+        label endIndex = cellCells.offsets()[cellI+1];
+
+        for (label i = startIndex; i < endIndex; i++)
+        {
+            if (nbrCells.insert(cellCells.m()[i]))
+            {
+                cellCells.m()[newIndex] = cellCells.m()[i];
+                cellCellWeights.m()[newIndex] = cellCellWeights.m()[i];
+                newIndex++;
+            }
+        }
+        startIndex = endIndex;
+        cellCells.offsets()[cellI+1] = newIndex;
+        cellCellWeights.offsets()[cellI+1] = newIndex;
+    }
+
+    cellCells.m().setSize(newIndex);
+    cellCellWeights.m().setSize(newIndex);
 }
 
 
