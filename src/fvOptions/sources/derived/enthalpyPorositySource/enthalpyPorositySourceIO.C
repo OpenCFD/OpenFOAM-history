@@ -38,14 +38,14 @@ bool Foam::fv::enthalpyPorositySource::read(const dictionary& dict)
 {
     if (option::read(dict))
     {
-        coeffs_.lookup("Tliquidus") >> Tliquidus_;
-        coeffs_.lookup("Tsolidus") >> Tsolidus_;
+        coeffs_.lookup("Tmelt") >> Tmelt_;
         coeffs_.lookup("L") >> L_;
 
         coeffs_.readIfPresent("relax", relax_);
 
         mode_ = thermoModeTypeNames_.read(coeffs_.lookup("thermoMode"));
 
+        coeffs_.lookup("rhoRef") >> rhoRef_;
         coeffs_.readIfPresent("rhoName", rhoName_);
         coeffs_.readIfPresent("TName", TName_);
         coeffs_.readIfPresent("UName", UName_);

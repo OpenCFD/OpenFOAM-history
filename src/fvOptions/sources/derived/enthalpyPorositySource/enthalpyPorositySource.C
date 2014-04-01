@@ -33,6 +33,7 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "fvcDdt.H"
 #include "fvcDiv.H"
+#include "fvmSup.H"
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
@@ -67,29 +68,6 @@ const Foam::NamedEnum<Foam::fv::enthalpyPorositySource::thermoMode, 2>
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-Foam::wordList Foam::fv::enthalpyPorositySource::alpha1BoundaryTypes() const
-{
-    const volScalarField& T = mesh_.lookupObject<volScalarField>(TName_);
-
-    wordList bTypes(T.boundaryField().size());
-
-    forAll(bTypes, patchI)
-    {
-        const fvPatchField<scalar>& pf = T.boundaryField()[patchI];
-        if (isA<fixedValueFvPatchScalarField>(pf))
-        {
-            bTypes[patchI] = fixedValueFvPatchScalarField::typeName;
-        }
-        else
-        {
-            bTypes[patchI] = zeroGradientFvPatchScalarField::typeName;
-        }
-    }
-
-    return bTypes;
-}
-
 
 bool Foam::fv::enthalpyPorositySource::solveField(const word& fieldName) const
 {
@@ -134,7 +112,10 @@ bool Foam::fv::enthalpyPorositySource::solveField(const word& fieldName) const
 }
 
 
-Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::rho() const
+Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::rho
+(
+    const surfaceScalarField& phi
+) const
 {
     switch (mode_)
     {
@@ -148,10 +129,14 @@ Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::rho() const
         }
         case mdLookup:
         {
+            bool volumetric = false;
+            if (phi.dimensions() == dimVolume/dimTime)
+            {
+                volumetric = true;
+            }
+
             if (rhoName_ == "rhoRef")
             {
-                scalar rhoRef(readScalar(coeffs_.lookup("rhoRef")));
-
                 return tmp<volScalarField>
                 (
                     new volScalarField
@@ -165,14 +150,36 @@ Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::rho() const
                             IOobject::NO_WRITE
                         ),
                         mesh_,
-                        dimensionedScalar("rho", dimDensity, rhoRef),
+                        dimensionedScalar
+                        (
+                            "rho",
+                            volumetric ? dimless : dimDensity,
+                            rhoRef_
+                        ),
                         zeroGradientFvPatchScalarField::typeName
                     )
                 );
             }
             else
             {
-                return mesh_.lookupObject<volScalarField>(rhoName_);
+                volScalarField rho
+                (
+                    mesh_.lookupObject<volScalarField>(rhoName_)
+                );
+
+                if (volumetric && (rho.dimensions() == dimDensity))
+                {
+                    dimensionedScalar rhoRef
+                    (
+                        "rho",
+                        dimDensity,
+                        rhoRef_
+                    );
+
+                    rho /= rhoRef;
+                }
+
+                return tmp<volScalarField>(new volScalarField(rho));
             }
 
             break;
@@ -183,6 +190,71 @@ Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::rho() const
             (
                 "Foam::tmp<Foam::volScalarField> "
                 "Foam::fv::enthalpyPorositySource::rho() const"
+            )
+                << "Unhandled thermo mode: " << thermoModeTypeNames_[mode_]
+                << abort(FatalError);
+        }
+    }
+
+
+    return tmp<volScalarField>(NULL);
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::Cp() const
+{
+    switch (mode_)
+    {
+        case mdThermo:
+        {
+            const basicThermo& thermo =
+                mesh_.lookupObject<basicThermo>("thermophysicalProperties");
+
+            return thermo.Cp();
+            break;
+        }
+        case mdLookup:
+        {
+            if (CpName_ == "CpRef")
+            {
+                scalar CpRef = readScalar(coeffs_.lookup("CpRef"));
+
+                return tmp<volScalarField>
+                (
+                    new volScalarField
+                    (
+                        IOobject
+                        (
+                            name_ + ":Cp",
+                            mesh_.time().timeName(),
+                            mesh_,
+                            IOobject::NO_READ,
+                            IOobject::NO_WRITE
+                        ),
+                        mesh_,
+                        dimensionedScalar
+                        (
+                            "Cp",
+                            dimEnergy/dimMass/dimTemperature,
+                            CpRef
+                        ),
+                        zeroGradientFvPatchScalarField::typeName
+                    )
+                );
+            }
+            else
+            {
+                return mesh_.lookupObject<volScalarField>(CpName_);
+            }
+
+            break;
+        }
+        default:
+        {
+            FatalErrorIn
+            (
+                "Foam::tmp<Foam::volScalarField> "
+                "Foam::fv::enthalpyPorositySource::Cp() const"
             )
                 << "Unhandled thermo mode: " << thermoModeTypeNames_[mode_]
                 << abort(FatalError);
@@ -215,37 +287,35 @@ void Foam::fv::enthalpyPorositySource::update()
         return;
     }
 
+    if (debug)
+    {
+        Info<< type() << ":" << name_ << " - updating phase indicator" << endl;
+    }
+
+    // update old time alpha1 field
+    alpha1_.oldTime();
+
     const volScalarField& T = mesh_.lookupObject<volScalarField>(TName_);
+    volScalarField Cp(this->Cp());
 
     forAll(cells_, i)
     {
         label cellI = cells_[i];
 
-        scalar alpha1New = 0.0;
         scalar Tc = T[cellI];
 
-        if (Tc > Tliquidus_)
-        {
-            alpha1New = 1.0;
-        }
-        else if (Tc < Tsolidus_)
-        {
-            alpha1New = 0.0;
-        }
-        else
-        {
-            // lever rule
-            alpha1New = (Tc - Tsolidus_)/(Tliquidus_ - Tsolidus_);
-        }
+        scalar Cpc = Cp[cellI];
 
-        alpha1New = (1.0 - relax_)*alpha1_[cellI] + relax_*alpha1New;
+        scalar alpha1New = alpha1_[cellI] + relax_*Cpc*(Tc - Tmelt_)/L_;
 
-        dAlpha1_[i] = alpha1New - alpha1_[cellI];
+        alpha1_[cellI] = max(0, min(alpha1New, 1));
 
-        alpha1_[cellI] = alpha1New;
-
-        curTimeIndex_ = mesh_.time().timeIndex();
+        deltaT_[i] = Tc - Tmelt_;
     }
+
+    alpha1_.correctBoundaryConditions();
+
+    curTimeIndex_ = mesh_.time().timeIndex();
 }
 
 
@@ -260,14 +330,16 @@ Foam::fv::enthalpyPorositySource::enthalpyPorositySource
 )
 :
     option(sourceName, modelType, dict, mesh),
-    Tliquidus_(readScalar(coeffs_.lookup("Tliquidus"))),
-    Tsolidus_(readScalar(coeffs_.lookup("Tsolidus"))),
+    Tmelt_(readScalar(coeffs_.lookup("Tmelt"))),
     L_(readScalar(coeffs_.lookup("L"))),
     relax_(coeffs_.lookupOrDefault("relax", 0.9)),
     mode_(thermoModeTypeNames_.read(coeffs_.lookup("thermoMode"))),
+    rhoRef_(readScalar(coeffs_.lookup("rhoRef"))),
     rhoName_(coeffs_.lookupOrDefault<word>("rhoName", "rho")),
     TName_(coeffs_.lookupOrDefault<word>("TName", "T")),
+    CpName_(coeffs_.lookupOrDefault<word>("CpName", "Cp")),
     UName_(coeffs_.lookupOrDefault<word>("UName", "U")),
+    phiName_(coeffs_.lookupOrDefault<word>("phiName", "phi")),
     Cu_(coeffs_.lookupOrDefault<scalar>("Cu", 100000)),
     q_(coeffs_.lookupOrDefault("q", 0.001)),
     beta_(readScalar(coeffs_.lookup("beta"))),
@@ -283,10 +355,10 @@ Foam::fv::enthalpyPorositySource::enthalpyPorositySource
         ),
         mesh,
         dimensionedScalar("alpha1", dimless, 0.0),
-        alpha1BoundaryTypes()
+        zeroGradientFvPatchScalarField::typeName
     ),
-    dAlpha1_(cells_.size(), 0.0),
-    curTimeIndex_(-1)
+    curTimeIndex_(-1),
+    deltaT_(cells_.size(), 0)
 {
     fieldNames_.setSize(1, "source");
     applied_.setSize(1, false);
@@ -319,45 +391,15 @@ void Foam::fv::enthalpyPorositySource::addSup
 
     update();
 
-    volScalarField dH
-    (
-        IOobject
-        (
-            name_ + ":dH",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar("dH", dimEnergy/dimMass, 0.0)
-    );
-
-    scalarField& dHi = dH.internalField();
-
-    forAll(cells_, i)
-    {
-        label cellI = cells_[i];
-        dHi[cellI] = L_*dAlpha1_[i];
-    }
-
-    const volScalarField rho(this->rho());
 
     const surfaceScalarField& phi =
-        mesh_.lookupObject<surfaceScalarField>("phi");
+        mesh_.lookupObject<surfaceScalarField>(phiName_);
 
-    dimensionedScalar rhoScale("rhoScale", dimless, 1.0);
+    const volScalarField rho(this->rho(phi));
 
-    if
-    (
-        (phi.dimensions() == dimVolume/dimTime)
-     && (rho.dimensions() == dimDensity)
-    )
-    {
-        rhoScale.dimensions() /= dimDensity;
-    }
+    dimensionedScalar L("L", dimEnergy/dimMass, L_);
 
-    // contributions added to rhs
+    // contributions added to rhs of solver equation
     if (eqn.psi().dimensions() == dimTemperature)
     {
         dimensionedScalar Cp
@@ -367,15 +409,15 @@ void Foam::fv::enthalpyPorositySource::addSup
             readScalar(coeffs_.lookup("CpRef"))
         );
 
-        eqn -=
-            fvc::ddt((rho*rhoScale*dH/Cp)())
-          + fvc::div(phi*fvc::interpolate(dH/Cp));
+        // isothermal phase change - only include time derivative
+//        eqn -= L/Cp*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
+        eqn -= L/Cp*(fvc::ddt(rho, alpha1_));
     }
     else
     {
-        eqn -=
-            fvc::ddt((rho*rhoScale*dH)())
-          + fvc::div(phi*fvc::interpolate(dH));
+        // isothermal phase change - only include time derivative
+//        eqn -= L*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
+        eqn -= L*(fvc::ddt(rho, alpha1_));
     }
 }
 
@@ -400,27 +442,24 @@ void Foam::fv::enthalpyPorositySource::addSup
 
     update();
 
+    vector g = this->g();
+
     scalarField& Sp = eqn.diag();
     vectorField& Su = eqn.source();
-
     const scalarField& V = mesh_.V();
-    const volScalarField rho(this->rho());
-    const volScalarField& T = mesh_.lookupObject<volScalarField>(TName_);
-
-    vector g = this->g();
 
     forAll(cells_, i)
     {
         label cellI = cells_[i];
 
         scalar Vc = V[cellI];
-
-        scalar Tc = T[cellI];
-        scalar rhoc = rho[cellI];
         scalar alpha1c = alpha1_[cellI];
 
-        Sp[cellI] -= Vc*rhoc*Cu_*sqr(1.0 - alpha1c)/(pow3(alpha1c) + q_);
-        Su[cellI] += Vc*rhoc*g*beta_*max(0, (Tc - Tsolidus_));
+        scalar S = -Cu_*sqr(1.0 - alpha1c)/(pow3(alpha1c) + q_);
+        vector Sb = rhoRef_*g*beta_*deltaT_[i];
+
+        Sp[cellI] += Vc*S;
+        Su[cellI] += Vc*Sb;
     }
 }
 
