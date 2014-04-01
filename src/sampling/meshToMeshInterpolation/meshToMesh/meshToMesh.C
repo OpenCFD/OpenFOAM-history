@@ -264,7 +264,7 @@ void Foam::meshToMesh::calculate()
         }
 
         // set up as a reverse distribute
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),
@@ -280,7 +280,7 @@ void Foam::meshToMesh::calculate()
         );
 
         // set up as a reverse distribute
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),

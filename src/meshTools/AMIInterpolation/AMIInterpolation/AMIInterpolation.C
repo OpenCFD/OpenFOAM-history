@@ -908,7 +908,7 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
         // send data back to originating procs. Note that contributions
         // from different processors get added (ListAppendEqOp)
 
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),
@@ -923,7 +923,7 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
             labelList()
         );
 
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),
