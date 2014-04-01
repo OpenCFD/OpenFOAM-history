@@ -53,50 +53,6 @@ actions
         type    cellSet;
         action  invert;
     }
-
-    // create the iceZone
-    {
-        name    f0;
-        type    faceSet;
-        action  new;
-        source  patchToFace;
-        sourceInfo
-        {
-            name    exterior_to_windshield;
-        }
-    }
-    {
-        name    iceZoneCells;
-        type    cellSet;
-        action  new;
-        source  faceToCell;
-        sourceInfo
-        {
-            set     f0;
-            option  owner;
-        }
-    }
-    {
-        name    iceZone;
-        type    cellZoneSet;
-        action  new;
-        source  setToCellZone;
-        sourceInfo
-        {
-            set iceZoneCells;
-        }
-    }
-    // clean-up
-    {
-        name    f0;
-        type    faceSet;
-        action  remove;
-    }
-    {
-        name    iceZoneCells;
-        type    cellSet;
-        action  remove;
-    }
 );
 
 
