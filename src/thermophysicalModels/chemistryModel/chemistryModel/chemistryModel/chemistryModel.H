@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,7 +39,7 @@ SourceFiles
 #define chemistryModel_H
 
 #include "Reaction.H"
-#include "ODE.H"
+#include "ODESystem.H"
 #include "volFieldsFwd.H"
 #include "simpleMatrix.H"
 #include "DimensionedField.H"
@@ -60,7 +60,7 @@ template<class CompType, class ThermoType>
 class chemistryModel
 :
     public CompType,
-    public ODE
+    public ODESystem
 {
     // Private Member Functions
 
@@ -198,6 +198,13 @@ public:
                 const label i
             );
 
+            //- Return reaction rate of the specieI in reactionI
+            virtual tmp<DimensionedField<scalar, volMesh> > calculateRR
+            (
+                const label reactionI,
+                const label specieI
+            ) const;
+
             //- Solve the reaction system for the given time step
             //  and return the characteristic time
             virtual scalar solve(const scalar deltaT);
@@ -212,7 +219,7 @@ public:
             //- Return source for enthalpy equation [kg/m/s3]
             virtual tmp<volScalarField> Sh() const;
 
-            //- Return the heat release, i.e. enthalpy/sec [m2/s3]
+            //- Return the heat release, i.e. enthalpy/sec [kg/m2/s3]
             virtual tmp<volScalarField> dQ() const;
 
 

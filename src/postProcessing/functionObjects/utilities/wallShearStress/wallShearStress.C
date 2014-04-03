@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,9 +43,12 @@ defineTypeNameAndDebug(wallShearStress, 0);
 void Foam::wallShearStress::writeFileHeader(const label i)
 {
     // Add headers to output data
-    file() << "# Wall shear stress" << nl
-        << "# time " << token::TAB << "patch" << token::TAB
-        << "min" << token::TAB << "max" << endl;
+    writeHeader(file(), "Wall shear stress");
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "patch");
+    writeTabbed(file(), "min");
+    writeTabbed(file(), "max");
+    file() << endl;
 }
 
 
@@ -73,16 +76,15 @@ void Foam::wallShearStress::calcShearStress
 
         if (Pstream::master())
         {
-            file() << mesh.time().timeName() << token::TAB
-                << pp.name() << token::TAB << minSsp
-                << token::TAB << maxSsp << endl;
+            file() << mesh.time().value()
+                << token::TAB << pp.name()
+                << token::TAB << minSsp
+                << token::TAB << maxSsp
+                << endl;
         }
 
-        if (log_)
-        {
-            Info<< "    min/max(" << pp.name() << ") = "
-                << minSsp << ", " << maxSsp << endl;
-        }
+        Info(log_)<< "    min/max(" << pp.name() << ") = "
+            << minSsp << ", " << maxSsp << endl;
     }
 }
 
@@ -101,7 +103,7 @@ Foam::wallShearStress::wallShearStress
     name_(name),
     obr_(obr),
     active_(true),
-    log_(false),
+    log_(true),
     patchSet_()
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
@@ -117,8 +119,37 @@ Foam::wallShearStress::wallShearStress
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating." << nl
+        )   << "No fvMesh available, deactivating " << name_ << nl
             << endl;
+    }
+
+    if (active_)
+    {
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+        volVectorField* wallShearStressPtr
+        (
+            new volVectorField
+            (
+                IOobject
+                (
+                    type(),
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh,
+                dimensionedVector
+                (
+                    "0",
+                    sqr(dimLength)/sqr(dimTime),
+                    vector::zero
+                )
+            )
+        );
+
+        mesh.objectRegistry::store(wallShearStressPtr);
     }
 
     read(dict);
@@ -137,7 +168,7 @@ void Foam::wallShearStress::read(const dictionary& dict)
 {
     if (active_)
     {
-        log_ = dict.lookupOrDefault<Switch>("log", false);
+        log_ = dict.lookupOrDefault<Switch>("log", true);
 
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
         const polyBoundaryMesh& pbm = mesh.boundaryMesh();
@@ -148,7 +179,7 @@ void Foam::wallShearStress::read(const dictionary& dict)
                 wordReList(dict.lookupOrDefault("patches", wordReList()))
             );
 
-        Info<< type() << " output:" << nl;
+        Info<< type() << " " << name_ << ":" << nl;
 
         if (patchSet_.empty())
         {
@@ -192,24 +223,6 @@ void Foam::wallShearStress::read(const dictionary& dict)
 
 void Foam::wallShearStress::execute()
 {
-    // Do nothing - only valid on write
-}
-
-
-void Foam::wallShearStress::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::wallShearStress::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::wallShearStress::write()
-{
     typedef compressible::turbulenceModel cmpModel;
     typedef incompressible::turbulenceModel icoModel;
 
@@ -219,23 +232,13 @@ void Foam::wallShearStress::write()
 
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
-        volVectorField wallShearStress
-        (
-            IOobject
+        volVectorField& wallShearStress =
+            const_cast<volVectorField&>
             (
-                "wallShearStress",
-                mesh.time().timeName(),
-                mesh,
-                IOobject::NO_READ
-            ),
-            mesh,
-            dimensionedVector("0", sqr(dimLength)/sqr(dimTime), vector::zero)
-        );
+                mesh.lookupObject<volVectorField>(type())
+            );
 
-        if (log_)
-        {
-            Info<< type() << " " << name_ << " output:" << nl;
-        }
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
 
         tmp<volSymmTensorField> Reff;
@@ -256,18 +259,42 @@ void Foam::wallShearStress::write()
         else
         {
             FatalErrorIn("void Foam::wallShearStress::write()")
-                << "Unable to find incompressible turbulence model in the "
+                << "Unable to find turbulence model in the "
                 << "database" << exit(FatalError);
         }
 
-
         calcShearStress(mesh, Reff(), wallShearStress);
+    }
+}
 
-        if (log_)
-        {
-            Info<< "    writing field " << wallShearStress.name() << nl
-                << endl;
-        }
+
+void Foam::wallShearStress::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+
+void Foam::wallShearStress::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::wallShearStress::write()
+{
+    if (active_)
+    {
+        functionObjectFile::write();
+
+        const volVectorField& wallShearStress =
+            obr_.lookupObject<volVectorField>(type());
+
+        Info(log_)<< type() << " " << name_ << " output:" << nl
+            << "    writing field " << wallShearStress.name() << nl
+            << endl;
 
         wallShearStress.write();
     }

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,6 +28,7 @@ License
 #include "unitConversion.H"
 #include "refinementSurfaces.H"
 #include "searchableSurfaces.H"
+#include "medialAxisMeshMover.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -109,6 +110,7 @@ Foam::layerParameters::layerParameters
     const polyBoundaryMesh& boundaryMesh
 )
 :
+    dict_(dict),
     numLayers_(boundaryMesh.size(), -1),
     relativeSizes_(dict.lookup("relativeSizes")),
     layerSpec_(ILLEGAL),
@@ -122,48 +124,38 @@ Foam::layerParameters::layerParameters
         readScalar(dict.lookup("minThickness"))
     ),
     featureAngle_(readScalar(dict.lookup("featureAngle"))),
-    slipFeatureAngle_
+    mergePatchFacesAngle_
     (
-        dict.found("slipFeatureAngle")
-      ? readScalar(dict.lookup("slipFeatureAngle"))
-      : 0.5*featureAngle_
+        dict.lookupOrDefault<scalar>
+        (
+            "mergePatchFacesAngle",
+            0.5*featureAngle_
+        )
     ),
     concaveAngle_
     (
         dict.lookupOrDefault("concaveAngle", defaultConcaveAngle)
     ),
     nGrow_(readLabel(dict.lookup("nGrow"))),
-    nSmoothSurfaceNormals_
-    (
-        readLabel(dict.lookup("nSmoothSurfaceNormals"))
-    ),
-    nSmoothNormals_(readLabel(dict.lookup("nSmoothNormals"))),
-    nSmoothDisplacement_(dict.lookupOrDefault("nSmoothDisplacement", 0)),
-    nSmoothThickness_(readLabel(dict.lookup("nSmoothThickness"))),
     maxFaceThicknessRatio_
     (
         readScalar(dict.lookup("maxFaceThicknessRatio"))
-    ),
-    layerTerminationCos_
-    (
-        Foam::cos(degToRad(0.5*featureAngle_))
-    ),
-    maxThicknessToMedialRatio_
-    (
-        readScalar(dict.lookup("maxThicknessToMedialRatio"))
-    ),
-    minMedianAxisAngleCos_
-    (
-        Foam::cos(degToRad(readScalar(dict.lookup("minMedianAxisAngle"))))
     ),
     nBufferCellsNoExtrude_
     (
         readLabel(dict.lookup("nBufferCellsNoExtrude"))
     ),
-    nSnap_(readLabel(dict.lookup("nRelaxIter"))),
     nLayerIter_(readLabel(dict.lookup("nLayerIter"))),
     nRelaxedIter_(labelMax),
-    additionalReporting_(dict.lookupOrDefault("additionalReporting", false))
+    additionalReporting_(dict.lookupOrDefault("additionalReporting", false)),
+    meshShrinker_
+    (
+        dict.lookupOrDefault
+        (
+            "meshShrinker",
+            medialAxisMeshMover::typeName
+        )
+    )
 {
     // Detect layer specification mode
 
@@ -235,6 +227,12 @@ Foam::layerParameters::layerParameters
         Info<< "Layer thickness specified as final layer and expansion ratio."
             << endl;
     }
+    else if (haveTotal && haveExp)
+    {
+        layerSpec_ = TOTAL_AND_EXPANSION;
+        Info<< "Layer thickness specified as overall thickness"
+            << " and expansion ratio." << endl;
+    }
 
 
     if (layerSpec_ == ILLEGAL || nSpec != 2)
@@ -253,7 +251,9 @@ Foam::layerParameters::layerParameters
             << "    final layer thickness ('finalLayerThickness')"
             << " and expansion ratio ('expansionRatio') or" << nl
             << "    final layer thickness ('finalLayerThickness')"
-            << " and overall thickness ('thickness')"
+            << " and overall thickness ('thickness') or" << nl
+            << "    overall thickness ('thickness')"
+            << " and expansion ratio ('expansionRatio'"
             << exit(FatalIOError);
     }
 
@@ -354,6 +354,19 @@ Foam::layerParameters::layerParameters
                             );
                         break;
 
+                        case TOTAL_AND_EXPANSION:
+                            layerDict.readIfPresent
+                            (
+                                "thickness",
+                                thickness_[patchI]
+                            );
+                            layerDict.readIfPresent
+                            (
+                                "expansionRatio",
+                                expansionRatio_[patchI]
+                            );
+                        break;
+
                         default:
                             FatalIOErrorIn
                             (
@@ -390,6 +403,7 @@ Foam::scalar Foam::layerParameters::layerThickness
     {
         case FIRST_AND_TOTAL:
         case FINAL_AND_TOTAL:
+        case TOTAL_AND_EXPANSION:
         {
             return totalThickness;
         }
@@ -450,6 +464,7 @@ Foam::scalar Foam::layerParameters::layerExpansionRatio
     {
         case FIRST_AND_EXPANSION:
         case FINAL_AND_EXPANSION:
+        case TOTAL_AND_EXPANSION:
         {
             return expansionRatio;
         }
@@ -521,6 +536,18 @@ Foam::scalar Foam::layerParameters::firstLayerThickness
                 expansionRatio
             );
             return finalLayerThickess/pow(r, nLayers-1);
+        }
+        break;
+
+        case TOTAL_AND_EXPANSION:
+        {
+            scalar r = finalLayerThicknessRatio
+            (
+                nLayers,
+                expansionRatio
+            );
+            scalar finalThickness = r*totalThickness;
+            return finalThickness/pow(expansionRatio, nLayers-1);
         }
         break;
 

@@ -28,13 +28,13 @@ gradSchemes
 divSchemes
 {
     div(phi,alpha)  Gauss vanLeer;
-    div(phirb,alpha) Gauss interfaceCompression 1;
+    div(phirb,alpha) Gauss linear;
 
-    div(rho*phi,U)  Gauss vanLeerV;
+    div(rhoPhi,U)  Gauss vanLeerV;
     div(phi,thermo:rho.water) Gauss linear;
     div(phi,thermo:rho.air) Gauss linear;
-    div(rho*phi,T)  Gauss vanLeer;
-    div(rho*phi,K)  Gauss linear;
+    div(rhoPhi,T)  Gauss vanLeer;
+    div(rhoPhi,K)  Gauss linear;
     div((phi+meshPhi),p)  Gauss linear;
 
     div((muEff*dev2(T(grad(U))))) Gauss linear;
@@ -60,7 +60,6 @@ fluxRequired
     default         no;
     p_rgh;
     pcorr;
-    alpha;
 }
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,39 +39,32 @@ Description
     - 2-D, normal and tangential components
 
     The thermodynamic properties of the baffle material are specified via
-    dictionary entries.
+    dictionary entries on the master patch
 
     \heading Patch usage
-
     Example of the boundary condition specification:
     \verbatim
-    myPatch
+    myPatch_master
     {
-        type                compressible::temperatureThermoBaffle;
+        type                compressible::thermalBaffle;
 
-        // Coupled boundary condition
-        Tnbr                T;
-        kappa               fluidThermo; // or solidThermo
-        KappaName           none;
-        QrNbr               Qr; // or none.Name of Qr field on neighbour region
-        Qr                  Qr; // or none.Name of Qr field on local region
+        // Underlaying coupled boundary condition
+        Tnbr               T;
+        kappa              fluidThermo; // or solidThermo
+        KappaName          none;
+        QrNbr              Qr;//or none.Name of Qr field on neighbourregion
+        Qr                 none;// or none.Name of Qr field on localregion
+        value              uniform 300;
 
-
-        // Thermo baffle model
-        thermalBaffleModel   thermalBaffle;
+        // Baffle region name
         regionName          baffleRegion;
-        infoOutput          yes;
         active              yes;
-        thermalBaffleCoeffs
-        {
-        }
 
-
-        // Solid thermo
+        // Solid thermo in solid region
         thermoType
         {
             type            heSolidThermo;
-            mixture         pureSolidMixture;
+            mixture         pureMixture;
             transport       constIso;
             thermo          hConst;
             equationOfState rhoConst;
@@ -108,12 +101,54 @@ Description
             scatterModel    none;
         }
 
+
+        // Extrude model for new region
+
+        extrudeModel        linearNormal;
+        nLayers             50;
+        expansionRatio      1;
+        columnCells         false; //3D or 1D
+        linearNormalCoeffs
+        {
+            thickness           0.02;
+        }
+
+    }
+    \endverbatim
+
+    /- Slave patch on primary region
+    \verbatim
+    myPatch_slave
+    {
+        type                compressible::thermalBaffle;
+        kappa               fluidThermo;
+        kappaName           none;
+        value               uniform 300;
+    \endverbatim
+
+
+    /- Patches on baffle region
+    \verbatim
+    bottom
+    {
+        type                compressible::thermalBaffle;
+        kappa               solidThermo;
+        kappaName           none;
+        value               uniform 300;
+    }
+
+    top
+    {
+        type                compressible::thermalBaffle;
+        kappa               solidThermo;
+        kappaName           none;
         value               uniform 300;
     }
     \endverbatim
 
+
 SeeAlso
-    Foam::turbulentTemperatureRadCoupledMixedFvPatchScalarField
+    Foam::turbulentTemperatureCoupledBaffleMixedFvPatchScalarField
     Foam::regionModels::thermalBaffleModels::thermalBaffleModel
 
 SourceFiles
@@ -128,6 +163,7 @@ SourceFiles
 #include "autoPtr.H"
 #include "regionModel.H"
 #include "thermalBaffleModel.H"
+#include "extrudePatchMesh.H"
 #include "turbulentTemperatureRadCoupledMixedFvPatchScalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -148,6 +184,14 @@ class thermalBaffleFvPatchScalarField
 {
     // Private data
 
+        //- Enumeration of patch IDs
+        enum patchID
+        {
+            bottomPatchID,
+            topPatchID,
+            sidePatchID
+        };
+
         //- Is the baffle owner
         bool owner_;
 
@@ -157,6 +201,14 @@ class thermalBaffleFvPatchScalarField
         //- Dictionary
         dictionary dict_;
 
+        //- Auto pointer to extrapolated mesh from patch
+        autoPtr<extrudePatchMesh> extrudeMeshPtr_;
+
+
+    // Private member functions
+
+        //- Extrude mesh
+        void createPatchMesh();
 
 public:
 

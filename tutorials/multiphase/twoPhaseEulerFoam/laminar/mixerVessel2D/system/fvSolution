@@ -45,18 +45,20 @@ solvers
     "U.*"
     {
         solver          smoothSolver;
-        smoother        GaussSeidel;
+        smoother        symGaussSeidel;
         nSweeps         2;
         tolerance       1e-07;
         relTol          0.1;
+        minIter         1;
     }
 
     "(k|epsilon|Theta|h).*"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-06;
         relTol          0;
+        minIter         1;
     }
 }
 
@@ -72,9 +74,6 @@ PIMPLE
 
 relaxationFactors
 {
-    fields
-    {
-    }
     equations
     {
         ".*"             1;

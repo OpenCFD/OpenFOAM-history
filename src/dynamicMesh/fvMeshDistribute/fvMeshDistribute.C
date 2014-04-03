@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,6 +40,7 @@ License
 #include "syncTools.H"
 #include "CompactListList.H"
 #include "fvMeshTools.H"
+#include "ListOps.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -50,6 +51,84 @@ defineTypeNameAndDebug(fvMeshDistribute, 0);
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::fvMeshDistribute::inplaceRenumberWithFlip
+(
+    const labelUList& oldToNew,
+    const bool oldToNewHasFlip,
+    const bool lstHasFlip,
+    labelUList& lst
+)
+{
+    if (!lstHasFlip && !oldToNewHasFlip)
+    {
+        Foam::inplaceRenumber(oldToNew, lst);
+    }
+    else
+    {
+        // Either input data or map encodes sign so result encodes sign
+
+        forAll(lst, elemI)
+        {
+            // Extract old value and sign
+            label val = lst[elemI];
+            label sign = 1;
+            if (lstHasFlip)
+            {
+                if (val > 0)
+                {
+                    val = val-1;
+                }
+                else if (val < 0)
+                {
+                    val = -val-1;
+                    sign = -1;
+                }
+                else
+                {
+                    FatalErrorIn
+                    (
+                        "fvMeshDistribute::inplaceRenumberWithFlip(..)"
+                    )   << "Problem : zero value " << val
+                        << " at index " << elemI << " out of " << lst.size()
+                        << " list with flip bit" << exit(FatalError);
+                }
+            }
+
+
+            // Lookup new value and possibly change sign
+            label newVal = oldToNew[val];
+
+            if (oldToNewHasFlip)
+            {
+                if (newVal > 0)
+                {
+                    newVal = newVal-1;
+                }
+                else if (newVal < 0)
+                {
+                    newVal = -newVal-1;
+                    sign = -sign;
+                }
+                else
+                {
+                    FatalErrorIn
+                    (
+                        "fvMeshDistribute::inplaceRenumberWithFlip(..)"
+                    )   << "Problem : zero value " << newVal
+                        << " at index " << elemI << " out of "
+                        << oldToNew.size()
+                        << " list with flip bit" << exit(FatalError);
+                }
+            }
+
+
+            // Encode new value and sign
+            lst[elemI] = sign*(newVal+1);
+        }
+    }
+}
+
 
 Foam::labelList Foam::fvMeshDistribute::select
 (
@@ -455,9 +534,14 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::fvMeshDistribute::repatch
 
     forAll(constructFaceMap, procI)
     {
-        inplaceRenumber(map().reverseFaceMap(), constructFaceMap[procI]);
+        inplaceRenumberWithFlip
+        (
+            map().reverseFaceMap(),
+            false,
+            true,
+            constructFaceMap[procI]
+        );
     }
-
 
     return map;
 }
@@ -1058,7 +1142,7 @@ void Foam::fvMeshDistribute::sendMesh
     const labelList& sourceProc,
     const labelList& sourcePatch,
     const labelList& sourceNewNbrProc,
-    UOPstream& toDomain
+    Ostream& toDomain
 )
 {
     if (debug)
@@ -1217,7 +1301,7 @@ Foam::autoPtr<Foam::fvMesh> Foam::fvMeshDistribute::receiveMesh
     labelList& domainSourceProc,
     labelList& domainSourcePatch,
     labelList& domainSourceNewNbrProc,
-    UIPstream& fromNbr
+    Istream& fromNbr
 )
 {
     pointField domainPoints(fromNbr);
@@ -1650,10 +1734,13 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
             );
 
             subCellMap[recvProc] = subsetter.cellMap();
-            subFaceMap[recvProc] = renumber
+            subFaceMap[recvProc] = subsetter.faceFlipMap();
+            inplaceRenumberWithFlip
             (
                 repatchFaceMap,
-                subsetter.faceMap()
+                false,      // oldToNew has flip
+                true,       // subFaceMap has flip
+                subFaceMap[recvProc]
             );
             subPointMap[recvProc] = subsetter.pointMap();
             subPatchMap[recvProc] = subsetter.patchMap();
@@ -1795,12 +1882,24 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
             repatchFaceMap,
             subMap().faceMap()
         );
+        // Insert the sign bit from face flipping
+        labelList& faceMap = subFaceMap[Pstream::myProcNo()];
+        forAll(faceMap, faceI)
+        {
+            faceMap[faceI] += 1;
+        }
+        const labelHashSet& flip = subMap().flipFaceFlux();
+        forAllConstIter(labelHashSet, flip, iter)
+        {
+            label faceI = iter.key();
+            faceMap[faceI] = -faceMap[faceI];
+        }
         subPointMap[Pstream::myProcNo()] = subMap().pointMap();
         subPatchMap[Pstream::myProcNo()] = identity(patches.size());
 
         // Initialize all addressing into current mesh
         constructCellMap[Pstream::myProcNo()] = identity(mesh_.nCells());
-        constructFaceMap[Pstream::myProcNo()] = identity(mesh_.nFaces());
+        constructFaceMap[Pstream::myProcNo()] = identity(mesh_.nFaces()) + 1;
         constructPointMap[Pstream::myProcNo()] = identity(mesh_.nPoints());
         constructPatchMap[Pstream::myProcNo()] = identity(patches.size());
 
@@ -2018,7 +2117,7 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
 
 
             constructCellMap[sendProc] = identity(domainMesh.nCells());
-            constructFaceMap[sendProc] = identity(domainMesh.nFaces());
+            constructFaceMap[sendProc] = identity(domainMesh.nFaces()) + 1;
             constructPointMap[sendProc] = identity(domainMesh.nPoints());
             constructPatchMap[sendProc] =
                 identity(domainMesh.boundaryMesh().size());
@@ -2129,28 +2228,76 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
                 domainSourceNewNbrProc
             );
 
-            // Update all addressing so xxProcAddressing points to correct item
-            // in masterMesh.
+            // Update all addressing so xxProcAddressing points to correct
+            // item in masterMesh.
             const labelList& oldCellMap = map().oldCellMap();
             const labelList& oldFaceMap = map().oldFaceMap();
             const labelList& oldPointMap = map().oldPointMap();
             const labelList& oldPatchMap = map().oldPatchMap();
 
+            //Note: old mesh faces never flipped!
             forAll(constructPatchMap, procI)
             {
                 if (procI != sendProc && constructPatchMap[procI].size())
                 {
                     // Processor already in mesh (either myProcNo or received)
                     inplaceRenumber(oldCellMap, constructCellMap[procI]);
-                    inplaceRenumber(oldFaceMap, constructFaceMap[procI]);
+                    inplaceRenumberWithFlip
+                    (
+                        oldFaceMap,
+                        false,
+                        true,
+                        constructFaceMap[procI]
+                    );
                     inplaceRenumber(oldPointMap, constructPointMap[procI]);
                     inplaceRenumber(oldPatchMap, constructPatchMap[procI]);
                 }
             }
 
+
+            labelHashSet flippedAddedFaces;
+            {
+                // Find out if any faces of domain mesh were flipped (boundary
+                // faces becoming internal)
+                label nBnd = domainMesh.nFaces()-domainMesh.nInternalFaces();
+                flippedAddedFaces.resize(nBnd/4);
+
+                for
+                (
+                    label domainFaceI = domainMesh.nInternalFaces();
+                    domainFaceI < domainMesh.nFaces();
+                    domainFaceI++
+                )
+                {
+                    label newFaceI = map().addedFaceMap()[domainFaceI];
+                    label newCellI = mesh_.faceOwner()[newFaceI];
+
+                    label domainCellI = domainMesh.faceOwner()[domainFaceI];
+
+                    if (newCellI != map().addedCellMap()[domainCellI])
+                    {
+                        flippedAddedFaces.insert(domainFaceI);
+                    }
+                }
+            }
+
+
             // Added processor
             inplaceRenumber(map().addedCellMap(), constructCellMap[sendProc]);
-            inplaceRenumber(map().addedFaceMap(), constructFaceMap[sendProc]);
+            // Add flip
+            forAllConstIter(labelHashSet, flippedAddedFaces, iter)
+            {
+                label domainFaceI = iter.key();
+                label& val = constructFaceMap[sendProc][domainFaceI];
+                val = -val;
+            }
+            inplaceRenumberWithFlip
+            (
+                map().addedFaceMap(),
+                false,
+                true,           // constructFaceMap has flip sign
+                constructFaceMap[sendProc]
+            );
             inplaceRenumber(map().addedPointMap(), constructPointMap[sendProc]);
             inplaceRenumber(map().addedPatchMap(), constructPatchMap[sendProc]);
 
@@ -2332,7 +2479,10 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
             constructPointMap.xfer(),
             constructFaceMap.xfer(),
             constructCellMap.xfer(),
-            constructPatchMap.xfer()
+            constructPatchMap.xfer(),
+
+            true,           // subFaceMap has flip
+            true            // constructFaceMap has flip
         )
     );
 }

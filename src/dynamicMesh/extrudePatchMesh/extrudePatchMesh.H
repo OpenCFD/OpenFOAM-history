@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,12 +25,11 @@ Class
     extrudePatchMesh
 
 Description
-    Mesh at a patch created on the fly. The following entried should be used
+    Mesh at a patch created on the fly. The following entry should be used
     on the field boundary dictionary:
 
         // New Shell mesh data
 
-        region          "regionMesh";
         extrudeModel    linearNormal;
         linearNormalCoeffs
         {
@@ -106,6 +105,15 @@ private:
         //- Const reference to the patch from which this mesh is extruded
         const polyPatch& extrudedPatch_;
 
+        //- Model dictionary
+        dictionary dict_;
+
+
+    // Private member functions
+
+        //- Extrude mesh using polyPatches
+        void extrudeMesh(const List<polyPatch*>& regionPatches);
+
 
 public:
 
@@ -120,7 +128,19 @@ public:
         (
             const fvMesh&,
             const fvPatch&,
-            const dictionary&
+            const dictionary&,
+            const word
+        );
+
+        //- Construct from mesh, patch, dictionary and new mesh
+        //  polyPatch information
+        extrudePatchMesh
+        (
+            const fvMesh&,
+            const fvPatch&,
+            const dictionary&,
+            const word,
+            const List<polyPatch*>& polyPatches
         );
 
 

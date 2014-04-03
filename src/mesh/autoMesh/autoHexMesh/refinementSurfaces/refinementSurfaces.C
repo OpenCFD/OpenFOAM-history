@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -720,7 +720,7 @@ void Foam::refinementSurfaces::findAllHigherIntersections
     labelList pRegions;
     vectorField pNormals;
 
-    forAll(surfaces(), surfI)
+    forAll(surfaces_, surfI)
     {
         const searchableSurface& surface = allGeometry_[surfaces_[surfI]];
 
@@ -938,7 +938,9 @@ void Foam::refinementSurfaces::findNearestIntersection
     surface1 = -1;
     hit1.setSize(start.size());
     region1.setSize(start.size());
+    region1 = -1;
     normal1.setSize(start.size());
+    normal1 = vector::zero;
 
     // Current end of segment to test.
     pointField nearest(end);

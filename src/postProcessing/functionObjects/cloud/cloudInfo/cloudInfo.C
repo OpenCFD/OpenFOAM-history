@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,7 +39,11 @@ defineTypeNameAndDebug(cloudInfo, 0);
 
 void Foam::cloudInfo::writeFileHeader(const label i)
 {
-    file(i) << "# Time" << tab << "nParcels" << tab << "mass" << endl;
+    writeHeader(file(), "Cloud information");
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "nParcels");
+    writeTabbed(file(), "mass");
+    file() << endl;
 }
 
 
@@ -76,7 +80,7 @@ void Foam::cloudInfo::read(const dictionary& dict)
     {
         functionObjectFile::resetNames(dict.lookup("clouds"));
 
-        Info<< type() << ": ";
+        Info<< type() << " " << name_ << ": ";
         if (names().size())
         {
             Info<< "applying to clouds:" << nl;

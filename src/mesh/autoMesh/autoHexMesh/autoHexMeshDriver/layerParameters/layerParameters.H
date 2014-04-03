@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -64,13 +64,15 @@ public:
         //  - first and expansion ratio specified
         //  - final and total thickness specified
         //  - final and expansion ratio specified
+        //  - total thickness and expansion ratio specified
         enum layerSpecification
         {
             ILLEGAL,
             FIRST_AND_TOTAL,
             FIRST_AND_EXPANSION,
             FINAL_AND_TOTAL,
-            FINAL_AND_EXPANSION
+            FINAL_AND_EXPANSION,
+            TOTAL_AND_EXPANSION
         };
 
 
@@ -83,6 +85,9 @@ private:
 
 
     // Private data
+
+        const dictionary dict_;
+
 
         // Per patch (not region!) information
 
@@ -109,37 +114,24 @@ private:
 
         scalar featureAngle_;
 
-        scalar slipFeatureAngle_;
+        scalar mergePatchFacesAngle_;
 
         scalar concaveAngle_;
 
         label nGrow_;
 
-        label nSmoothSurfaceNormals_;
-
-        label nSmoothNormals_;
-
-        label nSmoothDisplacement_;
-
-        label nSmoothThickness_;
-
         scalar maxFaceThicknessRatio_;
 
-        scalar layerTerminationCos_;
-
-        scalar maxThicknessToMedialRatio_;
-
-        scalar minMedianAxisAngleCos_;
-
         label nBufferCellsNoExtrude_;
-
-        label nSnap_;
 
         label nLayerIter_;
 
         label nRelaxedIter_;
 
         Switch additionalReporting_;
+
+        word meshShrinker_;
+
 
     // Private Member Functions
 
@@ -167,6 +159,12 @@ public:
 
 
     // Member Functions
+
+        const dictionary& dict() const
+        {
+            return dict_;
+        }
+
 
         // Per patch information
 
@@ -228,98 +226,7 @@ public:
             }
 
 
-        scalar featureAngle() const
-        {
-            return featureAngle_;
-        }
-
-        //- At non-patched sides allow mesh to slip if extrusion
-        //  direction makes angle larger than slipFeatureAngle.
-        scalar slipFeatureAngle() const
-        {
-            return slipFeatureAngle_;
-        }
-
-        scalar concaveAngle() const
-        {
-            return concaveAngle_;
-        }
-
-        //- If points get not extruded do nGrow layers of connected faces
-        //  that are not grown. Is used to not do layers at all close to
-        //  features.
-        label nGrow() const
-        {
-            return nGrow_;
-        }
-
-        //- Number of smoothing iterations of surface normals
-        label nSmoothSurfaceNormals() const
-        {
-            return nSmoothSurfaceNormals_;
-        }
-
-        //- Number of smoothing iterations of interior mesh movement
-        //  direction
-        label nSmoothNormals() const
-        {
-            return nSmoothNormals_;
-        }
-
-        //- Stop layer growth on highly warped cells
-        scalar maxFaceThicknessRatio() const
-        {
-            return maxFaceThicknessRatio_;
-        }
-
-        scalar layerTerminationCos() const
-        {
-            return layerTerminationCos_;
-        }
-
-        //- Smooth internal displacement
-        label nSmoothDisplacement() const
-        {
-            return nSmoothDisplacement_;
-        }
-
-        //- Smooth layer thickness over surface patches
-        label nSmoothThickness() const
-        {
-            return nSmoothThickness_;
-        }
-
-        //- Reduce layer growth where ratio thickness to medial
-        //  distance is large
-        scalar maxThicknessToMedialRatio() const
-        {
-            return maxThicknessToMedialRatio_;
-        }
-
-        //- Angle used to pick up medial axis points
-        scalar minMedianAxisAngleCos() const
-        {
-            return minMedianAxisAngleCos_;
-        }
-
-        //- Create buffer region for new layer terminations
-        label nBufferCellsNoExtrude() const
-        {
-            return nBufferCellsNoExtrude_;
-        }
-
-        label nSnap() const
-        {
-            return nSnap_;
-        }
-
-        const Switch& additionalReporting() const
-        {
-            return additionalReporting_;
-        }
-
-
-        // Overall
+        // Control
 
             //- Number of overall layer addition iterations
             label nLayerIter() const
@@ -332,6 +239,55 @@ public:
             label nRelaxedIter() const
             {
                 return nRelaxedIter_;
+            }
+
+
+        // Control
+
+            scalar featureAngle() const
+            {
+                return featureAngle_;
+            }
+
+            scalar mergePatchFacesAngle() const
+            {
+                return mergePatchFacesAngle_;
+            }
+
+            scalar concaveAngle() const
+            {
+                return concaveAngle_;
+            }
+
+            //- If points get not extruded do nGrow layers of connected faces
+            //  that are not grown. Is used to not do layers at all close to
+            //  features.
+            label nGrow() const
+            {
+                return nGrow_;
+            }
+
+            //- Stop layer growth on highly warped cells
+            scalar maxFaceThicknessRatio() const
+            {
+                return maxFaceThicknessRatio_;
+            }
+
+            //- Create buffer region for new layer terminations
+            label nBufferCellsNoExtrude() const
+            {
+                return nBufferCellsNoExtrude_;
+            }
+
+            const Switch& additionalReporting() const
+            {
+                return additionalReporting_;
+            }
+
+            //- Type of mesh shrinker
+            const word& meshShrinker() const
+            {
+                return meshShrinker_;
             }
 
 

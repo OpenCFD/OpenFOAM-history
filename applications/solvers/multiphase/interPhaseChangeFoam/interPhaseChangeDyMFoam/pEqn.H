@@ -1,5 +1,5 @@
 {
-    volScalarField rAU("rAU", 1.0/UEqn.A());
+    rAU = 1.0/UEqn.A();
     surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU));
 
     volVectorField HbyA("HbyA", U);
@@ -68,7 +68,7 @@
     {
         Uf = fvc::interpolate(U);
         surfaceVectorField n(mesh.Sf()/mesh.magSf());
-        Uf += mesh.Sf()*(phi - (mesh.Sf() & Uf))/sqr(mesh.magSf());
+        Uf += n*(phi/mesh.magSf() - (n & Uf));
     }
 
     // Make the fluxes relative to the mesh motion

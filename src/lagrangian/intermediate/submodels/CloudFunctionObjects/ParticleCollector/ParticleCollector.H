@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,9 +26,60 @@ Class
 
 Description
     Function object to collect the parcel mass- and mass flow rate over a
-    set of polygons.  The polygons are defined as lists of points.  If a
-    parcel is 'collected', it is subsequently flagged to be removed from the
-    domain.
+    set of polygons.  The polygons can either be specified by sets of user-
+    supplied points, or in a concentric circles arrangement.  If a
+    parcel is 'collected', it can be flagged to be removed from the
+    domain using the removeCollected entry.
+
+    Example usage:
+    \verbatim
+    particleCollector1
+    {
+        type            particleCollector;
+
+        mode            concentricCircle;
+        origin          (0.05 0.025 0.005);
+        radius          (0.01 0.025 0.05);
+        nSector         10;
+        refDir          (1 0 0);
+        normal          (0 0 1);
+
+        negateParcelsOppositeNormal no;
+        removeCollected no;
+        surfaceFormat   vtk;
+        resetOnWrite    no;
+        log             yes;
+    }
+
+    particleCollector2
+    {
+        type            particleCollector;
+
+        mode            polygon;
+        polygons
+        (
+            (
+                (0 0 0)
+                (1 0 0)
+                (1 1 0)
+                (0 1 0)
+            )
+            (
+                (0 0 1)
+                (1 0 1)
+                (1 1 1)
+                (0 1 1)
+            )
+        );
+        normal          (0 0 1);
+
+        negateParcelsOppositeNormal no;
+        removeCollected no;
+        surfaceFormat   vtk;
+        resetOnWrite    no;
+        log             yes;
+    }
+    \endverbatim
 
 SourceFiles
     ParticleCollector.C
@@ -113,8 +164,8 @@ private:
         //- Face areas
         Field<scalar> area_;
 
-        //- Polygon normal vector
-        vector normal_;
+        //- Polygon normal vector per face
+        Field<vector> normal_;
 
         //- Remove mass of parcel travelling in opposite direction to normal_
         bool negateParcelsOppositeNormal_;
@@ -143,11 +194,11 @@ private:
         //- Output file pointer
         autoPtr<OFstream> outputFilePtr_;
 
-        //- Output directory
-        fileName outputDir_;
-
         //- Last calculation time
         scalar timeOld_;
+
+        //- Work list to store which faces are hit
+        mutable DynamicList<label> hitFaceIDs_;
 
 
     // Private Member Functions
@@ -161,20 +212,20 @@ private:
         );
 
         //- Initialise polygon collectors
-        void initPolygons();
+        void initPolygons(const List<Field<point> >& polygons);
 
         //- Initialise concentric circle collectors
         void initConcentricCircles();
 
         //- Collect parcels in polygon collectors
-        label collectParcelPolygon
+        void collectParcelPolygon
         (
             const point& p1,
             const point& p2
         ) const;
 
         //- Collect parcels in concentric circle collectors
-        label collectParcelConcentricCircles
+        void collectParcelConcentricCircles
         (
             const point& p1,
             const point& p2
@@ -198,7 +249,12 @@ public:
     // Constructors
 
         //- Construct from dictionary
-        ParticleCollector(const dictionary& dict, CloudType& owner);
+        ParticleCollector
+        (
+            const dictionary& dict,
+            CloudType& owner,
+            const word& modelName
+        );
 
         //- Construct copy
         ParticleCollector(const ParticleCollector<CloudType>& pc);
@@ -230,7 +286,7 @@ public:
             //- Post-move hook
             virtual void postMove
             (
-                const parcelType& p,
+                parcelType& p,
                 const label cellI,
                 const scalar dt,
                 const point& position0,

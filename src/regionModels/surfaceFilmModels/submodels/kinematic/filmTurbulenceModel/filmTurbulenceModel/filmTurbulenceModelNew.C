@@ -38,13 +38,13 @@ namespace surfaceFilmModels
 
 autoPtr<filmTurbulenceModel> filmTurbulenceModel::New
 (
-    const surfaceFilmModel& model,
+    surfaceFilmModel& model,
     const dictionary& dict
 )
 {
     const word modelType(dict.lookup("turbulence"));
 
-    Info<< "        " << modelType << endl;
+    Info<< "    Selecting filmTurbulenceModel " << modelType << endl;
 
     dictionaryConstructorTable::iterator cstrIter =
         dictionaryConstructorTablePtr_->find(modelType);
@@ -55,7 +55,7 @@ autoPtr<filmTurbulenceModel> filmTurbulenceModel::New
         (
             "filmTurbulenceModel::New"
             "("
-                "const surfaceFilmModel&, "
+                "surfaceFilmModel&, "
                 "const dictionary&"
             ")"
         )   << "Unknown filmTurbulenceModel type " << modelType

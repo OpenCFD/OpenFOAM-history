@@ -24,6 +24,8 @@ particles
     {
         d               3e-4;
     }
+
+    alphaMax 0.62;
 }
 
 air
@@ -35,28 +37,67 @@ air
     }
 }
 
-drag
+blending
 {
-    particles   GidaspowErgunWenYu;
-    air         GidaspowErgunWenYu;
+    default
+    {
+        type            none;
+        continuousPhase air;
+    }
 }
+
+sigma
+(
+    (particles and air) 0
+);
+
+aspectRatio
+(
+);
+
+drag
+(
+    (particles in air)
+    {
+        type            GidaspowErgunWenYu;
+        residualAlpha   1e-6;
+        residualRe      1e-3;
+        swarmCorrection
+        {
+            type        none;
+        }
+    }
+);
+
+virtualMass
+(
+    (particles in air)
+    {
+        type            constantCoefficient;
+        Cvm             0.5;
+    }
+);
 
 heatTransfer
-{
-    particles   RanzMarshall;
-    air         RanzMarshall;
-}
+(
+    (particles in air)
+    {
+        type            RanzMarshall;
+        residualAlpha   1e-3;
+    }
+);
 
-dispersedPhase     particles;
+lift
+(
+);
 
-residualPhaseFraction   1e-3;
-residualSlip            1e-2;
+wallLubrication
+(
+);
 
-// Virtual-mass ceofficient
-Cvm             0;
-
-// Lift coefficient
-Cl              0;
+turbulentDispersion
+(
+);
 
 // Minimum allowable pressure
 pMin            10000;

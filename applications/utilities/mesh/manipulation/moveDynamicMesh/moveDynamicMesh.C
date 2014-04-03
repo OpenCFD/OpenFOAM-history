@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,7 +44,7 @@ void writeWeights
 (
     const scalarField& wghtSum,
     const primitivePatch& patch,
-    const fileName& folder,
+    const fileName& directory,
     const fileName& prefix,
     const word& timeName
 )
@@ -53,7 +53,7 @@ void writeWeights
 
     writer.write
     (
-        folder,
+        directory,
         prefix + "_proc" + Foam::name(Pstream::myProcNo()) + "_" + timeName,
         patch.localPoints(),
         patch.localFaces(),
@@ -90,7 +90,7 @@ void writeWeights(const polyMesh& mesh)
                 (
                     ami.tgtWeightsSum(),
                     cpp.neighbPatch(),
-                    "output",
+                    "postProcessing",
                     "tgt",
                     tmName
                 );
@@ -98,7 +98,7 @@ void writeWeights(const polyMesh& mesh)
                 (
                     ami.srcWeightsSum(),
                     cpp,
-                    "output",
+                    "postProcessing",
                     "src",
                     tmName
                 );

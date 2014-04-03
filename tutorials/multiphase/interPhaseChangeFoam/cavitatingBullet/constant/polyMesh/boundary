@@ -31,15 +31,15 @@ FoamFile
     }
     walls
     {
-        type            symmetryPlane;
-        inGroups        1(symmetryPlane);
+        type            symmetry;
+        inGroups        1(symmetry);
         nFaces          3000;
         startFace       1130431;
     }
     bullet
     {
         type            wall;
-        nFaces          37752;
+        nFaces          37743;
         startFace       1133431;
     }
 )

@@ -33,6 +33,9 @@ Description
     Provide an edgeMesh file containing points that are not to be moved during
     smoothing in order to preserve features.
 
+    lambda/mu smoothing: G. Taubin, IBM Research report Rc-19923 (02/01/95)
+    "A signal processing approach to fair surface design"
+
 \*---------------------------------------------------------------------------*/
 
 #include "argList.H"
@@ -206,6 +209,7 @@ int main(int argc, char *argv[])
         }
 
         // Mu
+        if (mu != 0)
         {
             pointField newLocalPoints
             (

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,6 +32,7 @@ License
 #include "syncTools.H"
 #include "pointFields.H"
 #include "sigFpe.H"
+#include "cellSet.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -58,7 +59,15 @@ Foam::label Foam::dynamicRefineFvMesh::count
         {
             n++;
         }
+
+        // debug also serves to get-around Clang compiler trying to optimsie
+        // out this forAll loop under O3 optimisation
+        if (debug)
+        {
+            Info<< "n=" << n << endl;
+        }
     }
+
     return n;
 }
 
@@ -762,6 +771,7 @@ Foam::labelList Foam::dynamicRefineFvMesh::selectRefineCells
     const PackedBoolList& candidateCell
 ) const
 {
+Debug(0);
     // Every refined cell causes 7 extra cells
     label nTotToRefine = (maxCells - globalData().nTotalCells()) / 7;
 
@@ -773,10 +783,11 @@ Foam::labelList Foam::dynamicRefineFvMesh::selectRefineCells
     calculateProtectedCells(unrefineableCell);
 
     // Count current selection
-    label nCandidates = returnReduce(count(candidateCell, 1), sumOp<label>());
+    label nLocalCandidates = count(candidateCell, 1);
+    label nCandidates = returnReduce(nLocalCandidates, sumOp<label>());
 
     // Collect all cells
-    DynamicList<label> candidates(nCells());
+    DynamicList<label> candidates(nLocalCandidates);
 
     if (nCandidates < nTotToRefine)
     {
@@ -944,6 +955,56 @@ void Foam::dynamicRefineFvMesh::extendMarkedCells
 }
 
 
+void Foam::dynamicRefineFvMesh::checkEightAnchorPoints
+(
+    PackedBoolList& protectedCell,
+    label& nProtected
+) const
+{
+    const labelList& cellLevel = meshCutter_.cellLevel();
+    const labelList& pointLevel = meshCutter_.pointLevel();
+
+    labelList nAnchorPoints(nCells(), 0);
+
+    forAll(pointLevel, pointI)
+    {
+        const labelList& pCells = pointCells(pointI);
+
+        forAll(pCells, pCellI)
+        {
+            label cellI = pCells[pCellI];
+
+            if (pointLevel[pointI] <= cellLevel[cellI])
+            {
+                // Check if cell has already 8 anchor points -> protect cell
+                if (nAnchorPoints[cellI] == 8)
+                {
+                    if (protectedCell.set(cellI, true))
+                    {
+                        nProtected++;
+                    }
+                }
+
+                if (!protectedCell[cellI])
+                {
+                    nAnchorPoints[cellI]++;
+                }
+            }
+        }
+    }
+
+
+    forAll(protectedCell, cellI)
+    {
+        if (!protectedCell[cellI] && nAnchorPoints[cellI] != 8)
+        {
+            protectedCell.set(cellI, true);
+            nProtected++;
+        }
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::dynamicRefineFvMesh::dynamicRefineFvMesh(const IOobject& io)
@@ -1066,11 +1127,62 @@ Foam::dynamicRefineFvMesh::dynamicRefineFvMesh(const IOobject& io)
                 nProtected++;
             }
         }
+
+        // Also protect any cells that are less than hex
+        forAll(cells(), cellI)
+        {
+            const cell& cFaces = cells()[cellI];
+
+            if (cFaces.size() < 6)
+            {
+                if (protectedCell_.set(cellI, 1))
+                {
+                    nProtected++;
+                }
+            }
+            else
+            {
+                forAll(cFaces, cFaceI)
+                {
+                    if (faces()[cFaces[cFaceI]].size() < 4)
+                    {
+                        if (protectedCell_.set(cellI, 1))
+                        {
+                            nProtected++;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Check cells for 8 corner points
+        checkEightAnchorPoints(protectedCell_, nProtected);
     }
 
     if (returnReduce(nProtected, sumOp<label>()) == 0)
     {
         protectedCell_.clear();
+    }
+    else
+    {
+
+        cellSet protectedCells(*this, "protectedCells", nProtected);
+        forAll(protectedCell_, cellI)
+        {
+            if (protectedCell_[cellI])
+            {
+                protectedCells.insert(cellI);
+            }
+        }
+
+        Info<< "Detected " << returnReduce(nProtected, sumOp<label>())
+            << " cells that are projected from refinement."
+            << " Writing these to cellSet "
+            << protectedCells.name()
+            << "." << endl;
+
+        protectedCells.write();
     }
 }
 
@@ -1110,7 +1222,7 @@ bool Foam::dynamicRefineFvMesh::update()
 
     if (refineInterval == 0)
     {
-        changing(hasChanged);
+        topoChanging(hasChanged);
 
         return false;
     }
@@ -1161,25 +1273,28 @@ bool Foam::dynamicRefineFvMesh::update()
             readScalar(refineDict.lookup("lowerRefineLevel"));
         const scalar upperRefineLevel =
             readScalar(refineDict.lookup("upperRefineLevel"));
-        const scalar unrefineLevel =
-            readScalar(refineDict.lookup("unrefineLevel"));
+        const scalar unrefineLevel = refineDict.lookupOrDefault<scalar>
+        (
+            "unrefineLevel",
+            GREAT
+        );
         const label nBufferLayers =
             readLabel(refineDict.lookup("nBufferLayers"));
 
         // Cells marked for refinement or otherwise protected from unrefinement.
         PackedBoolList refineCell(nCells());
 
+        // Determine candidates for refinement (looking at field only)
+        selectRefineCandidates
+        (
+            lowerRefineLevel,
+            upperRefineLevel,
+            vFld,
+            refineCell
+        );
+
         if (globalData().nTotalCells() < maxCells)
         {
-            // Determine candidates for refinement (looking at field only)
-            selectRefineCandidates
-            (
-                lowerRefineLevel,
-                upperRefineLevel,
-                vFld,
-                refineCell
-            );
-
             // Select subset of candidates. Take into account max allowable
             // cells, refinement level, protected cells.
             labelList cellsToRefine
@@ -1279,7 +1394,13 @@ bool Foam::dynamicRefineFvMesh::update()
         nRefinementIterations_++;
     }
 
-    changing(hasChanged);
+    topoChanging(hasChanged);
+    if (hasChanged)
+    {
+        // Reset moving flag (if any). If not using inflation we'll not move,
+        // if are using inflation any follow on movePoints will set it.
+        moving(false);
+    }
 
     return hasChanged;
 }

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -66,8 +66,14 @@ inline bool Foam::pimpleControl::correct()
 
 inline bool Foam::pimpleControl::storeInitialResiduals() const
 {
-    // start from second PIMPLE iteration
+    // Start from second PIMPLE iteration
     return (corr_ == 2) && (corrPISO_ == 0) && (corrNonOrtho_ == 0);
+}
+
+
+inline bool Foam::pimpleControl::firstIter() const
+{
+    return corr_ == 1;
 }
 
 

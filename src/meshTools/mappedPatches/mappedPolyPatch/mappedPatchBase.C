@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,6 +40,7 @@ License
 #include "SubField.H"
 #include "triPointRef.H"
 #include "syncTools.H"
+#include "treeDataCell.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -213,14 +214,13 @@ void Foam::mappedPatchBase::findSamples
             }
 
             //- Note: face-diagonal decomposition
-            const meshSearchMeshObject& meshSearchEngine =
-                meshSearchMeshObject::New(mesh);
+            const indexedOctree<Foam::treeDataCell>& tree = mesh.cellTree();
 
             forAll(samples, sampleI)
             {
                 const point& sample = samples[sampleI];
 
-                label cellI = meshSearchEngine.findCell(sample);
+                label cellI = tree.findInside(sample);
 
                 if (cellI == -1)
                 {
@@ -391,7 +391,7 @@ void Foam::mappedPatchBase::findSamples
 
         case NEARESTFACE:
         {
-            if (samplePatch_.size() && samplePatch_ != "none")
+            if (samplePatch().size() && samplePatch() != "none")
             {
                 FatalErrorIn
                 (
@@ -454,7 +454,7 @@ void Foam::mappedPatchBase::findSamples
 
     if (debug)
     {
-        Info<< "mappedPatchBase::findSamples on mesh " << sampleRegion_
+        Info<< "mappedPatchBase::findSamples on mesh " << sampleRegion()
             << " : " << endl;
         forAll(nearest, sampleI)
         {
@@ -495,7 +495,6 @@ void Foam::mappedPatchBase::findSamples
 void Foam::mappedPatchBase::calcMapping() const
 {
     static bool hasWarned = false;
-
     if (mapPtr_.valid())
     {
         FatalErrorIn("mappedPatchBase::calcMapping() const")
@@ -509,15 +508,13 @@ void Foam::mappedPatchBase::calcMapping() const
     // Get offsetted points
     const pointField offsettedPoints(samplePoints(patchPoints()));
 
-
-    // Do a sanity check
-    // Am I sampling my own patch? This only makes sense for a non-zero
-    // offset.
+    // Do a sanity check - am I sampling my own patch?
+    // This only makes sense for a non-zero offset.
     bool sampleMyself =
     (
         mode_ == NEARESTPATCHFACE
-     && sampleRegion_ == patch_.boundaryMesh().mesh().name()
-     && samplePatch_ == patch_.name()
+     && sampleRegion() == patch_.boundaryMesh().mesh().name()
+     && samplePatch() == patch_.name()
     );
 
     // Check offset
@@ -544,12 +541,11 @@ void Foam::mappedPatchBase::calcMapping() const
             << " will find the faces themselves which does not make sense"
             << " for anything but testing." << endl
             << "patch_:" << patch_.name() << endl
-            << "sampleRegion_:" << sampleRegion_ << endl
+            << "sampleRegion_:" << sampleRegion() << endl
             << "mode_:" << sampleModeNames_[mode_] << endl
-            << "samplePatch_:" << samplePatch_ << endl
+            << "samplePatch_:" << samplePatch() << endl
             << "offsetMode_:" << offsetModeNames_[offsetMode_] << endl;
     }
-
 
     // Get global list of all samples and the processor and face they come from.
     pointField samples;
@@ -564,7 +560,6 @@ void Foam::mappedPatchBase::calcMapping() const
         patchFaces,
         patchFc
     );
-
 
     // Find processor and cell/face samples are in and actual location.
     labelList sampleProcs;
@@ -604,12 +599,10 @@ void Foam::mappedPatchBase::calcMapping() const
                     << " out of " << sampleProcs.size() << " total samples."
                     << " Sampling these on owner cell centre instead." << endl
                     << "On patch " << patch_.name()
-                    << " on region " << sampleRegion_
+                    << " on region " << sampleRegion()
                     << " in mode " << sampleModeNames_[mode_] << endl
-                    << "whilst sampling patch " << samplePatch_ << endl
-                    << " with offset mode " << offsetModeNames_[offsetMode_]
-                    << endl
-                    << "Suppressing further warnings from " << type() << endl;
+                    << "with offset mode " << offsetModeNames_[offsetMode_]
+                    << ". Suppressing further warnings from " << type() << endl;
 
                 hasWarned = true;
             }
@@ -643,7 +636,6 @@ void Foam::mappedPatchBase::calcMapping() const
         }
     }
 
-
     // Now we have all the data we need:
     // - where sample originates from (so destination when mapping):
     //   patchFaces, patchFaceProcs.
@@ -657,7 +649,7 @@ void Foam::mappedPatchBase::calcMapping() const
     //        << " for proc:" << patchFaceProcs[i]
     //        << " face:" << patchFaces[i]
     //        << " at:" << patchFc[i] << endl
-    //        << "Found data in region " << sampleRegion_
+    //        << "Found data in region " << sampleRegion()
     //        << " at proc:" << sampleProcs[i]
     //        << " face:" << sampleIndices[i]
     //        << " at:" << sampleLocations[i]
@@ -689,7 +681,6 @@ void Foam::mappedPatchBase::calcMapping() const
             str << "l " << vertI-1 << ' ' << vertI << nl;
         }
     }
-
 
     // Determine schedule.
     mapPtr_.reset(new mapDistribute(sampleProcs, patchFaceProcs));
@@ -808,38 +799,34 @@ void Foam::mappedPatchBase::calcAMI() const
     }
 
     AMIPtr_.clear();
-/*
-    const polyPatch& nbr = samplePolyPatch();
-
-//    pointField nbrPoints(offsettedPoints());
-    pointField nbrPoints(nbr.localPoints());
 
     if (debug)
     {
+        const polyPatch& nbr = samplePolyPatch();
+
+        pointField nbrPoints(nbr.localPoints());
+
         OFstream os(patch_.name() + "_neighbourPatch-org.obj");
         meshTools::writeOBJ(os, samplePolyPatch().localFaces(), nbrPoints);
-    }
 
-    // transform neighbour patch to local system
-    primitivePatch nbrPatch0
-    (
-        SubList<face>
+        // transform neighbour patch to local system
+        primitivePatch nbrPatch0
         (
-            nbr.localFaces(),
-            nbr.size()
-        ),
-        nbrPoints
-    );
+            SubList<face>
+            (
+                nbr.localFaces(),
+                nbr.size()
+            ),
+            nbrPoints
+        );
 
-    if (debug)
-    {
         OFstream osN(patch_.name() + "_neighbourPatch-trans.obj");
         meshTools::writeOBJ(osN, nbrPatch0, nbrPoints);
 
         OFstream osO(patch_.name() + "_ownerPatch.obj");
         meshTools::writeOBJ(osO, patch_.localFaces(), patch_.localPoints());
     }
-*/
+
     // Construct/apply AMI interpolation to determine addressing and weights
     AMIPtr_.reset
     (
@@ -849,7 +836,9 @@ void Foam::mappedPatchBase::calcAMI() const
             samplePolyPatch(), // nbrPatch0,
             surfPtr(),
             faceAreaIntersect::tmMesh,
+            true,
             AMIPatchToPatchInterpolation::imFaceAreaWeight,
+            -1,
             AMIReverse_
         )
     );
@@ -942,7 +931,8 @@ Foam::mappedPatchBase::mappedPatchBase
     patch_(pp),
     sampleRegion_(patch_.boundaryMesh().mesh().name()),
     mode_(NEARESTPATCHFACE),
-    samplePatch_("none"),
+    samplePatch_(""),
+    coupleGroup_(),
     offsetMode_(UNIFORM),
     offset_(vector::zero),
     offsets_(pp.size(), offset_),
@@ -969,6 +959,7 @@ Foam::mappedPatchBase::mappedPatchBase
     sampleRegion_(sampleRegion),
     mode_(mode),
     samplePatch_(samplePatch),
+    coupleGroup_(),
     offsetMode_(NONUNIFORM),
     offset_(vector::zero),
     offsets_(offsets),
@@ -995,6 +986,7 @@ Foam::mappedPatchBase::mappedPatchBase
     sampleRegion_(sampleRegion),
     mode_(mode),
     samplePatch_(samplePatch),
+    coupleGroup_(),
     offsetMode_(UNIFORM),
     offset_(offset),
     offsets_(0),
@@ -1021,6 +1013,7 @@ Foam::mappedPatchBase::mappedPatchBase
     sampleRegion_(sampleRegion),
     mode_(mode),
     samplePatch_(samplePatch),
+    coupleGroup_(),
     offsetMode_(NORMAL),
     offset_(vector::zero),
     offsets_(0),
@@ -1041,16 +1034,10 @@ Foam::mappedPatchBase::mappedPatchBase
 )
 :
     patch_(pp),
-    sampleRegion_
-    (
-        dict.lookupOrDefault
-        (
-            "sampleRegion",
-            patch_.boundaryMesh().mesh().name()
-        )
-    ),
+    sampleRegion_(dict.lookupOrDefault<word>("sampleRegion", "")),
     mode_(sampleModeNames_.read(dict.lookup("sampleMode"))),
-    samplePatch_(dict.lookup("samplePatch")),
+    samplePatch_(dict.lookupOrDefault<word>("samplePatch", "")),
+    coupleGroup_(dict),
     offsetMode_(UNIFORM),
     offset_(vector::zero),
     offsets_(0),
@@ -1062,6 +1049,16 @@ Foam::mappedPatchBase::mappedPatchBase
     surfPtr_(NULL),
     surfDict_(dict.subOrEmptyDict("surface"))
 {
+    if (!coupleGroup_.valid())
+    {
+        if (sampleRegion_.empty())
+        {
+            // If no coupleGroup and no sampleRegion assume local region
+            sampleRegion_ = patch_.boundaryMesh().mesh().name();
+            sameRegion_ = true;
+        }
+    }
+
     if (dict.found("offsetMode"))
     {
         offsetMode_ = offsetModeNames_.read(dict.lookup("offsetMode"));
@@ -1099,7 +1096,7 @@ Foam::mappedPatchBase::mappedPatchBase
         //offsets_ = pointField(dict.lookup("offsets"));
         offsets_ = readListOrField("offsets", dict, patch_.size());
     }
-    else
+    else if (mode_ != NEARESTPATCHFACE && mode_ != NEARESTPATCHFACEAMI)
     {
         FatalIOErrorIn
         (
@@ -1119,6 +1116,60 @@ Foam::mappedPatchBase::mappedPatchBase
 Foam::mappedPatchBase::mappedPatchBase
 (
     const polyPatch& pp,
+    const sampleMode mode,
+    const dictionary& dict
+)
+:
+    patch_(pp),
+    sampleRegion_(dict.lookupOrDefault<word>("sampleRegion", "")),
+    mode_(mode),
+    samplePatch_(dict.lookupOrDefault<word>("samplePatch", "")),
+    coupleGroup_(dict), //dict.lookupOrDefault<word>("coupleGroup", "")),
+    offsetMode_(UNIFORM),
+    offset_(vector::zero),
+    offsets_(0),
+    distance_(0.0),
+    sameRegion_(sampleRegion_ == patch_.boundaryMesh().mesh().name()),
+    mapPtr_(NULL),
+    AMIPtr_(NULL),
+    AMIReverse_(dict.lookupOrDefault<bool>("flipNormals", false)),
+    surfPtr_(NULL),
+    surfDict_(dict.subOrEmptyDict("surface"))
+{
+    if (mode != NEARESTPATCHFACE && mode != NEARESTPATCHFACEAMI)
+    {
+        FatalIOErrorIn
+        (
+            "mappedPatchBase::mappedPatchBase\n"
+            "(\n"
+            "    const polyPatch&,\n"
+            "    const sampleMode,\n"
+            "    const dictionary&\n"
+            ")\n",
+            dict
+        )   << "Construct from sampleMode and dictionary only applicable for "
+            << " collocated patches in modes "
+            << sampleModeNames_[NEARESTPATCHFACE] << ','
+            << sampleModeNames_[NEARESTPATCHFACEAMI]
+            << exit(FatalIOError);
+    }
+
+
+    if (!coupleGroup_.valid())
+    {
+        if (sampleRegion_.empty())
+        {
+            // If no coupleGroup and no sampleRegion assume local region
+            sampleRegion_ = patch_.boundaryMesh().mesh().name();
+            sameRegion_ = true;
+        }
+    }
+}
+
+
+Foam::mappedPatchBase::mappedPatchBase
+(
+    const polyPatch& pp,
     const mappedPatchBase& mpb
 )
 :
@@ -1126,6 +1177,7 @@ Foam::mappedPatchBase::mappedPatchBase
     sampleRegion_(mpb.sampleRegion_),
     mode_(mpb.mode_),
     samplePatch_(mpb.samplePatch_),
+    coupleGroup_(mpb.coupleGroup_),
     offsetMode_(mpb.offsetMode_),
     offset_(mpb.offset_),
     offsets_(mpb.offsets_),
@@ -1150,6 +1202,7 @@ Foam::mappedPatchBase::mappedPatchBase
     sampleRegion_(mpb.sampleRegion_),
     mode_(mpb.mode_),
     samplePatch_(mpb.samplePatch_),
+    coupleGroup_(mpb.coupleGroup_),
     offsetMode_(mpb.offsetMode_),
     offset_(mpb.offset_),
     offsets_
@@ -1190,7 +1243,7 @@ const Foam::polyMesh& Foam::mappedPatchBase::sampleMesh() const
 {
     return patch_.boundaryMesh().mesh().time().lookupObject<polyMesh>
     (
-        sampleRegion_
+        sampleRegion()
     );
 }
 
@@ -1199,12 +1252,12 @@ const Foam::polyPatch& Foam::mappedPatchBase::samplePolyPatch() const
 {
     const polyMesh& nbrMesh = sampleMesh();
 
-    const label patchI = nbrMesh.boundaryMesh().findPatchID(samplePatch_);
+    const label patchI = nbrMesh.boundaryMesh().findPatchID(samplePatch());
 
     if (patchI == -1)
     {
         FatalErrorIn("mappedPatchBase::samplePolyPatch()")
-            << "Cannot find patch " << samplePatch_
+            << "Cannot find patch " << samplePatch()
             << " in region " << sampleRegion_ << endl
             << "Valid patches are " << nbrMesh.boundaryMesh().names()
             << exit(FatalError);
@@ -1340,46 +1393,66 @@ void Foam::mappedPatchBase::write(Ostream& os) const
 {
     os.writeKeyword("sampleMode") << sampleModeNames_[mode_]
         << token::END_STATEMENT << nl;
-    os.writeKeyword("sampleRegion") << sampleRegion_
-        << token::END_STATEMENT << nl;
-    os.writeKeyword("samplePatch") << samplePatch_
-        << token::END_STATEMENT << nl;
-
-    os.writeKeyword("offsetMode") << offsetModeNames_[offsetMode_]
-        << token::END_STATEMENT << nl;
-
-    switch (offsetMode_)
+    if (!sampleRegion_.empty())
     {
-        case UNIFORM:
-        {
-            os.writeKeyword("offset") << offset_ << token::END_STATEMENT << nl;
-            break;
-        }
-        case NONUNIFORM:
-        {
-            offsets_.writeEntry("offsets", os);
-            break;
-        }
-        case NORMAL:
-        {
-            os.writeKeyword("distance") << distance_ << token::END_STATEMENT
-                << nl;
-            break;
-        }
+        os.writeKeyword("sampleRegion") << sampleRegion_
+            << token::END_STATEMENT << nl;
     }
-
-    if (mode_ == NEARESTPATCHFACEAMI)
+    if (!samplePatch_.empty())
     {
-        if (AMIReverse_)
+        os.writeKeyword("samplePatch") << samplePatch_
+            << token::END_STATEMENT << nl;
+    }
+    coupleGroup_.write(os);
+
+    if
+    (
+        offsetMode_ == UNIFORM
+     && offset_ == vector::zero
+     && (mode_ == NEARESTPATCHFACE || mode_ == NEARESTPATCHFACEAMI)
+    )
+    {
+        // Collocated mode. No need to write offset data
+    }
+    else
+    {
+        os.writeKeyword("offsetMode") << offsetModeNames_[offsetMode_]
+            << token::END_STATEMENT << nl;
+
+        switch (offsetMode_)
         {
-            os.writeKeyword("flipNormals") << AMIReverse_
-                << token::END_STATEMENT << nl;
+            case UNIFORM:
+            {
+                os.writeKeyword("offset") << offset_ << token::END_STATEMENT
+                    << nl;
+                break;
+            }
+            case NONUNIFORM:
+            {
+                offsets_.writeEntry("offsets", os);
+                break;
+            }
+            case NORMAL:
+            {
+                os.writeKeyword("distance") << distance_ << token::END_STATEMENT
+                    << nl;
+                break;
+            }
         }
 
-        if (!surfDict_.empty())
+        if (mode_ == NEARESTPATCHFACEAMI)
         {
-            os.writeKeyword(surfDict_.dictName());
-            os  << surfDict_;
+            if (AMIReverse_)
+            {
+                os.writeKeyword("flipNormals") << AMIReverse_
+                    << token::END_STATEMENT << nl;
+            }
+
+            if (!surfDict_.empty())
+            {
+                os.writeKeyword(surfDict_.dictName());
+                os  << surfDict_;
+            }
         }
     }
 }

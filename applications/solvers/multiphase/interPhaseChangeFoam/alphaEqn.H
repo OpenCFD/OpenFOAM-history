@@ -16,8 +16,14 @@
     {
         fvScalarMatrix alpha1Eqn
         (
-            fvm::ddt(alpha1)
-          + fvm::div(phi, alpha1, "UD") - fvm::Sp(divU, alpha1)
+            fv::EulerDdtScheme<scalar>(mesh).fvmDdt(alpha1)
+          + fv::gaussConvectionScheme<scalar>
+            (
+                mesh,
+                phi,
+                upwind<scalar>(mesh, phi)
+            ).fvmDiv(phi, alpha1)
+          - fvm::Sp(divU, alpha1)
          ==
             fvm::Sp(vDotvmcAlphal, alpha1)
           + vDotcAlphal
@@ -65,6 +71,7 @@
             (
                 geometricOneField(),
                 alpha1,
+                tphiAlpha(),
                 tphiAlphaCorr(),
                 vDotvmcAlphal,
                 (
@@ -75,7 +82,16 @@
                 0
             );
 
-            tphiAlpha() += tphiAlphaCorr();
+            // Under-relax the correction for all but the 1st corrector
+            if (aCorr == 0)
+            {
+                tphiAlpha() += tphiAlphaCorr();
+            }
+            else
+            {
+                alpha1 = 0.5*alpha1 + 0.5*alpha10;
+                tphiAlpha() += 0.5*tphiAlphaCorr();
+            }
         }
         else
         {

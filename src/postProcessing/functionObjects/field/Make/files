@@ -20,6 +20,8 @@ fieldValues/cellSource/cellSourceFunctionObject.C
 
 nearWallFields/nearWallFields.C
 nearWallFields/nearWallFieldsFunctionObject.C
+nearWallFields/findCellParticle.C
+nearWallFields/findCellParticleCloud.C
 
 processorField/processorField.C
 processorField/processorFieldFunctionObject.C
@@ -31,9 +33,6 @@ streamLine/streamLine.C
 streamLine/streamLineParticle.C
 streamLine/streamLineParticleCloud.C
 streamLine/streamLineFunctionObject.C
-
-turbulenceFields/turbulenceFields.C
-turbulenceFields/turbulenceFieldsFunctionObject.C
 
 wallBoundedStreamLine/wallBoundedStreamLine.C
 wallBoundedStreamLine/wallBoundedStreamLineFunctionObject.C

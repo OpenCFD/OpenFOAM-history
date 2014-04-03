@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,17 +28,15 @@ License
 
 #include "incompressible/RAS/RASModel/RASModel.H"
 #include "nutWallFunction/nutWallFunctionFvPatchScalarField.H"
-
 #include "compressible/RAS/RASModel/RASModel.H"
 #include "mutWallFunction/mutWallFunctionFvPatchScalarField.H"
-
 #include "wallDist.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-defineTypeNameAndDebug(yPlusRAS, 0);
+    defineTypeNameAndDebug(yPlusRAS, 0);
 }
 
 
@@ -46,10 +44,14 @@ defineTypeNameAndDebug(yPlusRAS, 0);
 
 void Foam::yPlusRAS::writeFileHeader(const label i)
 {
-    file() << "# y+ (RAS)" << nl
-        << "# time " << token::TAB << "patch" << token::TAB
-        << "min" << token::TAB << "max" << token::TAB << "average"
-        << endl;
+    writeHeader(file(), "y+ (RAS)");
+
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "patch");
+    writeTabbed(file(), "min");
+    writeTabbed(file(), "max");
+    writeTabbed(file(), "average");
+    file() << endl;
 }
 
 
@@ -70,35 +72,34 @@ void Foam::yPlusRAS::calcIncompressibleYPlus
         nut.boundaryField();
 
     bool foundPatch = false;
-    forAll(nutPatches, patchI)
+    forAll(nutPatches, patchi)
     {
-        if (isA<wallFunctionPatchField>(nutPatches[patchI]))
+        if (isA<wallFunctionPatchField>(nutPatches[patchi]))
         {
             foundPatch = true;
 
             const wallFunctionPatchField& nutPw =
-                dynamic_cast<const wallFunctionPatchField&>(nutPatches[patchI]);
+                dynamic_cast<const wallFunctionPatchField&>(nutPatches[patchi]);
 
-            yPlus.boundaryField()[patchI] = nutPw.yPlus();
-            const scalarField& Yp = yPlus.boundaryField()[patchI];
+            yPlus.boundaryField()[patchi] = nutPw.yPlus();
+            const scalarField& Yp = yPlus.boundaryField()[patchi];
 
             scalar minYp = gMin(Yp);
             scalar maxYp = gMax(Yp);
             scalar avgYp = gAverage(Yp);
 
-            if (log_)
-            {
-                Info<< "    patch " << nutPw.patch().name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
-            }
-
             if (Pstream::master())
             {
-                file() << obr_.time().value() << token::TAB
-                    << nutPw.patch().name() << token::TAB
-                    << minYp << token::TAB << maxYp << token::TAB
-                    << avgYp << endl;
+                Info(log_)<< "    patch " << nutPw.patch().name()
+                    << " y+ : min = " << minYp << ", max = " << maxYp
+                    << ", average = " << avgYp << nl;
+
+                file() << obr_.time().value()
+                    << token::TAB << nutPw.patch().name()
+                    << token::TAB << minYp
+                    << token::TAB << maxYp
+                    << token::TAB << avgYp
+                    << endl;
             }
         }
     }
@@ -128,35 +129,34 @@ void Foam::yPlusRAS::calcCompressibleYPlus
         mut.boundaryField();
 
     bool foundPatch = false;
-    forAll(mutPatches, patchI)
+    forAll(mutPatches, patchi)
     {
-        if (isA<wallFunctionPatchField>(mutPatches[patchI]))
+        if (isA<wallFunctionPatchField>(mutPatches[patchi]))
         {
             foundPatch = true;
 
             const wallFunctionPatchField& mutPw =
-                dynamic_cast<const wallFunctionPatchField&>(mutPatches[patchI]);
+                dynamic_cast<const wallFunctionPatchField&>(mutPatches[patchi]);
 
-            yPlus.boundaryField()[patchI] = mutPw.yPlus();
-            const scalarField& Yp = yPlus.boundaryField()[patchI];
+            yPlus.boundaryField()[patchi] = mutPw.yPlus();
+            const scalarField& Yp = yPlus.boundaryField()[patchi];
 
             scalar minYp = gMin(Yp);
             scalar maxYp = gMax(Yp);
             scalar avgYp = gAverage(Yp);
 
-            if (log_)
-            {
-                Info<< "    patch " << mutPw.patch().name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
-            }
-
             if (Pstream::master())
             {
-                file() << obr_.time().value() << token::TAB
-                    << mutPw.patch().name() << token::TAB
-                    << minYp << token::TAB << maxYp << token::TAB
-                    << avgYp << endl;
+                Info(log_)<< "    patch " << mutPw.patch().name()
+                    << " y+ : min = " << minYp << ", max = " << maxYp
+                    << ", average = " << avgYp << nl;
+
+                file() << obr_.time().value()
+                    << token::TAB << mutPw.patch().name()
+                    << token::TAB << minYp
+                    << token::TAB << maxYp
+                    << token::TAB << avgYp
+                    << endl;
             }
         }
     }
@@ -183,7 +183,7 @@ Foam::yPlusRAS::yPlusRAS
     name_(name),
     obr_(obr),
     active_(true),
-    log_(false),
+    log_(true),
     phiName_("phi")
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
@@ -199,8 +199,32 @@ Foam::yPlusRAS::yPlusRAS
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating." << nl
+        )   << "No fvMesh available, deactivating " << name_ << nl
             << endl;
+    }
+
+    if (active_)
+    {
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+        volScalarField* yPlusRASPtr
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    type(),
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh,
+                dimensionedScalar("0", dimless, 0.0)
+            )
+        );
+
+        mesh.objectRegistry::store(yPlusRASPtr);
     }
 }
 
@@ -217,31 +241,13 @@ void Foam::yPlusRAS::read(const dictionary& dict)
 {
     if (active_)
     {
-        log_ = dict.lookupOrDefault<Switch>("log", false);
+        log_ = dict.lookupOrDefault<Switch>("log", true);
         phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
     }
 }
 
 
 void Foam::yPlusRAS::execute()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::yPlusRAS::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::yPlusRAS::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::yPlusRAS::write()
 {
     if (active_)
     {
@@ -252,23 +258,13 @@ void Foam::yPlusRAS::write()
 
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
-        volScalarField yPlusRAS
-        (
-            IOobject
+        volScalarField& yPlusRAS =
+            const_cast<volScalarField&>
             (
-                "yPlusRAS",
-                mesh.time().timeName(),
-                mesh,
-                IOobject::NO_READ
-            ),
-            mesh,
-            dimensionedScalar("0", dimless, 0.0)
-        );
+                mesh.lookupObject<volScalarField>(type())
+            );
 
-        if (log_)
-        {
-            Info<< type() << " " << name_ << " output:" << nl;
-        }
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
         if (phi.dimensions() == dimMass/dimTime)
         {
@@ -278,12 +274,35 @@ void Foam::yPlusRAS::write()
         {
             calcIncompressibleYPlus(mesh, yPlusRAS);
         }
+    }
+}
 
-        if (log_)
-        {
-            Info<< "    writing field " << yPlusRAS.name() << nl
-                << endl;
-        }
+
+void Foam::yPlusRAS::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+
+void Foam::yPlusRAS::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::yPlusRAS::write()
+{
+    if (active_)
+    {
+        functionObjectFile::write();
+
+        const volScalarField& yPlusRAS =
+            obr_.lookupObject<volScalarField>(type());
+
+        Info(log_)<< "    writing field " << yPlusRAS.name() << nl << endl;
 
         yPlusRAS.write();
     }

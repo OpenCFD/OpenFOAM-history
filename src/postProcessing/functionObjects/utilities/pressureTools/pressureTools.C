@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -31,7 +31,7 @@ License
 
 namespace Foam
 {
-defineTypeNameAndDebug(pressureTools, 0);
+    defineTypeNameAndDebug(pressureTools, 0);
 }
 
 
@@ -213,7 +213,7 @@ Foam::pressureTools::pressureTools
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating." << nl
+        )   << "No fvMesh available, deactivating " << name_ << nl
             << endl;
     }
 
@@ -285,30 +285,23 @@ void Foam::pressureTools::read(const dictionary& dict)
             dict.lookup("pInf") >> pInf_;
             dict.lookup("UInf") >> UInf_;
             dict.lookup("rhoInf") >> rhoInf_;
+
+            scalar zeroCheck = 0.5*rhoInf_*magSqr(UInf_) + pInf_;
+
+            if (mag(zeroCheck) < ROOTVSMALL)
+            {
+                WarningIn("void Foam::pressureTools::read(const dictionary&)")
+                    << type() << " " << name_ << ": "
+                    << "Coefficient calculation requested, but reference "
+                    << "pressure level is zero.  Please check the supplied "
+                    << "values of pInf, UInf and rhoInf" << endl;
+            }
         }
     }
 }
 
 
 void Foam::pressureTools::execute()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::pressureTools::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::pressureTools::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::pressureTools::write()
 {
     if (active_)
     {
@@ -321,6 +314,31 @@ void Foam::pressureTools::write()
             );
 
         pResult == convertToCoeff(rhoScale(p)*p + pDyn(p) + pRef());
+    }
+}
+
+
+void Foam::pressureTools::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+
+void Foam::pressureTools::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::pressureTools::write()
+{
+    if (active_)
+    {
+        const volScalarField& pResult =
+            obr_.lookupObject<volScalarField>(pName());
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << pResult.name() << nl

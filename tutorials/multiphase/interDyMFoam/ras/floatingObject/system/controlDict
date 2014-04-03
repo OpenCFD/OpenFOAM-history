@@ -17,7 +17,7 @@ FoamFile
 
 application     interDyMFoam;
 
-startFrom       latestTime;
+startFrom       startTime;
 
 startTime       0;
 
@@ -47,16 +47,8 @@ runTimeModifiable yes;
 
 adjustTimeStep  yes;
 
-maxCo           0.5;
-maxAlphaCo      0.5;
-maxDeltaT       0.01;
-
-libs
-(
-    "libOpenFOAM.so"
-    "libincompressibleRASModels.so"
-    "libfvMotionSolvers.so"
-    "libforces.so"
-);
+maxCo           1;
+maxAlphaCo      1;
+maxDeltaT       1;
 
 // ************************************************************************* //

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -31,12 +31,11 @@ License
 #include "wallFvPatch.H"
 #include "nearWallDist.H"
 
-
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-defineTypeNameAndDebug(yPlusLES, 0);
+    defineTypeNameAndDebug(yPlusLES, 0);
 }
 
 
@@ -44,10 +43,14 @@ defineTypeNameAndDebug(yPlusLES, 0);
 
 void Foam::yPlusLES::writeFileHeader(const label i)
 {
-    file() << "# y+ (LES)" << nl
-        << "# time " << token::TAB << "patch" << token::TAB
-        << "min" << token::TAB << "max" << token::TAB << "average"
-        << endl;
+    writeHeader(file(), "y+ (LES)");
+
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "patch");
+    writeTabbed(file(), "min");
+    writeTabbed(file(), "max");
+    writeTabbed(file(), "average");
+    file() << endl;
 }
 
 
@@ -69,41 +72,40 @@ void Foam::yPlusLES::calcIncompressibleYPlus
     const volScalarField nuLam(model.nu());
 
     bool foundPatch = false;
-    forAll(patches, patchI)
+    forAll(patches, patchi)
     {
-        const fvPatch& currPatch = patches[patchI];
+        const fvPatch& currPatch = patches[patchi];
 
         if (isA<wallFvPatch>(currPatch))
         {
             foundPatch = true;
-            yPlus.boundaryField()[patchI] =
-                d[patchI]
+            yPlus.boundaryField()[patchi] =
+                d[patchi]
                *sqrt
                 (
-                    nuEff.boundaryField()[patchI]
-                   *mag(U.boundaryField()[patchI].snGrad())
+                    nuEff.boundaryField()[patchi]
+                   *mag(U.boundaryField()[patchi].snGrad())
                 )
-               /nuLam.boundaryField()[patchI];
+               /nuLam.boundaryField()[patchi];
 
-            const scalarField& Yp = yPlus.boundaryField()[patchI];
+            const scalarField& Yp = yPlus.boundaryField()[patchi];
 
             scalar minYp = gMin(Yp);
             scalar maxYp = gMax(Yp);
             scalar avgYp = gAverage(Yp);
 
-            if (log_)
-            {
-                Info<< "    patch " << currPatch.name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
-            }
-
             if (Pstream::master())
             {
-                file() << obr_.time().value() << token::TAB
-                    << currPatch.name() << token::TAB
-                    << minYp << token::TAB << maxYp << token::TAB
-                    << avgYp << endl;
+                Info(log_)<< "    patch " << currPatch.name()
+                    << " y+ : min = " << minYp << ", max = " << maxYp
+                    << ", average = " << avgYp << nl;
+
+                file() << obr_.time().value()
+                    << token::TAB << currPatch.name()
+                    << token::TAB << minYp
+                    << token::TAB << maxYp
+                    << token::TAB << avgYp
+                    << endl;
             }
         }
     }
@@ -127,6 +129,7 @@ void Foam::yPlusLES::calcCompressibleYPlus
 
     volScalarField::GeometricBoundaryField d = nearWallDist(mesh).y();
     volScalarField muEff(model.muEff());
+    const volScalarField& rho(model.rho());
 
     const fvPatchList& patches = mesh.boundary();
 
@@ -135,41 +138,40 @@ void Foam::yPlusLES::calcCompressibleYPlus
     Info<< type() << " output:" << nl;
 
     bool foundPatch = false;
-    forAll(patches, patchI)
+    forAll(patches, patchi)
     {
-        const fvPatch& currPatch = patches[patchI];
+        const fvPatch& currPatch = patches[patchi];
 
         if (isA<wallFvPatch>(currPatch))
         {
             foundPatch = true;
-            yPlus.boundaryField()[patchI] =
-                d[patchI]
+            yPlus.boundaryField()[patchi] =
+                d[patchi]
                *sqrt
                 (
-                    muEff.boundaryField()[patchI]
-                   *mag(U.boundaryField()[patchI].snGrad())
+                    (muEff.boundaryField()[patchi]/rho.boundaryField()[patchi])
+                   *mag(U.boundaryField()[patchi].snGrad())
                 )
-               /muLam.boundaryField()[patchI];
+               /(muLam.boundaryField()[patchi]/rho.boundaryField()[patchi]);
 
-            const scalarField& Yp = yPlus.boundaryField()[patchI];
+            const scalarField& Yp = yPlus.boundaryField()[patchi];
 
             scalar minYp = gMin(Yp);
             scalar maxYp = gMax(Yp);
             scalar avgYp = gAverage(Yp);
 
-            if (log_)
-            {
-                Info<< "    patch " << currPatch.name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
-            }
-
             if (Pstream::master())
             {
-                file() << obr_.time().value() << token::TAB
-                    << currPatch.name() << token::TAB
-                    << minYp << token::TAB << maxYp << token::TAB
-                    << avgYp << endl;
+                Info(log_)<< "    patch " << currPatch.name()
+                    << " y+ : min = " << minYp << ", max = " << maxYp
+                    << ", average = " << avgYp << nl;
+
+                file() << obr_.time().value()
+                    << token::TAB << currPatch.name()
+                    << token::TAB << minYp
+                    << token::TAB << maxYp
+                    << token::TAB << avgYp
+                    << endl;
             }
          }
     }
@@ -195,7 +197,7 @@ Foam::yPlusLES::yPlusLES
     name_(name),
     obr_(obr),
     active_(true),
-    log_(false),
+    log_(true),
     phiName_("phi"),
     UName_("U")
 {
@@ -212,8 +214,32 @@ Foam::yPlusLES::yPlusLES
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating." << nl
+        )   << "No fvMesh available, deactivating " << name_ << nl
             << endl;
+    }
+
+    if (active_)
+    {
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+        volScalarField* yPlusLESPtr
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    type(),
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh,
+                dimensionedScalar("0", dimless, 0.0)
+            )
+        );
+
+        mesh.objectRegistry::store(yPlusLESPtr);
     }
 }
 
@@ -230,31 +256,13 @@ void Foam::yPlusLES::read(const dictionary& dict)
 {
     if (active_)
     {
-        log_ = dict.lookupOrDefault<Switch>("log", false);
+        log_ = dict.lookupOrDefault<Switch>("log", true);
         phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
     }
 }
 
 
 void Foam::yPlusLES::execute()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::yPlusLES::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::yPlusLES::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::yPlusLES::write()
 {
     if (active_)
     {
@@ -267,23 +275,13 @@ void Foam::yPlusLES::write()
 
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
-        volScalarField yPlusLES
-        (
-            IOobject
+        volScalarField& yPlusLES =
+            const_cast<volScalarField&>
             (
-                "yPlusLES",
-                mesh.time().timeName(),
-                mesh,
-                IOobject::NO_READ
-            ),
-            mesh,
-            dimensionedScalar("0", dimless, 0.0)
-        );
+                mesh.lookupObject<volScalarField>(type())
+            );
 
-        if (log_)
-        {
-            Info<< type() << " " << name_ << " output:" << nl;
-        }
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
         if (phi.dimensions() == dimMass/dimTime)
         {
@@ -293,12 +291,35 @@ void Foam::yPlusLES::write()
         {
             calcIncompressibleYPlus(mesh, U, yPlusLES);
         }
+    }
+}
 
-        if (log_)
-        {
-            Info<< "    writing field " << yPlusLES.name() << nl
-                << endl;
-        }
+
+void Foam::yPlusLES::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+
+void Foam::yPlusLES::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::yPlusLES::write()
+{
+    if (active_)
+    {
+        functionObjectFile::write();
+
+        const volScalarField& yPlusLES =
+            obr_.lookupObject<volScalarField>(type());
+
+        Info(log_)<< "    writing field " << yPlusLES.name() << nl << endl;
 
         yPlusLES.write();
     }

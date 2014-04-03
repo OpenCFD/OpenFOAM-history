@@ -23,12 +23,19 @@ chemistryType
 
 chemistry       on;
 
-initialChemicalTimeStep 1e-10;
+initialChemicalTimeStep 1e-7;
+
+EulerImplicitCoeffs
+{
+    cTauChem        10;
+    equilibriumRateLimiter no;
+}
 
 odeCoeffs
 {
-    solver          SIBS;
-    eps             1e-04;
+    solver          seulex;
+    absTol          1e-14;
+    relTol          1e-1;
 }
 
 

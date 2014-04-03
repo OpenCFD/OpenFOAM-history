@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,11 @@ Foam::surfaceInterpolateFields::surfaceInterpolateFields
     fieldSet_()
 {
     // Check if the available mesh is an fvMesh otherise deactivate
-    if (!isA<fvMesh>(obr_))
+    if (isA<fvMesh>(obr_))
+    {
+        read(dict);
+    }
+    else
     {
         active_ = false;
         WarningIn
@@ -61,11 +65,9 @@ Foam::surfaceInterpolateFields::surfaceInterpolateFields
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating."
+        )   << "No fvMesh available, deactivating " << name_
             << endl;
     }
-
-    read(dict);
 }
 
 
@@ -90,6 +92,8 @@ void Foam::surfaceInterpolateFields::execute()
 {
     if (active_)
     {
+        Info<< type() << " " << name_ << " output:" << nl;
+
         // Clear out any previously loaded fields
         ssf_.clear();
         svf_.clear();
@@ -102,13 +106,18 @@ void Foam::surfaceInterpolateFields::execute()
         interpolateFields<sphericalTensor>(sSpheretf_);
         interpolateFields<symmTensor>(sSymmtf_);
         interpolateFields<tensor>(stf_);
+
+        Info<< endl;
     }
 }
 
 
 void Foam::surfaceInterpolateFields::end()
 {
-    // Do nothing
+    if (active_)
+    {
+        execute();
+    }
 }
 
 
@@ -122,7 +131,9 @@ void Foam::surfaceInterpolateFields::write()
 {
     if (active_)
     {
-        Info<< "Writing interpolated surface fields to "
+        Info<< type() << " " << name_ << " output:" << nl;
+
+        Info<< "    Writing interpolated surface fields to "
             << obr_.time().timeName() << endl;
 
         forAll(ssf_, i)

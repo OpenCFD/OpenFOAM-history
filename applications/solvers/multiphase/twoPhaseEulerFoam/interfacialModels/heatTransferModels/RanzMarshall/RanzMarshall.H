@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,18 +40,20 @@ SourceFiles
 
 namespace Foam
 {
+
+class phasePair;
+
 namespace heatTransferModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class RanzMarshall Declaration
+                          Class RanzMarshall Declaration
 \*---------------------------------------------------------------------------*/
 
 class RanzMarshall
 :
     public heatTransferModel
 {
-
 public:
 
     //- Runtime type information
@@ -63,10 +65,8 @@ public:
         //- Construct from components
         RanzMarshall
         (
-            const dictionary& interfaceDict,
-            const volScalarField& alpha1,
-            const phaseModel& phase1,
-            const phaseModel& phase2
+            const dictionary& dict,
+            const phasePair& pair
         );
 
 
@@ -76,7 +76,8 @@ public:
 
     // Member Functions
 
-        tmp<volScalarField> K(const volScalarField& Ur) const;
+        //- The heat transfer function K used in the enthalpy equation
+        tmp<volScalarField> K() const;
 };
 
 

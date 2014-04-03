@@ -17,7 +17,7 @@ FoamFile
 
 chemistryType
 {
-    chemistrySolver   ode;
+    chemistrySolver   noChemistrySolver;
     chemistryThermo   rho;
 }
 
@@ -33,7 +33,7 @@ EulerImplicitCoeffs
 
 odeCoeffs
 {
-    solver          RK;
+    solver          seulex;
     eps             0.05;
 }
 

@@ -25,16 +25,13 @@ License
 
 #include "meshRefinement.H"
 #include "fvMesh.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
-{
+#include "globalIndex.H"
+#include "syncTools.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 // Add a T entry
-template<class T> void meshRefinement::updateList
+template<class T> void Foam::meshRefinement::updateList
 (
     const labelList& newToOld,
     const T& nullValue,
@@ -57,9 +54,111 @@ template<class T> void meshRefinement::updateList
 }
 
 
+template<class T>
+T Foam::meshRefinement::gAverage
+(
+    const polyMesh& mesh,
+    const PackedBoolList& isMasterElem,
+    const UList<T>& values
+)
+{
+    if (values.size() != isMasterElem.size())
+    {
+        FatalErrorIn
+        (
+            "meshRefinement::gAverage\n"
+            "(\n"
+            "    const polyMesh&,\n"
+            "    const PackedBoolList& isMasterElem,\n"
+            "    const UList<T>& values\n"
+            ")\n"
+        )   << "Number of elements in list " << values.size()
+            << " does not correspond to number of elements in isMasterElem "
+            << isMasterElem.size()
+            << exit(FatalError);
+    }
+
+    T sum = pTraits<T>::zero;
+    label n = 0;
+
+    forAll(values, i)
+    {
+        if (isMasterElem[i])
+        {
+            sum += values[i];
+            n++;
+        }
+    }
+
+    reduce(sum, sumOp<T>());
+    reduce(n, sumOp<label>());
+
+    if (n > 0)
+    {
+        return sum/n;
+    }
+    else
+    {
+        return pTraits<T>::max;
+    }
+}
+
+
+template<class T>
+T Foam::meshRefinement::gAverage
+(
+    const polyMesh& mesh,
+    const PackedBoolList& isMasterElem,
+    const labelList& meshElems,
+    const UList<T>& values
+)
+{
+    if (values.size() != meshElems.size())
+    {
+        FatalErrorIn
+        (
+            "meshRefinement::gAverage\n"
+            "(\n"
+            "    const polyMesh&,\n"
+            "    const labelList&,\n"
+            "    const PackedBoolList& isMasterElem,\n"
+            "    const UList<T>& values\n"
+            ")\n"
+        )   << "Number of elements in list " << values.size()
+            << " does not correspond to number of elements in meshElems "
+            << meshElems.size()
+            << exit(FatalError);
+    }
+
+    T sum = pTraits<T>::zero;
+    label n = 0;
+
+    forAll(values, i)
+    {
+        if (isMasterElem[meshElems[i]])
+        {
+            sum += values[i];
+            n++;
+        }
+    }
+
+    reduce(sum, sumOp<T>());
+    reduce(n, sumOp<label>());
+
+    if (n > 0)
+    {
+        return sum/n;
+    }
+    else
+    {
+        return pTraits<T>::max;
+    }
+}
+
+
 // Compare two lists over all boundary faces
 template<class T>
-void meshRefinement::testSyncBoundaryFaceList
+void Foam::meshRefinement::testSyncBoundaryFaceList
 (
     const scalar tol,
     const string& msg,
@@ -116,9 +215,60 @@ void meshRefinement::testSyncBoundaryFaceList
 }
 
 
+// Print list sorted by coordinates. Used for comparing non-parallel v.s.
+// parallel operation
+template<class T>
+void Foam::meshRefinement::collectAndPrint
+(
+    const UList<point>& points,
+    const UList<T>& data
+)
+{
+    globalIndex globalPoints(points.size());
+
+    pointField allPoints;
+    globalPoints.gather
+    (
+        Pstream::worldComm,
+        identity(Pstream::nProcs()),
+        points,
+        allPoints,
+        UPstream::msgType(),
+        Pstream::blocking
+    );
+
+    List<T> allData;
+    globalPoints.gather
+    (
+        Pstream::worldComm,
+        identity(Pstream::nProcs()),
+        data,
+        allData,
+        UPstream::msgType(),
+        Pstream::blocking
+    );
+
+
+    scalarField magAllPoints(mag(allPoints-point(-0.317, 0.117, 0.501)));
+
+    labelList visitOrder;
+    sortedOrder(magAllPoints, visitOrder);
+    forAll(visitOrder, i)
+    {
+        label allPointI = visitOrder[i];
+        Info<< allPoints[allPointI] << " : " << allData[allPointI]
+            << endl;
+    }
+}
+
+
 //template<class T, class Mesh>
 template<class GeoField>
-void meshRefinement::addPatchFields(fvMesh& mesh, const word& patchFieldType)
+void Foam::meshRefinement::addPatchFields
+(
+    fvMesh& mesh,
+    const word& patchFieldType
+)
 {
     HashTable<GeoField*> flds
     (
@@ -148,7 +298,11 @@ void meshRefinement::addPatchFields(fvMesh& mesh, const word& patchFieldType)
 
 // Reorder patch field
 template<class GeoField>
-void meshRefinement::reorderPatchFields(fvMesh& mesh, const labelList& oldToNew)
+void Foam::meshRefinement::reorderPatchFields
+(
+    fvMesh& mesh,
+    const labelList& oldToNew
+)
 {
     HashTable<GeoField*> flds
     (
@@ -165,8 +319,85 @@ void meshRefinement::reorderPatchFields(fvMesh& mesh, const labelList& oldToNew)
 }
 
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+template<class Enum>
+int Foam::meshRefinement::readFlags
+(
+    const Enum& namedEnum,
+    const wordList& words
+)
+{
+    int flags = 0;
 
-} // End namespace Foam
+    forAll(words, i)
+    {
+        int index = namedEnum[words[i]];
+        int val = 1<<index;
+        flags |= val;
+    }
+    return flags;
+}
+
+
+template<class Type>
+void Foam::meshRefinement::weightedSum
+(
+    const polyMesh& mesh,
+    const PackedBoolList& isMasterEdge,
+    const labelList& meshEdges,
+    const labelList& meshPoints,
+    const edgeList& edges,
+    const scalarField& edgeWeights,
+    const Field<Type>& pointData,
+    Field<Type>& sum
+)
+{
+    if
+    (
+        mesh.nEdges() != isMasterEdge.size()
+     || edges.size() != meshEdges.size()
+     || edges.size() != edgeWeights.size()
+     || meshPoints.size() != pointData.size()
+    )
+    {
+        FatalErrorIn("medialAxisMeshMover::weightedSum(..)")
+            << "Inconsistent sizes for edge or point data:"
+            << " meshEdges:" << meshEdges.size()
+            << " isMasterEdge:" << isMasterEdge.size()
+            << " edgeWeights:" << edgeWeights.size()
+            << " edges:" << edges.size()
+            << " pointData:" << pointData.size()
+            << " meshPoints:" << meshPoints.size()
+            << abort(FatalError);
+    }
+
+    sum.setSize(meshPoints.size());
+    sum = pTraits<Type>::zero;
+
+    forAll(edges, edgeI)
+    {
+        if (isMasterEdge.get(meshEdges[edgeI]) == 1)
+        {
+            const edge& e = edges[edgeI];
+
+            scalar eWeight = edgeWeights[edgeI];
+
+            label v0 = e[0];
+            label v1 = e[1];
+
+            sum[v0] += eWeight*pointData[v1];
+            sum[v1] += eWeight*pointData[v0];
+        }
+    }
+
+    syncTools::syncPointList
+    (
+        mesh,
+        meshPoints,
+        sum,
+        plusEqOp<Type>(),
+        pTraits<Type>::zero     // null value
+    );
+}
+
 
 // ************************************************************************* //

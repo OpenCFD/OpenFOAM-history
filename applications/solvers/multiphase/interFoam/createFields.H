@@ -56,19 +56,17 @@
 
 
     // Mass flux
-    // Initialisation does not matter because rhoPhi is reset after the
-    // alpha1 solution before it is used in the U equation.
     surfaceScalarField rhoPhi
     (
         IOobject
         (
-            "rho*phi",
+            "rhoPhi",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        rho1*phi
+        fvc::interpolate(rho)*phi
     );
 
 
@@ -134,3 +132,6 @@
     }
 
     fv::IOoptionList fvOptions(mesh);
+
+
+    tmp<surfaceScalarField> tphiAlphaCorr0;

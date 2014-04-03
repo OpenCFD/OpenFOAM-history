@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,12 +51,12 @@ addToRunTimeSelectionTable(filmTurbulenceModel, laminar, dictionary);
 
 laminar::laminar
 (
-    const surfaceFilmModel& owner,
+    surfaceFilmModel& owner,
     const dictionary& dict
 )
 :
     filmTurbulenceModel(type(), owner, dict),
-    Cf_(readScalar(coeffs_.lookup("Cf")))
+    Cf_(readScalar(coeffDict_.lookup("Cf")))
 {}
 
 
@@ -122,6 +122,7 @@ void laminar::correct()
     // do nothing
 }
 
+
 tmp<fvVectorMatrix> laminar::Su(volVectorField& U) const
 {
     // local reference to film model
@@ -131,21 +132,18 @@ tmp<fvVectorMatrix> laminar::Su(volVectorField& U) const
     // local references to film fields
     const volScalarField& mu = film.mu();
     const volVectorField& Uw = film.Uw();
-    const volVectorField& Us = film.Us();
     const volScalarField& delta = film.delta();
     const volVectorField& Up = film.UPrimary();
     const volScalarField& rhop = film.rhoPrimary();
 
     // employ simple coeff-based model
-    volScalarField Cs("Cs", Cf_*rhop*mag(Up - Us));
-
-    dimensionedScalar d0("SMALL", delta.dimensions(), SMALL);
-    volScalarField Cw("Cw", mu/(0.3333*(delta + d0)));
+    volScalarField Cs("Cs", Cf_*rhop*mag(Up - U));
+    volScalarField Cw("Cw", mu/(0.3333*(delta + film.deltaSmall())));
     Cw.min(5000.0);
 
     return
     (
-       - fvm::Sp(Cs, U) + Cs*Us // surface contribution
+       - fvm::Sp(Cs, U) + Cs*Up // surface contribution
        - fvm::Sp(Cw, U) + Cw*Uw // wall contribution
     );
 }

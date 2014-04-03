@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,6 @@ Description
             type            filmPyrolysisRadiativeCoupledMixed;
             Tnbr            T;
             kappa           fluidThermo;
-            QrNbr           none;
             Qr              Qr;
             kappaName       none;
             filmDeltaDry    0.0;
@@ -56,7 +55,7 @@ Description
     In between ratio 0 and 1 the gradient and value contributions are
     weighted using the ratio field in the followig way:
 
-    qConv = ratio*htcwfilm*(Tfilm - *this)*convectiveScaling_;
+    qConv = ratio*htcwfilm*(Tfilm - *this);
     qRad = (1.0 - ratio)*Qr;
 
     Then the solid can gain or loose energy through radiation or conduction
@@ -91,7 +90,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-   Class filmPyrolysisRadiativeCoupledMixedFvPatchScalarField Declaration
+    Class filmPyrolysisRadiativeCoupledMixedFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
 class filmPyrolysisRadiativeCoupledMixedFvPatchScalarField
@@ -112,13 +111,16 @@ private:
 
     // Private data
 
+        //- Name of film region
+        const word filmRegionName_;
+
+        //- Name of pyrolysis region
+        const word pyrolysisRegionName_;
+
         //- Name of field on the neighbour region
         const word TnbrName_;
 
-         //- Name of the radiative heat flux in the neighbout region
-        const word QrNbrName_;
-
-        //- Name of the radiative heat flux in local region
+        //- Name of the radiative heat flux
         const word QrName_;
 
         //- Convective Scaling Factor (as determined by Prateep's tests)

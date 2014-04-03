@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -31,12 +31,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "MULES.H"
-#include "subCycle.H"
-#include "rhoThermo.H"
 #include "twoPhaseSystem.H"
-#include "dragModel.H"
-#include "heatTransferModel.H"
 #include "PhaseIncompressibleTurbulenceModel.H"
 #include "pimpleControl.H"
 #include "IOMRFZoneList.H"
@@ -66,7 +61,7 @@ int main(int argc, char *argv[])
 
     while (runTime.run())
     {
-        #include "readTwoPhaseEulerFoamControls.H"
+        #include "readTimeControls.H"
         #include "CourantNos.H"
         #include "setDeltaT.H"
 
@@ -76,7 +71,10 @@ int main(int argc, char *argv[])
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
-            #include "alphaEqn.H"
+            fluid.solve();
+            rho = fluid.rho();
+            fluid.correct();
+
             #include "EEqns.H"
             #include "UEqns.H"
 
@@ -90,8 +88,7 @@ int main(int argc, char *argv[])
 
             if (pimple.turbCorr())
             {
-                turbulence1->correct();
-                turbulence2->correct();
+                fluid.correctTurbulence();
             }
         }
 

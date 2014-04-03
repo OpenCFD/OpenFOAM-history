@@ -21,9 +21,9 @@ if (pimple.transonic())
         "phid",
         fvc::interpolate(psi)
        *(
-            (fvc::interpolate(rho*HbyA) & mesh.Sf())
-          + rhorAUf*fvc::ddtCorr(rho, U, rhoUf)
-        )/fvc::interpolate(rho)
+            (fvc::interpolate(HbyA) & mesh.Sf())
+          + rhorAUf*fvc::ddtCorr(rho, U, rhoUf)/fvc::interpolate(rho)
+        )
     );
 
     fvc::makeRelative(phid, psi, U);
@@ -107,10 +107,7 @@ K = 0.5*magSqr(U);
 {
     rhoUf = fvc::interpolate(rho*U);
     surfaceVectorField n(mesh.Sf()/mesh.magSf());
-    rhoUf +=
-        mesh.Sf()
-       *(fvc::absolute(phi, rho, U) - (mesh.Sf() & rhoUf))
-       /sqr(mesh.magSf());
+    rhoUf += n*(fvc::absolute(phi, rho, U)/mesh.magSf() - (n & rhoUf));
 }
 
 if (thermo.dpdt())

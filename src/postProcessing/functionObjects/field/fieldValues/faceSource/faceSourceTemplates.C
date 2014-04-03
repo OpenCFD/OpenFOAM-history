@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -141,7 +141,32 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
             result = sum(values);
             break;
         }
+        case opSumMag:
+        {
+            result = sum(cmptMag(values));
+            break;
+        }
         case opSumDirection:
+        {
+            FatalErrorIn
+            (
+                "template<class Type>"
+                "Type Foam::fieldValues::faceSource::processSameTypeValues"
+                "("
+                    "const Field<Type>&, "
+                    "const vectorField&, "
+                    "const scalarField&"
+                ") const"
+            )
+                << "Operation " << operationTypeNames_[operation_]
+                << " not available for values of type "
+                << pTraits<Type>::typeName
+                << exit(FatalError);
+
+            result = pTraits<Type>::zero;
+            break;
+        }
+        case opSumDirectionBalance:
         {
             FatalErrorIn
             (
@@ -289,23 +314,26 @@ bool Foam::fieldValues::faceSource::writeValues(const word& fieldName)
                 combineMeshGeometry(faces, points);
             }
 
-            fileName outputDir =
-                baseFileDir()/name_/"surface"/obr_.time().timeName();
+            if (Pstream::master())
+            {
+                fileName outputDir =
+                    baseFileDir()/name_/"surface"/obr_.time().timeName();
 
-            surfaceWriterPtr_->write
-            (
-                outputDir,
-                word(sourceTypeNames_[source_]) + "_" + sourceName_,
-                points,
-                faces,
-                fieldName,
-                values,
-                false
-            );
+                surfaceWriterPtr_->write
+                (
+                    outputDir,
+                    word(sourceTypeNames_[source_]) + "_" + sourceName_,
+                    points,
+                    faces,
+                    fieldName,
+                    values,
+                    false
+                );
+            }
         }
 
-        // apply weight field
-        values *= weightField;
+        // apply scale factor and weight field
+        values *= scaleFactor_*weightField;
 
         if (Pstream::master())
         {
@@ -316,12 +344,9 @@ bool Foam::fieldValues::faceSource::writeValues(const word& fieldName)
 
             file()<< tab << result;
 
-            if (log_)
-            {
-                Info<< "    " << operationTypeNames_[operation_]
-                    << "(" << sourceName_ << ") for " << fieldName
-                    <<  " = " << result << endl;
-            }
+            Info(log_)<< "    " << operationTypeNames_[operation_]
+                << "(" << sourceName_ << ") for " << fieldName
+                <<  " = " << result << endl;
         }
     }
 

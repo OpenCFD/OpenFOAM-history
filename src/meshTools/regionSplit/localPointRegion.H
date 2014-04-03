@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -48,6 +48,7 @@ SourceFiles
 #include "HashSet.H"
 #include "faceList.H"
 #include "boolList.H"
+#include "labelPair.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -100,9 +101,9 @@ class localPointRegion
         void calcPointRegions
         (
             const polyMesh& mesh,
+            const labelPairList& baffles,
             boolList& candidatePoint
         );
-
 
         //- Check if two faces are equal. If forward = false checks f1 in
         //  reverse order.
@@ -132,6 +133,14 @@ public:
             const labelList& candidatePoints
         );
 
+        //- Construct from mesh and candidate points for duplication
+        localPointRegion
+        (
+            const polyMesh& mesh,
+            const labelPairList& baffles,
+            const labelList& candidatePoints
+        );
+
 
     // Member Functions
 
@@ -149,6 +158,9 @@ public:
                 const labelList&
             );
 
+            //- Helper routine to find all baffles (two boundary faces
+            //  using the same points but in reverse order)
+            static labelPairList findDuplicateFacePairs(const polyMesh&);
 
         // Access
 

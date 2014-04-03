@@ -32,15 +32,15 @@ solvers
         relTol          0;
     }
 
-    "(U|h|k|epsilon)"
+    "(U|k|epsilon)"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-06;
         relTol          0.1;
     }
 
-    "(U|h|k|epsilon)Final"
+    "(U|k|epsilon)Final"
     {
         $U;
         tolerance       1e-06;
@@ -70,7 +70,21 @@ solvers
 
     "(Yi|O2|N2|H2O)"
     {
-        $hFinal;
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-6;
+        relTol          0;
+    }
+
+    h
+    {
+        $Yi;
+        relTol          0.1;
+    }
+
+    hFinal
+    {
+        $Yi;
     }
 }
 

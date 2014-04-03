@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -246,8 +246,14 @@ OpenFOAM | ThirdParty)
         mpfr_version=mpfr-3.1.0
         mpc_version=mpc-0.9
         ;;
+    Gcc49 | Gcc49++0x)
+        gcc_version=gcc-4.9.0
+        gmp_version=gmp-5.1.2
+        mpfr_version=mpfr-3.1.2
+        mpc_version=mpc-1.0.1
+        ;;
     Gcc48 | Gcc48++0x)
-        gcc_version=gcc-4.8.1
+        gcc_version=gcc-4.8.2
         gmp_version=gmp-5.1.2
         mpfr_version=mpfr-3.1.2
         mpc_version=mpc-1.0.1
@@ -268,7 +274,7 @@ OpenFOAM | ThirdParty)
         # using clang - not gcc
         export WM_CC='clang'
         export WM_CXX='clang++'
-        clang_version=llvm-3.3
+        clang_version=llvm-3.4
         ;;
     *)
         echo 1>&2
@@ -363,40 +369,6 @@ then
     esac
 fi
 
-
-# boost and CGAL
-# ~~~~~~~~~~~~~~
-
-boost_version=boost_1_45_0
-cgal_version=CGAL-4.0
-
-export BOOST_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$boost_version
-export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_version
-
-# enabled if CGAL is available
-if [ "$FOAM_VERBOSE" -a "$PS1" ]
-then
-    echo "Checking for"
-    echo "    $cgal_version at $CGAL_ARCH_PATH"
-    echo "    $boost_version at $BOOST_ARCH_PATH"
-fi
-
-if [ -d "$CGAL_ARCH_PATH" ]
-then
-    if [ -d "$BOOST_ARCH_PATH" ]
-    then
-        _foamAddLib $BOOST_ARCH_PATH/lib
-        _foamAddLib $BOOST_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
-    else
-        unset BOOST_ARCH_PATH
-    fi
-    _foamAddLib $CGAL_ARCH_PATH/lib
-    _foamAddLib $CGAL_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
-else
-    unset BOOST_ARCH_PATH CGAL_ARCH_PATH MPFR_ARCH_PATH GMP_ARCH_PATH
-fi
-
-unset boost_version cgal_version
 
 
 # Communications library
@@ -597,6 +569,7 @@ export MPI_BUFFER_SIZE
 
 # cleanup environment:
 # ~~~~~~~~~~~~~~~~~~~~
-unset _foamAddPath _foamAddLib _foamAddMan foamCompiler minBufferSize
+#keep _foamAddPath _foamAddLib _foamAddMan
+unset foamCompiler minBufferSize
 
 # ----------------------------------------------------------------- end-of-file

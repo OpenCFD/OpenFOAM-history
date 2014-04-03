@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,7 +39,7 @@ SourceFiles
 #include "IOdictionary.H"
 #include "autoPtr.H"
 #include "runTimeSelectionTables.H"
-#include "SubModelBase.H"
+#include "CloudSubModelBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,9 +56,15 @@ class tetIndices;
 template<class CloudType>
 class CloudFunctionObject
 :
-    public SubModelBase<CloudType>
+    public CloudSubModelBase<CloudType>
 {
-    // Protected Member Functions
+    // Private data
+
+        //- Output path
+        fileName outputDir_;
+
+
+    // Private Member Functions
 
         //- Write post-processing info
         virtual void write();
@@ -77,9 +83,10 @@ public:
         dictionary,
         (
             const dictionary& dict,
-            CloudType& owner
+            CloudType& owner,
+            const word& modelName
         ),
-        (dict, owner)
+        (dict, owner, modelName)
     );
 
 
@@ -93,7 +100,8 @@ public:
         (
             const dictionary& dict,
             CloudType& owner,
-            const word& modelType
+            const word& objectType,
+            const word& modelName
         );
 
         //- Construct copy
@@ -118,7 +126,8 @@ public:
     (
         const dictionary& dict,
         CloudType& owner,
-        const word& modelType
+        const word& objectType,
+        const word& modelName
     );
 
 
@@ -135,7 +144,7 @@ public:
             //- Post-move hook
             virtual void postMove
             (
-                const typename CloudType::parcelType& p,
+                typename CloudType::parcelType& p,
                 const label cellI,
                 const scalar dt,
                 const point& position0,
@@ -159,6 +168,15 @@ public:
                 const label faceI,
                 bool& keepParticle
             );
+
+
+        // Input/output
+
+            //- Return the output path
+            const fileName& outputDir() const;
+
+            //- Return the output time path
+            fileName outputTimeDir() const;
 };
 
 

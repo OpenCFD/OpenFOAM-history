@@ -52,7 +52,7 @@ void Foam::fv::MRFSource::initialise()
     if (selectionMode_ != smCellZone)
     {
         FatalErrorIn("void Foam::MRFSource::initialise()")
-            << "The porosity region must be specified as a cellZone.  Current "
+            << "The MRF region must be specified as a cellZone. Current "
             << "selection mode is " << selectionModeTypeNames_[selectionMode_]
             << exit(FatalError);
     }
@@ -174,6 +174,8 @@ bool Foam::fv::MRFSource::read(const dictionary& dict)
     {
         coeffs_.readIfPresent("UName", UName_);
         coeffs_.readIfPresent("rhoName", rhoName_);
+
+        initialise();
 
         return true;
     }

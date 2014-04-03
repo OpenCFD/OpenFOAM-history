@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -87,14 +87,14 @@ Foam::multiphaseMixture::multiphaseMixture
     (
         IOobject
         (
-            "rho*phi",
+            "rhoPhi",
             mesh_.time().timeName(),
             mesh_,
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
         mesh_,
-        dimensionedScalar("rho*phi", dimMass/dimTime, 0.0)
+        dimensionedScalar("rhoPhi", dimMass/dimTime, 0.0)
     ),
 
     alphas_
@@ -569,6 +569,7 @@ void Foam::multiphaseMixture::solveAlphas
             phasei,
             new surfaceScalarField
             (
+                "phi" + alpha.name() + "Corr",
                 fvc::flux
                 (
                     phi_,
@@ -598,6 +599,7 @@ void Foam::multiphaseMixture::solveAlphas
 
         MULES::limit
         (
+            1.0/mesh_.time().deltaT().value(),
             geometricOneField(),
             alpha,
             phi_,

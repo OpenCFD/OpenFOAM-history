@@ -27,9 +27,9 @@ gradSchemes
 
 divSchemes
 {
-    div(rho*phi,U)  Gauss linear;
+    div(rhoPhi,U)   Gauss linear;
     div(phi,alpha)  Gauss vanLeer;
-    div(phirb,alpha) Gauss interfaceCompression;
+    div(phirb,alpha) Gauss linear;
     div(phi,k)      Gauss limitedLinear 1;
     div(phi,B)      Gauss limitedLinear 1;
     div(B)          Gauss linear;
@@ -57,7 +57,6 @@ fluxRequired
     default         no;
     p_rgh;
     pcorr;
-    alpha;
 }
 
 

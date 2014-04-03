@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -183,7 +183,8 @@ Foam::mapNearestAMI<SourcePatch, TargetPatch>::mapNearestAMI
     const scalarField& srcMagSf,
     const scalarField& tgtMagSf,
     const faceAreaIntersect::triangulationMode& triMode,
-    const bool reverseTarget
+    const bool reverseTarget,
+    const bool requireMatch
 )
 :
     AMIMethod<SourcePatch, TargetPatch>
@@ -193,7 +194,8 @@ Foam::mapNearestAMI<SourcePatch, TargetPatch>::mapNearestAMI
         srcMagSf,
         tgtMagSf,
         triMode,
-        reverseTarget
+        reverseTarget,
+        requireMatch
     )
 {}
 
@@ -310,16 +312,19 @@ void Foam::mapNearestAMI<SourcePatch, TargetPatch>::calculate
         {
             label srcFaceI = findMappedSrcFace(tgtFaceI, tgtAddr);
 
-            // note - reversed search from src->tgt to tgt->src
-            findNearestFace
-            (
-                this->tgtPatch_,
-                this->srcPatch_,
-                tgtFaceI,
-                srcFaceI
-            );
+            if (srcFaceI >= 0)
+            {
+                // note - reversed search from src->tgt to tgt->src
+                findNearestFace
+                (
+                    this->tgtPatch_,
+                    this->srcPatch_,
+                    tgtFaceI,
+                    srcFaceI
+                );
 
-            tgtAddr[tgtFaceI].append(srcFaceI);
+                tgtAddr[tgtFaceI].append(srcFaceI);
+            }
         }
     }
 

@@ -19,20 +19,19 @@ solvers
 {
     rho
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-08;
         relTol          0.1;
     }
 
     rhoFinal
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-08;
         relTol          0;
     }
-
 
     p
     {
@@ -57,16 +56,16 @@ solvers
 
     "(U|k|omega)"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-08;
         relTol          0.1;
     }
 
     "(U|k|omega)Final"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-08;
         relTol          0;
     }
@@ -76,6 +75,14 @@ PIMPLE
 {
     nCorrectors     3;
     nNonOrthogonalCorrectors 0;
+}
+
+relaxationFactors
+{
+    equations
+    {
+        ".*" 1;
+    }
 }
 
 

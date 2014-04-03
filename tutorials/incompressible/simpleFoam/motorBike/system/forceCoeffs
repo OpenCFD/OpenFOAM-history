@@ -30,6 +30,7 @@ forceCoeffs1
     magUInf     20;
     lRef        1.42;        // Wheelbase length
     Aref        0.75;        // Estimated
+    porosity    off;
 
     binData
     {

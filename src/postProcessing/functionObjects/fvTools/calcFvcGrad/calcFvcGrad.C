@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -87,29 +87,16 @@ void Foam::calcFvcGrad::read(const dictionary& dict)
     {
         dict.lookup("fieldName") >> fieldName_;
         dict.lookup("resultName") >> resultName_;
+
+        if (resultName_ == "none")
+        {
+            resultName_ = "fvc::grad(" + fieldName_ + ")";
+        }
     }
 }
 
 
 void Foam::calcFvcGrad::execute()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::calcFvcGrad::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::calcFvcGrad::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::calcFvcGrad::write()
 {
     if (active_)
     {
@@ -122,6 +109,39 @@ void Foam::calcFvcGrad::write()
         {
             WarningIn("void Foam::calcFvcGrad::write()")
                 << "Unprocessed field " << fieldName_ << endl;
+        }
+    }
+}
+
+
+void Foam::calcFvcGrad::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+
+void Foam::calcFvcGrad::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::calcFvcGrad::write()
+{
+    if (active_)
+    {
+        if (obr_.foundObject<regIOobject>(resultName_))
+        {
+            const regIOobject& field =
+                obr_.lookupObject<regIOobject>(resultName_);
+
+            Info<< type() << " " << name_ << " output:" << nl
+                << "    writing field " << field.name() << nl << endl;
+
+            field.write();
         }
     }
 }

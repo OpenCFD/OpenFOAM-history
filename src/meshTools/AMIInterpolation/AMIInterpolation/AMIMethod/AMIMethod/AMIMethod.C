@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -98,6 +98,10 @@ bool Foam::AMIMethod<SourcePatch, TargetPatch>::initialise
         (
             "void Foam::AMIMethod<SourcePatch, TargetPatch>::initialise"
             "("
+                "labelListList&, "
+                "scalarListList&, "
+                "labelListList&, "
+                "scalarListList&, "
                 "label&, "
                 "label&"
             ")"
@@ -129,14 +133,24 @@ bool Foam::AMIMethod<SourcePatch, TargetPatch>::initialise
 
         if (!foundFace)
         {
-            FatalErrorIn
-            (
-                "void Foam::AMIMethod<SourcePatch, TargetPatch>::initialise"
-                "("
-                    "label&, "
-                    "label&"
-                ")"
-            )   << "Unable to find initial target face" << abort(FatalError);
+            if (requireMatch_)
+            {
+                FatalErrorIn
+                (
+                    "void Foam::AMIMethod<SourcePatch, TargetPatch>::initialise"
+                    "("
+                        "labelListList&, "
+                        "scalarListList&, "
+                        "labelListList&, "
+                        "scalarListList&, "
+                        "label&, "
+                        "label&"
+                    ")"
+                )   << "Unable to find initial target face"
+                    << abort(FatalError);
+            }
+
+            return false;
         }
     }
 
@@ -327,24 +341,19 @@ Foam::AMIMethod<SourcePatch, TargetPatch>::AMIMethod
     const scalarField& srcMagSf,
     const scalarField& tgtMagSf,
     const faceAreaIntersect::triangulationMode& triMode,
-    const bool reverseTarget
+    const bool reverseTarget,
+    const bool requireMatch
 )
 :
     srcPatch_(srcPatch),
     tgtPatch_(tgtPatch),
     reverseTarget_(reverseTarget),
+    requireMatch_(requireMatch),
     srcMagSf_(srcMagSf),
     tgtMagSf_(tgtMagSf),
     srcNonOverlap_(),
     triMode_(triMode)
-{
-    label srcSize = returnReduce(srcPatch_.size(), sumOp<label>());
-    label tgtSize = returnReduce(tgtPatch_.size(), sumOp<label>());
-
-    IInfo<< "AMI: Creating addressing and weights between "
-        << srcSize << " source faces and " << tgtSize << " target faces"
-        << endl;
-}
+{}
 
 
 // * * * * * * * * * * * * * * * * Destructor * * * * * * * * * * * * * * * //

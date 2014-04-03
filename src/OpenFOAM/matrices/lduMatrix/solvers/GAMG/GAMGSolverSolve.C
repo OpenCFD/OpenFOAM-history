@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -69,7 +69,11 @@ Foam::solverPerformance Foam::GAMGSolver::solve
 
 
     // Check convergence, solve if not converged
-    if (!solverPerf.checkConvergence(tolerance_, relTol_))
+    if
+    (
+        minIter_ > 0
+     || !solverPerf.checkConvergence(tolerance_, relTol_)
+    )
     {
         // Create coarse grid correction fields
         PtrList<scalarField> coarseCorrFields;
@@ -127,12 +131,15 @@ Foam::solverPerformance Foam::GAMGSolver::solve
 
             if (debug >= 2)
             {
-                solverPerf.print(Info(matrix().mesh().comm()));
+                solverPerf.print(Info.masterStream(matrix().mesh().comm()));
             }
         } while
         (
-            ++solverPerf.nIterations() < maxIter_
-         && !(solverPerf.checkConvergence(tolerance_, relTol_))
+            (
+              ++solverPerf.nIterations() < maxIter_
+            && !solverPerf.checkConvergence(tolerance_, relTol_)
+            )
+         || solverPerf.nIterations() < minIter_
         );
     }
 
@@ -345,7 +352,11 @@ void Foam::GAMGSolver::Vcycle
 
             // Scale coarse-grid correction field
             // but not on the coarsest level because it evaluates to 1
-            if (scaleCorrection_ && leveli < coarsestLevel - 1)
+            if
+            (
+                scaleCorrection_
+             && (interpolateCorrection_ || leveli < coarsestLevel - 1)
+            )
             {
                 scale
                 (
@@ -624,7 +635,7 @@ void Foam::GAMGSolver::solveCoarsestLevel
     //
     //    if (debug >= 2)
     //    {
-    //        coarseSolverPerf.print(Info(coarseComm));
+    //        coarseSolverPerf.print(Info.masterStream(coarseComm));
     //    }
     //
     //    Pout<< "procAgglom: coarsestSource   :" << coarsestSource << endl;
@@ -672,7 +683,7 @@ void Foam::GAMGSolver::solveCoarsestLevel
 
         if (debug >= 2)
         {
-            coarseSolverPerf.print(Info(coarseComm));
+            coarseSolverPerf.print(Info.masterStream(coarseComm));
         }
     }
 

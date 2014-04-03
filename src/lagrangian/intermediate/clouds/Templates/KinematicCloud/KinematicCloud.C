@@ -308,7 +308,7 @@ Foam::KinematicCloud<CloudType>::KinematicCloud
         )
     ),
     solution_(mesh_, particleProperties_.subDict("solution")),
-    constProps_(particleProperties_, solution_.active()),
+    constProps_(particleProperties_),
     subModelProperties_
     (
         particleProperties_.subOrEmptyDict("subModels", solution_.active())
@@ -321,6 +321,7 @@ Foam::KinematicCloud<CloudType>::KinematicCloud
       : -1
     ),
     cellOccupancyPtr_(),
+    cellLengthScale_(cbrt(mesh_.V())),
     rho_(rho),
     U_(U),
     mu_(mu),
@@ -421,6 +422,7 @@ Foam::KinematicCloud<CloudType>::KinematicCloud
     subModelProperties_(c.subModelProperties_),
     rndGen_(c.rndGen_, true),
     cellOccupancyPtr_(NULL),
+    cellLengthScale_(c.cellLengthScale_),
     rho_(c.rho_),
     U_(c.U_),
     mu_(c.mu_),
@@ -511,6 +513,7 @@ Foam::KinematicCloud<CloudType>::KinematicCloud
     subModelProperties_(dictionary::null),
     rndGen_(0, 0),
     cellOccupancyPtr_(NULL),
+    cellLengthScale_(c.cellLengthScale_),
     rho_(c.rho_),
     U_(c.U_),
     mu_(c.mu_),
@@ -842,7 +845,9 @@ void Foam::KinematicCloud<CloudType>::patchData
 template<class CloudType>
 void Foam::KinematicCloud<CloudType>::updateMesh()
 {
+    updateCellOccupancy();
     injectors_.updateMesh();
+    cellLengthScale_ = cbrt(mesh_.V());
 }
 
 

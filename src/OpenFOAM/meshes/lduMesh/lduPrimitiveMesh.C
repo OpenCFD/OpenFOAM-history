@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,7 @@ namespace Foam
 {
     defineTypeNameAndDebug(lduPrimitiveMesh, 0);
 
-    //- Less operator for pairs of <processor><index>
+    //- Less operator for pairs of \<processor\>\<index\>
     class procLess
     {
         const labelPairList& lst_;
@@ -400,7 +400,7 @@ Foam::lduPrimitiveMesh::lduPrimitiveMesh
         const lduInterfacePtrsList interfaces =
             mesh(myMesh, otherMeshes, procMeshI).interfaces();
 
-        // Inialise all boundaries as merged
+        // Initalise all boundaries as merged
         boundaryMap[procMeshI].setSize(interfaces.size(), -1);
         boundaryFaceMap[procMeshI].setSize(interfaces.size());
 

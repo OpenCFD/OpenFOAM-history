@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,7 +28,7 @@ Group
     grpIcoWallFunctions
 
 Description
-    This boundary condition provides a wall function constraint on turbulnce
+    This boundary condition provides a wall function constraint on turbulence
     specific dissipation, omega.  The values are computed using:
 
         \f[

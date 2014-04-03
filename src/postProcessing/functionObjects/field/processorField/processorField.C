@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -50,7 +50,32 @@ Foam::processorField::processorField
     active_(true)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
-    if (!isA<fvMesh>(obr_))
+    if (isA<fvMesh>(obr_))
+    {
+        read(dict);
+
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+        volScalarField* procFieldPtr
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    "processorID",
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh,
+                dimensionedScalar("0", dimless, 0.0)
+            )
+        );
+
+        mesh.objectRegistry::store(procFieldPtr);
+    }
+    else
     {
         active_ = false;
         WarningIn
@@ -62,11 +87,9 @@ Foam::processorField::processorField
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating."
+        )   << "No fvMesh available, deactivating " << name_
             << endl;
     }
-
-    read(dict);
 }
 
 
@@ -86,13 +109,23 @@ void Foam::processorField::read(const dictionary& dict)
 
 void Foam::processorField::execute()
 {
-    // Do nothing
+    if (active_)
+    {
+        const volScalarField& procField =
+            obr_.lookupObject<volScalarField>("processorID");
+
+        const_cast<volScalarField&>(procField) ==
+            dimensionedScalar("procI", dimless, Pstream::myProcNo());
+    }
 }
 
 
 void Foam::processorField::end()
 {
-    // Do nothing
+    if (active_)
+    {
+        execute();
+    }
 }
 
 
@@ -106,20 +139,8 @@ void Foam::processorField::write()
 {
     if (active_)
     {
-        const fvMesh& mesh = refCast<const fvMesh>(obr_);
-        volScalarField procField
-        (
-            IOobject
-            (
-                "processorID",
-                mesh.time().timeName(),
-                mesh,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh,
-            dimensionedScalar("procI", dimless, Pstream::myProcNo())
-        );
+        const volScalarField& procField =
+            obr_.lookupObject<volScalarField>("processorID");
 
         procField.write();
     }

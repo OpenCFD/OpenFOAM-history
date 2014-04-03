@@ -23,10 +23,11 @@ solvers
         nAlphaSubCycles 2;
         implicitPhasePressure yes;
 
-        solver          PCG;
-        preconditioner  DIC;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-9;
         relTol          0;
+        minIter         1;
     }
 
     p
@@ -53,49 +54,50 @@ solvers
 
     "U.*"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-05;
         relTol          0;
+        minIter         1;
     }
 
     "(h|e).*"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-6;
         relTol          0;
+        minIter         1;
     }
 
     "Theta.*"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-6;
         relTol          0;
+        minIter         1;
     }
 
     "(k|epsilon).*"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-05;
         relTol          0;
+        minIter         1;
     }
 }
 
 PIMPLE
 {
     nOuterCorrectors 1;
-    nCorrectors     3;
+    nCorrectors     2;
     nNonOrthogonalCorrectors 0;
 }
 
 relaxationFactors
 {
-    fields
-    {
-    }
     equations
     {
         ".*"            1;

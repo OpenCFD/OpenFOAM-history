@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,7 +25,7 @@ Class
     Foam::ODESolver
 
 Description
-    Selection for ODE solver
+    Abstract base-class for ODE system solvers
 
 SourceFiles
     ODESolver.C
@@ -35,7 +35,7 @@ SourceFiles
 #ifndef ODESolver_H
 #define ODESolver_H
 
-#include "ODE.H"
+#include "ODESystem.H"
 #include "typeInfo.H"
 #include "autoPtr.H"
 
@@ -53,14 +53,33 @@ class ODESolver
 
 protected:
 
-    // Private data
+    // Protected data
 
+        //- Reference to ODESystem
+        const ODESystem& odes_;
+
+        //- Size of the ODESystem
         label n_;
-        mutable scalarField yScale_;
-        mutable scalarField dydx_;
+
+        //- Absolute convergence tolerance per step
+        scalarField absTol_;
+
+        //- Relative convergence tolerance per step
+        scalarField relTol_;
+
+        //- The maximum number of sub-steps allowed for the integration step
+        label maxSteps_;
 
 
-    // Private Member Functions
+    // Protected Member Functions
+
+        //- Return the nomalized scalar error
+        scalar normalizeError
+        (
+            const scalarField& y0,
+            const scalarField& y,
+            const scalarField& err
+        ) const;
 
         //- Disallow default bitwise copy construct
         ODESolver(const ODESolver&);
@@ -74,6 +93,30 @@ public:
     //- Runtime type information
     TypeName("ODESolver");
 
+    class stepState
+    {
+        public:
+
+        const bool forward;
+        scalar dxTry;
+        scalar dxDid;
+        bool first;
+        bool last;
+        bool reject;
+        bool prevReject;
+
+        stepState(const scalar dx)
+        :
+            forward(dx > 0 ? true : false),
+            dxTry(dx),
+            dxDid(0),
+            first(true),
+            last(false),
+            reject(false),
+            prevReject(false)
+        {}
+    };
+
 
     // Declare run-time constructor selection table
 
@@ -81,16 +124,24 @@ public:
         (
             autoPtr,
             ODESolver,
-            ODE,
-            (const ODE& ode),
-            (ode)
+            dictionary,
+            (const ODESystem& ode, const dictionary& dict),
+            (ode, dict)
         );
 
 
     // Constructors
 
-        //- Construct for given ODE
-        ODESolver(const ODE& ode);
+        //- Construct for given ODESystem
+        ODESolver(const ODESystem& ode, const dictionary& dict);
+
+        //- Construct for given ODESystem specifying tolerances
+        ODESolver
+        (
+            const ODESystem& ode,
+            const scalarField& absTol,
+            const scalarField& relTol
+        );
 
 
     // Selectors
@@ -98,8 +149,8 @@ public:
         //- Select null constructed
         static autoPtr<ODESolver> New
         (
-            const word& ODESolverTypeName,
-            const ODE& ode
+            const ODESystem& ode,
+            const dictionary& dict
         );
 
 
@@ -110,28 +161,51 @@ public:
 
     // Member Functions
 
+        scalarField& absTol()
+        {
+            return absTol_;
+        }
+
+        scalarField& relTol()
+        {
+            return relTol_;
+        }
+
+        //- Solve the ODE system as far as possible upto dxTry
+        //  adjusting the step as necessary to provide a solution within
+        //  the specified tolerance.
+        //  Update the state and return an estimate for the next step in dxTry
         virtual void solve
         (
-            const ODE& ode,
             scalar& x,
             scalarField& y,
-            scalarField& dydx,
-            const scalar eps,
-            const scalarField& yScale,
-            const scalar hTry,
-            scalar& hDid,
-            scalar& hNext
-        ) const = 0;
+            scalar& dxTry
+        ) const //= 0;
+        {
+            stepState step(dxTry);
+            solve(x, y, step);
+            dxTry = step.dxTry;
+        }
 
-
+        //- Solve the ODE system as far as possible upto dxTry
+        //  adjusting the step as necessary to provide a solution within
+        //  the specified tolerance.
+        //  Update the state and return an estimate for the next step in dxTry
         virtual void solve
         (
-            const ODE& ode,
+            scalar& x,
+            scalarField& y,
+            stepState& step
+        ) const;
+
+        //- Solve the ODE system from xStart to xEnd, update the state
+        //  and return an estimate for the next step in dxTry
+        virtual void solve
+        (
             const scalar xStart,
             const scalar xEnd,
             scalarField& y,
-            const scalar eps,
-            scalar& hEst
+            scalar& dxEst
         ) const;
 };
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,7 @@ License
 
 namespace Foam
 {
-defineTypeNameAndDebug(Peclet, 0);
+    defineTypeNameAndDebug(Peclet, 0);
 }
 
 
@@ -68,7 +68,7 @@ Foam::Peclet::Peclet
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating." << nl
+        )   << "No fvMesh available, deactivating " << name_ << nl
             << endl;
     }
 
@@ -119,23 +119,6 @@ void Foam::Peclet::read(const dictionary& dict)
 
 
 void Foam::Peclet::execute()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::Peclet::end()
-{
-    // Do nothing - only valid on write
-}
-
-void Foam::Peclet::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::Peclet::write()
 {
     typedef compressible::turbulenceModel cmpTurbModel;
     typedef incompressible::turbulenceModel icoTurbModel;
@@ -208,6 +191,30 @@ void Foam::Peclet::write()
                *mesh.surfaceInterpolation::deltaCoeffs()
                *fvc::interpolate(nuEff)
             );
+    }
+}
+
+
+void Foam::Peclet::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+void Foam::Peclet::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::Peclet::write()
+{
+    if (active_)
+    {
+        const surfaceScalarField& Peclet =
+            obr_.lookupObject<surfaceScalarField>(type());
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << Peclet.name() << nl

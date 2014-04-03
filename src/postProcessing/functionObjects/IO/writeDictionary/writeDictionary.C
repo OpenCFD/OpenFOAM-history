@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,7 @@ defineTypeNameAndDebug(writeDictionary, 0);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-bool Foam::writeDictionary::tryFolder
+bool Foam::writeDictionary::tryDirectory
 (
     const label dictI,
     const word& location,
@@ -121,7 +121,7 @@ void Foam::writeDictionary::read(const dictionary& dict)
 
     digests_.setSize(dictNames_.size(), SHA1Digest());
 
-    Info<< type() << ": monitoring dictionaries:" << nl;
+    Info<< type() << " " << name_ << ": monitoring dictionaries:" << nl;
     if (dictNames_.size())
     {
         forAll(dictNames_, i)
@@ -151,7 +151,7 @@ void Foam::writeDictionary::execute()
             {
                 if (firstDict)
                 {
-                    Info<< type() << " output:" << nl << endl;
+                    Info<< type() << " " << name_ << " output:" << nl << endl;
 
                     IOobject::writeDivider(Info);
                     Info<< endl;
@@ -167,16 +167,16 @@ void Foam::writeDictionary::execute()
         }
         else
         {
-            bool processed = tryFolder(i, obr_.time().timeName(), firstDict);
+            bool processed = tryDirectory(i, obr_.time().timeName(), firstDict);
 
             if (!processed)
             {
-                processed = tryFolder(i, obr_.time().constant(), firstDict);
+                processed = tryDirectory(i, obr_.time().constant(), firstDict);
             }
 
             if (!processed)
             {
-                processed = tryFolder(i, obr_.time().system(), firstDict);
+                processed = tryDirectory(i, obr_.time().system(), firstDict);
             }
 
             if (!processed)
@@ -195,7 +195,7 @@ void Foam::writeDictionary::execute()
 
 void Foam::writeDictionary::end()
 {
-    // do nothing
+    execute();
 }
 
 

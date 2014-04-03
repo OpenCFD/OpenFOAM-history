@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -457,13 +457,13 @@ Foam::wallBoundedStreamLine::wallBoundedStreamLine
         WarningIn
         (
             "wallBoundedStreamLine::wallBoundedStreamLine\n"
-            "(\n"
-                "const word&,\n"
-                "const objectRegistry&,\n"
-                "const dictionary&,\n"
-                "const bool\n"
+            "("
+                "const word&, "
+                "const objectRegistry&, "
+                "const dictionary&, "
+                "const bool "
             ")"
-        )   << "No fvMesh available, deactivating."
+        )   << "No fvMesh available, deactivating " << name_
             << nl << endl;
     }
 }
@@ -584,11 +584,11 @@ void Foam::wallBoundedStreamLine::read(const dictionary& dict)
             {
                 label nFaces = returnReduce(faces.size(), sumOp<label>());
 
-                WarningIn("wallBoundedStreamLine::track()")
+                WarningIn("wallBoundedStreamLine::read(const dictionary&)")
                     << "Found " << nFaces
                     <<" faces with low quality or negative volume "
                     << "decomposition tets. Writing to faceSet " << faces.name()
-                    << endl;    //exit(FatalError);
+                    << endl;
             }
 
             // 2. all edges on a cell having two faces
@@ -625,7 +625,7 @@ void Foam::wallBoundedStreamLine::read(const dictionary& dict)
                     {
                         FatalErrorIn
                         (
-                            "wallBoundedStreamLine::read(..)"
+                            "wallBoundedStreamLine::read(const dictionary&)"
                         )   << "problem cell:" << cellI
                             << abort(FatalError);
                     }
@@ -705,41 +705,56 @@ void Foam::wallBoundedStreamLine::write()
 
             // Distribute the track positions. Note: use scheduled comms
             // to prevent buffering.
-            mapDistribute::distribute
+            allTracks_.shrink();
+            mapDistributeBase::distribute
             (
                 Pstream::scheduled,
                 distMap.schedule(),
                 distMap.constructSize(),
                 distMap.subMap(),
+                false,
                 distMap.constructMap(),
-                allTracks_
+                false,
+                allTracks_,
+                flipOp()
             );
+            allTracks_.setCapacity(allTracks_.size());
 
             // Distribute the scalars
             forAll(allScalars_, scalarI)
             {
-                mapDistribute::distribute
+                allScalars_[scalarI].shrink();
+                mapDistributeBase::distribute
                 (
                     Pstream::scheduled,
                     distMap.schedule(),
                     distMap.constructSize(),
                     distMap.subMap(),
+                    false,
                     distMap.constructMap(),
-                    allScalars_[scalarI]
+                    false,
+                    allScalars_[scalarI],
+                    flipOp()
                 );
+                allScalars_[scalarI].setCapacity(allScalars_[scalarI].size());
             }
             // Distribute the vectors
             forAll(allVectors_, vectorI)
             {
-                mapDistribute::distribute
+                allVectors_[vectorI].shrink();
+                mapDistributeBase::distribute
                 (
                     Pstream::scheduled,
                     distMap.schedule(),
                     distMap.constructSize(),
                     distMap.subMap(),
+                    false,
                     distMap.constructMap(),
-                    allVectors_[vectorI]
+                    false,
+                    allVectors_[vectorI],
+                    flipOp()
                 );
+                allVectors_[vectorI].setCapacity(allVectors_[vectorI].size());
             }
         }
 
@@ -750,8 +765,8 @@ void Foam::wallBoundedStreamLine::write()
             n += allTracks_[trackI].size();
         }
 
-        Info<< "Tracks:" << allTracks_.size()
-            << "  total samples:" << n << endl;
+        Info<< "    Tracks:" << allTracks_.size() << nl
+            << "    Total samples:" << n << endl;
 
 
         // Massage into form suitable for writers

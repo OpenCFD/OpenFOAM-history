@@ -26,8 +26,6 @@ dynamicRefineFvMeshCoeffs
     // Refine field inbetween lower..upper
     lowerRefineLevel 0.001;
     upperRefineLevel 0.999;
-    // If value < unrefineLevel unrefine
-    unrefineLevel   10;
     // Have slower than 2:1 refinement
     nBufferLayers   1;
     // Refine cells only up to maxRefinement levels
@@ -41,7 +39,7 @@ dynamicRefineFvMeshCoeffs
     (
         (phi none)
         (nHatf none)
-        (rho*phi none)
+        (rhoPhi none)
         (ghf none)
     );
     // Write the refinement level as a volScalarField

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,8 +37,6 @@ Description
         // Refine field inbetween lower..upper
         lowerRefineLevel 0.001;
         upperRefineLevel 0.999;
-        // If value < unrefineLevel unrefine
-        unrefineLevel   10;
         // Have slower than 2:1 refinement
         nBufferLayers   1;
         // Refine cells only up to maxRefinement levels
@@ -79,7 +77,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class dynamicRefineFvMesh Declaration
+                     Class dynamicRefineFvMesh Declaration
 \*---------------------------------------------------------------------------*/
 
 class dynamicRefineFvMesh
@@ -179,6 +177,12 @@ protected:
             //- Extend markedCell with cell-face-cell.
             void extendMarkedCells(PackedBoolList& markedCell) const;
 
+            //- Check all cells have 8 anchor points
+            void checkEightAnchorPoints
+            (
+                PackedBoolList& protectedCell,
+                label& nProtected
+            ) const;
 
 private:
 

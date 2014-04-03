@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -27,6 +27,7 @@ License
 #include "Time.H"
 #include "polyMesh.H"
 #include "dlLibraryTable.H"
+#include "twoDPointCorrector.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -68,11 +69,10 @@ Foam::motionSolver::motionSolver(const polyMesh& mesh)
             mesh.time().constant(),
             mesh,
             IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         )
     ),
-    mesh_(mesh),
-    twoDPointCorrector_(mesh)
+    mesh_(mesh)
 {}
 
 
@@ -85,7 +85,6 @@ Foam::motionSolver::motionSolver
 :
     IOdictionary(stealRegistration(dict), dict),
     mesh_(mesh),
-    twoDPointCorrector_(mesh),
     coeffDict_(dict.subDict(type + "Coeffs"))
 {}
 
@@ -147,7 +146,7 @@ Foam::autoPtr<Foam::motionSolver> Foam::motionSolver::New(const polyMesh& mesh)
             mesh.time().constant(),
             mesh,
             IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         )
     );
 
@@ -172,13 +171,37 @@ Foam::tmp<Foam::pointField> Foam::motionSolver::newPoints()
 
 void Foam::motionSolver::twoDCorrectPoints(pointField& p) const
 {
-    twoDPointCorrector_.correctPoints(p);
+    twoDPointCorrector::New(mesh_).correctPoints(p);
 }
 
 
 void Foam::motionSolver::updateMesh(const mapPolyMesh& mpm)
+{}
+
+
+bool Foam::motionSolver::writeObject
+(
+    IOstream::streamFormat fmt,
+    IOstream::versionNumber ver,
+    IOstream::compressionType cmp
+) const
 {
-    twoDPointCorrector_.updateMesh();
+    return true;
+}
+
+
+bool Foam::motionSolver::read()
+{
+    if (regIOobject::read())
+    {
+        coeffDict_ = subDict(type() + "Coeffs");
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -33,6 +33,7 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "mappedWallPolyPatch.H"
 #include "mapDistribute.H"
+#include "filmThermoModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -72,22 +73,9 @@ bool kinematicSingleLayer::read()
 
 void kinematicSingleLayer::correctThermoFields()
 {
-    if (thermoModel_ == tmConstant)
-    {
-        const dictionary& constDict(coeffs_.subDict("constantThermoCoeffs"));
-        rho_ == dimensionedScalar(constDict.lookup("rho0"));
-        mu_ == dimensionedScalar(constDict.lookup("mu0"));
-        sigma_ == dimensionedScalar(constDict.lookup("sigma0"));
-    }
-    else
-    {
-        FatalErrorIn
-        (
-            "void Foam::surfaceFilmModels::kinematicSingleLayer::"
-            "correctThermo()"
-        )   << "Kinematic surface film must use "
-            << thermoModelTypeNames_[tmConstant] << "thermodynamics" << endl;
-    }
+    rho_ == filmThermo_->rho();
+    mu_ == filmThermo_->mu();
+    sigma_ == filmThermo_->sigma();
 }
 
 
@@ -148,6 +136,16 @@ void kinematicSingleLayer::transferPrimaryRegionSourceFields()
     rhoSp_.correctBoundaryConditions();
     USp_.correctBoundaryConditions();
     pSp_.correctBoundaryConditions();
+
+    // update addedMassTotal counter
+    if (time().outputTime())
+    {
+        scalar addedMassTotal = 0.0;
+        outputProperties().readIfPresent("addedMassTotal", addedMassTotal);
+        addedMassTotal += returnReduce(addedMassTotal_, sumOp<scalar>());
+        outputProperties().add("addedMassTotal", addedMassTotal, true);
+        addedMassTotal_ = 0.0;
+    }
 }
 
 
@@ -195,7 +193,7 @@ tmp<volScalarField> kinematicSingleLayer::pp()
 
 void kinematicSingleLayer::correctAlpha()
 {
-    alpha_ == pos(delta_ - dimensionedScalar("SMALL", dimLength, SMALL));
+    alpha_ == pos(delta_ - deltaSmall_);
 }
 
 
@@ -235,7 +233,7 @@ void kinematicSingleLayer::continuityCheck()
                 fvc::domainIntegrate(mag(mass - magSf()*deltaRho0))/totalMass
             ).value();
 
-       const scalar globalContErr =
+        const scalar globalContErr =
             (
                 fvc::domainIntegrate(mass - magSf()*deltaRho0)/totalMass
             ).value();
@@ -435,10 +433,11 @@ kinematicSingleLayer::kinematicSingleLayer
     const word& modelType,
     const fvMesh& mesh,
     const dimensionedVector& g,
+    const word& regionType,
     const bool readFields
 )
 :
-    surfaceFilmModel(modelType, mesh, g),
+    surfaceFilmModel(modelType, mesh, g, regionType),
 
     momentumPredictor_(solution().subDict("PISO").lookup("momentumPredictor")),
     nOuterCorr_(solution().subDict("PISO").lookupOrDefault("nOuterCorr", 1)),
@@ -449,6 +448,9 @@ kinematicSingleLayer::kinematicSingleLayer
     ),
 
     cumulativeContErr_(0.0),
+
+    deltaSmall_("deltaSmall", dimLength, SMALL),
+    deltaCoLimit_(solution().lookupOrDefault("deltaCoLimit", 1e-4)),
 
     rho_
     (
@@ -772,6 +774,8 @@ kinematicSingleLayer::kinematicSingleLayer
         this->mappedFieldAndInternalPatchTypes<scalar>()
     ),
 
+    filmThermo_(filmThermoModel::New(*this, coeffs_)),
+
     availableMass_(regionMesh().nCells(), 0.0),
 
     injection_(*this, coeffs_),
@@ -785,6 +789,8 @@ kinematicSingleLayer::kinematicSingleLayer
     if (readFields)
     {
         transferPrimaryRegionThermoFields();
+
+        correctAlpha();
 
         correctThermoFields();
 
@@ -903,15 +909,17 @@ scalar kinematicSingleLayer::CourantNumber() const
 
     if (regionMesh().nInternalFaces() > 0)
     {
-        const scalarField sumPhi(fvc::surfaceSum(mag(phi_)));
+        const scalarField sumPhi
+        (
+            fvc::surfaceSum(mag(phi_))().internalField()
+          / (deltaRho_.internalField() + ROOTVSMALL)
+        );
 
-        const scalarField& V = regionMesh().V();
-
-        forAll(deltaRho_, i)
+        forAll(delta_, i)
         {
-            if (deltaRho_[i] > SMALL)
+            if (delta_[i] > deltaCoLimit_)
             {
-                CoNum = max(CoNum, sumPhi[i]/deltaRho_[i]/V[i]);
+                CoNum = max(CoNum, sumPhi[i]/(delta_[i]*magSf()[i]));
             }
         }
 
@@ -941,6 +949,12 @@ const volVectorField& kinematicSingleLayer::Us() const
 const volVectorField& kinematicSingleLayer::Uw() const
 {
     return Uw_;
+}
+
+
+const volScalarField& kinematicSingleLayer::deltaRho() const
+{
+    return deltaRho_;
 }
 
 
@@ -1051,9 +1065,11 @@ void kinematicSingleLayer::info() const
 
     const scalarField& deltaInternal = delta_.internalField();
     const vectorField& Uinternal = U_.internalField();
+    scalar addedMassTotal = 0.0;
+    outputProperties().readIfPresent("addedMassTotal", addedMassTotal);
+    addedMassTotal += returnReduce(addedMassTotal_, sumOp<scalar>());
 
-    Info<< indent << "added mass         = "
-        << returnReduce<scalar>(addedMassTotal_, sumOp<scalar>()) << nl
+    Info<< indent << "added mass         = " << addedMassTotal << nl
         << indent << "current mass       = "
         << gSum((deltaRho_*magSf())()) << nl
         << indent << "min/max(mag(U))    = " << gMin(mag(Uinternal)) << ", "

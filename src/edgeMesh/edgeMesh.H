@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -27,10 +27,14 @@ Class
 Description
     Points connected by edges.
 
+    Can be read from fileName based on extension. Uses ::New factory method
+    to select the reader and transfer the result.
+
 SourceFiles
     edgeMeshI.H
     edgeMesh.C
     edgeMeshIO.C
+    edgeMeshNew.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -252,7 +256,7 @@ public:
 
     // Write
 
-        void writeStats(Ostream&) const;
+        virtual void writeStats(Ostream&) const;
 
         //- Generic write routine. Chooses writer based on extension.
         virtual void write(const fileName& name) const

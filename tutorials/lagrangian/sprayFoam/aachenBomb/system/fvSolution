@@ -32,20 +32,26 @@ solvers
         relTol          0;
     }
 
-    "(U|h)"
+    "(U|k|epsilon)"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
-        tolerance       1e-05;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-06;
         relTol          0.1;
     }
 
     p
     {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-06;
+        solver          GAMG;
+        tolerance       0;
         relTol          0.1;
+        smoother        GaussSeidel;
+        nPreSweeps      0;
+        nPostSweeps     2;
+        cacheAgglomeration true;
+        nCellsInCoarsestLevel 10;
+        agglomerator    faceAreaPair;
+        mergeLevels     1;
     }
 
     pFinal
@@ -55,26 +61,30 @@ solvers
         relTol          0;
     }
 
-    "(U|h)Final"
+    "(U|k|epsilon)Final"
     {
         $U;
-        tolerance       1e-05;
+        tolerance       1e-06;
         relTol          0;
-    }
-
-    "(k|epsilon)"
-    {
-        $U;
-    }
-
-    "(k|epsilon)Final"
-    {
-        $UFinal;
     }
 
     "(Yi|O2|N2|H2O)"
     {
-        $UFinal;
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-6;
+        relTol          0;
+    }
+
+    h
+    {
+        $Yi;
+        relTol          0.1;
+    }
+
+    hFinal
+    {
+        $Yi;
     }
 }
 

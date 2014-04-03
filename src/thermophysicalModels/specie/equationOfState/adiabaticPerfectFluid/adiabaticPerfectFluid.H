@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -84,7 +84,7 @@ Ostream& operator<<
 
 
 /*---------------------------------------------------------------------------*\
-                           Class adiabaticPerfectFluid Declaration
+                    Class adiabaticPerfectFluid Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Specie>

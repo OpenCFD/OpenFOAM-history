@@ -54,6 +54,9 @@ namespace regionModels
 namespace surfaceFilmModels
 {
 
+// Forward class declarations
+class filmThermoModel;
+
 /*---------------------------------------------------------------------------*\
                    Class kinematicSingleLayer Declaration
 \*---------------------------------------------------------------------------*/
@@ -93,6 +96,12 @@ protected:
 
             //- Cumulative continuity error
             scalar cumulativeContErr_;
+
+            //- Small delta
+            const dimensionedScalar deltaSmall_;
+
+            //- Film thickness above which Courant number calculation in valid
+            scalar deltaCoLimit_;
 
 
         // Thermo properties
@@ -191,6 +200,9 @@ protected:
 
 
         // Sub-models
+
+            //- Film thermo model
+            autoPtr<filmThermoModel> filmThermo_;
 
             //- Available mass for transfer via sub-models
             scalarField availableMass_;
@@ -291,6 +303,7 @@ public:
             const word& modelType,
             const fvMesh& mesh,
             const dimensionedVector& g,
+            const word& regionType,
             const bool readFields = true
         );
 
@@ -318,6 +331,9 @@ public:
             //- Return the number of non-orthogonal correctors
             inline label nNonOrthCorr() const;
 
+            //- Return small delta
+            inline const dimensionedScalar& deltaSmall() const;
+
 
         // Thermo properties
 
@@ -344,6 +360,9 @@ public:
 
             //- Return the film wall velocity [m/s]
             virtual const volVectorField& Uw() const;
+
+            //- Return the film thickness*density (helper field) [kg/m3]
+            virtual const volScalarField& deltaRho() const;
 
             //- Return the film flux [kg.m/s]
             virtual const surfaceScalarField& phi() const;
@@ -445,6 +464,9 @@ public:
 
         // Sub-models
 
+            //- Film thermo
+            inline const filmThermoModel& filmThermo() const;
+
             //- Injection
             inline injectionModelList& injection();
 
@@ -459,6 +481,9 @@ public:
 
             //- Return the net film mass available over the next integration
             inline tmp<volScalarField> netMass() const;
+
+            //- Return the change in film mass due to sources/sinks
+            inline tmp<volScalarField> deltaMass() const;
 
             //- Return the gravity normal-to-patch component contribution
             inline tmp<volScalarField> gNorm() const;

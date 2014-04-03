@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -45,7 +45,7 @@ void Foam::fieldValue::read(const dictionary& dict)
     {
         dict_ = dict;
 
-        log_ = dict.lookupOrDefault<Switch>("log", false);
+        log_ = dict.lookupOrDefault<Switch>("log", true);
         dict.lookup("fields") >> fields_;
         dict.lookup("valueOutput") >> valueOutput_;
     }
@@ -58,10 +58,7 @@ void Foam::fieldValue::write()
     {
         functionObjectFile::write();
 
-        if (log_)
-        {
-            Info<< type() << " " << name_ << " output:" << nl;
-        }
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
     }
 }
 
@@ -82,7 +79,7 @@ Foam::fieldValue::fieldValue
     obr_(obr),
     dict_(dict),
     active_(true),
-    log_(false),
+    log_(true),
     sourceName_(dict.lookupOrDefault<word>("sourceName", "sampledSurface")),
     fields_(dict.lookup("fields")),
     valueOutput_(dict.lookup("valueOutput")),
@@ -104,8 +101,8 @@ Foam::fieldValue::fieldValue
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating."
-            << nl << endl;
+        )   << "No fvMesh available, deactivating " << name << nl
+            << endl;
         active_ = false;
     }
 }

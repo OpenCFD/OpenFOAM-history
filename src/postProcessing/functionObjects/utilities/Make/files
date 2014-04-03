@@ -12,6 +12,9 @@ Peclet/PecletFunctionObject.C
 Q/Q.C
 Q/QFunctionObject.C
 
+blendingFactor/blendingFactor.C
+blendingFactor/blendingFactorFunctionObject.C
+
 DESModelRegions/DESModelRegions.C
 DESModelRegions/DESModelRegionsFunctionObject.C
 
@@ -27,6 +30,9 @@ scalarTransport/scalarTransportFunctionObject.C
 timeActivatedFileUpdate/timeActivatedFileUpdate.C
 timeActivatedFileUpdate/timeActivatedFileUpdateFunctionObject.C
 
+turbulenceFields/turbulenceFields.C
+turbulenceFields/turbulenceFieldsFunctionObject.C
+
 wallShearStress/wallShearStress.C
 wallShearStress/wallShearStressFunctionObject.C
 
@@ -35,5 +41,7 @@ yPlusLES/yPlusLESFunctionObject.C
 
 yPlusRAS/yPlusRAS.C
 yPlusRAS/yPlusRASFunctionObject.C
+
+setTimeStep/setTimeStepFunctionObject.C
 
 LIB = $(FOAM_LIBBIN)/libutilityFunctionObjects

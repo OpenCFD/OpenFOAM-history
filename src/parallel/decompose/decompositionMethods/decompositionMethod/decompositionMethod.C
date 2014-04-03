@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -50,12 +50,6 @@ Foam::autoPtr<Foam::decompositionMethod> Foam::decompositionMethod::New
 )
 {
     word methodType(decompositionDict.lookup("method"));
-
-    if (methodType == "scotch" && Pstream::parRun())
-    {
-        methodType = "ptscotch";
-    }
-
 
     Info<< "Selecting decompositionMethod " << methodType << endl;
 
@@ -365,6 +359,210 @@ void Foam::decompositionMethod::calcCellCells
     //        Pout<< "    nbr:" << cCells[i] << endl;
     //    }
     //}
+}
+
+
+void Foam::decompositionMethod::calcCellCells
+(
+    const polyMesh& mesh,
+    const labelList& agglom,
+    const label nLocalCoarse,
+    const bool parallel,
+    CompactListList<label>& cellCells,
+    CompactListList<scalar>& cellCellWeights
+)
+{
+    const labelList& faceOwner = mesh.faceOwner();
+    const labelList& faceNeighbour = mesh.faceNeighbour();
+    const polyBoundaryMesh& patches = mesh.boundaryMesh();
+
+
+    // Create global cell numbers
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    globalIndex globalAgglom
+    (
+        nLocalCoarse,
+        Pstream::msgType(),
+        Pstream::worldComm,
+        parallel
+    );
+
+
+    // Get agglomerate owner on other side of coupled faces
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    labelList globalNeighbour(mesh.nFaces()-mesh.nInternalFaces());
+
+    forAll(patches, patchI)
+    {
+        const polyPatch& pp = patches[patchI];
+
+        if (pp.coupled() && (parallel || !isA<processorPolyPatch>(pp)))
+        {
+            label faceI = pp.start();
+            label bFaceI = pp.start() - mesh.nInternalFaces();
+
+            forAll(pp, i)
+            {
+                globalNeighbour[bFaceI] = globalAgglom.toGlobal
+                (
+                    agglom[faceOwner[faceI]]
+                );
+
+                bFaceI++;
+                faceI++;
+            }
+        }
+    }
+
+    // Get the cell on the other side of coupled patches
+    syncTools::swapBoundaryFaceList(mesh, globalNeighbour);
+
+
+    // Count number of faces (internal + coupled)
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // Number of faces per coarse cell
+    labelList nFacesPerCell(nLocalCoarse, 0);
+
+    for (label faceI = 0; faceI < mesh.nInternalFaces(); faceI++)
+    {
+        label own = agglom[faceOwner[faceI]];
+        label nei = agglom[faceNeighbour[faceI]];
+
+        nFacesPerCell[own]++;
+        nFacesPerCell[nei]++;
+    }
+
+    forAll(patches, patchI)
+    {
+        const polyPatch& pp = patches[patchI];
+
+        if (pp.coupled() && (parallel || !isA<processorPolyPatch>(pp)))
+        {
+            label faceI = pp.start();
+            label bFaceI = pp.start()-mesh.nInternalFaces();
+
+            forAll(pp, i)
+            {
+                label own = agglom[faceOwner[faceI]];
+
+                label globalNei = globalNeighbour[bFaceI];
+                if
+                (
+                   !globalAgglom.isLocal(globalNei)
+                 || globalAgglom.toLocal(globalNei) != own
+                )
+                {
+                    nFacesPerCell[own]++;
+                }
+
+                faceI++;
+                bFaceI++;
+            }
+        }
+    }
+
+
+    // Fill in offset and data
+    // ~~~~~~~~~~~~~~~~~~~~~~~
+
+    cellCells.setSize(nFacesPerCell);
+    cellCellWeights.setSize(nFacesPerCell);
+
+    nFacesPerCell = 0;
+
+    labelList& m = cellCells.m();
+    scalarList& w = cellCellWeights.m();
+    const labelList& offsets = cellCells.offsets();
+
+    // For internal faces is just offsetted owner and neighbour
+    for (label faceI = 0; faceI < mesh.nInternalFaces(); faceI++)
+    {
+        label own = agglom[faceOwner[faceI]];
+        label nei = agglom[faceNeighbour[faceI]];
+
+        label ownIndex = offsets[own] + nFacesPerCell[own]++;
+        label neiIndex = offsets[nei] + nFacesPerCell[nei]++;
+
+        m[ownIndex] = globalAgglom.toGlobal(nei);
+        w[ownIndex] = mag(mesh.faceAreas()[faceI]);
+        m[neiIndex] = globalAgglom.toGlobal(own);
+        w[ownIndex] = mag(mesh.faceAreas()[faceI]);
+    }
+
+    // For boundary faces is offsetted coupled neighbour
+    forAll(patches, patchI)
+    {
+        const polyPatch& pp = patches[patchI];
+
+        if (pp.coupled() && (parallel || !isA<processorPolyPatch>(pp)))
+        {
+            label faceI = pp.start();
+            label bFaceI = pp.start()-mesh.nInternalFaces();
+
+            forAll(pp, i)
+            {
+                label own = agglom[faceOwner[faceI]];
+
+                label globalNei = globalNeighbour[bFaceI];
+
+                if
+                (
+                   !globalAgglom.isLocal(globalNei)
+                 || globalAgglom.toLocal(globalNei) != own
+                )
+                {
+                    label ownIndex = offsets[own] + nFacesPerCell[own]++;
+                    m[ownIndex] = globalNei;
+                    w[ownIndex] = mag(mesh.faceAreas()[faceI]);
+                }
+
+                faceI++;
+                bFaceI++;
+            }
+        }
+    }
+
+
+    // Check for duplicates connections between cells
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Done as postprocessing step since we now have cellCells.
+    label newIndex = 0;
+    labelHashSet nbrCells;
+
+
+    if (cellCells.size() == 0)
+    {
+        return;
+    }
+
+    label startIndex = cellCells.offsets()[0];
+
+    forAll(cellCells, cellI)
+    {
+        nbrCells.clear();
+        nbrCells.insert(globalAgglom.toGlobal(cellI));
+
+        label endIndex = cellCells.offsets()[cellI+1];
+
+        for (label i = startIndex; i < endIndex; i++)
+        {
+            if (nbrCells.insert(cellCells.m()[i]))
+            {
+                cellCells.m()[newIndex] = cellCells.m()[i];
+                cellCellWeights.m()[newIndex] = cellCellWeights.m()[i];
+                newIndex++;
+            }
+        }
+        startIndex = endIndex;
+        cellCells.offsets()[cellI+1] = newIndex;
+        cellCellWeights.offsets()[cellI+1] = newIndex;
+    }
+
+    cellCells.m().setSize(newIndex);
+    cellCellWeights.m().setSize(newIndex);
 }
 
 
@@ -1103,75 +1301,12 @@ void Foam::decompositionMethod::setConstraints
             << "Keeping owner of faces in baffles "
             << " on same processor." << endl;
 
-        // Faces to test: all boundary faces
-        labelList testFaces
-        (
-            identity(mesh.nFaces()-mesh.nInternalFaces())
-          + mesh.nInternalFaces()
-        );
-
-        // Find correspondencing baffle face (or -1)
-        labelList duplicateFace
-        (
-            localPointRegion::findDuplicateFaces
-            (
-                mesh,
-                testFaces
-            )
-        );
-
-        const polyBoundaryMesh& patches = mesh.boundaryMesh();
-
-        // Convert into list of coupled face pairs (mesh face labels).
-        explicitConnections.setSize(testFaces.size());
-        label dupI = 0;
-
-        forAll(duplicateFace, i)
+        explicitConnections = localPointRegion::findDuplicateFacePairs(mesh);
+        forAll(explicitConnections, i)
         {
-            label otherFaceI = duplicateFace[i];
-
-            if (otherFaceI != -1 && i < otherFaceI)
-            {
-                label meshFace0 = testFaces[i];
-                label patch0 = patches.whichPatch(meshFace0);
-                label meshFace1 = testFaces[otherFaceI];
-                label patch1 = patches.whichPatch(meshFace1);
-
-                // Check for illegal topology. Should normally not happen!
-                if
-                (
-                    (patch0 != -1 && isA<processorPolyPatch>(patches[patch0]))
-                 || (patch1 != -1 && isA<processorPolyPatch>(patches[patch1]))
-                )
-                {
-                    FatalErrorIn
-                    (
-                        "decompositionMethod::decompose(const polyMesh&)"
-                    )   << "One of two duplicate faces is on"
-                        << " processorPolyPatch."
-                        << "This is not allowed." << nl
-                        << "Face:" << meshFace0
-                        << " is on patch:" << patches[patch0].name()
-                        << nl
-                        << "Face:" << meshFace1
-                        << " is on patch:" << patches[patch1].name()
-                        << abort(FatalError);
-                }
-
-                explicitConnections[dupI++] = labelPair(meshFace0, meshFace1);
-                if (blockedFace[meshFace0])
-                {
-                    blockedFace[meshFace0] = false;
-                    //nUnblocked++;
-                }
-                if (blockedFace[meshFace1])
-                {
-                    blockedFace[meshFace1] = false;
-                    //nUnblocked++;
-                }
-            }
+            blockedFace[explicitConnections[i].first()] = false;
+            blockedFace[explicitConnections[i].second()] = false;
         }
-        explicitConnections.setSize(dupI);
     }
 
     if
@@ -1256,161 +1391,6 @@ Foam::labelList Foam::decompositionMethod::decompose
     const scalarField& cellWeights
 )
 {
-    //labelHashSet sameProcFaces;
-    //
-    //if (decompositionDict_.found("preservePatches"))
-    //{
-    //    wordList pNames(decompositionDict_.lookup("preservePatches"));
-    //
-    //    Info<< nl
-    //        << "Keeping owner of faces in patches " << pNames
-    //        << " on same processor. This only makes sense for cyclics."
-    //        << endl;
-    //
-    //    const polyBoundaryMesh& patches = mesh.boundaryMesh();
-    //
-    //    forAll(pNames, i)
-    //    {
-    //        const label patchI = patches.findPatchID(pNames[i]);
-    //
-    //        if (patchI == -1)
-    //        {
-    //            FatalErrorIn
-    //            (
-    //                "decompositionMethod::decompose(const polyMesh&)")
-    //                << "Unknown preservePatch " << pNames[i]
-    //                << endl << "Valid patches are " << patches.names()
-    //                << exit(FatalError);
-    //        }
-    //
-    //        const polyPatch& pp = patches[patchI];
-    //
-    //        forAll(pp, i)
-    //        {
-    //            sameProcFaces.insert(pp.start() + i);
-    //        }
-    //    }
-    //}
-    //if (decompositionDict_.found("preserveFaceZones"))
-    //{
-    //    wordList zNames(decompositionDict_.lookup("preserveFaceZones"));
-    //
-    //    Info<< nl
-    //        << "Keeping owner and neighbour of faces in zones " << zNames
-    //        << " on same processor" << endl;
-    //
-    //    const faceZoneMesh& fZones = mesh.faceZones();
-    //
-    //    forAll(zNames, i)
-    //    {
-    //        label zoneI = fZones.findZoneID(zNames[i]);
-    //
-    //        if (zoneI == -1)
-    //        {
-    //            FatalErrorIn
-    //            ("decompositionMethod::decompose(const polyMesh&)")
-    //                << "Unknown preserveFaceZone " << zNames[i]
-    //                << endl << "Valid faceZones are " << fZones.names()
-    //                << exit(FatalError);
-    //        }
-    //
-    //        const faceZone& fz = fZones[zoneI];
-    //
-    //        forAll(fz, i)
-    //        {
-    //            sameProcFaces.insert(fz[i]);
-    //        }
-    //    }
-    //}
-    //
-    //
-    //// Specified processor for group of cells connected to faces
-    //
-    ////- Sets of faces to move together
-    //PtrList<labelList> specifiedProcessorFaces;
-    ////- Destination processor
-    //labelList specifiedProcessor;
-    //
-    //label nProcSets = 0;
-    //if (decompositionDict_.found("singleProcessorFaceSets"))
-    //{
-    //    List<Tuple2<word, label> > zNameAndProcs
-    //    (
-    //        decompositionDict_.lookup("singleProcessorFaceSets")
-    //    );
-    //
-    //    specifiedProcessorFaces.setSize(zNameAndProcs.size());
-    //    specifiedProcessor.setSize(zNameAndProcs.size());
-    //
-    //    forAll(zNameAndProcs, setI)
-    //    {
-    //        Info<< "Keeping all cells connected to faceSet "
-    //            << zNameAndProcs[setI].first()
-    //            << " on processor " << zNameAndProcs[setI].second() << endl;
-    //
-    //        // Read faceSet
-    //        faceSet fz(mesh, zNameAndProcs[setI].first());
-    //
-    //        specifiedProcessorFaces.set(setI, new labelList(fz.sortedToc()));
-    //        specifiedProcessor[setI] = zNameAndProcs[setI].second();
-    //        nProcSets += fz.size();
-    //    }
-    //    reduce(nProcSets, sumOp<label>());
-    //}
-    //
-    //
-    //label nUnblocked = returnReduce(sameProcFaces.size(), sumOp<label>());
-    //
-    //if (nProcSets+nUnblocked > 0)
-    //{
-    //    Info<< "Constrained decomposition:" << endl
-    //        << "    faces with same owner and neighbour processor : "
-    //        << nUnblocked << endl
-    //        << "    faces all on same processor                   : "
-    //        << nProcSets << endl << endl;
-    //}
-    //
-    //
-    //// Faces where owner and neighbour are not 'connected' (= all except
-    //// sameProcFaces)
-    //boolList blockedFace(mesh.nFaces(), true);
-    //{
-    //    forAllConstIter(labelHashSet, sameProcFaces, iter)
-    //    {
-    //        blockedFace[iter.key()] = false;
-    //    }
-    //    syncTools::syncFaceList(mesh, blockedFace, andEqOp<bool>());
-    //
-    //    // Add all point connected faces
-    //    boolList procFacePoint(mesh.nPoints(), false);
-    //    forAll(specifiedProcessorFaces, setI)
-    //    {
-    //        const labelList& set = specifiedProcessorFaces[setI];
-    //        forAll(set, fI)
-    //        {
-    //            const face& f = mesh.faces()[set[fI]];
-    //            forAll(f, fp)
-    //            {
-    //                procFacePoint[f[fp]] = true;
-    //            }
-    //        }
-    //    }
-    //    syncTools::syncPointList(mesh, procFacePoint, orEqOp<bool>(), false);
-    //
-    //    forAll(procFacePoint, pointI)
-    //    {
-    //        if (procFacePoint[pointI])
-    //        {
-    //            const labelList& pFaces = mesh.pointFaces()[pointI];
-    //            forAll(pFaces, i)
-    //            {
-    //                blockedFace[pFaces[i]] = false;
-    //            }
-    //        }
-    //    }
-    //    syncTools::syncFaceList(mesh, blockedFace, andEqOp<bool>());
-    //}
-
     boolList blockedFace;
     PtrList<labelList> specifiedProcessorFaces;
     labelList specifiedProcessor;

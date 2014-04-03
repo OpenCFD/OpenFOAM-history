@@ -26,7 +26,6 @@ License
 #include "SurfaceFilmModel.H"
 #include "surfaceFilmModel.H"
 #include "mathematicalConstants.H"
-#include "mappedPatchBase.H"
 
 using namespace Foam::constant;
 
@@ -35,7 +34,7 @@ using namespace Foam::constant;
 template<class CloudType>
 Foam::SurfaceFilmModel<CloudType>::SurfaceFilmModel(CloudType& owner)
 :
-    SubModelBase<CloudType>(owner),
+    CloudSubModelBase<CloudType>(owner),
     g_(owner.g()),
     ejectedParcelType_(0),
     massParcelPatch_(0),
@@ -56,7 +55,7 @@ Foam::SurfaceFilmModel<CloudType>::SurfaceFilmModel
     const word& type
 )
 :
-    SubModelBase<CloudType>(owner, dict, typeName, type),
+    CloudSubModelBase<CloudType>(owner, dict, typeName, type),
     g_(owner.g()),
     ejectedParcelType_
     (
@@ -78,7 +77,7 @@ Foam::SurfaceFilmModel<CloudType>::SurfaceFilmModel
     const SurfaceFilmModel<CloudType>& sfm
 )
 :
-    SubModelBase<CloudType>(sfm),
+    CloudSubModelBase<CloudType>(sfm),
     g_(sfm.g_),
     ejectedParcelType_(sfm.ejectedParcelType_),
     massParcelPatch_(sfm.massParcelPatch_),

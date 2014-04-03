@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,31 +68,14 @@ void Foam::PatchPostProcessing<CloudType>::write()
         {
             const fvMesh& mesh = this->owner().mesh();
 
-            fileName outputDir = mesh.time().path();
-
-            if (Pstream::parRun())
-            {
-                // Put in undecomposed case (Note: gives problems for
-                // distributed data running)
-                outputDir =
-                    outputDir/".."/"postProcessing"/cloud::prefix/
-                    this->owner().name()/mesh.time().timeName();
-            }
-            else
-            {
-                outputDir =
-                    outputDir/"postProcessing"/cloud::prefix/
-                    this->owner().name()/mesh.time().timeName();
-            }
-
             // Create directory if it doesn't exist
-            mkDir(outputDir);
+            mkDir(this->outputTimeDir());
 
             const word& patchName = mesh.boundaryMesh()[patchIDs_[i]].name();
 
             OFstream patchOutFile
             (
-                outputDir/patchName + ".post",
+                this->outputTimeDir()/patchName + ".post",
                 IOstream::ASCII,
                 IOstream::currentVersion,
                 mesh.time().writeCompression()
@@ -141,10 +124,11 @@ template<class CloudType>
 Foam::PatchPostProcessing<CloudType>::PatchPostProcessing
 (
     const dictionary& dict,
-    CloudType& owner
+    CloudType& owner,
+    const word& modelName
 )
 :
-    CloudFunctionObject<CloudType>(dict, owner, typeName),
+    CloudFunctionObject<CloudType>(dict, owner, modelName, typeName),
     maxStoredParcels_(readScalar(this->coeffDict().lookup("maxStoredParcels"))),
     patchIDs_(),
     times_(),

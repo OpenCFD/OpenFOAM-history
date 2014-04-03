@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -104,8 +104,8 @@ int main(int argc, char *argv[])
     );
     argList::addBoolOption
     (
-        "sets",
-        "reconstruct cellSets, faceSets, pointSets"
+        "noSets",
+        "skip reconstructing cellSets, faceSets, pointSets"
     );
     argList::addBoolOption
     (
@@ -122,10 +122,23 @@ int main(int argc, char *argv[])
         args.optionLookup("fields")() >> selectedFields;
     }
 
-    const bool reconstructSets = args.optionFound("sets");
-
-
     const bool noLagrangian = args.optionFound("noLagrangian");
+
+    if (noLagrangian)
+    {
+        Info<< "Skipping reconstructing lagrangian positions and fields"
+            << nl << endl;
+    }
+
+
+    const bool noReconstructSets = args.optionFound("noSets");
+
+    if (noReconstructSets)
+    {
+        Info<< "Skipping reconstructing cellSets, faceSets and pointSets"
+            << nl << endl;
+    }
+
 
     HashSet<word> selectedLagrangianFields;
     if (args.optionFound("lagrangianFields"))
@@ -184,6 +197,13 @@ int main(int argc, char *argv[])
         databases[0].times(),
         args
     );
+
+    // Note that we do not set the runTime time so it is still the
+    // one set through the controlDict. The -time option
+    // only affects the selected set of times from processor0.
+    // - can be illogical
+    // + any point motion handled through mesh.readUpdate
+
 
     if (timeDirs.empty())
     {
@@ -682,7 +702,7 @@ int main(int argc, char *argv[])
             }
 
 
-            if (reconstructSets)
+            if (!noReconstructSets)
             {
                 // Scan to find all sets
                 HashTable<label> cSetNames;
@@ -693,10 +713,17 @@ int main(int argc, char *argv[])
                 {
                     const fvMesh& procMesh = procMeshes.meshes()[procI];
 
+                    // Note: look at sets in current time only or between
+                    // mesh and current time?. For now current time. This will
+                    // miss out on sets in intermediate times that have not
+                    // been reconstructed.
                     IOobjectList objects
                     (
-                        procMesh, procMesh.facesInstance(), "polyMesh/sets"
+                        procMesh,
+                        databases[0].timeName(),    //procMesh.facesInstance()
+                        polyMesh::meshSubDir/"sets"
                     );
+
                     IOobjectList cSets(objects.lookupClass(cellSet::typeName));
                     forAllConstIter(IOobjectList, cSets, iter)
                     {
@@ -720,6 +747,20 @@ int main(int argc, char *argv[])
                 PtrList<faceSet> faceSets(fSetNames.size());
                 PtrList<pointSet> pointSets(pSetNames.size());
 
+                Info<< "Reconstructing sets:" << endl;
+                if (cSetNames.size())
+                {
+                    Info<< "    cellSets " << cSetNames.sortedToc() << endl;
+                }
+                if (fSetNames.size())
+                {
+                    Info<< "    faceSets " << fSetNames.sortedToc() << endl;
+                }
+                if (pSetNames.size())
+                {
+                    Info<< "    pointSets " << pSetNames.sortedToc() << endl;
+                }
+
                 // Load sets
                 forAll(procMeshes.meshes(), procI)
                 {
@@ -727,7 +768,9 @@ int main(int argc, char *argv[])
 
                     IOobjectList objects
                     (
-                        procMesh, procMesh.facesInstance(), "polyMesh/sets"
+                        procMesh,
+                        databases[0].timeName(),    //procMesh.facesInstance(),
+                        polyMesh::meshSubDir/"sets"
                     );
 
                     // cellSets
@@ -829,6 +872,9 @@ int main(int argc, char *argv[])
     // the master processor
     forAll(timeDirs, timeI)
     {
+        runTime.setTime(timeDirs[timeI], timeI);
+        databases[0].setTime(timeDirs[timeI], timeI);
+
         fileName uniformDir0 = databases[0].timePath()/"uniform";
         if (isDir(uniformDir0))
         {

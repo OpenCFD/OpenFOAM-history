@@ -14,9 +14,10 @@ if (simple.transonic())
     (
         "phid",
         fvc::interpolate(psi)
-       *(fvc::interpolate(rho*HbyA) & mesh.Sf())
-       /fvc::interpolate(rho)
+       *(fvc::interpolate(HbyA) & mesh.Sf())
     );
+
+    fvOptions.makeRelative(fvc::interpolate(psi), phid);
 
     surfaceScalarField phic
     (
@@ -61,6 +62,8 @@ else
         "phiHbyA",
         fvc::interpolate(rho*HbyA) & mesh.Sf()
     );
+
+    fvOptions.makeRelative(fvc::interpolate(rho), phiHbyA);
 
     closedVolume = adjustPhi(phiHbyA, U, p);
 

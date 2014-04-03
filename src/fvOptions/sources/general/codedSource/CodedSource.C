@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -65,14 +65,14 @@ void Foam::fv::CodedSource<Type>::prepare
     dynCode.setMakeOptions
         (
             "EXE_INC = -g \\\n"
-            "-I$(LIB_SRC)/fieldSources/lnInclude \\\n"
+            "-I$(LIB_SRC)/fvOptions/lnInclude \\\n"
             "-I$(LIB_SRC)/finiteVolume/lnInclude \\\n"
             "-I$(LIB_SRC)/meshTools/lnInclude \\\n"
             "-I$(LIB_SRC)/sampling/lnInclude \\\n"
             + context.options()
             + "\n\nLIB_LIBS = \\\n"
             + "    -lmeshTools \\\n"
-            + "    -lfieldSources \\\n"
+            + "    -lfvOptions \\\n"
             + "    -lsampling \\\n"
             + "    -lfiniteVolume \\\n"
             + context.libs()

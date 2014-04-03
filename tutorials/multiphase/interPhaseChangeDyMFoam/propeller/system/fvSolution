@@ -16,7 +16,7 @@ FoamFile
 
 solvers
 {
-    alpha.water
+    "alpha.water.*"
     {
         cAlpha          0;
         nAlphaCorr      2;
@@ -30,9 +30,10 @@ solvers
         tolerance       1e-8;
         relTol          0;
         maxIter         10;
+        minIter         1;
     };
 
-    pcorr
+    "pcorr.*"
     {
         solver          GAMG;
         tolerance       1e-2;
@@ -65,12 +66,12 @@ solvers
         smoother        symGaussSeidel;
         tolerance       1e-6;
         relTol          0.1;
+        minIter         1;
     }
 
     "(U|k|epsilon)Final"
     {
         $U;
-        tolerance       1e-6;
         relTol          0;
     }
 }
@@ -78,8 +79,8 @@ solvers
 PIMPLE
 {
     correctPhi          yes;
-    nOuterCorrectors    1;
-    nCorrectors         3;
+    nOuterCorrectors    3;
+    nCorrectors         1;
     nNonOrthogonalCorrectors 0;
 }
 

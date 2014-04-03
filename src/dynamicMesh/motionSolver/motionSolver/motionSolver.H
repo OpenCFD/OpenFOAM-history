@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,7 +37,6 @@ SourceFiles
 
 #include "IOdictionary.H"
 #include "pointField.H"
-#include "twoDPointCorrector.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -63,9 +62,6 @@ private:
 
         //- Reference to mesh
         const polyMesh& mesh_;
-
-        //- 2-D motion corrector pointer
-        twoDPointCorrector twoDPointCorrector_;
 
         //- Model coefficients dictionary
         dictionary coeffDict_;
@@ -152,6 +148,17 @@ public:
 
         //-  Update local data for topology changes
         virtual void updateMesh(const mapPolyMesh&) = 0;
+
+        //- Write state using given format, version and compression
+        virtual bool writeObject
+        (
+            IOstream::streamFormat fmt,
+            IOstream::versionNumber ver,
+            IOstream::compressionType cmp
+        ) const;
+
+        //- Read dynamicMeshDict dictionary
+        virtual bool read();
 };
 
 

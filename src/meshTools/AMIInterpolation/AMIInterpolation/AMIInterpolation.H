@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -116,9 +116,16 @@ private:
         //  that the orientation of the target patch should be reversed
         const bool reverseTarget_;
 
+        //- Flag to indicate that the two patches must be matched/an overlap
+        //  exists between them
+        const bool requireMatch_;
+
         //- Index of processor that holds all of both sides. -1 in all other
         //  cases
         label singlePatchProc_;
+
+        //- Threshold weight below which interpolation is deactivated
+        scalar lowWeightCorrection_;
 
 
         // Source patch
@@ -238,7 +245,8 @@ private:
                 scalarListList& wght,
                 scalarField& wghtSum,
                 const bool conformal,
-                const bool output
+                const bool output,
+                const scalar lowWeightTol
             );
 
 
@@ -272,7 +280,9 @@ public:
             const SourcePatch& srcPatch,
             const TargetPatch& tgtPatch,
             const faceAreaIntersect::triangulationMode& triMode,
+            const bool requireMatch = true,
             const interpolationMethod& method = imFaceAreaWeight,
+            const scalar lowWeightCorrection = -1,
             const bool reverseTarget = false
         );
 
@@ -283,7 +293,9 @@ public:
             const TargetPatch& tgtPatch,
             const autoPtr<searchableSurface>& surf,
             const faceAreaIntersect::triangulationMode& triMode,
+            const bool requireMatch = true,
             const interpolationMethod& method = imFaceAreaWeight,
+            const scalar lowWeightCorrection = -1,
             const bool reverseTarget = false
         );
 
@@ -313,7 +325,13 @@ public:
 
             //- Set to -1, or the processor holding all faces (both sides) of
             //  the AMI
-            label singlePatchProc() const;
+            inline label singlePatchProc() const;
+
+            //- Threshold weight below which interpolation is deactivated
+            inline scalar lowWeightCorrection() const;
+
+            //- Return true if employing a 'lowWeightCorrection'
+            inline bool applyLowWeightCorrection() const;
 
 
             // Source patch
@@ -379,7 +397,8 @@ public:
                 (
                     const UList<Type>& fld,
                     const CombineOp& cop,
-                    List<Type>& result
+                    List<Type>& result,
+                    const UList<Type>& defaultValues = UList<Type>::null()
                 ) const;
 
                 //- Interpolate from source to target with supplied op
@@ -389,7 +408,8 @@ public:
                 (
                     const UList<Type>& fld,
                     const CombineOp& cop,
-                    List<Type>& result
+                    List<Type>& result,
+                    const UList<Type>& defaultValues = UList<Type>::null()
                 ) const;
 
 
@@ -398,7 +418,8 @@ public:
             tmp<Field<Type> > interpolateToSource
             (
                 const Field<Type>& fld,
-                const CombineOp& cop
+                const CombineOp& cop,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
             //- Interpolate from target tmp field to source with supplied op
@@ -406,7 +427,8 @@ public:
             tmp<Field<Type> > interpolateToSource
             (
                 const tmp<Field<Type> >& tFld,
-                const CombineOp& cop
+                const CombineOp& cop,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
             //- Interpolate from source to target with supplied op
@@ -414,7 +436,8 @@ public:
             tmp<Field<Type> > interpolateToTarget
             (
                 const Field<Type>& fld,
-                const CombineOp& cop
+                const CombineOp& cop,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
             //- Interpolate from source tmp field to target with supplied op
@@ -422,35 +445,40 @@ public:
             tmp<Field<Type> > interpolateToTarget
             (
                 const tmp<Field<Type> >& tFld,
-                const CombineOp& cop
+                const CombineOp& cop,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
             //- Interpolate from target to source
             template<class Type>
             tmp<Field<Type> > interpolateToSource
             (
-                const Field<Type>& fld
+                const Field<Type>& fld,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
             //- Interpolate from target tmp field
             template<class Type>
             tmp<Field<Type> > interpolateToSource
             (
-                const tmp<Field<Type> >& tFld
+                const tmp<Field<Type> >& tFld,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
             //- Interpolate from source to target
             template<class Type>
             tmp<Field<Type> > interpolateToTarget
             (
-                const Field<Type>& fld
+                const Field<Type>& fld,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
             //- Interpolate from source tmp field
             template<class Type>
             tmp<Field<Type> > interpolateToTarget
             (
-                const tmp<Field<Type> >& tFld
+                const tmp<Field<Type> >& tFld,
+                const UList<Type>& defaultValues = UList<Type>::null()
             ) const;
 
 

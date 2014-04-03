@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -47,7 +47,8 @@ License
 void Foam::ensightMesh::correct()
 {
     patchPartOffset_ = 2;
-    meshCellSets_ = mesh_.nCells();
+    meshCellSets_.setSize(mesh_.nCells());
+
     boundaryFaceSets_.setSize(mesh_.boundary().size());
     allPatchNames_.clear();
     patchNames_.clear();
@@ -1148,6 +1149,7 @@ void Foam::ensightMesh::write
             if (nfp.nTris || nfp.nQuads || nfp.nPolys)
             {
                 const polyPatch& p = mesh_.boundaryMesh()[patchi];
+
                 const labelList& tris = boundaryFaceSets_[patchi].tris;
                 const labelList& quads = boundaryFaceSets_[patchi].quads;
                 const labelList& polys = boundaryFaceSets_[patchi].polys;

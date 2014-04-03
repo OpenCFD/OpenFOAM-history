@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -649,22 +649,20 @@ void Foam::refinementHistory::countProc
         // Increment parent if whole splitCell moves to same processor
         if (splitCellNum[index] == 8)
         {
-            Pout<< "Moving " << splitCellNum[index]
-                << " cells originating from cell " << index
-                << " from processor " << Pstream::myProcNo()
-                << " to processor " << splitCellProc[index]
-                << endl;
+            if (debug)
+            {
+                Pout<< "Moving " << splitCellNum[index]
+                    << " cells originating from cell " << index
+                    << " from processor " << Pstream::myProcNo()
+                    << " to processor " << splitCellProc[index]
+                    << endl;
+            }
 
             label parent = splitCells_[index].parent_;
 
             if (parent >= 0)
             {
-                string oldPrefix = Pout.prefix();
-                Pout.prefix() = "  " + oldPrefix;
-
                 countProc(parent, newProcNo, splitCellProc, splitCellNum);
-
-                Pout.prefix() = oldPrefix;
             }
         }
     }
@@ -873,7 +871,9 @@ void Foam::refinementHistory::distribute(const mapDistributePolyMesh& map)
     // Remove all entries. Leave storage intact.
     splitCells_.clear();
 
-    visibleCells_.setSize(map.mesh().nCells());
+    const polyMesh& mesh = dynamic_cast<const polyMesh&>(db());
+
+    visibleCells_.setSize(mesh.nCells());
     visibleCells_ = -1;
 
     for (label procI = 0; procI < Pstream::nProcs(); procI++)
@@ -924,7 +924,10 @@ void Foam::refinementHistory::distribute(const mapDistributePolyMesh& map)
 
         forAll(newVisibleCells, i)
         {
-            visibleCells_[constructMap[i]] = newVisibleCells[i] + offset;
+            if (newVisibleCells[i] >= 0)
+            {
+                visibleCells_[constructMap[i]] = newVisibleCells[i] + offset;
+            }
         }
     }
     splitCells_.shrink();

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -81,6 +81,14 @@ class fvMeshDistribute
 
 
     // Private Member Functions
+
+        static void inplaceRenumberWithFlip
+        (
+            const labelUList& oldToNew,
+            const bool oldToNewHasFlip,
+            const bool lstHasFlip,
+            labelUList& lst
+        );
 
         //- Find indices with value
         static labelList select
@@ -255,7 +263,7 @@ class fvMeshDistribute
                 const labelList& sourceProc,
                 const labelList& sourcePatch,
                 const labelList& sourceNewProc,
-                UOPstream& toDomain
+                Ostream& toDomain
             );
             //- Send subset of fields
             template<class GeoField>
@@ -264,7 +272,7 @@ class fvMeshDistribute
                 const label domain,
                 const wordList& fieldNames,
                 const fvMeshSubset&,
-                UOPstream& toNbr
+                Ostream& toNbr
             );
 
             //- Receive mesh. Opposite of sendMesh
@@ -279,7 +287,7 @@ class fvMeshDistribute
                 labelList& domainSourceProc,
                 labelList& domainSourcePatch,
                 labelList& domainSourceNewProc,
-                UIPstream& fromNbr
+                Istream& fromNbr
             );
 
             //- Receive fields. Opposite of sendFields

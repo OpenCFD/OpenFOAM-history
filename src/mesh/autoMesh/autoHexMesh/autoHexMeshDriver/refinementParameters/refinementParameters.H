@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,6 +38,8 @@ SourceFiles
 #include "dictionary.H"
 #include "pointField.H"
 #include "Switch.H"
+#include "wordPairHashTable.H"
+#include "surfaceZonesInfo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,8 +75,21 @@ class refinementParameters
         //- Number of layers between different refinement levels
         const label nBufferLayers_;
 
-        //- Areas to keep
-        const pointField keepPoints_;
+
+        // Selection of areas
+
+            //- Areas not to keep
+            const pointField locationsOutsideMesh_;
+
+            //- Areas to keep
+            pointField locationsInMesh_;
+
+            //- Region for location
+            wordList zonesInMesh_;
+
+            //- Information on how to handle faces on faceZones
+            dictionary faceZoneControls_;
+
 
         //- FaceZone faces allowed which have owner and neighbour in same
         //  cellZone?
@@ -87,6 +102,7 @@ class refinementParameters
         //- Allowed load unbalance
         scalar maxLoadUnbalance_;
 
+        Switch handleSnapProblems_;
 
     // Private Member Functions
 
@@ -100,9 +116,6 @@ class refinementParameters
 public:
 
     // Constructors
-
-        //- Construct from dictionary - old syntax
-        refinementParameters(const dictionary& dict, const label dummy);
 
         //- Construct from dictionary - new syntax
         refinementParameters(const dictionary& dict);
@@ -149,9 +162,21 @@ public:
             }
 
             //- Areas to keep
-            const pointField& keepPoints() const
+            const pointField& locationsInMesh() const
             {
-                return keepPoints_;
+                return locationsInMesh_;
+            }
+
+            //- Per area the zone name
+            const wordList& zonesInMesh() const
+            {
+                return zonesInMesh_;
+            }
+
+            //- Optional points which are checked to be outside the mesh
+            const pointField& locationsOutsideMesh() const
+            {
+                return locationsOutsideMesh_;
             }
 
             //- Are zone faces allowed only inbetween different cell zones
@@ -174,11 +199,38 @@ public:
                 return maxLoadUnbalance_;
             }
 
+            bool handleSnapProblems() const
+            {
+                return handleSnapProblems_;
+            }
+
 
         // Other
 
-            //- Checks that cells are in mesh. Returns cells they are in.
-            labelList findCells(const polyMesh&) const;
+            //- Get patchInfo and faceType for faceZone
+            dictionary getZoneInfo
+            (
+                const word& fzName,
+                surfaceZonesInfo::faceZoneType& faceType
+            ) const;
+
+            //- Add cellZones to mesh. Return indices of cellZones (or -1)
+            labelList addCellZonesToMesh(polyMesh&) const;
+
+            //- Checks that cells are in mesh. Returns cells (or -1) they
+            //  are in.
+            static labelList findCells
+            (
+                const bool checkInsideMesh,
+                const polyMesh&,
+                const pointField& locations
+            );
+
+            //- Extract indices of named locations (so excludes 'keepPoints')
+            static labelList zonedLocations(const wordList& zonesInMesh);
+
+            //- Extract indices of unnamed locations ('keepPoints')
+            static labelList unzonedLocations(const wordList& zonesInMesh);
 
 };
 

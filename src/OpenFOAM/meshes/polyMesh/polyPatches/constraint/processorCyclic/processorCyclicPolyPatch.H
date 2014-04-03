@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -122,7 +122,8 @@ public:
             const int myProcNo,
             const int neighbProcNo,
             const word& referPatchName,
-            const transformType transform = UNKNOWN
+            const transformType transform = UNKNOWN,
+            const word& patchType = typeName
         );
 
         //- Construct from dictionary
@@ -150,6 +151,17 @@ public:
             const polyBoundaryMesh& bm,
             const label index,
             const label newSize,
+            const label newStart
+        );
+
+        //- Construct as given the original patch and resetting the
+        //  face list, boundary mesh information and referPatch
+        processorCyclicPolyPatch
+        (
+            const processorCyclicPolyPatch& pp,
+            const polyBoundaryMesh& bm,
+            const label index,
+            const label newSize,
             const label newStart,
             const word& referPatchName
         );
@@ -169,6 +181,29 @@ public:
         virtual autoPtr<polyPatch> clone(const polyBoundaryMesh& bm) const
         {
             return autoPtr<polyPatch>(new processorCyclicPolyPatch(*this, bm));
+        }
+
+        //- Construct and return a clone, resetting the face list
+        //  and boundary mesh
+        virtual autoPtr<polyPatch> clone
+        (
+            const polyBoundaryMesh& bm,
+            const label index,
+            const label newSize,
+            const label newStart
+        ) const
+        {
+            return autoPtr<polyPatch>
+            (
+                new processorCyclicPolyPatch
+                (
+                    *this,
+                    bm,
+                    index,
+                    newSize,
+                    newStart
+                )
+            );
         }
 
         //- Construct and return a clone, resetting the face list

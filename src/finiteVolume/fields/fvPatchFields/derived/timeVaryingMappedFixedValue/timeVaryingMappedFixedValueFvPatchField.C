@@ -120,7 +120,11 @@ timeVaryingMappedFixedValueFvPatchField
     }
     else
     {
-        updateCoeffs();
+        // Note: we use evaluate() here to trigger updateCoeffs followed
+        //       by re-setting of fvatchfield::updated_ flag. This is
+        //       so if first use is in the next time step it retriggers
+        //       a new update.
+        this->evaluate(Pstream::blocking);
     }
 }
 
@@ -532,7 +536,8 @@ void timeVaryingMappedFixedValueFvPatchField<Type>::updateCoeffs()
     if (debug)
     {
         Pout<< "updateCoeffs : set fixedValue to min:" << gMin(*this)
-            << " max:" << gMax(*this) << endl;
+            << " max:" << gMax(*this)
+            << " avg:" << gAverage(*this) << endl;
     }
 
     fixedValueFvPatchField<Type>::updateCoeffs();
@@ -544,7 +549,10 @@ void timeVaryingMappedFixedValueFvPatchField<Type>::write(Ostream& os) const
 {
     fvPatchField<Type>::write(os);
     os.writeKeyword("setAverage") << setAverage_ << token::END_STATEMENT << nl;
-    os.writeKeyword("perturb") << perturb_ << token::END_STATEMENT << nl;
+    if (perturb_ != 1e-5)
+    {
+        os.writeKeyword("perturb") << perturb_ << token::END_STATEMENT << nl;
+    }
 
     if (fieldTableName_ != this->dimensionedInternalField().name())
     {

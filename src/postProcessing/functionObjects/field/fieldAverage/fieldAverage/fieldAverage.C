@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -65,6 +65,8 @@ void Foam::fieldAverage::initialize()
 {
     resetFields();
 
+    Info<< type() << " " << name_ << ":" << nl;
+
 
     // Add mean fields to the field lists
     forAll(faItems_, fieldI)
@@ -96,6 +98,8 @@ void Foam::fieldAverage::initialize()
     // ensure first averaging works unconditionally
     prevTimeIndex_ = -1;
 
+    Info<< endl;
+
     initialised_ = true;
 }
 
@@ -119,7 +123,9 @@ void Foam::fieldAverage::calcAverages()
         prevTimeIndex_ = currentTimeIndex;
     }
 
-    Info<< "Calculating averages" << nl << endl;
+    Info<< type() << " " << name_ << " output:" << nl;
+
+    Info<< "    Calculating averages" << nl;
 
     addMeanSqrToPrime2Mean<scalar, scalar>();
     addMeanSqrToPrime2Mean<vector, symmTensor>();
@@ -143,6 +149,8 @@ void Foam::fieldAverage::calcAverages()
 
 void Foam::fieldAverage::writeAverages() const
 {
+    Info<< "    Writing average fields" << endl;
+
     writeFields<scalar>();
     writeFields<vector>();
     writeFields<sphericalTensor>();
@@ -189,8 +197,8 @@ void Foam::fieldAverage::readAveragingProperties()
 
     if (resetOnRestart_)
     {
-        Info<< "fieldAverage: starting averaging at time "
-            << obr_.time().timeName() << nl << endl;
+        Info<< "    Starting averaging at time " << obr_.time().timeName()
+            << nl;
     }
     else
     {
@@ -207,14 +215,14 @@ void Foam::fieldAverage::readAveragingProperties()
 
         if (!propsDictHeader.headerOk())
         {
-            Info<< "fieldAverage: starting averaging at time "
-                << obr_.time().timeName() << nl << endl;
+            Info<< "    Starting averaging at time " << obr_.time().timeName()
+                << nl;
             return;
         }
 
         IOdictionary propsDict(propsDictHeader);
 
-        Info<< "fieldAverage: restarting averaging for fields:" << endl;
+        Info<< "    Restarting averaging for fields:" << nl;
         forAll(faItems_, fieldI)
         {
             const word& fieldName = faItems_[fieldI].fieldName();
@@ -224,13 +232,11 @@ void Foam::fieldAverage::readAveragingProperties()
 
                 totalIter_[fieldI] = readLabel(fieldDict.lookup("totalIter"));
                 totalTime_[fieldI] = readScalar(fieldDict.lookup("totalTime"));
-                Info<< "    " << fieldName
+                Info<< "        " << fieldName
                     << " iters = " << totalIter_[fieldI]
-                    << " time = " << totalTime_[fieldI] << endl;
+                    << " time = " << totalTime_[fieldI] << nl;
             }
         }
-
-        Info<< endl;
     }
 }
 
@@ -266,15 +272,15 @@ Foam::fieldAverage::fieldAverage
         active_ = false;
         WarningIn
         (
-            "fieldAverage::fieldAverage\n"
-            "(\n"
-                "const word&,\n"
-                "const objectRegistry&,\n"
-                "const dictionary&,\n"
-                "const bool\n"
+            "fieldAverage::fieldAverage"
+            "("
+                "const word&, "
+                "const objectRegistry&, "
+                "const dictionary&, "
+                "const bool "
             ")"
-        )   << "No fvMesh available, deactivating."
-            << nl << endl;
+        )   << "No fvMesh available, deactivating " << name_ << nl
+            << endl;
     }
 }
 
@@ -293,11 +299,15 @@ void Foam::fieldAverage::read(const dictionary& dict)
     {
         initialised_ = false;
 
+        Info<< type() << " " << name_ << ":" << nl;
+
         dict.readIfPresent("resetOnRestart", resetOnRestart_);
         dict.readIfPresent("resetOnOutput", resetOnOutput_);
         dict.lookup("fields") >> faItems_;
 
         readAveragingProperties();
+
+        Info<< endl;
     }
 }
 
@@ -307,12 +317,19 @@ void Foam::fieldAverage::execute()
     if (active_)
     {
         calcAverages();
+        Info<< endl;
     }
 }
 
 
 void Foam::fieldAverage::end()
-{}
+{
+    if (active_)
+    {
+        calcAverages();
+        Info<< endl;
+    }
+}
 
 
 void Foam::fieldAverage::timeSet()
@@ -323,20 +340,21 @@ void Foam::fieldAverage::write()
 {
     if (active_)
     {
-        calcAverages();
         writeAverages();
         writeAveragingProperties();
 
         if (resetOnOutput_)
         {
-            Info<< "fieldAverage: restarting averaging at time "
-                << obr_.time().timeName() << nl << endl;
+            Info<< "    Restarting averaging at time " << obr_.time().timeName()
+                << nl << endl;
 
             initialize();
 
             // ensure first averaging works unconditionally
             prevTimeIndex_ = -1;
         }
+
+        Info<< endl;
     }
 }
 

@@ -12,6 +12,8 @@ $(generalSources)/semiImplicitSource/semiImplicitSource.C
 
 derivedSources=sources/derived
 $(derivedSources)/actuationDiskSource/actuationDiskSource.C
+$(derivedSources)/enthalpyPorositySource/enthalpyPorositySource.C
+$(derivedSources)/enthalpyPorositySource/enthalpyPorositySourceIO.C
 $(derivedSources)/explicitPorositySource/explicitPorositySource.C
 $(derivedSources)/MRFSource/MRFSource.C
 $(derivedSources)/pressureGradientExplicitSource/pressureGradientExplicitSource.C

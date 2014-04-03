@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,69 +26,68 @@ License
 #include "tensor.H"
 #include "mathematicalConstants.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
-{
+using namespace Foam::constant::mathematical;
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-template<>
-const char* const tensor::typeName = "tensor";
-
-template<>
-const char* tensor::componentNames[] =
+namespace Foam
 {
-    "xx", "xy", "xz",
-    "yx", "yy", "yz",
-    "zx", "zy", "zz"
-};
+    template<>
+    const char* const tensor::typeName = "tensor";
 
-template<>
-const tensor tensor::zero
-(
-    0, 0, 0,
-    0, 0, 0,
-    0, 0, 0
-);
+    template<>
+    const char* tensor::componentNames[] =
+    {
+        "xx", "xy", "xz",
+        "yx", "yy", "yz",
+        "zx", "zy", "zz"
+    };
 
-template<>
-const tensor tensor::one
-(
-    1, 1, 1,
-    1, 1, 1,
-    1, 1, 1
-);
+    template<>
+    const tensor tensor::zero
+    (
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0
+    );
 
-template<>
-const tensor tensor::max
-(
-    VGREAT, VGREAT, VGREAT,
-    VGREAT, VGREAT, VGREAT,
-    VGREAT, VGREAT, VGREAT
-);
+    template<>
+    const tensor tensor::one
+    (
+        1, 1, 1,
+        1, 1, 1,
+        1, 1, 1
+    );
 
-template<>
-const tensor tensor::min
-(
-    -VGREAT, -VGREAT, -VGREAT,
-    -VGREAT, -VGREAT, -VGREAT,
-    -VGREAT, -VGREAT, -VGREAT
-);
+    template<>
+    const tensor tensor::max
+    (
+        VGREAT, VGREAT, VGREAT,
+        VGREAT, VGREAT, VGREAT,
+        VGREAT, VGREAT, VGREAT
+    );
 
-template<>
-const tensor tensor::I
-(
-    1, 0, 0,
-    0, 1, 0,
-    0, 0, 1
-);
+    template<>
+    const tensor tensor::min
+    (
+        -VGREAT, -VGREAT, -VGREAT,
+        -VGREAT, -VGREAT, -VGREAT,
+        -VGREAT, -VGREAT, -VGREAT
+    );
+
+    template<>
+    const tensor tensor::I
+    (
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    );
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Return eigenvalues in ascending order of absolute values
-vector eigenValues(const tensor& t)
+Foam::vector Foam::eigenValues(const tensor& t)
 {
     scalar i = 0;
     scalar ii = 0;
@@ -120,7 +119,7 @@ vector eigenValues(const tensor& t)
             + t.xy()*t.yx()*t.zz() + t.xx()*t.yz()*t.zy();
 
         // If there is a zero root
-        if (mag(c) < 1.0e-100)
+        if (mag(c) < CBRTVSMALL)
         {
             scalar disc = sqr(a) - 4*b;
 
@@ -157,14 +156,8 @@ vector eigenValues(const tensor& t)
                 scalar aBy3 = a/3;
 
                 i = m2SqrtQ*cos(theta/3) - aBy3;
-                ii =
-                    m2SqrtQ
-                   *cos((theta + constant::mathematical::twoPi)/3)
-                  - aBy3;
-                iii =
-                    m2SqrtQ
-                   *cos((theta - constant::mathematical::twoPi)/3)
-                  - aBy3;
+                ii = m2SqrtQ*cos((theta + twoPi)/3) - aBy3;
+                iii = m2SqrtQ*cos((theta - twoPi)/3) - aBy3;
             }
             else
             {
@@ -210,7 +203,7 @@ vector eigenValues(const tensor& t)
 }
 
 
-vector eigenVector(const tensor& t, const scalar lambda)
+Foam::vector Foam::eigenVector(const tensor& t, const scalar lambda)
 {
     if (mag(lambda) < SMALL)
     {
@@ -230,7 +223,7 @@ vector eigenVector(const tensor& t, const scalar lambda)
     scalar magSd2 = mag(sd2);
 
     // Evaluate the eigenvector using the largest sub-determinant
-    if (magSd0 > magSd1 && magSd0 > magSd2 && magSd0 > SMALL)
+    if (magSd0 >= magSd1 && magSd0 >= magSd2 && magSd0 > SMALL)
     {
         vector ev
         (
@@ -242,7 +235,7 @@ vector eigenVector(const tensor& t, const scalar lambda)
 
         return ev;
     }
-    else if (magSd1 > magSd2 && magSd1 > SMALL)
+    else if (magSd1 >= magSd2 && magSd1 > SMALL)
     {
         vector ev
         (
@@ -273,7 +266,7 @@ vector eigenVector(const tensor& t, const scalar lambda)
 }
 
 
-tensor eigenVectors(const tensor& t)
+Foam::tensor Foam::eigenVectors(const tensor& t)
 {
     vector evals(eigenValues(t));
 
@@ -288,8 +281,7 @@ tensor eigenVectors(const tensor& t)
 }
 
 
-// Return eigenvalues in ascending order of absolute values
-vector eigenValues(const symmTensor& t)
+Foam::vector Foam::eigenValues(const symmTensor& t)
 {
     scalar i = 0;
     scalar ii = 0;
@@ -321,7 +313,7 @@ vector eigenValues(const symmTensor& t)
             + t.xy()*t.xy()*t.zz() + t.xx()*t.yz()*t.yz();
 
         // If there is a zero root
-        if (mag(c) < 1.0e-100)
+        if (mag(c) < CBRTVSMALL)
         {
             scalar disc = sqr(a) - 4*b;
 
@@ -358,14 +350,8 @@ vector eigenValues(const symmTensor& t)
                 scalar aBy3 = a/3;
 
                 i = m2SqrtQ*cos(theta/3) - aBy3;
-                ii =
-                    m2SqrtQ
-                   *cos((theta + constant::mathematical::twoPi)/3)
-                  - aBy3;
-                iii =
-                    m2SqrtQ
-                   *cos((theta - constant::mathematical::twoPi)/3)
-                 - aBy3;
+                ii = m2SqrtQ*cos((theta + twoPi)/3) - aBy3;
+                iii = m2SqrtQ*cos((theta - twoPi)/3) - aBy3;
             }
             else
             {
@@ -411,7 +397,7 @@ vector eigenValues(const symmTensor& t)
 }
 
 
-vector eigenVector(const symmTensor& t, const scalar lambda)
+Foam::vector Foam::eigenVector(const symmTensor& t, const scalar lambda)
 {
     if (mag(lambda) < SMALL)
     {
@@ -431,7 +417,7 @@ vector eigenVector(const symmTensor& t, const scalar lambda)
     scalar magSd2 = mag(sd2);
 
     // Evaluate the eigenvector using the largest sub-determinant
-    if (magSd0 > magSd1 && magSd0 > magSd2 && magSd0 > SMALL)
+    if (magSd0 >= magSd1 && magSd0 >= magSd2 && magSd0 > SMALL)
     {
         vector ev
         (
@@ -443,7 +429,7 @@ vector eigenVector(const symmTensor& t, const scalar lambda)
 
         return ev;
     }
-    else if (magSd1 > magSd2 && magSd1 > SMALL)
+    else if (magSd1 >= magSd2 && magSd1 > SMALL)
     {
         vector ev
         (
@@ -474,7 +460,7 @@ vector eigenVector(const symmTensor& t, const scalar lambda)
 }
 
 
-tensor eigenVectors(const symmTensor& t)
+Foam::tensor Foam::eigenVectors(const symmTensor& t)
 {
     vector evals(eigenValues(t));
 
@@ -488,9 +474,5 @@ tensor eigenVectors(const symmTensor& t)
     return evs;
 }
 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
 
 // ************************************************************************* //

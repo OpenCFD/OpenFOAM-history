@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,6 +36,8 @@ License
 #include "mapDistributePolyMesh.H"
 #include "unitConversion.H"
 #include "snapParameters.H"
+#include "localPointRegion.H"
+#include "IOmanip.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -93,7 +95,7 @@ Foam::label Foam::autoRefineDriver::featureEdgeRefine
             (
                 meshRefiner_.refineCandidates
                 (
-                    refineParams.keepPoints()[0],    // For now only use one.
+                    refineParams.locationsInMesh(),
                     refineParams.curvature(),
                     refineParams.planarAngle(),
 
@@ -206,7 +208,7 @@ Foam::label Foam::autoRefineDriver::surfaceOnlyRefine
         (
             meshRefiner_.refineCandidates
             (
-                refineParams.keepPoints()[0],
+                refineParams.locationsInMesh(),
                 refineParams.curvature(),
                 refineParams.planarAngle(),
 
@@ -340,7 +342,7 @@ Foam::label Foam::autoRefineDriver::gapOnlyRefine
         (
             meshRefiner_.refineCandidates
             (
-                refineParams.keepPoints()[0],
+                refineParams.locationsInMesh(),
                 refineParams.curvature(),
                 refineParams.planarAngle(),
 
@@ -691,14 +693,25 @@ void Foam::autoRefineDriver::removeInsideCells
         nBufferLayers,                  // nBufferLayers
         globalToMasterPatch_,
         globalToSlavePatch_,
-        refineParams.keepPoints()[0]
+        refineParams.locationsInMesh(),
+        refineParams.zonesInMesh(),
+        refineParams.locationsOutsideMesh()
     );
 
     if (debug&meshRefinement::MESH)
     {
         Pout<< "Writing subsetted mesh to time "
             << meshRefiner_.timeName() << '.' << endl;
-        meshRefiner_.write(debug, mesh.time().path()/meshRefiner_.timeName());
+        meshRefiner_.write
+        (
+            meshRefinement::debugType(debug),
+            meshRefinement::writeType
+            (
+                meshRefinement::writeLevel()
+              | meshRefinement::WRITEMESH
+            ),
+            mesh.time().path()/meshRefiner_.timeName()
+        );
         Pout<< "Dumped mesh in = "
             << mesh.time().cpuTimeIncrement() << " s\n" << nl << endl;
     }
@@ -743,7 +756,7 @@ Foam::label Foam::autoRefineDriver::shellRefine
         (
             meshRefiner_.refineCandidates
             (
-                refineParams.keepPoints()[0],
+                refineParams.locationsInMesh(),
                 refineParams.curvature(),
                 refineParams.planarAngle(),
 
@@ -911,14 +924,17 @@ void Foam::autoRefineDriver::baffleAndSplitMesh
         const_cast<Time&>(mesh.time()),
         globalToMasterPatch_,
         globalToSlavePatch_,
-        refineParams.keepPoints()[0]
+        refineParams.locationsInMesh(),
+        refineParams.zonesInMesh(),
+        refineParams.locationsOutsideMesh()
     );
 }
 
 
 void Foam::autoRefineDriver::zonify
 (
-    const refinementParameters& refineParams
+    const refinementParameters& refineParams,
+    wordPairHashTable& zonesToFaceZone
 )
 {
     // Mesh is at its finest. Do zoning
@@ -930,7 +946,11 @@ void Foam::autoRefineDriver::zonify
     const labelList namedSurfaces =
         surfaceZonesInfo::getNamedSurfaces(meshRefiner_.surfaces().surfZones());
 
-    if (namedSurfaces.size())
+    if
+    (
+        namedSurfaces.size()
+     || refineParams.zonesInMesh().size()
+    )
     {
         Info<< nl
             << "Introducing zones for interfaces" << nl
@@ -946,8 +966,10 @@ void Foam::autoRefineDriver::zonify
 
         meshRefiner_.zonify
         (
-            refineParams.keepPoints()[0],
-            refineParams.allowFreeStandingZoneFaces()
+            refineParams.allowFreeStandingZoneFaces(),
+            refineParams.locationsInMesh(),
+            refineParams.zonesInMesh(),
+            zonesToFaceZone
         );
 
         if (debug&meshRefinement::MESH)
@@ -956,7 +978,12 @@ void Foam::autoRefineDriver::zonify
                 << meshRefiner_.timeName() << '.' << endl;
             meshRefiner_.write
             (
-                debug,
+                meshRefinement::debugType(debug),
+                meshRefinement::writeType
+                (
+                    meshRefinement::writeLevel()
+                  | meshRefinement::WRITEMESH
+                ),
                 mesh.time().path()/meshRefiner_.timeName()
             );
         }
@@ -1008,7 +1035,9 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
         const_cast<Time&>(mesh.time()),
         globalToMasterPatch_,
         globalToSlavePatch_,
-        refineParams.keepPoints()[0]
+        refineParams.locationsInMesh(),
+        refineParams.zonesInMesh(),
+        refineParams.locationsOutsideMesh()
     );
 
     if (debug)
@@ -1022,19 +1051,11 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
 
 
     // Merge all baffles that are still remaining after duplicating points.
-    List<labelPair> couples
-    (
-        meshRefiner_.getDuplicateFaces   // get all baffles
-        (
-            identity(mesh.nFaces()-mesh.nInternalFaces())
-          + mesh.nInternalFaces()
-        )
-    );
+    List<labelPair> couples(localPointRegion::findDuplicateFacePairs(mesh));
 
     label nCouples = returnReduce(couples.size(), sumOp<label>());
 
-    Info<< "Detected unsplittable baffles : "
-        << nCouples << endl;
+    Info<< "Detected unsplittable baffles : " << nCouples << endl;
 
     if (nCouples > 0)
     {
@@ -1054,7 +1075,8 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
         (
             globalToMasterPatch_,
             globalToSlavePatch_,
-            refineParams.keepPoints()[0]
+            refineParams.locationsInMesh(),
+            refineParams.locationsOutsideMesh()
         );
 
         if (debug)
@@ -1071,13 +1093,97 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
     {
         Pout<< "Writing handleProblemCells mesh to time "
             << meshRefiner_.timeName() << '.' << endl;
-        meshRefiner_.write(debug, mesh.time().path()/meshRefiner_.timeName());
+        meshRefiner_.write
+        (
+            meshRefinement::debugType(debug),
+            meshRefinement::writeType
+            (
+                meshRefinement::writeLevel()
+              | meshRefinement::WRITEMESH
+            ),
+            mesh.time().path()/meshRefiner_.timeName()
+        );
+    }
+}
+
+
+void Foam::autoRefineDriver::addFaceZones
+(
+    meshRefinement& meshRefiner,
+    const refinementParameters& refineParams,
+    const HashTable<Pair<word> >& faceZoneToPatches
+)
+{
+    if (faceZoneToPatches.size())
+    {
+        Info<< nl
+            << "Adding patches for face zones" << nl
+            << "-----------------------------" << nl
+            << endl;
+
+        Info<< setf(ios_base::left)
+            << setw(6) << "Patch"
+            << setw(20) << "Type"
+            << setw(30) << "Name"
+            << setw(30) << "FaceZone"
+            << setw(10) << "FaceType"
+            << nl
+            << setw(6) << "-----"
+            << setw(20) << "----"
+            << setw(30) << "----"
+            << setw(30) << "--------"
+            << setw(10) << "--------"
+            << endl;
+
+        const polyMesh& mesh = meshRefiner.mesh();
+
+        // Add patches for added inter-region faceZones
+        forAllConstIter(HashTable<Pair<word> >, faceZoneToPatches, iter)
+        {
+            const word& fzName = iter.key();
+            const Pair<word>& patchNames = iter();
+
+            // Get any user-defined faceZone data
+            surfaceZonesInfo::faceZoneType fzType;
+            dictionary patchInfo = refineParams.getZoneInfo(fzName, fzType);
+
+            const word& masterName = fzName;
+            //const word slaveName = fzName + "_slave";
+            //const word slaveName = czNames.second()+"_to_"+czNames.first();
+            const word& slaveName = patchNames.second();
+
+            label mpI = meshRefiner.addMeshedPatch(masterName, patchInfo);
+
+            Info<< setf(ios_base::left)
+                << setw(6) << mpI
+                << setw(20) << mesh.boundaryMesh()[mpI].type()
+                << setw(30) << masterName
+                << setw(30) << fzName
+                << setw(10) << surfaceZonesInfo::faceZoneTypeNames[fzType]
+                << nl;
+
+
+            label slI = meshRefiner.addMeshedPatch(slaveName, patchInfo);
+
+            Info<< setf(ios_base::left)
+                << setw(6) << slI
+                << setw(20) << mesh.boundaryMesh()[slI].type()
+                << setw(30) << slaveName
+                << setw(30) << fzName
+                << setw(10) << surfaceZonesInfo::faceZoneTypeNames[fzType]
+                << nl;
+
+            meshRefiner.addFaceZone(fzName, masterName, slaveName, fzType);
+        }
+
+        Info<< endl;
     }
 }
 
 
 void Foam::autoRefineDriver::mergePatchFaces
 (
+    const bool geometricMerge,
     const refinementParameters& refineParams,
     const dictionary& motionDict
 )
@@ -1089,14 +1195,28 @@ void Foam::autoRefineDriver::mergePatchFaces
 
     const fvMesh& mesh = meshRefiner_.mesh();
 
-    meshRefiner_.mergePatchFacesUndo
-    (
-        Foam::cos(degToRad(45.0)),
-        Foam::cos(degToRad(45.0)),
-        meshRefiner_.meshedPatches(),
-        motionDict,
-        labelList(mesh.nFaces(), -1)
-    );
+    if (geometricMerge)
+    {
+        meshRefiner_.mergePatchFacesUndo
+        (
+            Foam::cos(degToRad(45.0)),
+            Foam::cos(degToRad(45.0)),
+            meshRefiner_.meshedPatches(),
+            motionDict,
+            labelList(mesh.nFaces(), -1)
+        );
+    }
+    else
+    {
+        // Still merge refined boundary faces if all four are on same patch
+        meshRefiner_.mergePatchFaces
+        (
+            Foam::cos(degToRad(45.0)),
+            Foam::cos(degToRad(45.0)),
+            4,          // only merge faces split into 4
+            meshRefiner_.meshedPatches()
+        );
+    }
 
     if (debug)
     {
@@ -1118,6 +1238,7 @@ void Foam::autoRefineDriver::doRefine
     const refinementParameters& refineParams,
     const snapParameters& snapParams,
     const bool prepareForSnapping,
+    const bool doMergePatchFaces,
     const dictionary& motionDict
 )
 {
@@ -1129,7 +1250,7 @@ void Foam::autoRefineDriver::doRefine
     const fvMesh& mesh = meshRefiner_.mesh();
 
     // Check that all the keep points are inside the mesh.
-    refineParams.findCells(mesh);
+    refineParams.findCells(true, mesh, refineParams.locationsInMesh());
 
     // Refine around feature edges
     featureEdgeRefine
@@ -1190,8 +1311,25 @@ void Foam::autoRefineDriver::doRefine
         motionDict
     );
 
-    // Mesh is at its finest. Do optional zoning.
-    zonify(refineParams);
+    // Mesh is at its finest. Do optional zoning (cellZones and faceZones)
+    wordPairHashTable zonesToFaceZone;
+    zonify(refineParams, zonesToFaceZone);
+
+    // Create pairs of patches for faceZones
+    {
+        HashTable<Pair<word> > faceZoneToPatches(zonesToFaceZone.size());
+        forAllConstIter(wordPairHashTable, zonesToFaceZone, iter)
+        {
+            const Pair<word>& czNames = iter.key();
+            const word& fzName = iter();
+
+            const word& masterName = fzName;
+            const word slaveName = czNames.second() + "_to_" + czNames.first();
+            Pair<word> patches(masterName, slaveName);
+            faceZoneToPatches.insert(fzName, patches);
+        }
+        addFaceZones(meshRefiner_, refineParams, faceZoneToPatches);
+    }
 
     // Pull baffles apart
     splitAndMergeBaffles
@@ -1205,7 +1343,7 @@ void Foam::autoRefineDriver::doRefine
     // Do something about cells with refined faces on the boundary
     if (prepareForSnapping)
     {
-        mergePatchFaces(refineParams, motionDict);
+        mergePatchFaces(doMergePatchFaces, refineParams, motionDict);
     }
 
 
@@ -1216,19 +1354,14 @@ void Foam::autoRefineDriver::doRefine
             << "---------------------" << nl
             << endl;
 
-        //if (debug)
-        //{
-        //    const_cast<Time&>(mesh.time())++;
-        //}
-
         // Do final balancing. Keep zoned faces on one processor since the
         // snap phase will convert them to baffles and this only works for
         // internal faces.
         meshRefiner_.balance
         (
-            true,
-            false,
-            scalarField(mesh.nCells(), 1), // dummy weights
+            true,                           // keepZoneFaces
+            false,                          // keepBaffles
+            scalarField(mesh.nCells(), 1),  // cellWeights
             decomposer_,
             distributor_
         );

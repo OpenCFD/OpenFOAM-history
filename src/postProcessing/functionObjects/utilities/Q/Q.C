@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -64,7 +64,7 @@ Foam::Q::Q
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating." << nl
+        )   << "No fvMesh available, deactivating " << name_ << nl
             << endl;
     }
 
@@ -115,24 +115,6 @@ void Foam::Q::read(const dictionary& dict)
 
 void Foam::Q::execute()
 {
-    // Do nothing - only valid on write
-}
-
-
-void Foam::Q::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::Q::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::Q::write()
-{
     if (active_)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
@@ -149,6 +131,31 @@ void Foam::Q::write()
             );
 
         Q = 0.5*(sqr(tr(gradU)) - tr(((gradU) & (gradU))));
+    }
+}
+
+
+void Foam::Q::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+
+void Foam::Q::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::Q::write()
+{
+    if (active_)
+    {
+        const volScalarField& Q =
+            obr_.lookupObject<volScalarField>(type());
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << Q.name() << nl

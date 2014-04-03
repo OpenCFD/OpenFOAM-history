@@ -168,7 +168,6 @@ castellatedMeshControls
             patchInfo
             {
                 type        wall;
-                inGroups    (wall);
             }
         }
 
@@ -182,7 +181,6 @@ castellatedMeshControls
             patchInfo
             {
                 type        wall;
-                inGroups    (wall);
             }
         }
     }
@@ -277,7 +275,7 @@ addLayersControls
         {
             nSurfaceLayers 3;
         }
-        "igloo_.*"
+        igloo
         {
             nSurfaceLayers 1;
         }
@@ -364,14 +362,6 @@ meshQualityControls
 
 
 // Advanced
-
-// Flags for optional output
-// 0 : only write final meshes
-// 1 : write intermediate meshes
-// 2 : write volScalarField with cellLevel for postprocessing
-// 4 : write current intersections as .obj files
-debug 0;
-
 
 // Merge tolerance. Is fraction of overall bounding box of initial mesh.
 // Note: the write tolerance needs to be higher than this.

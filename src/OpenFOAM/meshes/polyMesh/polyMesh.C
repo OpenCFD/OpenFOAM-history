@@ -34,7 +34,7 @@ License
 #include "indexedOctree.H"
 #include "treeDataCell.H"
 #include "MeshObject.H"
-
+#include "pointMesh.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -265,7 +265,7 @@ Foam::polyMesh::polyMesh(const IOobject& io)
     ),
     globalMeshDataPtr_(NULL),
     moving_(false),
-    changing_(false),
+    topoChanging_(false),
     curMotionTimeIndex_(time().timeIndex()),
     oldPointsPtr_(NULL)
 {
@@ -447,7 +447,7 @@ Foam::polyMesh::polyMesh
     ),
     globalMeshDataPtr_(NULL),
     moving_(false),
-    changing_(false),
+    topoChanging_(false),
     curMotionTimeIndex_(time().timeIndex()),
     oldPointsPtr_(NULL)
 {
@@ -606,7 +606,7 @@ Foam::polyMesh::polyMesh
     ),
     globalMeshDataPtr_(NULL),
     moving_(false),
-    changing_(false),
+    topoChanging_(false),
     curMotionTimeIndex_(time().timeIndex()),
     oldPointsPtr_(NULL)
 {
@@ -673,8 +673,8 @@ void Foam::polyMesh::resetPrimitives
     const bool validBoundary
 )
 {
-    // Clear addressing. Keep geometric props for mapping.
-    clearAddressing();
+    // Clear addressing. Keep geometric props and updateable props for mapping.
+    clearAddressing(true);
 
     // Take over new primitive data.
     // Optimized to avoid overwriting data at all
@@ -1160,6 +1160,7 @@ Foam::tmp<Foam::scalarField> Foam::polyMesh::movePoints
     solutionD_ = Vector<label>::zero;
 
     meshObject::movePoints<polyMesh>(*this);
+    meshObject::movePoints<pointMesh>(*this);
 
     const_cast<Time&>(time()).functionObjects().movePoints(*this);
 
@@ -1328,24 +1329,9 @@ void Foam::polyMesh::findTetFacePt
 {
     const polyMesh& mesh = *this;
 
-    tetFaceI = -1;
-    tetPtI = -1;
-
-    List<tetIndices> cellTets =
-        polyMeshTetDecomposition::cellTetIndices(mesh, cellI);
-
-    forAll(cellTets, tetI)
-    {
-        const tetIndices& cellTetIs = cellTets[tetI];
-
-        if (cellTetIs.tet(mesh).inside(pt))
-        {
-            tetFaceI = cellTetIs.face();
-            tetPtI = cellTetIs.tetPt();
-
-            return;
-        }
-    }
+    tetIndices tet(polyMeshTetDecomposition::findTet(mesh, cellI, pt));
+    tetFaceI = tet.face();
+    tetPtI = tet.tetPt();
 }
 
 
@@ -1366,8 +1352,10 @@ bool Foam::polyMesh::pointInCell
 
         case FACECENTRETETS:
         {
-            const point& cc = cellCentres()[cellI];
+            // only test that point is on inside of plane defined by cell face
+            // triangles
             const cell& cFaces = cells()[cellI];
+
             forAll(cFaces, cFaceI)
             {
                 label faceI = cFaces[cFaceI];
@@ -1391,31 +1379,62 @@ bool Foam::polyMesh::pointInCell
                         nextPointI = f[fp];
                     }
 
-                    if
+                    triPointRef faceTri
                     (
-                        tetPointRef
-                        (
-                            points()[nextPointI],
-                            points()[pointI],
-                            fc,
-                            cc
-                        ).inside(p)
-                    )
+                        points()[pointI],
+                        points()[nextPointI],
+                        fc
+                    );
+
+                    vector proj = p - faceTri.centre();
+
+                    if ((faceTri.normal() & proj) > 0)
                     {
-                        return true;
+                        return false;
                     }
                 }
             }
-            return false;
+            return true;
         }
         break;
 
         case FACEDIAGTETS:
         {
-            label tetFaceI, tetPtI;
-            findTetFacePt(cellI, p, tetFaceI, tetPtI);
+            // only test that point is on inside of plane defined by cell face
+            // triangles
+            const cell& cFaces = cells()[cellI];
 
-            return tetFaceI != -1;
+            forAll(cFaces, cFaceI)
+            {
+                label faceI = cFaces[cFaceI];
+                const face& f = faces_[faceI];
+
+                for (label tetPtI = 1; tetPtI < f.size() - 1; tetPtI++)
+                {
+                    // Get tetIndices of face triangle
+                    tetIndices faceTetIs
+                    (
+                        polyMeshTetDecomposition::triangleTetIndices
+                        (
+                            *this,
+                            faceI,
+                            cellI,
+                            tetPtI
+                        )
+                    );
+
+                    triPointRef faceTri = faceTetIs.faceTri(*this);
+
+                    vector proj = p - faceTri.centre();
+
+                    if ((faceTri.normal() & proj) > 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
         break;
     }

@@ -19,117 +19,46 @@ FoamFile
 // faces.
 internalFacesOnly true;
 
-
 // Baffles to create.
 baffles
 {
     baffleFacesThermoBaffle1D
     {
         //- Use predefined faceZone to select faces and orientation.
-        type        faceZone;
-        zoneName    baffleFaces;
+        type        searchableSurface;
+        surface     triSurfaceMesh;
+        name        baffle1D.stl;
 
-
-        //- Optional flip
-        //flip        false;
-
-        patches
+        patchPairs
         {
-            master
+            type            wall;
+            patchFields
             {
-                //- Master side patch
-                name            baffle1Wall_0;
-
-                type            mappedWall;
-                sampleMode      nearestPatchFace;
-                sampleRegion    region0;
-                samplePatch     baffle1Wall_1;
-                offsetMode      uniform;
-                offset          (0 0 0);
-
-
-                patchFields
-                {
-                    T
-                    {
-                        type   compressible::thermalBaffle1D<hConstSolidThermoPhysics>;
-                        baffleActivated yes;
-                        thickness       uniform 0.005;  // thickness [m]
-                        Qs              uniform 100;    // heat flux [W/m2]
-                        specie
-                        {
-                            nMoles          1;
-                            molWeight       20;
-                        }
-                        transport
-                        {
-                            kappa           1;
-                        }
-                        thermodynamics
-                        {
-                            Hf              0;
-                            Cp              10;
-                        }
-                        equationOfState
-                        {
-                            rho             10;
-                        }
-
-                        value               uniform 300;
-                    }
-
-                    alphat
-                    {
-                        type            compressible::alphatWallFunction;
-                        value           uniform 0;
-                    }
-                    epsilon
-                    {
-                        type            compressible::epsilonWallFunction;
-                        value           uniform 0.01;
-                    }
-                    k
-                    {
-                        type            compressible::kqRWallFunction;
-                        value           uniform 0.01;
-                    }
-                    mut
-                    {
-                        type            mutkWallFunction;
-                        value           uniform 0;
-                    }
-                    p
-                    {
-                        type            calculated;
-                        value           uniform 101325;
-                    }
-                    p_rgh
-                    {
-                        type            fixedFluxPressure;
-                    }
-                    U
-                    {
-                        type            fixedValue;
-                        value           uniform (0 0 0);
-                    }
-                }
+                #include "./0/include/wallBafflePatches"
+                #include "./0/include/1DBaffle/1DTemperatureMasterBafflePatches"
             }
-            slave
+        }
+    }
+
+    #include "./0/include/baffle3DSetup"
+
+    baffleFacesThermoBaffle3D
+    {
+        type        searchableSurface;
+        surface     triSurfaceMesh;
+        name        baffle3D.stl;
+
+        patchPairs
+        {
+            type            mappedWall;
+            sampleMode      nearestPatchFace;
+            // Put master and slave patch in same group (default on)
+            // Otherwise makeup group names xxx_master and xxx_slave
+            sameGroup       off;
+            patchFields
             {
-                //- Slave side patch
-                name            baffle1Wall_1;
-
-                type            mappedWall;
-                sampleMode      nearestPatchFace;
-                sampleRegion    region0;
-                samplePatch     baffle1Wall_0;
-                offsetMode      uniform;
-                offset          (0 0 0);
-
-                patchFields
-                {
-                    ${...master.patchFields}
-                }
+                #include "./0/include/wallBafflePatches"
+                #include "./0/include/3DBaffle/3DTemperatureMasterBafflePatches"
             }
         }
     }

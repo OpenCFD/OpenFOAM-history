@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,6 +28,8 @@ License
 
 #include "specie.H"
 #include "perfectGas.H"
+#include "PengRobinsonGas.H"
+#include "rhoConst.H"
 #include "hConstThermo.H"
 #include "eConstThermo.H"
 #include "janafThermo.H"
@@ -38,6 +40,10 @@ License
 #include "constTransport.H"
 #include "sutherlandTransport.H"
 
+#include "icoPolynomial.H"
+#include "hPolynomialThermo.H"
+#include "polynomialTransport.H"
+
 #include "hePsiThermo.H"
 #include "pureMixture.H"
 
@@ -47,6 +53,18 @@ namespace Foam
 {
 
 /* * * * * * * * * * * * * * * * * Enthalpy-based * * * * * * * * * * * * * */
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    constTransport,
+    sensibleEnthalpy,
+    hConstThermo,
+    rhoConst,
+    specie
+);
 
 makeThermo
 (
@@ -81,6 +99,43 @@ makeThermo
     sensibleEnthalpy,
     janafThermo,
     perfectGas,
+    specie
+);
+
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleEnthalpy,
+    hConstThermo,
+    PengRobinsonGas,
+    specie
+);
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    polynomialTransport,
+    sensibleEnthalpy,
+    hPolynomialThermo,
+    PengRobinsonGas,
+    specie
+);
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    polynomialTransport,
+    sensibleEnthalpy,
+    janafThermo,
+    PengRobinsonGas,
     specie
 );
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,14 +25,6 @@ Class
     Foam::twoPhaseSystem
 
 Description
-    Incompressible multi-phase mixture with built in solution for the
-    phase fractions with interface compression for interface-capturing.
-
-    Derived from transportModel so that it can be unsed in conjunction with
-    the incompressible turbulence models.
-
-    Surface tension and contact-angle is handled for the interface
-    between each phase-pair.
 
 SourceFiles
     twoPhaseSystem.C
@@ -44,8 +36,8 @@ SourceFiles
 
 #include "IOdictionary.H"
 #include "phaseModel.H"
-#include "dragModel.H"
-#include "heatTransferModel.H"
+#include "phasePair.H"
+#include "orderedPhasePair.H"
 #include "volFields.H"
 #include "surfaceFields.H"
 
@@ -54,10 +46,15 @@ SourceFiles
 namespace Foam
 {
 
-// Forward declarations
 class dragModel;
+class virtualMassModel;
 class heatTransferModel;
+class liftModel;
+class wallLubricationModel;
+class turbulentDispersionModel;
 
+class blendingMethod;
+template <class modelType> class BlendedInterfacialModel;
 
 /*---------------------------------------------------------------------------*\
                       Class twoPhaseSystem Declaration
@@ -67,25 +64,65 @@ class twoPhaseSystem
 :
     public IOdictionary
 {
+private:
+
     // Private data
 
+        //- Reference to the mesh
         const fvMesh& mesh_;
 
+        //- Phase model 1
         phaseModel phase1_;
+
+        //- Phase model 2
         phaseModel phase2_;
 
-        dimensionedScalar Cvm_;
-        dimensionedScalar Cl_;
+        //- Total volumetric flux
+        surfaceScalarField phi_;
 
-        autoPtr<dragModel> drag1_;
-        autoPtr<dragModel> drag2_;
+        //-  Dilatation term
+        volScalarField dgdt_;
 
-        autoPtr<heatTransferModel> heatTransfer1_;
-        autoPtr<heatTransferModel> heatTransfer2_;
+        //- Wall distance
+        volScalarField yWall_;
 
-        word dispersedPhase_;
-        scalar residualPhaseFraction_;
-        dimensionedScalar residualSlip_;
+        //- Unordered phase pair
+        autoPtr<phasePair> pair_;
+
+        //- Phase pair for phase 1 dispersed in phase 2
+        autoPtr<orderedPhasePair> pair1In2_;
+
+        //- Phase pair for phase 2 dispersed in phase 1
+        autoPtr<orderedPhasePair> pair2In1_;
+
+        //- Blending methods
+        HashTable<autoPtr<blendingMethod>, word, word::hash> blendingMethods_;
+
+        //- Drag model
+        autoPtr<BlendedInterfacialModel<dragModel> > drag_;
+
+        //- Virtual mass model
+        autoPtr<BlendedInterfacialModel<virtualMassModel> > virtualMass_;
+
+        //- Heat transfer model
+        autoPtr<BlendedInterfacialModel<heatTransferModel> > heatTransfer_;
+
+        //- Lift model
+        autoPtr<BlendedInterfacialModel<liftModel> > lift_;
+
+        //- Wall lubrication model
+        autoPtr<BlendedInterfacialModel<wallLubricationModel> >
+            wallLubrication_;
+
+        //- Wall lubrication model
+        autoPtr<BlendedInterfacialModel<turbulentDispersionModel> >
+            turbulentDispersion_;
+
+
+    // Private member functions
+
+        //- Return the mixture flux
+        tmp<surfaceScalarField> calcPhi() const;
 
 
 public:
@@ -93,99 +130,14 @@ public:
     // Constructors
 
         //- Construct from fvMesh
-        twoPhaseSystem(const fvMesh&);
+        twoPhaseSystem(const fvMesh&, const dimensionedVector& g);
 
 
     //- Destructor
-    virtual ~twoPhaseSystem()
-    {}
+    virtual ~twoPhaseSystem();
 
 
     // Member Functions
-
-        const fvMesh& mesh() const
-        {
-            return mesh_;
-        }
-
-        const phaseModel& phase1() const
-        {
-            return phase1_;
-        }
-
-        const phaseModel& phase2() const
-        {
-            return phase2_;
-        }
-
-        const phaseModel& otherPhase(const phaseModel& phase) const
-        {
-            if (&phase == &phase1_)
-            {
-                return phase2_;
-            }
-            else
-            {
-                return phase1_;
-            }
-        }
-
-        phaseModel& phase1()
-        {
-            return phase1_;
-        }
-
-        phaseModel& phase2()
-        {
-            return phase2_;
-        }
-
-        const dragModel& drag1() const
-        {
-            return drag1_();
-        }
-
-        const dragModel& drag2() const
-        {
-            return drag2_();
-        }
-
-        const dragModel& drag(const phaseModel& phase) const
-        {
-            if (&phase == &phase1_)
-            {
-                return drag1_();
-            }
-            else
-            {
-                return drag2_();
-            }
-        }
-
-        scalar residualPhaseFraction() const
-        {
-            return residualPhaseFraction_;
-        }
-
-        const dimensionedScalar& residualSlip() const
-        {
-            return residualSlip_;
-        }
-
-        tmp<volScalarField> dragCoeff() const;
-        tmp<volVectorField> liftForce(const volVectorField& U) const;
-
-        const heatTransferModel& heatTransfer1() const
-        {
-            return heatTransfer1_();
-        }
-
-        const heatTransferModel& heatTransfer2() const
-        {
-            return heatTransfer2_();
-        }
-
-        tmp<volScalarField> heatTransferCoeff() const;
 
         //- Return the mixture density
         tmp<volScalarField> rho() const;
@@ -193,33 +145,86 @@ public:
         //- Return the mixture velocity
         tmp<volVectorField> U() const;
 
-        //- Return the mixture flux
-        tmp<surfaceScalarField> phi() const;
+        //- Return the drag coefficient
+        tmp<volScalarField> dragCoeff() const;
 
-        //- Return the virtual-mass coefficient
-        dimensionedScalar Cvm() const
-        {
-            return Cvm_;
-        }
+        //- Return the virtual mass coefficient
+        tmp<volScalarField> virtualMassCoeff() const;
 
-        //- Return the lift coefficient
-        dimensionedScalar Cl() const
-        {
-            return Cl_;
-        }
+        //- Return the heat transfer coefficient
+        tmp<volScalarField> heatTransferCoeff() const;
 
-        //- Dummy correct
-        void correct()
-        {}
+        //- Return the lift force
+        tmp<volVectorField> liftForce() const;
+
+        //- Return the wall lubrication force
+        tmp<volVectorField> wallLubricationForce() const;
+
+        //- Return the wall lubrication force
+        tmp<volVectorField> turbulentDispersionForce() const;
+
+        //- Solve for the two-phase-fractions
+        void solve();
+
+        //- Correct two-phase properties other than turbulence
+        void correct();
+
+        //- Correct two-phase turbulence
+        void correctTurbulence();
 
         //- Read base phaseProperties dictionary
         bool read();
+
+        // Access
+
+            //- Return the drag model for the supplied phase
+            const dragModel& drag(const phaseModel& phase) const;
+
+            //- Return the virtual mass model for the supplied phase
+            const virtualMassModel& virtualMass(const phaseModel& phase) const;
+
+            //- Return the surface tension coefficient
+            const dimensionedScalar& sigma() const;
+
+            //- Return the mesh
+            inline const fvMesh& mesh() const;
+
+            //- Return phase model 1
+            inline const phaseModel& phase1() const;
+
+            //- Return non-const access to phase model 1
+            inline phaseModel& phase1();
+
+            //- Return phase model 2
+            inline const phaseModel& phase2() const;
+
+            //- Return non-const access to phase model 2
+            inline phaseModel& phase2();
+
+            //- Return the phase not given as an argument
+            inline const phaseModel& otherPhase(const phaseModel& phase) const;
+
+            //- Return the mixture flux
+            inline const surfaceScalarField& phi() const;
+
+            //- Return non-const access to the the mixture flux
+            inline surfaceScalarField& phi();
+
+            //- Return the dilatation term
+            inline const volScalarField& dgdt() const;
+
+            //- Return non-const access to the dilatation parameter
+            inline volScalarField& dgdt();
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "twoPhaseSystemI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

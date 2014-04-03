@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -202,6 +202,7 @@ void subsetSurfaceFields
 (
     const fvMesh& mesh,
     const fvMesh& subMesh,
+    const labelList& cellMap,
     const labelList& faceMap,
     const labelHashSet& addedPatches
 )
@@ -225,6 +226,7 @@ void subsetSurfaceFields
                 fld,
                 subMesh,
                 patchMap,
+                cellMap,
                 faceMap
             )
         );
@@ -824,6 +826,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -831,6 +834,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -838,6 +842,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -845,6 +850,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -852,6 +858,7 @@ void createAndWriteRegion
     (
         mesh,
         newMesh(),
+        map().cellMap(),
         map().faceMap(),
         addedPatches
     );
@@ -1078,7 +1085,6 @@ labelList addRegionPatches
             mesh.boundaryMesh()
         );
 
-        //interfacePatches[interI] = addPatch(mesh, patch1);
         interfacePatches[interI] = fvMeshTools::addPatch
         (
             mesh,
@@ -1100,7 +1106,6 @@ labelList addRegionPatches
             point::zero,        // offset
             mesh.boundaryMesh()
         );
-        //addPatch(mesh, patch2);
         fvMeshTools::addPatch
         (
             mesh,

@@ -90,27 +90,36 @@ Foam::trackedParticle::trackedParticle
 bool Foam::trackedParticle::move
 (
     trackingData& td,
-    const scalar trackedParticle
+    const scalar trackTime
 )
 {
     td.switchProcessor = false;
-    td.keepParticle = true;
 
-    scalar tEnd = (1.0 - stepFraction())*trackedParticle;
+    scalar tEnd = (1.0 - stepFraction())*trackTime;
     scalar dtMax = tEnd;
 
-    while (td.keepParticle && !td.switchProcessor && tEnd > SMALL)
+    if (tEnd <= SMALL)
     {
-        // set the lagrangian time-step
-        scalar dt = min(dtMax, tEnd);
+        // Remove the particle
+        td.keepParticle = false;
+    }
+    else
+    {
+        td.keepParticle = true;
 
-        // mark visited cell with max level.
-        td.maxLevel()[cell()] = max(td.maxLevel()[cell()], level_);
+        while (td.keepParticle && !td.switchProcessor && tEnd > SMALL)
+        {
+            // set the lagrangian time-step
+            scalar dt = min(dtMax, tEnd);
 
-        dt *= trackToFace(end_, td);
+            // mark visited cell with max level.
+            td.maxLevel()[cell()] = max(td.maxLevel()[cell()], level_);
 
-        tEnd -= dt;
-        stepFraction() = 1.0 - tEnd/trackedParticle;
+            dt *= trackToFace(end_, td);
+
+            tEnd -= dt;
+            stepFraction() = 1.0 - tEnd/trackTime;
+        }
     }
 
     return td.keepParticle;
@@ -133,6 +142,17 @@ bool Foam::trackedParticle::hitPatch
 void Foam::trackedParticle::hitWedgePatch
 (
     const wedgePolyPatch&,
+    trackingData& td
+)
+{
+    // Remove particle
+    td.keepParticle = false;
+}
+
+
+void Foam::trackedParticle::hitSymmetryPlanePatch
+(
+    const symmetryPlanePolyPatch&,
     trackingData& td
 )
 {
@@ -169,7 +189,7 @@ void Foam::trackedParticle::hitProcessorPatch
     trackingData& td
 )
 {
-    // Remove particle
+    // Move to different processor
     td.switchProcessor = true;
 }
 

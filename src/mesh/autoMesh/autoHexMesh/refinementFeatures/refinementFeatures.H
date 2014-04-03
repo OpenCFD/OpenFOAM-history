@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,7 @@ SourceFiles
 #ifndef refinementFeatures_H
 #define refinementFeatures_H
 
-#include "featureEdgeMesh.H"
+#include "extendedFeatureEdgeMesh.H"
 #include "indexedOctree.H"
 #include "treeDataEdge.H"
 #include "treeDataPoint.H"
@@ -51,7 +51,7 @@ namespace Foam
 
 class refinementFeatures
 :
-    public PtrList<featureEdgeMesh>
+    public PtrList<extendedFeatureEdgeMesh>
 {
 private:
 
@@ -69,6 +69,10 @@ private:
         //- Features points
         PtrList<indexedOctree<treeDataPoint> > pointTrees_;
 
+        //- Region edge trees (demand driven)
+        mutable autoPtr<PtrList<indexedOctree<treeDataEdge> > >
+            regionEdgeTreesPtr_;
+
 
     // Private Member Functions
 
@@ -76,7 +80,7 @@ private:
         void read(const objectRegistry&, const PtrList<dictionary>&);
 
         //- Build edge tree and feature point tree
-        void buildTrees(const label, const labelList&);
+        void buildTrees(const label);
 
         //- Find shell level higher than ptLevel
         void findHigherLevel
@@ -85,6 +89,22 @@ private:
             const label featI,
             labelList& maxLevel
         ) const;
+
+
+protected:
+
+        const PtrList<indexedOctree<treeDataEdge> >& edgeTrees() const
+        {
+            return edgeTrees_;
+        }
+
+        const PtrList<indexedOctree<treeDataPoint> >& pointTrees() const
+        {
+            return pointTrees_;
+        }
+
+
+        const PtrList<indexedOctree<treeDataEdge> >& regionEdgeTrees() const;
 
 public:
 
@@ -95,15 +115,6 @@ public:
         (
             const objectRegistry& io,
             const PtrList<dictionary>& featDicts
-        );
-
-        //- Construct from description and do geometric analysis to determine
-        //  feature points
-        refinementFeatures
-        (
-            const objectRegistry& io,
-            const PtrList<dictionary>& featDicts,
-            const scalar minCos
         );
 
 
@@ -123,42 +134,53 @@ public:
                 return distances_;
             }
 
-            const PtrList<indexedOctree<treeDataEdge> >& edgeTrees() const
-            {
-                return edgeTrees_;
-            }
-
-            const PtrList<indexedOctree<treeDataPoint> >& pointTrees() const
-            {
-                return pointTrees_;
-            }
-
 
         // Query
 
             //- Highest distance of all features
             scalar maxDistance() const;
 
-            //- Find nearest point on nearest feature edge
+            //- Find nearest point on nearest feature edge. Sets
+            //  - nearFeature: index of feature mesh
+            //  - nearInfo   : location on feature edge and edge index
+            //                 (note: not feature edge index but index into
+            //                  edges() directly)
+            //  - nearNormal : local feature edge normal
             void findNearestEdge
             (
                 const pointField& samples,
                 const scalarField& nearestDistSqr,
                 labelList& nearFeature,
-                List<pointIndexHit>& nearInfo
+                List<pointIndexHit>& nearInfo,
+                vectorField& nearNormal
             ) const;
 
-            //- Find nearest feature point. Is an index into feature points
-            //  which itself is an index into the edgeMesh points.
-            //  So the point index is
-            //      pointTrees()[nearFeature].shapes().pointLabels()[nearIndex]
-            //  Wip.
+            //- Find nearest point on nearest region edge. Sets
+            //  - nearFeature: index of feature mesh
+            //  - nearInfo   : location on feature edge and edge index
+            //                 (note: not feature edge index but index into
+            //                  edges() directly)
+            //  - nearNormal : local feature edge normal
+            void findNearestRegionEdge
+            (
+                const pointField& samples,
+                const scalarField& nearestDistSqr,
+                labelList& nearFeature,
+                List<pointIndexHit>& nearInfo,
+                vectorField& nearNormal
+            ) const;
+
+            //- Find nearest feature point. Sets
+            //  - nearFeature: index of feature mesh
+            //  - nearInfo   : location on feature point and point index.
+            //                 (note: not index into shapes().pointLabels() but
+            //                  index into points() directly)
             void findNearestPoint
             (
                 const pointField& samples,
                 const scalarField& nearestDistSqr,
                 labelList& nearFeature,
-                labelList& nearIndex
+                List<pointIndexHit>& nearInfo
             ) const;
 
             //- Find shell level higher than ptLevel

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -120,6 +120,13 @@ public:
                 return cyclicAMIPolyPatch_.AMI();
             }
 
+            //- Return true if applying the low weight correction
+            virtual bool applyLowWeightCorrection() const
+            {
+                return cyclicAMIPolyPatch_.applyLowWeightCorrection();
+            }
+
+
             //- Are the cyclic planes parallel
             virtual bool parallel() const
             {
@@ -155,15 +162,23 @@ public:
             virtual tmp<vectorField> delta() const;
 
             template<class Type>
-            tmp<Field<Type> > interpolate(const Field<Type>& fld) const
+            tmp<Field<Type> > interpolate
+            (
+                const Field<Type>& fld,
+                const UList<Type>& defaultValues = UList<Type>()
+            ) const
             {
-                return cyclicAMIPolyPatch_.interpolate(fld);
+                return cyclicAMIPolyPatch_.interpolate(fld, defaultValues);
             }
 
             template<class Type>
-            tmp<Field<Type> > interpolate(const tmp<Field<Type> >& tFld) const
+            tmp<Field<Type> > interpolate
+            (
+                const tmp<Field<Type> >& tFld,
+                const UList<Type>& defaultValues = UList<Type>()
+            ) const
             {
-                return cyclicAMIPolyPatch_.interpolate(tFld);
+                return cyclicAMIPolyPatch_.interpolate(tFld, defaultValues);
             }
 
 

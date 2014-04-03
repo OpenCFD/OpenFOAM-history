@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,7 +34,7 @@ Description
 
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
-#include "MULES.H"
+#include "CMULES.H"
 #include "subCycle.H"
 #include "interfaceProperties.H"
 #include "incompressibleTwoPhaseMixture.H"
@@ -55,10 +55,25 @@ int main(int argc, char *argv[])
     pimpleControl pimple(mesh);
 
     #include "createFields.H"
-    #include "createUf.H"
     #include "readTimeControls.H"
     #include "createPrghCorrTypes.H"
+
+    volScalarField rAU
+    (
+        IOobject
+        (
+            "rAU",
+            runTime.timeName(),
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("rAUf", dimTime/rho.dimensions(), 1.0)
+    );
+
     #include "correctPhi.H"
+    #include "createUf.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
@@ -77,46 +92,51 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        scalar timeBeforeMeshUpdate = runTime.elapsedCpuTime();
-
-        mesh.update();
-
-        if (mesh.changing())
-        {
-            Info<< "Execution time for mesh.update() = "
-                << runTime.elapsedCpuTime() - timeBeforeMeshUpdate
-                << " s" << endl;
-
-            gh = g & mesh.C();
-            ghf = g & mesh.Cf();
-        }
-
-        if (mesh.changing() && correctPhi)
-        {
-            // Calculate absolute flux from the mapped surface velocity
-            phi = mesh.Sf() & Uf;
-
-            #include "correctPhi.H"
-
-            // Make the flux relative to the mesh motion
-            fvc::makeRelative(phi, U);
-
-            interface.correct();
-        }
-
-        if (mesh.changing() && checkMeshCourantNo)
-        {
-            #include "meshCourantNo.H"
-        }
-
-        twoPhaseProperties.correct();
-
-        #include "alphaEqnSubCycle.H"
-        interface.correct();
-
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
+            if (pimple.firstIter() || moveMeshOuterCorrectors)
+            {
+                scalar timeBeforeMeshUpdate = runTime.elapsedCpuTime();
+
+                mesh.update();
+
+                if (mesh.changing())
+                {
+                    Info<< "Execution time for mesh.update() = "
+                        << runTime.elapsedCpuTime() - timeBeforeMeshUpdate
+                        << " s" << endl;
+
+                    gh = g & mesh.C();
+                    ghf = g & mesh.Cf();
+                }
+
+                if (mesh.changing() && correctPhi)
+                {
+                    // Calculate absolute flux from the mapped surface velocity
+                    phi = mesh.Sf() & Uf;
+
+                    #include "correctPhi.H"
+
+                    // Make the flux relative to the mesh motion
+                    fvc::makeRelative(phi, U);
+
+                    interface.correct();
+                }
+
+                if (mesh.changing() && checkMeshCourantNo)
+                {
+                    #include "meshCourantNo.H"
+                }
+            }
+
+            #include "alphaControls.H"
+
+            twoPhaseProperties.correct();
+
+            #include "alphaEqnSubCycle.H"
+            interface.correct();
+
             #include "UEqn.H"
 
             // --- Pressure corrector loop

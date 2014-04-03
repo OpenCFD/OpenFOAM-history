@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,19 +34,22 @@ Foam::tmp<Foam::Field<Type> > Foam::cyclicACMIPolyPatch::interpolate
 {
     if (owner())
     {
-        const scalarField& w = AMI().srcWeightsSum();
+        const scalarField& w = srcMask_;
 
-        return
-            w*AMI().interpolateToSource(fldCouple)
-          + (1.0 - w)*fldNonOverlap;
+        tmp<Field<Type> > interpField(AMI().interpolateToSource(fldCouple));
+
+        return w*interpField + (1.0 - w)*fldNonOverlap;
     }
     else
     {
-        const scalarField& w = neighbPatch().AMI().tgtWeightsSum();
+        const scalarField& w = neighbPatch().tgtMask();
 
-        return
-            w*neighbPatch().AMI().interpolateToTarget(fldCouple)
-          + (1.0 - w)*fldNonOverlap;
+        tmp<Field<Type> > interpField
+        (
+            neighbPatch().AMI().interpolateToTarget(fldCouple)
+        );
+
+        return w*interpField + (1.0 - w)*fldNonOverlap;
     }
 }
 
@@ -73,14 +76,14 @@ void Foam::cyclicACMIPolyPatch::interpolate
 {
     if (owner())
     {
-        const scalarField& w = AMI().srcWeightsSum();
+        const scalarField& w = srcMask_;
 
         AMI().interpolateToSource(fldCouple, cop, result);
         result = w*result + (1.0 - w)*fldNonOverlap;
     }
     else
     {
-        const scalarField& w = neighbPatch().AMI().tgtWeightsSum();
+        const scalarField& w = neighbPatch().tgtMask();
 
         neighbPatch().AMI().interpolateToTarget(fldCouple, cop, result);
         result = w*result + (1.0 - w)*fldNonOverlap;

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -66,13 +66,19 @@ Foam::CloudFunctionObjectList<CloudType>::CloudFunctionObjectList
             {
                 const word& modelName = modelNames[i];
 
+                const dictionary& modelDict(dict.subDict(modelName));
+
+                // read the type of the function object
+                const word objectType(modelDict.lookup("type"));
+
                 this->set
                 (
                     i,
                     CloudFunctionObject<CloudType>::New
                     (
-                        dict,
+                        modelDict,
                         owner,
+                        objectType,
                         modelName
                     )
                 );
@@ -130,7 +136,7 @@ void Foam::CloudFunctionObjectList<CloudType>::postEvolve()
 template<class CloudType>
 void Foam::CloudFunctionObjectList<CloudType>::postMove
 (
-    const typename CloudType::parcelType& p,
+    typename CloudType::parcelType& p,
     const label cellI,
     const scalar dt,
     const point& position0,

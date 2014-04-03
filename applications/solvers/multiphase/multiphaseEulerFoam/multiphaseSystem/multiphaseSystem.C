@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -77,6 +77,7 @@ void Foam::multiphaseSystem::solveAlphas()
             phasei,
             new surfaceScalarField
             (
+                "phi" + alpha1.name() + "Corr",
                 fvc::flux
                 (
                     phi_,
@@ -106,7 +107,7 @@ void Foam::multiphaseSystem::solveAlphas()
             {
                 surfaceScalarField phic
                 (
-                    (mag(phi_) + mag(phase1.phi() - phase2.phi()))/mesh_.magSf()
+                    (mag(phi_) + mag(phir))/mesh_.magSf()
                 );
 
                 phir += min(cAlpha()*phic, max(phic))*nHatf(phase1, phase2);
@@ -126,14 +127,29 @@ void Foam::multiphaseSystem::solveAlphas()
         }
 
         // Ensure that the flux at inflow BCs is preserved
-        phiAlphaCorr.boundaryField() = min
-        (
-            phase1.phi().boundaryField()*alpha1.boundaryField(),
-            phiAlphaCorr.boundaryField()
-        );
+        forAll(phiAlphaCorr.boundaryField(), patchi)
+        {
+            fvsPatchScalarField& phiAlphaCorrp =
+                phiAlphaCorr.boundaryField()[patchi];
+
+            if (!phiAlphaCorrp.coupled())
+            {
+                const scalarField& phi1p = phase1.phi().boundaryField()[patchi];
+                const scalarField& alpha1p = alpha1.boundaryField()[patchi];
+
+                forAll(phiAlphaCorrp, facei)
+                {
+                    if (phi1p[facei] < 0)
+                    {
+                        phiAlphaCorrp[facei] = alpha1p[facei]*phi1p[facei];
+                    }
+                }
+            }
+        }
 
         MULES::limit
         (
+            1.0/mesh_.time().deltaT().value(),
             geometricOneField(),
             phase1,
             phi_,

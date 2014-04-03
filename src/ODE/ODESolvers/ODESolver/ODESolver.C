@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,82 +30,127 @@ License
 namespace Foam
 {
     defineTypeNameAndDebug(ODESolver, 0);
-    defineRunTimeSelectionTable(ODESolver, ODE);
+    defineRunTimeSelectionTable(ODESolver, dictionary);
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::ODESolver::ODESolver(const ODE& ode)
+Foam::ODESolver::ODESolver(const ODESystem& ode, const dictionary& dict)
 :
+    odes_(ode),
     n_(ode.nEqns()),
-    yScale_(n_),
-    dydx_(n_)
+    absTol_(n_, dict.lookupOrDefault<scalar>("absTol", SMALL)),
+    relTol_(n_, dict.lookupOrDefault<scalar>("relTol", 1e-4)),
+    maxSteps_(10000)
+{}
+
+
+Foam::ODESolver::ODESolver
+(
+    const ODESystem& ode,
+    const scalarField& absTol,
+    const scalarField& relTol
+)
+:
+    odes_(ode),
+    n_(ode.nEqns()),
+    absTol_(absTol),
+    relTol_(relTol),
+    maxSteps_(10000)
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+Foam::scalar Foam::ODESolver::normalizeError
+(
+    const scalarField& y0,
+    const scalarField& y,
+    const scalarField& err
+) const
+{
+    // Calculate the maximum error
+    scalar maxErr = 0.0;
+    forAll(err, i)
+    {
+        scalar tol = absTol_[i] + relTol_[i]*max(mag(y0[i]), mag(y[i]));
+        maxErr = max(maxErr, mag(err[i])/tol);
+    }
+
+    return maxErr;
+}
+
+
 void Foam::ODESolver::solve
 (
-    const ODE& ode,
+    scalar& x,
+    scalarField& y,
+    stepState& step
+) const
+{
+    solve(x, y, step.dxTry);
+}
+
+
+void Foam::ODESolver::solve
+(
     const scalar xStart,
     const scalar xEnd,
     scalarField& y,
-    const scalar eps,
-    scalar& hEst
+    scalar& dxTry
 ) const
 {
-    const label MAXSTP = 10000;
-
+    stepState step(dxTry);
     scalar x = xStart;
-    scalar h = hEst;
-    scalar hNext = 0;
-    scalar hPrev = 0;
 
-    for (label nStep=0; nStep<MAXSTP; nStep++)
+    for (label nStep=0; nStep<maxSteps_; nStep++)
     {
-        ode.derivatives(x, y, dydx_);
+        // Store previous iteration dxTry
+        scalar dxTry0 = step.dxTry;
 
-        for (label i=0; i<n_; i++)
+        step.reject = false;
+
+        // Check if this is a truncated step and set dxTry to integrate to xEnd
+        if ((x + step.dxTry - xEnd)*(x + step.dxTry - xStart) > 0)
         {
-            yScale_[i] = mag(y[i]) + mag(dydx_[i]*h) + SMALL;
+            step.last = true;
+            step.dxTry = xEnd - x;
         }
 
-        if ((x + h - xEnd)*(x + h - xStart) > 0.0)
-        {
-            h = xEnd - x;
-            hPrev = hNext;
-        }
+        // Integrate as far as possible up to step.dxTry
+        solve(x, y, step);
 
-        hNext = 0;
-        scalar hDid;
-        solve(ode, x, y, dydx_, eps, yScale_, h, hDid, hNext);
-
-        if ((x - xEnd)*(xEnd - xStart) >= 0.0)
+        // Check if reached xEnd
+        if ((x - xEnd)*(xEnd - xStart) >= 0)
         {
-            if (hPrev != 0)
+            if (nStep > 0 && step.last)
             {
-                hEst = hPrev;
+                step.dxTry = dxTry0;
             }
-            else
-            {
-                hEst = hNext;
-            }
+
+            dxTry = step.dxTry;
 
             return;
         }
 
-        h = hNext;
+        step.first = false;
+
+        // If the step.dxTry was reject set step.prevReject
+        if (step.reject)
+        {
+            step.prevReject = true;
+        }
     }
 
     FatalErrorIn
     (
         "ODESolver::solve"
-        "(const ODE& ode, const scalar xStart, const scalar xEnd,"
-        "scalarField& yStart, const scalar eps, scalar& hEst) const"
-    )   << "Too many integration steps"
+        "(const scalar xStart, const scalar xEnd,"
+        "scalarField& y, scalar& dxTry) const"
+    )   << "Integration steps greater than maximum " << maxSteps_
         << exit(FatalError);
 }
+
 
 // ************************************************************************* //

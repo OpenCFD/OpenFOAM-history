@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -63,6 +63,8 @@ SourceFiles
 #define CoBlended_H
 
 #include "surfaceInterpolationScheme.H"
+#include "blendedSchemeBase.H"
+#include "surfaceInterpolate.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,7 +78,8 @@ namespace Foam
 template<class Type>
 class CoBlended
 :
-    public surfaceInterpolationScheme<Type>
+    public surfaceInterpolationScheme<Type>,
+    public blendedSchemeBase<Type>
 {
     // Private data
 
@@ -135,10 +138,7 @@ public:
             ),
             faceFlux_
             (
-                mesh.lookupObject<surfaceScalarField>
-                (
-                    word(is)
-                )
+                mesh.lookupObject<surfaceScalarField>(word(is))
             )
         {
             if (Co1_ < 0 || Co2_ < 0 || Co1_ >= Co2_)
@@ -170,7 +170,7 @@ public:
             (
                 surfaceInterpolationScheme<Type>::New(mesh, faceFlux, is)
             ),
-             faceFlux_(faceFlux)
+            faceFlux_(faceFlux)
         {
             if (Co1_ < 0 || Co2_ < 0 || Co1_ >= Co2_)
             {
@@ -184,26 +184,53 @@ public:
 
     // Member Functions
 
-        //- Return the face-based Courant number blending factor
-        tmp<surfaceScalarField> blendingFactor() const
+        //- Return the face-based blending factor
+        virtual tmp<surfaceScalarField> blendingFactor
+        (
+             const GeometricField<Type, fvPatchField, volMesh>& vf
+        ) const
         {
-            const fvMesh& mesh = faceFlux_.mesh();
+            const fvMesh& mesh = this->mesh();
+            tmp<surfaceScalarField> tUflux = faceFlux_;
 
-            return
-            (
-                scalar(1) -
-                max
+            if (faceFlux_.dimensions() == dimDensity*dimVelocity*dimArea)
+            {
+                // Currently assume that the density field
+                // corresponding to the mass-flux is named "rho"
+                const volScalarField& rho =
+                    mesh.objectRegistry::template lookupObject<volScalarField>
+                    ("rho");
+
+                tUflux = faceFlux_/fvc::interpolate(rho);
+            }
+            else if (faceFlux_.dimensions() != dimVelocity*dimArea)
+            {
+                FatalErrorIn
                 (
-                    min
+                    "CoBlended::blendingFactor()"
+                )   << "dimensions of faceFlux are not correct"
+                    << exit(FatalError);
+            }
+
+            return tmp<surfaceScalarField>
+            (
+                new surfaceScalarField
+                (
+                    vf.name() + "BlendingFactor",
+                    scalar(1)
+                  - max
                     (
+                        min
                         (
-                            mesh.time().deltaT()*mesh.deltaCoeffs()
-                           *mag(faceFlux_)/mesh.magSf()
-                          - Co1_
-                        )/(Co2_ - Co1_),
-                        scalar(1)
-                    ),
-                    scalar(0)
+                            (
+                                mesh.time().deltaT()*mesh.deltaCoeffs()
+                               *mag(tUflux)/mesh.magSf()
+                              - Co1_
+                            )/(Co2_ - Co1_),
+                            scalar(1)
+                        ),
+                        scalar(0)
+                    )
                 )
             );
         }
@@ -216,9 +243,7 @@ public:
             const GeometricField<Type, fvPatchField, volMesh>& vf
         ) const
         {
-            surfaceScalarField bf(blendingFactor());
-
-            Info<< "weights " << max(bf) << " " << min(bf) << endl;
+            surfaceScalarField bf(blendingFactor(vf));
 
             return
                 bf*tScheme1_().weights(vf)
@@ -234,7 +259,7 @@ public:
             const GeometricField<Type, fvPatchField, volMesh>& vf
         ) const
         {
-            surfaceScalarField bf(blendingFactor());
+            surfaceScalarField bf(blendingFactor(vf));
 
             return
                 bf*tScheme1_().interpolate(vf)
@@ -257,7 +282,7 @@ public:
             const GeometricField<Type, fvPatchField, volMesh>& vf
         ) const
         {
-            surfaceScalarField bf(blendingFactor());
+            surfaceScalarField bf(blendingFactor(vf));
 
             if (tScheme1_().corrected())
             {

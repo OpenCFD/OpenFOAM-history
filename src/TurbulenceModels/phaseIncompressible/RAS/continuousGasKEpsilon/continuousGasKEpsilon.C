@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,6 +25,8 @@ License
 
 #include "continuousGasKEpsilon.H"
 #include "addToRunTimeSelectionTable.H"
+#include "twoPhaseSystem.H"
+#include "virtualMassModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -122,9 +124,17 @@ void continuousGasKEpsilon<BasicTurbulenceModel>::correctNut()
     const transportModel& liquid = fluid.otherPhase(gas);
 
     volScalarField thetal(liquidTurbulence.k()/liquidTurbulence.epsilon());
-    volScalarField thetag((1.0/(18*liquid.nu()))*sqr(gas.d()));
-    volScalarField expThetar(exp(min(thetal/thetag, scalar(50))));
-    volScalarField omega(sqr(expThetar - 1)/(sqr(expThetar) - 1));
+    volScalarField rhodv(gas.rho() + fluid.virtualMass(gas).Cvm()*liquid.rho());
+    volScalarField thetag((rhodv/(18*liquid.rho()*liquid.nu()))*sqr(gas.d()));
+    volScalarField expThetar
+    (
+        min
+        (
+            exp(min(thetal/thetag, scalar(50))),
+            scalar(1)
+        )
+    );
+    volScalarField omega((1 - expThetar)/(1 + expThetar));
 
     nutEff_ = omega*liquidTurbulence.nut();
 }
@@ -200,7 +210,7 @@ continuousGasKEpsilon<BasicTurbulenceModel>::rhoEff() const
         new volScalarField
         (
             IOobject::groupName("rhoEff", this->U_.group()),
-            gas.rho() + (fluid.Cvm() + 3.0/20.0)*liquid.rho()
+            gas.rho() + (fluid.virtualMass(gas).Cvm() + 3.0/20.0)*liquid.rho()
         )
     );
 }

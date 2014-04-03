@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -62,6 +62,7 @@ void Foam::polyPatch::movePoints(PstreamBuffers&, const pointField& p)
 void Foam::polyPatch::updateMesh(PstreamBuffers&)
 {
     clearAddressing();
+    primitivePatch::clearOut();
 }
 
 
@@ -104,6 +105,30 @@ Foam::polyPatch::polyPatch
         inGroups().append(patchType);
     }
 }
+
+
+Foam::polyPatch::polyPatch
+(
+    const word& name,
+    const label size,
+    const label start,
+    const label index,
+    const polyBoundaryMesh& bm,
+    const word& physicalType,
+    const wordList& inGroups
+)
+:
+    patchIdentifier(name, index, physicalType, inGroups),
+    primitivePatch
+    (
+        faceSubList(bm.mesh().faces(), size, start),
+        bm.mesh().points()
+    ),
+    start_(start),
+    boundaryMesh_(bm),
+    faceCellsPtr_(NULL),
+    mePtr_(NULL)
+{}
 
 
 Foam::polyPatch::polyPatch

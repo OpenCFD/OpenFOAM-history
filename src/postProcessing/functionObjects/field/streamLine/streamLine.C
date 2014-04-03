@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -128,7 +128,7 @@ void Foam::streamLine::track()
 
     label nSeeds = returnReduce(particles.size(), sumOp<label>());
 
-    Info<< type() << " : seeded " << nSeeds << " particles." << endl;
+    Info << "    seeded " << nSeeds << " particles" << endl;
 
     // Read or lookup fields
     PtrList<volScalarField> vsFlds;
@@ -194,10 +194,10 @@ void Foam::streamLine::track()
             }
             else
             {
-                FatalErrorIn("streamLine::execute()")
-                    << "Cannot find field " << fields_[i] << endl
+                FatalErrorIn("streamLine::track()")
+                    << "Cannot find field " << fields_[i] << nl
                     << "Valid scalar fields are:"
-                    << mesh.names(volScalarField::typeName) << endl
+                    << mesh.names(volScalarField::typeName) << nl
                     << "Valid vector fields are:"
                     << mesh.names(volVectorField::typeName)
                     << exit(FatalError);
@@ -267,12 +267,10 @@ void Foam::streamLine::track()
 
     if (UIndex == -1)
     {
-        FatalErrorIn("streamLine::execute()")
-            << "Cannot find field to move particles with : " << UName_
-            << endl
-            << "This field has to be present in the sampled fields "
-            << fields_
-            << " and in the objectRegistry." << endl
+        FatalErrorIn("streamLine::track()")
+            << "Cannot find field to move particles with : " << UName_ << nl
+            << "This field has to be present in the sampled fields " << fields_
+            << " and in the objectRegistry."
             << exit(FatalError);
     }
 
@@ -374,6 +372,8 @@ void Foam::streamLine::read(const dictionary& dict)
 {
     if (active_)
     {
+        Info<< type() << " " << name_ << ":" << nl;
+
         //dict_ = dict;
         dict.lookup("fields") >> fields_;
         if (dict.found("UName"))
@@ -433,14 +433,14 @@ void Foam::streamLine::read(const dictionary& dict)
             {
                 nSubCycle_ = 1;
             }
-            Info<< type() << " : automatic track length specified through"
+            Info<< "    automatic track length specified through"
                 << " number of sub cycles : " << nSubCycle_ << nl << endl;
         }
         else
         {
             dict.lookup("trackLength") >> trackLength_;
 
-            Info<< type() << " : fixed track length specified : "
+            Info<< "    fixed track length specified : "
                 << trackLength_ << nl << endl;
         }
 
@@ -451,7 +451,7 @@ void Foam::streamLine::read(const dictionary& dict)
             interpolationCellPoint<scalar>::typeName
         );
 
-        //Info<< typeName << " using interpolation " << interpolationScheme_
+        //Info<< "    using interpolation " << interpolationScheme_
         //    << endl;
 
         cloudName_ = dict.lookupOrDefault<word>("cloudName", "streamLine");
@@ -525,6 +525,8 @@ void Foam::streamLine::write()
 {
     if (active_)
     {
+        Info<< type() << " " << name_ << " output:" << nl;
+
         const Time& runTime = obr_.time();
         const fvMesh& mesh = dynamic_cast<const fvMesh&>(obr_);
 
@@ -578,41 +580,56 @@ void Foam::streamLine::write()
 
             // Distribute the track positions. Note: use scheduled comms
             // to prevent buffering.
-            mapDistribute::distribute
+            allTracks_.shrink();
+            mapDistributeBase::distribute
             (
                 Pstream::scheduled,
                 distMap.schedule(),
                 distMap.constructSize(),
                 distMap.subMap(),
+                false,
                 distMap.constructMap(),
-                allTracks_
+                false,
+                allTracks_,
+                flipOp()
             );
+            allTracks_.setCapacity(allTracks_.size());
 
             // Distribute the scalars
             forAll(allScalars_, scalarI)
             {
-                mapDistribute::distribute
+                allScalars_[scalarI].shrink();
+                mapDistributeBase::distribute
                 (
                     Pstream::scheduled,
                     distMap.schedule(),
                     distMap.constructSize(),
                     distMap.subMap(),
+                    false,
                     distMap.constructMap(),
-                    allScalars_[scalarI]
+                    false,
+                    allScalars_[scalarI],
+                    flipOp()
                 );
+                allScalars_[scalarI].setCapacity(allScalars_[scalarI].size());
             }
             // Distribute the vectors
             forAll(allVectors_, vectorI)
             {
-                mapDistribute::distribute
+                allVectors_[vectorI].shrink();
+                mapDistributeBase::distribute
                 (
                     Pstream::scheduled,
                     distMap.schedule(),
                     distMap.constructSize(),
                     distMap.subMap(),
+                    false,
                     distMap.constructMap(),
-                    allVectors_[vectorI]
+                    false,
+                    allVectors_[vectorI],
+                    flipOp()
                 );
+                allVectors_[vectorI].setCapacity(allVectors_[vectorI].size());
             }
         }
 
@@ -623,8 +640,9 @@ void Foam::streamLine::write()
             n += allTracks_[trackI].size();
         }
 
-        Info<< "Tracks:" << allTracks_.size()
-            << "  total samples:" << n << endl;
+        Info<< "    Tracks:" << allTracks_.size() << nl
+            << "    Total samples:" << n
+            << endl;
 
 
         // Massage into form suitable for writers
@@ -694,7 +712,7 @@ void Foam::streamLine::write()
                     )
                 );
 
-                Info<< "Writing data to " << vtkFile.path() << endl;
+                Info<< "    Writing data to " << vtkFile.path() << endl;
 
                 scalarFormatterPtr_().write
                 (
@@ -735,7 +753,7 @@ void Foam::streamLine::write()
                     )
                 );
 
-                //Info<< "Writing vector data to " << vtkFile << endl;
+                //Info<< "    Writing vector data to " << vtkFile << endl;
 
                 vectorFormatterPtr_().write
                 (

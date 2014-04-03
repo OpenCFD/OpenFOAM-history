@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -42,9 +42,12 @@ defineTypeNameAndDebug(DESModelRegions, 0);
 
 void Foam::DESModelRegions::writeFileHeader(const label i)
 {
-    file() << "# DES model region coverage (% volume)" << nl
-        << "# time " << token::TAB << "LES" << token::TAB << "RAS"
-        << endl;
+    writeHeader(file(), "DES model region coverage (% volume)");
+
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "LES");
+    writeTabbed(file(), "RAS");
+    file() << endl;
 }
 
 
@@ -77,8 +80,32 @@ Foam::DESModelRegions::DESModelRegions
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating." << nl
+        )   << "No fvMesh available, deactivating " << name_ << nl
             << endl;
+    }
+
+    if (active_)
+    {
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+        volScalarField* DESModelRegionsPtr
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    type(),
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh,
+                dimensionedScalar("0", dimless, 0.0)
+            )
+        );
+
+        mesh.objectRegistry::store(DESModelRegionsPtr);
     }
 
     read(dict);
@@ -104,24 +131,6 @@ void Foam::DESModelRegions::read(const dictionary& dict)
 
 void Foam::DESModelRegions::execute()
 {
-    // Do nothing - only valid on write
-}
-
-
-void Foam::DESModelRegions::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::DESModelRegions::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::DESModelRegions::write()
-{
     typedef incompressible::turbulenceModel icoModel;
     typedef incompressible::DESModel icoDESModel;
 
@@ -134,12 +143,14 @@ void Foam::DESModelRegions::write()
 
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
-        if (log_)
-        {
-            Info<< type() << " " << name_ << " output:" << nl;
-        }
+        Info(log_)<< type() << " " << name_ <<  " output:" << nl;
 
-        tmp<volScalarField> tresult;
+        volScalarField& DESModelRegions =
+            const_cast<volScalarField&>
+            (
+                mesh.lookupObject<volScalarField>(type())
+            );
+
 
         label DESpresent = false;
         if (mesh.foundObject<icoModel>("turbulenceModel"))
@@ -151,7 +162,7 @@ void Foam::DESModelRegions::write()
             {
                 const icoDESModel& des =
                     dynamic_cast<const icoDESModel&>(model);
-                tresult = des.LESRegion();
+                DESModelRegions == des.LESRegion();
                 DESpresent = true;
             }
         }
@@ -164,42 +175,66 @@ void Foam::DESModelRegions::write()
             {
                 const cmpDESModel& des =
                     dynamic_cast<const cmpDESModel&>(model);
-                tresult = des.LESRegion();
+                DESModelRegions == des.LESRegion();
                 DESpresent = true;
             }
         }
 
         if (DESpresent)
         {
-            const volScalarField& result = tresult();
-
             scalar prc =
-                gSum(result.internalField()*mesh.V())/gSum(mesh.V())*100.0;
+                gSum(DESModelRegions.internalField()*mesh.V())
+               /gSum(mesh.V())*100.0;
 
-            if (Pstream::master())
+            if (Pstream::master() && log_)
             {
-                file() << obr_.time().timeName() << token::TAB
-                    << prc << token::TAB << 100.0 - prc << endl;
-            }
-
-            if (log_)
-            {
-                Info<< "    LES = " << prc << " % (volume)" << nl
-                    << "    RAS = " << 100.0 - prc << " % (volume)" << nl
-                    << "    writing field " << result.name() << nl
+                file() << obr_.time().value()
+                    << token::TAB << prc
+                    << token::TAB << 100.0 - prc
                     << endl;
             }
 
-            result.write();
+            Info(log_)
+                << "    LES = " << prc << " % (volume)" << nl
+                << "    RAS = " << 100.0 - prc << " % (volume)" << endl;
         }
         else
         {
-            if (log_)
-            {
-                Info<< "    No DES turbulence model found in database" << nl
-                    << endl;
-            }
+            Info(log_)<< "    No DES turbulence model found in database" << nl
+                << endl;
         }
+    }
+}
+
+
+void Foam::DESModelRegions::end()
+{
+    if (active_)
+    {
+        execute();
+    }
+}
+
+
+void Foam::DESModelRegions::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::DESModelRegions::write()
+{
+    if (log_)
+    {
+        const volScalarField& DESModelRegions =
+            obr_.lookupObject<volScalarField>(type());
+
+
+        Info<< type() << " " << name_ <<  " output:" << nl
+            << "    writing field " << DESModelRegions.name() << nl
+            << endl;
+
+        DESModelRegions.write();
     }
 }
 

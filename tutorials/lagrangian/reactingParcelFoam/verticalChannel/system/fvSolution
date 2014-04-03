@@ -32,15 +32,15 @@ solvers
         relTol          0;
     }
 
-    "(U|h|k|omega)"
+    "(U|k|omega)"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-06;
         relTol          0.1;
     }
 
-    "(U|h|k|omega)Final"
+    "(U|k|omega)Final"
     {
         $U;
         tolerance       1e-06;
@@ -51,7 +51,7 @@ solvers
     {
         solver          GAMG;
         tolerance       0;
-        relTol          0.1;
+        relTol          0.05;
         smoother        DICGaussSeidel;
         nPreSweeps      0;
         nPostSweeps     2;
@@ -59,7 +59,6 @@ solvers
         nCellsInCoarsestLevel 10;
         agglomerator    faceAreaPair;
         mergeLevels     1;
-        maxIter         50;
     }
 
     pFinal
@@ -71,21 +70,35 @@ solvers
 
     "(Yi|O2|N2|H2O)"
     {
-        $hFinal;
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-6;
+        relTol          0;
     }
-}
-
-PIMPLE
-{
-    nCorrectors     3;
-    nNonOrthogonalCorrectors 0;
-    momentumPredictor yes;
+    h
+    {
+        $Yi;
+        relTol          0.1;
+    }
+    hFinal
+    {
+        $Yi;
+    }
 }
 
 potentialFlow
 {
     // used for potentialFoam initialisation
     nNonOrthogonalCorrectors 5;
+}
+
+PIMPLE
+{
+    transonic       no;
+    nOuterCorrectors 1;
+    nCorrectors     3;
+    nNonOrthogonalCorrectors 0;
+    momentumPredictor yes;
 }
 
 relaxationFactors
@@ -95,8 +108,9 @@ relaxationFactors
     }
     equations
     {
-        ".*"       1;
+        ".*"            1;
     }
 }
+
 
 // ************************************************************************* //

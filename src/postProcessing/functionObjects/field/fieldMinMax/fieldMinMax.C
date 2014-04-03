@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -65,7 +65,7 @@ Foam::fieldMinMax::fieldMinMax
     name_(name),
     obr_(obr),
     active_(true),
-    log_(false),
+    log_(true),
     mode_(mdMag),
     fieldSet_()
 {
@@ -76,8 +76,13 @@ Foam::fieldMinMax::fieldMinMax
         WarningIn
         (
             "fieldMinMax::fieldMinMax"
-            "(const objectRegistry& obr, const dictionary& dict)"
-        )   << "No fvMesh available, deactivating."
+            "("
+                "const word&, "
+                "const objectRegistry&, "
+                "const dictionary&, "
+                "const bool"
+            ")"
+        )   << "No fvMesh available, deactivating " << name_
             << endl;
     }
 
@@ -97,7 +102,7 @@ void Foam::fieldMinMax::read(const dictionary& dict)
 {
     if (active_)
     {
-        log_ = dict.lookupOrDefault<Switch>("log", false);
+        log_ = dict.lookupOrDefault<Switch>("log", true);
 
         mode_ = modeTypeNames_[dict.lookupOrDefault<word>("mode", "magnitude")];
         dict.lookup("fields") >> fieldSet_;
@@ -107,20 +112,23 @@ void Foam::fieldMinMax::read(const dictionary& dict)
 
 void Foam::fieldMinMax::writeFileHeader(const label i)
 {
-    file()
-        << "# Time" << token::TAB << "field" << token::TAB
-        << "min" << token::TAB << "position(min)";
+    writeHeader(file(), "Field minima and maxima");
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "field");
+    writeTabbed(file(), "min");
+    writeTabbed(file(), "position(min)");
 
     if (Pstream::parRun())
     {
-        file() << token::TAB << "proc";
+        writeTabbed(file(), "processor");
     }
 
-    file() << token::TAB << "max" << token::TAB << "position(max)";
+    writeTabbed(file(), "max");
+    writeTabbed(file(), "position(max)");
 
     if (Pstream::parRun())
     {
-        file() << token::TAB << "proc";
+        writeTabbed(file(), "processor");
     }
 
     file() << endl;
@@ -151,10 +159,7 @@ void Foam::fieldMinMax::write()
     {
         functionObjectFile::write();
 
-        if (log_)
-        {
-            Info<< type() << " output:" << nl;
-        }
+        Info(log_)<< type() << " " << name_ <<  " output:" << nl;
 
         forAll(fieldSet_, fieldI)
         {
@@ -165,10 +170,7 @@ void Foam::fieldMinMax::write()
             calcMinMaxFields<tensor>(fieldSet_[fieldI], mode_);
         }
 
-        if (log_)
-        {
-            Info<< endl;
-        }
+        Info(log_)<< endl;
     }
 }
 

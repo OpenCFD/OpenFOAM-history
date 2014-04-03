@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -282,7 +282,7 @@ void Foam::InjectionModel<CloudType>::postInjectCheck
 template<class CloudType>
 Foam::InjectionModel<CloudType>::InjectionModel(CloudType& owner)
 :
-    SubModelBase<CloudType>(owner),
+    CloudSubModelBase<CloudType>(owner),
     SOI_(0.0),
     volumeTotal_(0.0),
     massTotal_(0.0),
@@ -310,7 +310,7 @@ Foam::InjectionModel<CloudType>::InjectionModel
     const word& modelType
 )
 :
-    SubModelBase<CloudType>(modelName, owner, dict, typeName, modelType),
+    CloudSubModelBase<CloudType>(modelName, owner, dict, typeName, modelType),
     SOI_(0.0),
     volumeTotal_(0.0),
     massTotal_(0.0),
@@ -387,7 +387,7 @@ Foam::InjectionModel<CloudType>::InjectionModel
     const InjectionModel<CloudType>& im
 )
 :
-    SubModelBase<CloudType>(im),
+    CloudSubModelBase<CloudType>(im),
     SOI_(im.SOI_),
     volumeTotal_(im.volumeTotal_),
     massTotal_(im.massTotal_),
@@ -550,7 +550,7 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
                 if (cellI > -1)
                 {
                     // Lagrangian timestep
-                    scalar dt = time - timeInj;
+                    const scalar dt = time - timeInj;
 
                     // Apply corrections to position for 2-D cases
                     meshTools::constrainToMeshCentre(mesh, pos);
@@ -586,23 +586,24 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
                             pPtr->rho()
                         );
 
-                    if (!pPtr->move(td, dt))
+                    if (pPtr->nParticle() >= 1.0)
                     {
-                        delete pPtr;
-                    }
-                    else
-                    {
-                        if (pPtr->nParticle() >= 1.0)
+                        parcelsAdded++;
+                        massAdded += pPtr->nParticle()*pPtr->mass();
+
+                        if (pPtr->move(td, dt))
                         {
-                            td.cloud().addParticle(pPtr);
-                            massAdded += pPtr->nParticle()*pPtr->mass();
-                            parcelsAdded++;
+                            cloud.addParticle(pPtr);
                         }
                         else
                         {
-                            delayedVolume += pPtr->nParticle()*pPtr->volume();
                             delete pPtr;
                         }
+                    }
+                    else
+                    {
+                        delayedVolume += pPtr->nParticle()*pPtr->volume();
+                        delete pPtr;
                     }
                 }
             }
@@ -698,7 +699,7 @@ void Foam::InjectionModel<CloudType>::injectSteadyState
                 );
 
             // Add the new parcel
-            td.cloud().addParticle(pPtr);
+            cloud.addParticle(pPtr);
 
             massAdded += pPtr->nParticle()*pPtr->mass();
             parcelsAdded++;

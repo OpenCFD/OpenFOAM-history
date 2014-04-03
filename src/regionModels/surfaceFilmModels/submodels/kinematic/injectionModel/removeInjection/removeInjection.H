@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -65,6 +65,16 @@ private:
         void operator=(const removeInjection&);
 
 
+protected:
+
+        //- Stable film thickness - mass only removed if thickness execeeds
+        //  this threhold value
+        scalar deltaStable_;
+
+        //- Mask per cell to indicate whether mass can be removed
+        scalarField mask_;
+
+
 public:
 
     //- Runtime type information
@@ -74,7 +84,7 @@ public:
     // Constructors
 
         //- Construct from surface film model
-        removeInjection(const surfaceFilmModel& owner, const dictionary& dict);
+        removeInjection(surfaceFilmModel& owner, const dictionary& dict);
 
 
     //- Destructor

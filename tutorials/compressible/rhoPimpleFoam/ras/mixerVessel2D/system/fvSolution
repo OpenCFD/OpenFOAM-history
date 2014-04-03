@@ -34,16 +34,16 @@ solvers
 
     U
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-5;
         relTol          0.1;
     }
 
     UFinal
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-5;
         relTol          0;
     }
@@ -62,20 +62,14 @@ solvers
 
     pFinal
     {
-        solver          GAMG;
-        tolerance       1e-6;
+        $p;
         relTol          0;
-        smoother        GaussSeidel;
-        cacheAgglomeration true;
-        nCellsInCoarsestLevel 20;
-        agglomerator    faceAreaPair;
-        mergeLevels     1;
     }
 
     "(U|h|k|epsilon)"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
         tolerance       1e-5;
         relTol          0.1;
     }

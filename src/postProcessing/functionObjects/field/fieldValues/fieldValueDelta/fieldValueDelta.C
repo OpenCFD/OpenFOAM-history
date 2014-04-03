@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,7 +68,7 @@ Foam::fieldValues::fieldValueDelta::fieldValueDelta
     name_(name),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
-    log_(false),
+    log_(true),
     operation_(opSubtract),
     source1Ptr_(NULL),
     source2Ptr_(NULL)
@@ -94,11 +94,10 @@ void Foam::fieldValues::fieldValueDelta::writeFileHeader(const label i)
 
     Ostream& os = file();
 
-    os  << "# Source1   : " << source1Ptr_->name() << nl
-        << "# Source2   : " << source2Ptr_->name() << nl
-        << "# Operation : " << operationTypeNames_[operation_] << nl;
-
-    os  << "# Time";
+    writeHeaderValue(os, "Source1", source1Ptr_->name());
+    writeHeaderValue(os, "Source2", source2Ptr_->name());
+    writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
+    writeCommented(os, "Time");
 
     forAll(commonFields, i)
     {
@@ -119,7 +118,7 @@ Foam::fieldValues::fieldValueDelta::~fieldValueDelta()
 
 void Foam::fieldValues::fieldValueDelta::read(const dictionary& dict)
 {
-    log_ = dict.lookupOrDefault<Switch>("log", false);
+    log_ = dict.lookupOrDefault<Switch>("log", true);
     source1Ptr_.reset
     (
         fieldValue::New
@@ -156,13 +155,10 @@ void Foam::fieldValues::fieldValueDelta::write()
 
     if (Pstream::master())
     {
-        file()<< obr_.time().timeName();
+        file()<< obr_.time().value();
     }
 
-    if (log_)
-    {
-        Info<< type() << " " << name_ << " output:" << endl;
-    }
+    Info(log_)<< type() << " " << name_ << " output:" << endl;
 
     bool found = false;
     processFields<scalar>(found);
