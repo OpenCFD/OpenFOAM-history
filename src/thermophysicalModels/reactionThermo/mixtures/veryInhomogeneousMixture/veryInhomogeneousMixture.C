@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,7 +30,11 @@ License
 
 template<class ThermoType>
 const char* Foam::veryInhomogeneousMixture<ThermoType>::specieNames_[3] =
-    {"ft", "fu", "b"};
+{
+    "ft",
+    "fu",
+    "b"
+};
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -42,7 +46,7 @@ Foam::veryInhomogeneousMixture<ThermoType>::veryInhomogeneousMixture
     const fvMesh& mesh
 )
 :
-    basicMultiComponentMixture
+    basicCombustionMixture
     (
         thermoDict,
         speciesTable(nSpecies_, specieNames_),

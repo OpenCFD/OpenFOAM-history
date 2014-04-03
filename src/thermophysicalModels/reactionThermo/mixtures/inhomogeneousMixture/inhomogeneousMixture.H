@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,7 @@ SourceFiles
 #ifndef inhomogeneousMixture_H
 #define inhomogeneousMixture_H
 
-#include "basicMultiComponentMixture.H"
+#include "basicCombustionMixture.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -49,7 +49,7 @@ namespace Foam
 template<class ThermoType>
 class inhomogeneousMixture
 :
-    public basicMultiComponentMixture
+    public basicCombustionMixture
 {
     // Private data
 
