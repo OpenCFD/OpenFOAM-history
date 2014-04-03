@@ -35,7 +35,7 @@ SourceFiles
 #ifndef inhomogeneousMixture_H
 #define inhomogeneousMixture_H
 
-#include "basicMultiComponentMixture.H"
+#include "basicCombustionMixture.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -49,7 +49,7 @@ namespace Foam
 template<class ThermoType>
 class inhomogeneousMixture
 :
-    public basicMultiComponentMixture
+    public basicCombustionMixture
 {
     // Private data
 

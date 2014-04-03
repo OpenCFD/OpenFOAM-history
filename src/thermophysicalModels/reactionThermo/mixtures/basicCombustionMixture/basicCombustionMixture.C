@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,60 +23,26 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-inline Foam::PtrList<Foam::volScalarField>&
-Foam::basicMultiComponentMixture::Y()
+#include "basicCombustionMixture.H"
+
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+
+namespace Foam
 {
-    return Y_;
+    defineTypeNameAndDebug(basicCombustionMixture, 0);
 }
 
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-inline const Foam::PtrList<Foam::volScalarField>&
-Foam::basicMultiComponentMixture::Y() const
-{
-    return Y_;
-}
-
-
-inline Foam::volScalarField& Foam::basicMultiComponentMixture::Y(const label i)
-{
-    return Y_[i];
-}
-
-
-inline const Foam::volScalarField& Foam::basicMultiComponentMixture::Y
+Foam::basicCombustionMixture::basicCombustionMixture
 (
-    const label i
-) const
-{
-    return Y_[i];
-}
-
-
-inline Foam::volScalarField& Foam::basicMultiComponentMixture::Y
-(
-    const word& specieName
+    const dictionary& thermoDict,
+    const wordList& specieNames,
+    const fvMesh& mesh
 )
-{
-    return Y_[species_[specieName]];
-}
-
-
-inline const Foam::volScalarField& Foam::basicMultiComponentMixture::Y
-(
-    const word& specieName
-) const
-{
-    return Y_[species_[specieName]];
-}
-
-
-inline bool Foam::basicMultiComponentMixture::contains
-(
-    const word& specieName
-) const
-{
-    return species_.contains(specieName);
-}
+:
+    basicSpecieMixture(thermoDict, specieNames, mesh)
+{}
 
 
 // ************************************************************************* //

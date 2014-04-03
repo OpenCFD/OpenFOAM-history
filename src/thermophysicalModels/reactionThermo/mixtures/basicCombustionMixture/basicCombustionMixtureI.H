@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,59 +23,23 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-inline Foam::PtrList<Foam::volScalarField>&
-Foam::basicMultiComponentMixture::Y()
-{
-    return Y_;
-}
-
-
-inline const Foam::PtrList<Foam::volScalarField>&
-Foam::basicMultiComponentMixture::Y() const
-{
-    return Y_;
-}
-
-
-inline Foam::volScalarField& Foam::basicMultiComponentMixture::Y(const label i)
-{
-    return Y_[i];
-}
-
-
-inline const Foam::volScalarField& Foam::basicMultiComponentMixture::Y
+inline Foam::scalar Foam::basicCombustionMixture::fres
 (
-    const label i
+    const scalar ft,
+    const scalar stoicRatio
 ) const
 {
-    return Y_[i];
+    return max(ft - (1.0 - ft)/stoicRatio, 0.0);
 }
 
 
-inline Foam::volScalarField& Foam::basicMultiComponentMixture::Y
+inline Foam::tmp<Foam::volScalarField> Foam::basicCombustionMixture::fres
 (
-    const word& specieName
-)
-{
-    return Y_[species_[specieName]];
-}
-
-
-inline const Foam::volScalarField& Foam::basicMultiComponentMixture::Y
-(
-    const word& specieName
+    const volScalarField& ft,
+    const dimensionedScalar& stoicRatio
 ) const
 {
-    return Y_[species_[specieName]];
-}
-
-
-inline bool Foam::basicMultiComponentMixture::contains
-(
-    const word& specieName
-) const
-{
-    return species_.contains(specieName);
+    return max(ft - (scalar(1) - ft)/stoicRatio.value(), scalar(0));
 }
 
 

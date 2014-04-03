@@ -41,7 +41,7 @@ Foam::egrMixture<ThermoType>::egrMixture
     const fvMesh& mesh
 )
 :
-    basicMultiComponentMixture
+    basicCombustionMixture
     (
         thermoDict,
         speciesTable(nSpecies_, specieNames_),

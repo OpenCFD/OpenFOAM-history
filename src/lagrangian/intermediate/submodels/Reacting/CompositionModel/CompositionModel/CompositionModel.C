@@ -85,7 +85,7 @@ const Foam::SLGThermo& Foam::CompositionModel<CloudType>::thermo() const
 
 
 template<class CloudType>
-const Foam::basicMultiComponentMixture&
+const Foam::basicSpecieMixture&
 Foam::CompositionModel<CloudType>::carrier() const
 {
     return thermo_.carrier();

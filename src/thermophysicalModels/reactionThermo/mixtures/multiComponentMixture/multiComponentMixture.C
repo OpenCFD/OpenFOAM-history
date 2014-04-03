@@ -86,7 +86,7 @@ Foam::multiComponentMixture<ThermoType>::multiComponentMixture
     const fvMesh& mesh
 )
 :
-    basicMultiComponentMixture(thermoDict, specieNames, mesh),
+    basicSpecieMixture(thermoDict, specieNames, mesh),
     speciesData_(species_.size()),
     mixture_("mixture", *thermoData[specieNames[0]]),
     mixtureVol_("volMixture", *thermoData[specieNames[0]])
@@ -111,7 +111,7 @@ Foam::multiComponentMixture<ThermoType>::multiComponentMixture
     const fvMesh& mesh
 )
 :
-    basicMultiComponentMixture(thermoDict, thermoDict.lookup("species"), mesh),
+    basicSpecieMixture(thermoDict, thermoDict.lookup("species"), mesh),
     speciesData_(species_.size()),
     mixture_("mixture", constructSpeciesData(thermoDict)),
     mixtureVol_("volMixture", speciesData_[0])

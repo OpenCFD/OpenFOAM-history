@@ -30,7 +30,10 @@ License
 
 template<class ThermoType>
 const char* Foam::inhomogeneousMixture<ThermoType>::specieNames_[2] =
-    {"ft", "b"};
+{
+    "ft",
+    "b"
+};
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -42,7 +45,7 @@ Foam::inhomogeneousMixture<ThermoType>::inhomogeneousMixture
     const fvMesh& mesh
 )
 :
-    basicMultiComponentMixture
+    basicCombustionMixture
     (
         thermoDict,
         speciesTable(nSpecies_, specieNames_),

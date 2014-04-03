@@ -47,7 +47,7 @@ SourceFiles
 
 #include "regIOobject.H"
 #include "fluidThermo.H"
-#include "basicMultiComponentMixture.H"
+#include "basicSpecieMixture.H"
 #include "liquidMixtureProperties.H"
 #include "solidMixtureProperties.H"
 
@@ -70,7 +70,7 @@ class SLGThermo
         fluidThermo& thermo_;
 
         //- Reference to the multi-component carrier phase thermo
-        basicMultiComponentMixture* carrier_;
+        basicSpecieMixture* carrier_;
 
         //- Additional liquid properties data
         autoPtr<liquidMixtureProperties> liquids_;
@@ -102,7 +102,7 @@ public:
             const fluidThermo& thermo() const;
 
             //- Return reference to the gaseous components
-            const basicMultiComponentMixture& carrier() const;
+            const basicSpecieMixture& carrier() const;
 
             //- Return reference to the global (additional) liquids
             const liquidMixtureProperties& liquids() const;

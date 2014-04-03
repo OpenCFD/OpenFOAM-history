@@ -35,7 +35,7 @@ SourceFiles
 #ifndef multiComponentMixture_H
 #define multiComponentMixture_H
 
-#include "basicMultiComponentMixture.H"
+#include "basicSpecieMixture.H"
 #include "HashPtrTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -50,7 +50,7 @@ namespace Foam
 template<class ThermoType>
 class multiComponentMixture
 :
-    public basicMultiComponentMixture
+    public basicSpecieMixture
 {
     // Private data
 
