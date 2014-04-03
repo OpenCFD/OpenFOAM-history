@@ -27,6 +27,7 @@ License
 #include "AMIMethod.H"
 #include "meshTools.H"
 #include "mapDistribute.H"
+#include "flipOp.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -206,32 +207,40 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::normaliseWeights
 )
 {
     // Normalise the weights
-    wghtSum.setSize(wght.size());
+    wghtSum.setSize(wght.size(), 0.0);
     label nLowWeight = 0;
 
     forAll(wght, faceI)
     {
         scalarList& w = wght[faceI];
-        scalar denom = patchAreas[faceI];
 
-        scalar s = sum(w);
-        scalar t = s/denom;
-
-        if (conformal)
+        if (w.size())
         {
-            denom = s;
+            scalar denom = patchAreas[faceI];
+
+            scalar s = sum(w);
+            scalar t = s/denom;
+
+            if (conformal)
+            {
+                denom = s;
+            }
+
+            forAll(w, i)
+            {
+                w[i] /= denom;
+            }
+
+            wghtSum[faceI] = t;
+
+            if (t < lowWeightTol)
+            {
+                nLowWeight++;
+            }
         }
-
-        forAll(w, i)
+        else
         {
-            w[i] /= denom;
-        }
-
-        wghtSum[faceI] = t;
-
-        if (t < lowWeightTol)
-        {
-            nLowWeight++;
+            wghtSum[faceI] = 0;
         }
     }
 
@@ -534,6 +543,7 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::AMIInterpolation
     const SourcePatch& srcPatch,
     const TargetPatch& tgtPatch,
     const faceAreaIntersect::triangulationMode& triMode,
+    const bool requireMatch,
     const interpolationMethod& method,
     const scalar lowWeightCorrection,
     const bool reverseTarget
@@ -541,6 +551,7 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::AMIInterpolation
 :
     method_(method),
     reverseTarget_(reverseTarget),
+    requireMatch_(requireMatch),
     singlePatchProc_(-999),
     lowWeightCorrection_(lowWeightCorrection),
     srcAddress_(),
@@ -564,6 +575,7 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::AMIInterpolation
     const TargetPatch& tgtPatch,
     const autoPtr<searchableSurface>& surfPtr,
     const faceAreaIntersect::triangulationMode& triMode,
+    const bool requireMatch,
     const interpolationMethod& method,
     const scalar lowWeightCorrection,
     const bool reverseTarget
@@ -571,6 +583,7 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::AMIInterpolation
 :
     method_(method),
     reverseTarget_(reverseTarget),
+    requireMatch_(requireMatch),
     singlePatchProc_(-999),
     lowWeightCorrection_(lowWeightCorrection),
     srcAddress_(),
@@ -654,6 +667,7 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::AMIInterpolation
 :
     method_(fineAMI.method_),
     reverseTarget_(fineAMI.reverseTarget_),
+    requireMatch_(fineAMI.requireMatch_),
     singlePatchProc_(fineAMI.singlePatchProc_),
     lowWeightCorrection_(-1.0),
     srcAddress_(),
@@ -862,7 +876,8 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
                 srcMagSf_,
                 tgtMagSf_,
                 triMode_,
-                reverseTarget_
+                reverseTarget_,
+                requireMatch_
             )
         );
 
@@ -907,27 +922,33 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
         // send data back to originating procs. Note that contributions
         // from different processors get added (ListAppendEqOp)
 
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),
             tgtPatch.size(),
             map.constructMap(),
+            false,                      // has flip
             map.subMap(),
+            false,                      // has flip
             tgtAddress_,
             ListAppendEqOp<label>(),
+            flipOp(),                   // flip operation
             labelList()
         );
 
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),
             tgtPatch.size(),
             map.constructMap(),
+            false,
             map.subMap(),
+            false,
             tgtWeights_,
             ListAppendEqOp<scalar>(),
+            flipOp(),
             scalarList()
         );
 
@@ -978,7 +999,8 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
                 srcMagSf_,
                 tgtMagSf_,
                 triMode_,
-                reverseTarget_
+                reverseTarget_,
+                requireMatch_
             )
         );
 

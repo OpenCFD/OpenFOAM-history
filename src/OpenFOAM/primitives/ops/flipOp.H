@@ -72,6 +72,17 @@ public:
 };
 
 
+class flipLabelOp
+{
+public:
+
+    label operator()(const label& val) const
+    {
+        return -val;
+    }
+};
+
+
 // Template specialisation for primitives that support negation
 template<> scalar flipOp::operator()(const scalar&) const;
 template<> vector flipOp::operator()(const vector&) const;

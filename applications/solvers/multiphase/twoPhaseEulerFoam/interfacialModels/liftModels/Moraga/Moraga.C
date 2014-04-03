@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,53 +23,54 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "ptscotchDecomp.H"
+#include "Moraga.H"
+#include "phasePair.H"
+#include "fvc.H"
+#include "addToRunTimeSelectionTable.H"
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-// Insert at front of list
-template<class Type>
-void Foam::ptscotchDecomp::prepend
-(
-    const UList<Type>& extraLst,
-    List<Type>& lst
-)
+namespace Foam
 {
-    label nExtra = extraLst.size();
-
-    // Make space for initial elements
-    lst.setSize(lst.size() + nExtra);
-    for (label i = lst.size()-1; i >= nExtra; i--)
-    {
-        lst[i] = lst[i-nExtra];
-    }
-
-    // Insert at front
-    forAll(extraLst, i)
-    {
-        lst[i] = extraLst[i];
-    }
+namespace liftModels
+{
+    defineTypeNameAndDebug(Moraga, 0);
+    addToRunTimeSelectionTable(liftModel, Moraga, dictionary);
+}
 }
 
 
-// Insert at back of list
-template<class Type>
-void Foam::ptscotchDecomp::append
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::liftModels::Moraga::Moraga
 (
-    const UList<Type>& extraLst,
-    List<Type>& lst
+    const dictionary& dict,
+    const phasePair& pair
 )
+:
+    liftModel(dict, pair)
+{}
+
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::liftModels::Moraga::~Moraga()
+{}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField> Foam::liftModels::Moraga::Cl() const
 {
-    label sz = lst.size();
+    volScalarField ReSqrSr
+    (
+        pair_.Re()
+       *sqr(pair_.dispersed().d())
+       /pair_.continuous().nu()
+       *mag(fvc::grad(pair_.continuous().U()))
+    );
 
-    // Make space for initial elements
-    lst.setSize(sz + extraLst.size());
-
-    // Insert at back
-    forAll(extraLst, i)
-    {
-        lst[sz++] = extraLst[i];
-    }
+    return 0.2*exp(- ReSqrSr/3.6e5 - 0.12)*exp(ReSqrSr/3.0e7);
 }
 
 

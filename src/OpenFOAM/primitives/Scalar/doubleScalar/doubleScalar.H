@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -54,9 +54,11 @@ typedef double doubleScalar;
 static const doubleScalar doubleScalarGREAT = 1.0e+15;
 static const doubleScalar doubleScalarVGREAT = 1.0e+300;
 static const doubleScalar doubleScalarROOTVGREAT = 1.0e+150;
+static const doubleScalar doubleScalarCBRTVGREAT = 1.0e+100;
 static const doubleScalar doubleScalarSMALL = 1.0e-15;
 static const doubleScalar doubleScalarVSMALL = 1.0e-300;
 static const doubleScalar doubleScalarROOTVSMALL = 1.0e-150;
+static const doubleScalar doubleScalarCBRTVSMALL = 1.0e-100;
 
 //- Read whole of buf as a scalar. Return true if succesful.
 inline bool readScalar(const char* buf, doubleScalar& s)
@@ -72,6 +74,8 @@ inline bool readScalar(const char* buf, doubleScalar& s)
 #define ScalarVSMALL doubleScalarVSMALL
 #define ScalarROOTVGREAT doubleScalarROOTVGREAT
 #define ScalarROOTVSMALL doubleScalarROOTVSMALL
+#define ScalarCBRTVGREAT doubleScalarCBRTVGREAT
+#define ScalarCBRTVSMALL doubleScalarCBRTVSMALL
 #define readScalar readDoubleScalar
 
 inline Scalar mag(const Scalar s)
@@ -112,6 +116,8 @@ inline Scalar yn(const int n, const Scalar s)
 #undef ScalarVSMALL
 #undef ScalarROOTVGREAT
 #undef ScalarROOTVSMALL
+#undef ScalarCBRTVGREAT
+#undef ScalarCBRTVSMALL
 #undef readScalar
 #undef transFunc
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -354,56 +354,54 @@ void calcEdgeCuts
 }
 
 
-void calcFeaturePoints(const pointField& points, const edgeList& edges)
-{
-    edgeMesh eMesh(points, edges);
-
-    const labelListList& pointEdges = eMesh.pointEdges();
-
-
-    // Get total number of feature points
-    label nFeaturePoints = 0;
-    forAll(pointEdges, pI)
-    {
-        const labelList& pEdges = pointEdges[pI];
-
-        if (pEdges.size() == 1)
-        {
-            nFeaturePoints++;
-        }
-    }
-
-
-    // Calculate addressing from feature point to cut point and cut edge
-    labelList featurePointToCutPoint(nFeaturePoints);
-    labelList featurePointToCutEdge(nFeaturePoints);
-
-    label nFeatPts = 0;
-    forAll(pointEdges, pI)
-    {
-        const labelList& pEdges = pointEdges[pI];
-
-        if (pEdges.size() == 1)
-        {
-            featurePointToCutPoint[nFeatPts] = pI;
-            featurePointToCutEdge[nFeatPts] = pEdges[0];
-            nFeatPts++;
-        }
-    }
-
-
-
-    label concaveStart = 0;
-    label mixedStart = 0;
-    label nonFeatureStart = nFeaturePoints;
-
-
-    labelListList featurePointNormals(nFeaturePoints);
-    labelListList featurePointEdges(nFeaturePoints);
-    labelList regionEdges;
-
-
-}
+//void calcFeaturePoints(const pointField& points, const edgeList& edges)
+//{
+//    edgeMesh eMesh(points, edges);
+//
+//    const labelListList& pointEdges = eMesh.pointEdges();
+//
+//
+//    // Get total number of feature points
+//    label nFeaturePoints = 0;
+//    forAll(pointEdges, pI)
+//    {
+//        const labelList& pEdges = pointEdges[pI];
+//
+//        if (pEdges.size() == 1)
+//        {
+//            nFeaturePoints++;
+//        }
+//    }
+//
+//
+//    // Calculate addressing from feature point to cut point and cut edge
+//    labelList featurePointToCutPoint(nFeaturePoints);
+//    labelList featurePointToCutEdge(nFeaturePoints);
+//
+//    label nFeatPts = 0;
+//    forAll(pointEdges, pI)
+//    {
+//        const labelList& pEdges = pointEdges[pI];
+//
+//        if (pEdges.size() == 1)
+//        {
+//            featurePointToCutPoint[nFeatPts] = pI;
+//            featurePointToCutEdge[nFeatPts] = pEdges[0];
+//            nFeatPts++;
+//        }
+//    }
+//
+//
+//
+//    label concaveStart = 0;
+//    label mixedStart = 0;
+//    label nonFeatureStart = nFeaturePoints;
+//
+//
+//    labelListList featurePointNormals(nFeaturePoints);
+//    labelListList featurePointEdges(nFeaturePoints);
+//    labelList regionEdges;
+//}
 
 
 int main(int argc, char *argv[])
@@ -748,7 +746,7 @@ int main(int argc, char *argv[])
         normalDirectionsTmp[i] = normalDirections[i];
     }
 
-    calcFeaturePoints(inter.cutPoints(), inter.cutEdges());
+    //calcFeaturePoints(inter.cutPoints(), inter.cutEdges());
 
     extendedFeatureEdgeMesh feMesh
     (

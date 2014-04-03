@@ -1,53 +1,51 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.x                                 |
+|  \\    /   O peration     | Version:  dev                                   |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
     version     2.0;
-    format      ascii;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    format      binary;
+    class       volScalarField;
+    location    "0.0001/cabin";
+    object      p;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-5
-(
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform 100000;
+
+boundaryField
+{
     inlet
     {
-        type            patch;
-        nFaces          30;
-        startFace       24170;
+        type            calculated;
+        value           uniform 100000;
     }
     outlet
     {
-        type            patch;
-        nFaces          57;
-        startFace       24200;
+        type            calculated;
+        value           uniform 100000;
     }
-    upperWall
+    symmetry
     {
-        type            wall;
-        nFaces          223;
-        startFace       24257;
+        type            symmetryPlane;
     }
-    lowerWall
+    walls
     {
-        type            wall;
-        nFaces          250;
-        startFace       24480;
+        type            calculated;
+        value           uniform 100000;
     }
-    frontAndBack
+    cabin_to_ice
     {
-        type            empty;
-        inGroups        1(empty);
-        nFaces          24450;
-        startFace       24730;
+        type            calculated;
+        value           uniform 100000;
     }
-)
+}
+
 
 // ************************************************************************* //
