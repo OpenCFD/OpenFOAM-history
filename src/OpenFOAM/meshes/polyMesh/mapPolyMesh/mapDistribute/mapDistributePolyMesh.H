@@ -152,6 +152,9 @@ public:
             const Xfer<mapDistribute>& patchMap
         );
 
+        //- Construct by transferring parameter content
+        mapDistributePolyMesh(const Xfer<mapDistributePolyMesh>&);
+
         //- Construct from Istream
         mapDistributePolyMesh(Istream&);
 
@@ -221,10 +224,13 @@ public:
             }
 
 
-        // Edit
+        // Other
 
             //- Transfer the contents of the argument and annul the argument.
             void transfer(mapDistributePolyMesh&);
+
+            //- Transfer contents to the Xfer container
+            Xfer<mapDistributePolyMesh> xfer();
 
             //- distribute list of point data
             template<class T>

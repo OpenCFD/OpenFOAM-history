@@ -153,6 +153,24 @@ Foam::mapDistributePolyMesh::mapDistributePolyMesh
 }
 
 
+Foam::mapDistributePolyMesh::mapDistributePolyMesh
+(
+    const Xfer<mapDistributePolyMesh>& map
+)
+:
+    nOldPoints_(map().nOldPoints_),
+    nOldFaces_(map().nOldFaces_),
+    nOldCells_(map().nOldCells_),
+    oldPatchSizes_(map().oldPatchSizes_.xfer()),
+    oldPatchStarts_(map().oldPatchStarts_.xfer()),
+    oldPatchNMeshPoints_(map().oldPatchNMeshPoints_.xfer()),
+    pointMap_(map().pointMap_.xfer()),
+    faceMap_(map().faceMap_.xfer()),
+    cellMap_(map().cellMap_.xfer()),
+    patchMap_(map().patchMap_.xfer())
+{}
+
+
 Foam::mapDistributePolyMesh::mapDistributePolyMesh(Istream& is)
 {
     is  >> *this;
@@ -173,6 +191,12 @@ void Foam::mapDistributePolyMesh::transfer(mapDistributePolyMesh& rhs)
     faceMap_.transfer(rhs.faceMap_);
     cellMap_.transfer(rhs.cellMap_);
     patchMap_.transfer(rhs.patchMap_);
+}
+
+
+Foam::Xfer<Foam::mapDistributePolyMesh> Foam::mapDistributePolyMesh::xfer()
+{
+    return xferMove(*this);
 }
 
 
