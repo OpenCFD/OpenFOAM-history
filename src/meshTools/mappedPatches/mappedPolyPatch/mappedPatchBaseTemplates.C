@@ -61,7 +61,7 @@ void Foam::mappedPatchBase::distribute
         }
         default:
         {
-            map().distribute
+            mapDistributeBase::distribute
             (
                 Pstream::defaultCommsType,
                 map().schedule(),
@@ -120,7 +120,7 @@ void Foam::mappedPatchBase::reverseDistribute
         default:
         {
             label cSize = sampleSize();
-            map().distribute
+            mapDistributeBase::distribute
             (
                 Pstream::defaultCommsType,
                 map().schedule(),

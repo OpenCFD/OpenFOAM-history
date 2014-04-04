@@ -166,7 +166,7 @@ void printMeshData(const polyMesh& mesh)
         Info<< "    Number of processor patches = " << nei.size() << nl
             << "    Number of processor faces = " << nProcFaces << nl
             << "    Number of boundary faces = "
-            << globalBoundaryFaces.localSize(procI) << endl;
+            << globalBoundaryFaces.localSize(procI)-nProcFaces << endl;
 
         maxProcCells = max(maxProcCells, globalCells.localSize(procI));
         totProcFaces += nProcFaces;
@@ -556,7 +556,8 @@ int main(int argc, char *argv[])
             // No processor0 -> decompose mode
             decompose = true;
 
-            // Read parent controlDict. Switch off parallel comms since
+            // Read parent controlDict (just so we get the correct time).
+            // Switch off parallel comms since
             // time construction does reduction on time being equal on all procs
             bool oldParRun = Pstream::parRun();
             Pstream::parRun() = false;
@@ -1056,7 +1057,7 @@ int main(int argc, char *argv[])
                     faceMap = faceMap + 1;
                 }
                 // Apply face flips
-                mapDistribute::distribute
+                mapDistributeBase::distribute
                 (
                     Pstream::nonBlocking,
                     List<labelPair>(),
@@ -1078,7 +1079,7 @@ int main(int argc, char *argv[])
             // Use explicit distribute since we need to provide a null value
             // (for new patches) and this is the only call that allow us to
             // provide one ...
-            mapDistribute::distribute
+            mapDistributeBase::distribute
             (
                 Pstream::nonBlocking,
                 List<labelPair>(),
@@ -1109,7 +1110,7 @@ int main(int argc, char *argv[])
                     faceMap = faceMap + 1;
                 }
 
-                mapDistribute::distribute
+                mapDistributeBase::distribute
                 (
                     Pstream::nonBlocking,
                     List<labelPair>(),

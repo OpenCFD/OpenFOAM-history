@@ -264,7 +264,7 @@ void Foam::meshToMesh::calculate()
         }
 
         // set up as a reverse distribute
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),
@@ -280,7 +280,7 @@ void Foam::meshToMesh::calculate()
         );
 
         // set up as a reverse distribute
-        mapDistribute::distribute
+        mapDistributeBase::distribute
         (
             Pstream::nonBlocking,
             List<labelPair>(),
@@ -425,6 +425,7 @@ Foam::meshToMesh::patchAMIs() const
                     srcPP,
                     tgtPP,
                     faceAreaIntersect::tmMesh,
+                    false,
                     interpolationMethodAMI(method_),
                     -1,
                     true // flip target patch since patch normals are aligned

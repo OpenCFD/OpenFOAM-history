@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,6 +35,8 @@ License
 #define ScalarVSMALL floatScalarVSMALL
 #define ScalarROOTVGREAT floatScalarROOTVGREAT
 #define ScalarROOTVSMALL floatScalarROOTVSMALL
+#define ScalarCBRTVGREAT floatScalarCBRTVGREAT
+#define ScalarCBRTVSMALL floatScalarCBRTVSMALL
 #define readScalar readFloatScalar
 #include "Scalar.C"
 #undef Scalar
@@ -42,6 +44,8 @@ License
 #undef ScalarVSMALL
 #undef ScalarROOTVGREAT
 #undef ScalarROOTVSMALL
+#undef ScalarCBRTVGREAT
+#undef ScalarCBRTVSMALL
 #undef readScalar
 
 // ************************************************************************* //

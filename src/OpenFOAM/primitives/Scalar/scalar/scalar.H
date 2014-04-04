@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -52,9 +52,11 @@ namespace Foam
     static const scalar GREAT = floatScalarGREAT;
     static const scalar VGREAT = floatScalarVGREAT;
     static const scalar ROOTVGREAT = floatScalarROOTVGREAT;
+    static const scalar CBRTVGREAT = floatScalarCBRTVGREAT;
     static const scalar SMALL = floatScalarSMALL;
     static const scalar VSMALL = floatScalarVSMALL;
     static const scalar ROOTVSMALL = floatScalarROOTVSMALL;
+    static const scalar CBRTVSMALL = floatScalarCBRTVSMALL;
 
     scalar readScalar(Istream& is);
 }
@@ -70,9 +72,11 @@ namespace Foam
     static const scalar GREAT = doubleScalarGREAT;
     static const scalar VGREAT = doubleScalarVGREAT;
     static const scalar ROOTVGREAT = doubleScalarROOTVGREAT;
+    static const scalar CBRTVGREAT = doubleScalarCBRTVGREAT;
     static const scalar SMALL = doubleScalarSMALL;
     static const scalar VSMALL = doubleScalarVSMALL;
     static const scalar ROOTVSMALL = doubleScalarROOTVSMALL;
+    static const scalar CBRTVSMALL = doubleScalarCBRTVSMALL;
 
     scalar readScalar(Istream& is);
 }
