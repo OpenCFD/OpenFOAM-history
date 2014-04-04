@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,23 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::rhoReactionThermo
+    Foam::basicCombustionMixture
 
 Description
-    Foam::rhoReactionThermo
+    Combustion mixture.
 
 SourceFiles
-    rhoReactionThermo.C
+    basicCombustionMixture.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef rhoReactionThermo_H
-#define rhoReactionThermo_H
+#ifndef basicCombustionMixture_H
+#define basicCombustionMixture_H
 
-#include "rhoThermo.H"
 #include "basicSpecieMixture.H"
-#include "autoPtr.H"
-#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -46,68 +43,58 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class rhoReactionThermo Declaration
+                 Class basicCombustionMixture Declaration
 \*---------------------------------------------------------------------------*/
 
-class rhoReactionThermo
+class basicCombustionMixture
 :
-    public rhoThermo
+    public basicSpecieMixture
 {
 
 public:
 
-    //- Runtime type information
-    TypeName("rhoReactionThermo");
+    //- Run time type information
+    TypeName("basicCombustionMixture");
 
-
-    //- Declare run-time constructor selection tables
-    declareRunTimeSelectionTable
-    (
-        autoPtr,
-        rhoReactionThermo,
-        fvMesh,
-        (const fvMesh& mesh, const word& phaseName),
-        (mesh, phaseName)
-    );
+    //- The base class of the mixture
+    typedef basicCombustionMixture basicMixtureType;
 
 
     // Constructors
 
-        //- Construct from mesh and phase name
-        rhoReactionThermo
+        //- Construct from dictionary and mesh
+        basicCombustionMixture
         (
-            const fvMesh&,
-            const word& phaseName
-        );
-
-
-    // Selectors
-
-        //- Standard selection based on fvMesh
-        static autoPtr<rhoReactionThermo> New
-        (
-            const fvMesh&,
-            const word& phaseName=word::null
+            const dictionary&,
+            const wordList& specieNames,
+            const fvMesh&
         );
 
 
     //- Destructor
-    virtual ~rhoReactionThermo();
+    virtual ~basicCombustionMixture()
+    {}
 
 
     // Member functions
 
-        //- Return the composition of the multi-component mixture
-        virtual basicSpecieMixture& composition() = 0;
+        inline scalar fres(const scalar ft, const scalar stoicRatio) const;
 
-        //- Return the composition of the multi-component mixture
-        virtual const basicSpecieMixture& composition() const = 0;
+        inline tmp<volScalarField> fres
+        (
+            const volScalarField& ft,
+            const dimensionedScalar& stoicRatio
+        ) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "basicCombustionMixtureI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
