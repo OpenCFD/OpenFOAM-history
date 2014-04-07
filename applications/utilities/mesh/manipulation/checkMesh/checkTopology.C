@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -316,6 +316,53 @@ Foam::label Foam::checkTopology
             ctr.write();
 
 
+
+            // Is region disconnected
+            boolList regionDisconnected(rs.nRegions(), true);
+            if (allTopology)
+            {
+                // -1   : not assigned
+                // -2   : multiple regions
+                // >= 0 : single region
+                labelList pointToRegion(mesh.nPoints(), -1);
+
+                for
+                (
+                    label faceI = mesh.nInternalFaces();
+                    faceI < mesh.nFaces();
+                    faceI++
+                )
+                {
+                    label regionI = rs[mesh.faceOwner()[faceI]];
+                    const face& f = mesh.faces()[faceI];
+                    forAll(f, fp)
+                    {
+                        label& pRegion = pointToRegion[f[fp]];
+                        if (pRegion == -1)
+                        {
+                            pRegion = regionI;
+                        }
+                        else if (pRegion == -2)
+                        {
+                            // Already marked
+                            regionDisconnected[regionI] = false;
+                        }
+                        else if (pRegion != regionI)
+                        {
+                            // Multiple regions
+                            regionDisconnected[regionI] = false;
+                            regionDisconnected[pRegion] = false;
+                            pRegion = -2;
+                        }
+                    }
+                }
+
+                Pstream::listCombineGather(regionDisconnected, andEqOp<bool>());
+                Pstream::listCombineScatter(regionDisconnected);
+            }
+
+
+
             // write cellSet for each region
             PtrList<cellSet> cellRegions(rs.nRegions());
             for (label i = 0; i < rs.nRegions(); i++)
@@ -339,7 +386,19 @@ Foam::label Foam::checkTopology
 
             for (label i = 0; i < rs.nRegions(); i++)
             {
-                Info<< "  <<Writing region " << i << " with "
+                Info<< "  <<Writing region " << i;
+                if (allTopology)
+                {
+                    if (regionDisconnected[i])
+                    {
+                        Info<< " (fully disconnected)";
+                    }
+                    else
+                    {
+                        Info<< " (point connected)";
+                    }
+                }
+                Info<< " with "
                     << returnReduce(cellRegions[i].size(), sumOp<scalar>())
                     << " cells to cellSet " << cellRegions[i].name() << endl;
 

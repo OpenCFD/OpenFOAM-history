@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -95,15 +95,19 @@ do
 done
 
 
+# Pass through -test argument
+passArgs=$(if $runTests; then echo "-test"; fi)
+
+
 # If an argument is supplied do not execute ./Allrun to avoid recursion
 if ! $skipFirst && $runTests && [ -f "./Alltest" ]
 then
     # Run a special test script.
-    ./Alltest
+    ./Alltest $passArgs
 elif ! $skipFirst && [ -f "./Allrun" ]
 then
     # Specialised script.
-    ./Allrun
+    ./Allrun $passArgs
 elif [ -d system ]
 then
     # Normal case.
@@ -130,8 +134,6 @@ else
     #done
     FOAM_TARGETS=$(for d in *; do [ -d "$d" ] && echo "$d"; done | xargs)
     #$make -k -f $WM_PROJECT_DIR/bin/tools/MakefileDirs FOAM_TARGETS="$FOAM_TARGETS" FOAM_APP="$WM_SCHEDULER $thisScript"
-
-    passArgs=$(if $runTests; then echo "-test"; fi)
 
     $make -k -f $WM_PROJECT_DIR/bin/tools/MakefileDirs FOAM_TARGETS="$FOAM_TARGETS" FOAM_APP="$thisScript" FOAM_ARGS="$passArgs"
 fi

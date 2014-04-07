@@ -133,12 +133,8 @@ SourceFiles
 #ifndef mapDistribute_H
 #define mapDistribute_H
 
+#include "mapDistributeBase.H"
 #include "transformList.H"
-#include "labelList.H"
-#include "labelPair.H"
-#include "Pstream.H"
-#include "boolList.H"
-#include "Map.H"
 #include "vectorTensorTransform.H"
 #include "coupledPolyPatch.H"
 
@@ -147,88 +143,27 @@ SourceFiles
 namespace Foam
 {
 
-class mapPolyMesh;
-class globalIndex;
-class PstreamBuffers;
 class globalIndexAndTransform;
+//class vectorTensorTransform;
 
 /*---------------------------------------------------------------------------*\
                            Class mapDistribute Declaration
 \*---------------------------------------------------------------------------*/
 
 class mapDistribute
+:
+    public mapDistributeBase
 {
     // Private data
 
-        //- Size of reconstructed data
-        label constructSize_;
+        //- For every globalIndexAndTransform::transformPermutations
+        //  gives the elements that need to be transformed
+        labelListList transformElements_;
 
-        //- Maps from subsetted data back to original data
-        labelListList subMap_;
-
-        //- Maps from subsetted data to new reconstructed data
-        labelListList constructMap_;
-
-        //- Whether subMap includes flip or not
-        bool subHasFlip_;
-
-        //- Whether constructMap includes flip or not
-        bool constructHasFlip_;
-
-
-        // Optional transformation
-
-            //- For every globalIndexAndTransform::transformPermutations
-            //  gives the elements that need to be transformed
-            labelListList transformElements_;
-
-            //- Destination in constructMap for transformed elements
-            labelList transformStart_;
-
-
-        //- Schedule
-        mutable autoPtr<List<labelPair> > schedulePtr_;
-
+        //- Destination in constructMap for transformed elements
+        labelList transformStart_;
 
     // Private Member Functions
-
-        static void checkReceivedSize
-        (
-            const label procI,
-            const label expectedSize,
-            const label receivedSize
-        );
-
-        void calcCompactAddressing
-        (
-            const globalIndex& globalNumbering,
-            const labelList& elements,
-            List<Map<label> >& compactMap
-        ) const;
-        void calcCompactAddressing
-        (
-            const globalIndex& globalNumbering,
-            const labelListList& elements,
-            List<Map<label> >& compactMap
-        ) const;
-
-        void exchangeAddressing
-        (
-            const int tag,
-            const globalIndex& globalNumbering,
-            labelList& elements,
-            List<Map<label> >& compactMap,
-            labelList& compactStart
-        );
-        void exchangeAddressing
-        (
-            const int tag,
-            const globalIndex& globalNumbering,
-            labelListList& elements,
-            List<Map<label> >& compactMap,
-            labelList& compactStart
-        );
-
 
         //- Helper function: copy transformElements without transformation
         template<class T>
@@ -253,26 +188,6 @@ class mapDistribute
             List<T>& field,
             const TransformOp& top
         ) const;
-
-        template<class T, class CombineOp, class negateOp>
-        static void flipAndCombine
-        (
-            const UList<label>& map,
-            const bool hasFlip,
-            const UList<T>& rhs,
-            const CombineOp& cop,
-            const negateOp& negOp,
-            List<T>& lhs
-        );
-
-        template<class T, class negateOp>
-        static T accessAndFlip
-        (
-            const UList<T>& fld,
-            const label index,
-            const bool hasFlip,
-            const negateOp& negOp
-        );
 
 public:
 
@@ -496,66 +411,6 @@ public:
 
         // Access
 
-            //- Constructed data size
-            label constructSize() const
-            {
-                return constructSize_;
-            }
-
-            //- Constructed data size
-            label& constructSize()
-            {
-                return constructSize_;
-            }
-
-            //- From subsetted data back to original data
-            const labelListList& subMap() const
-            {
-                return subMap_;
-            }
-
-            //- From subsetted data back to original data
-            labelListList& subMap()
-            {
-                return subMap_;
-            }
-
-            //- From subsetted data to new reconstructed data
-            const labelListList& constructMap() const
-            {
-                return constructMap_;
-            }
-
-            //- From subsetted data to new reconstructed data
-            labelListList& constructMap()
-            {
-                return constructMap_;
-            }
-
-            //- Does subMap include a sign
-            bool subHasFlip() const
-            {
-                return subHasFlip_;
-            }
-
-            //- Does subMap include a sign
-            bool& subHasFlip()
-            {
-                return subHasFlip_;
-            }
-
-            //- Does constructMap include a sign
-            bool constructHasFlip() const
-            {
-                return constructHasFlip_;
-            }
-
-            //- Does constructMap include a sign
-            bool& constructHasFlip()
-            {
-                return constructHasFlip_;
-            }
-
             //- For every globalIndexAndTransform::transformPermutations
             //  gives the elements that need to be transformed
             const labelListList& transformElements() const
@@ -572,17 +427,6 @@ public:
             //- Find transform from transformElements
             label whichTransform(const label index) const;
 
-            //- Calculate a schedule. See above.
-            static List<labelPair> schedule
-            (
-                const labelListList& subMap,
-                const labelListList& constructMap,
-                const int tag
-            );
-
-            //- Return a schedule. Demand driven. See above.
-            const List<labelPair>& schedule() const;
-
 
         // Other
 
@@ -592,59 +436,6 @@ public:
             //- Transfer contents to the Xfer container
             Xfer<mapDistribute> xfer();
 
-            //- Helper for construct from globalIndex. Renumbers element
-            //  (in globalIndex numbering) into compact indices.
-            static label renumber
-            (
-                const globalIndex&,
-                const List<Map<label> >& compactMap,
-                const label globalElement
-            );
-
-            //- Compact maps. Gets per field a bool whether it is used (locally)
-            //  and works out itself what this side and sender side can remove
-            //  from maps.
-            void compact
-            (
-                const boolList& elemIsUsed,
-                const int tag = UPstream::msgType()
-            );
-
-            //- Distribute data. Note:schedule only used for Pstream::scheduled
-            //  for now, all others just use send-to-all, receive-from-all.
-            template<class T, class negateOp>
-            static void distribute
-            (
-                const Pstream::commsTypes commsType,
-                const List<labelPair>& schedule,
-                const label constructSize,
-                const labelListList& subMap,
-                const bool subHasFlip,
-                const labelListList& constructMap,
-                const bool constructHasFlip,
-                List<T>&,
-                const negateOp& negOp,
-                const int tag = UPstream::msgType()
-            );
-
-            //- Distribute data. If multiple processors writing to same
-            //  position adds contributions using cop.
-            template<class T, class CombineOp, class negateOp>
-            static void distribute
-            (
-                const Pstream::commsTypes commsType,
-                const List<labelPair>& schedule,
-                const label constructSize,
-                const labelListList& subMap,
-                const bool subHasFlip,
-                const labelListList& constructMap,
-                const bool constructHasFlip,
-                List<T>&,
-                const CombineOp& cop,
-                const negateOp& negOp,
-                const T& nullValue,
-                const int tag = UPstream::msgType()
-            );
 
             //- Distribute data using default commsType.
             template<class T>
@@ -674,16 +465,6 @@ public:
                 const int tag = UPstream::msgType()
             ) const;
 
-            //- Same but with transforms
-            template<class T, class TransformOp>
-            void distribute
-            (
-                const globalIndexAndTransform&,
-                List<T>& fld,
-                const TransformOp& top,
-                const int tag = UPstream::msgType()
-            ) const;
-
             //- Reverse distribute data using default commsType.
             template<class T>
             void reverseDistribute
@@ -691,17 +472,6 @@ public:
                 const label constructSize,
                 List<T>&,
                 const bool dummyTransform = true,
-                const int tag = UPstream::msgType()
-            ) const;
-
-            //- Same but with transforms
-            template<class T, class TransformOp>
-            void reverseDistribute
-            (
-                const globalIndexAndTransform&,
-                const label constructSize,
-                List<T>& fld,
-                const TransformOp& top,
                 const int tag = UPstream::msgType()
             ) const;
 
@@ -718,7 +488,28 @@ public:
                 const int tag = UPstream::msgType()
             ) const;
 
-            //- Same but with transforms
+            //- Distribute with transforms
+            template<class T, class TransformOp>
+            void distribute
+            (
+                const globalIndexAndTransform&,
+                List<T>& fld,
+                const TransformOp& top,
+                const int tag = UPstream::msgType()
+            ) const;
+
+            //- Reverse distribute with transforms
+            template<class T, class TransformOp>
+            void reverseDistribute
+            (
+                const globalIndexAndTransform&,
+                const label constructSize,
+                List<T>& fld,
+                const TransformOp& top,
+                const int tag = UPstream::msgType()
+            ) const;
+
+            //- Reverse distribute with transforms
             template<class T, class TransformOp>
             void reverseDistribute
             (
@@ -729,13 +520,6 @@ public:
                 const TransformOp& top,
                 const int tag = UPstream::msgType()
             ) const;
-
-            //- Do all sends using PstreamBuffers
-            template<class T>
-            void send(PstreamBuffers&, const List<T>&) const;
-            //- Do all receives using PstreamBuffers
-            template<class T>
-            void receive(PstreamBuffers&, List<T>&) const;
 
             //- Debug: print layout. Can only be used on maps with sorted
             //  storage (local data first, then non-local data)

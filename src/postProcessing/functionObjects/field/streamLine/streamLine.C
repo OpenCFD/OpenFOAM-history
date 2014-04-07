@@ -581,7 +581,7 @@ void Foam::streamLine::write()
             // Distribute the track positions. Note: use scheduled comms
             // to prevent buffering.
             allTracks_.shrink();
-            mapDistribute::distribute
+            mapDistributeBase::distribute
             (
                 Pstream::scheduled,
                 distMap.schedule(),
@@ -599,7 +599,7 @@ void Foam::streamLine::write()
             forAll(allScalars_, scalarI)
             {
                 allScalars_[scalarI].shrink();
-                mapDistribute::distribute
+                mapDistributeBase::distribute
                 (
                     Pstream::scheduled,
                     distMap.schedule(),
@@ -617,7 +617,7 @@ void Foam::streamLine::write()
             forAll(allVectors_, vectorI)
             {
                 allVectors_[vectorI].shrink();
-                mapDistribute::distribute
+                mapDistributeBase::distribute
                 (
                     Pstream::scheduled,
                     distMap.schedule(),

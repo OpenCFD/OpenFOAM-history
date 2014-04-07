@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -157,7 +157,8 @@ public:
         Field
         (
             const UList<Type>& mapF,
-            const FieldMapper& map
+            const FieldMapper& map,
+            const bool applyFlip = true
         );
 
         //- Construct by mapping from the given field
@@ -165,7 +166,8 @@ public:
         (
             const UList<Type>& mapF,
             const FieldMapper& map,
-            const Type& defaultValue
+            const Type& defaultValue,
+            const bool applyFlip = true
         );
 
         //- Construct by mapping from the given field
@@ -173,14 +175,16 @@ public:
         (
             const UList<Type>& mapF,
             const FieldMapper& map,
-            const UList<Type>& defaultValues
+            const UList<Type>& defaultValues,
+            const bool applyFlip = true
         );
 
         //- Construct by mapping from the given tmp field
         Field
         (
             const tmp<Field<Type> >& tmapF,
-            const FieldMapper& map
+            const FieldMapper& map,
+            const bool applyFlip = true
         );
 
         //- Construct by mapping from the given tmp field. Supplied uniform
@@ -189,7 +193,8 @@ public:
         (
             const tmp<Field<Type> >& tmapF,
             const FieldMapper& map,
-            const Type& defaultValue
+            const Type& defaultValue,
+            const bool applyFlip = true
         );
 
         //- Construct by mapping from the given tmp field. Supplied values
@@ -198,7 +203,8 @@ public:
         (
             const tmp<Field<Type> >& tmapF,
             const FieldMapper& map,
-            const UList<Type>& defaultValues
+            const UList<Type>& defaultValues,
+            const bool applyFlip = true
         );
 
         //- Construct as copy
@@ -274,20 +280,23 @@ public:
         void map
         (
             const UList<Type>& mapF,
-            const FieldMapper& map
+            const FieldMapper& map,
+            const bool applyFlip = true
         );
 
         //- Map from the given tmp field
         void map
         (
             const tmp<Field<Type> >& tmapF,
-            const FieldMapper& map
+            const FieldMapper& map,
+            const bool applyFlip = true
         );
 
         //- Map from self
         void autoMap
         (
-            const FieldMapper& map
+            const FieldMapper& map,
+            const bool applyFlip = true
         );
 
         //- 1 to 1 reverse-map from the given field

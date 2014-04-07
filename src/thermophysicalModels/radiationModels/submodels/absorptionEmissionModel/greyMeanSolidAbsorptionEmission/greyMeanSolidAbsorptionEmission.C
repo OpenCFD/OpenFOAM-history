@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -93,10 +93,10 @@ greyMeanSolidAbsorptionEmission
     coeffsDict_((dict.subDict(typeName + "Coeffs"))),
     thermo_(mesh.lookupObject<solidThermo>("thermophysicalProperties")),
     speciesNames_(0),
-    mixture_(dynamic_cast<const basicMultiComponentMixture&>(thermo_)),
+    mixture_(dynamic_cast<const basicSpecieMixture&>(thermo_)),
     solidData_(mixture_.Y().size())
 {
-    if (!isA<basicMultiComponentMixture>(thermo_))
+    if (!isA<basicSpecieMixture>(thermo_))
     {
         FatalErrorIn
         (

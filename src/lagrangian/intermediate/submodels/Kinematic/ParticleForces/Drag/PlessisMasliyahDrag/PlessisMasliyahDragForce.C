@@ -123,7 +123,7 @@ Foam::forceSuSp Foam::PlessisMasliyahDragForce<CloudType>::calcCoupled
     (
         vector::zero,
         (mass/p.rho())
-       *(A*(1.0 - alphac) + B*Re)*muc/(alphac*sqr(p.d()))
+       *(A*(1.0 - alphac)/alphac + B*Re)*muc/(alphac*sqr(p.d()))
     );
 }
 
