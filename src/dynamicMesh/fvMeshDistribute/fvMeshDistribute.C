@@ -1608,7 +1608,33 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
     const wordList surfTensors(mesh_.names(surfaceTensorField::typeName));
     checkEqualWordList("surfaceTensorFields", surfTensors);
 
+    typedef volScalarField::DimensionedInternalField dimScalType;
+    const wordList dimScalars(mesh_.names(dimScalType::typeName));
+    checkEqualWordList("volScalarField::DimensionedInternalField", dimScalars);
 
+    typedef volVectorField::DimensionedInternalField dimVecType;
+    const wordList dimVectors(mesh_.names(dimVecType::typeName));
+    checkEqualWordList("volVectorField::DimensionedInternalField", dimVectors);
+
+    typedef volSphericalTensorField::DimensionedInternalField dimSphereType;
+    const wordList dimSphereTensors(mesh_.names(dimSphereType::typeName));
+    checkEqualWordList
+    (
+        "volSphericalTensorField::DimensionedInternalField",
+        dimSphereTensors
+    );
+
+    typedef volSymmTensorField::DimensionedInternalField dimSymmTensorType;
+    const wordList dimSymmTensors(mesh_.names(dimSymmTensorType::typeName));
+    checkEqualWordList
+    (
+        "volSymmTensorField::DimensionedInternalField",
+        dimSymmTensors
+    );
+
+    typedef volTensorField::DimensionedInternalField dimTensorType;
+    const wordList dimTensors(mesh_.names(dimTensorType::typeName));
+    checkEqualWordList("volTensorField::DimensionedInternalField", dimTensors);
 
 
     // Find patch to temporarily put exposed and processor faces into.
@@ -1792,6 +1818,8 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
                 procSourceNewNbrProc,
                 str
             );
+
+            // volFields
             sendFields<volScalarField>(recvProc, volScalars, subsetter, str);
             sendFields<volVectorField>(recvProc, volVectors, subsetter, str);
             sendFields<volSphericalTensorField>
@@ -1810,6 +1838,7 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
             );
             sendFields<volTensorField>(recvProc, volTensors, subsetter, str);
 
+            // surfaceFields
             sendFields<surfaceScalarField>
             (
                 recvProc,
@@ -1842,6 +1871,43 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
             (
                 recvProc,
                 surfTensors,
+                subsetter,
+                str
+            );
+
+            // dimensionedFields
+            sendFields<volScalarField::DimensionedInternalField>
+            (
+                recvProc,
+                dimScalars,
+                subsetter,
+                str
+            );
+            sendFields<volVectorField::DimensionedInternalField>
+            (
+                recvProc,
+                dimVectors,
+                subsetter,
+                str
+            );
+            sendFields<volSphericalTensorField::DimensionedInternalField>
+            (
+                recvProc,
+                dimSphereTensors,
+                subsetter,
+                str
+            );
+            sendFields<volSymmTensorField::DimensionedInternalField>
+            (
+                recvProc,
+                dimSymmTensors,
+                subsetter,
+                str
+            );
+            sendFields<volTensorField::DimensionedInternalField>
+            (
+                recvProc,
+                dimTensors,
                 subsetter,
                 str
             );
@@ -1995,16 +2061,25 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
             labelList domainSourceNewNbrProc;
 
             autoPtr<fvMesh> domainMeshPtr;
+
             PtrList<volScalarField> vsf;
             PtrList<volVectorField> vvf;
             PtrList<volSphericalTensorField> vsptf;
             PtrList<volSymmTensorField> vsytf;
             PtrList<volTensorField> vtf;
+
             PtrList<surfaceScalarField> ssf;
             PtrList<surfaceVectorField> svf;
             PtrList<surfaceSphericalTensorField> ssptf;
             PtrList<surfaceSymmTensorField> ssytf;
             PtrList<surfaceTensorField> stf;
+
+            PtrList<volScalarField::DimensionedInternalField> dsf;
+            PtrList<volVectorField::DimensionedInternalField> dvf;
+            PtrList<volSphericalTensorField::DimensionedInternalField> dstf;
+            PtrList<volSymmTensorField::DimensionedInternalField> dsytf;
+            PtrList<volTensorField::DimensionedInternalField> dtf;
+
 
             // Opposite of sendMesh
             {
@@ -2031,6 +2106,7 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
                 // of problems reading consecutive fields from single stream.
                 dictionary fieldDicts(str);
 
+                // Vol fields
                 receiveFields<volScalarField>
                 (
                     sendProc,
@@ -2072,6 +2148,7 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
                     fieldDicts.subDict(volTensorField::typeName)
                 );
 
+                // Surface fields
                 receiveFields<surfaceScalarField>
                 (
                     sendProc,
@@ -2111,6 +2188,64 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
                     domainMesh,
                     stf,
                     fieldDicts.subDict(surfaceTensorField::typeName)
+                );
+
+                // Dimensioned fields
+                receiveFields<volScalarField::DimensionedInternalField>
+                (
+                    sendProc,
+                    dimScalars,
+                    domainMesh,
+                    dsf,
+                    fieldDicts.subDict
+                    (
+                        volScalarField::DimensionedInternalField::typeName
+                    )
+                );
+                receiveFields<volVectorField::DimensionedInternalField>
+                (
+                    sendProc,
+                    dimVectors,
+                    domainMesh,
+                    dvf,
+                    fieldDicts.subDict
+                    (
+                        volVectorField::DimensionedInternalField::typeName
+                    )
+                );
+                receiveFields<volSphericalTensorField::DimensionedInternalField>
+                (
+                    sendProc,
+                    dimSphereTensors,
+                    domainMesh,
+                    dstf,
+                    fieldDicts.subDict
+                    (
+                        volSphericalTensorField::DimensionedInternalField::
+                        typeName
+                    )
+                );
+                receiveFields<volSymmTensorField::DimensionedInternalField>
+                (
+                    sendProc,
+                    dimSymmTensors,
+                    domainMesh,
+                    dsytf,
+                    fieldDicts.subDict
+                    (
+                        volSymmTensorField::DimensionedInternalField::typeName
+                    )
+                );
+                receiveFields<volTensorField::DimensionedInternalField>
+                (
+                    sendProc,
+                    dimTensors,
+                    domainMesh,
+                    dtf,
+                    fieldDicts.subDict
+                    (
+                        volTensorField::DimensionedInternalField::typeName
+                    )
                 );
             }
             const fvMesh& domainMesh = domainMeshPtr();
