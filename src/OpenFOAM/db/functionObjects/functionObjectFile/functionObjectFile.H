@@ -76,6 +76,9 @@ private:
         //- Write precision
         label writePrecision_;
 
+        //- Flag to enable/disable writing to file
+        bool writeToFile_;
+
 
 protected:
 

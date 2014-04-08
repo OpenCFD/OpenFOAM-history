@@ -80,7 +80,7 @@ Foam::fileName Foam::functionObjectFile::baseTimeDir() const
 
 void Foam::functionObjectFile::createFiles()
 {
-    if (Pstream::master())
+    if (Pstream::master() && writeToFile_)
     {
         const word startTimeName =
             obr_.time().timeName(obr_.time().startTime().value());
@@ -176,7 +176,8 @@ Foam::functionObjectFile::functionObjectFile
     prefix_(prefix),
     names_(),
     filePtrs_(),
-    writePrecision_(IOstream::defaultPrecision())
+    writePrecision_(IOstream::defaultPrecision()),
+    writeToFile_(true)
 {}
 
 
@@ -191,7 +192,8 @@ Foam::functionObjectFile::functionObjectFile
     prefix_(prefix),
     names_(),
     filePtrs_(),
-    writePrecision_(IOstream::defaultPrecision())
+    writePrecision_(IOstream::defaultPrecision()),
+    writeToFile_(true)
 {
     if (Pstream::master())
     {
@@ -216,7 +218,9 @@ Foam::functionObjectFile::functionObjectFile
     obr_(obr),
     prefix_(prefix),
     names_(names),
-    filePtrs_()
+    filePtrs_(),
+    writePrecision_(IOstream::defaultPrecision()),
+    writeToFile_(true)
 {
     if (Pstream::master())
     {
@@ -243,6 +247,8 @@ void Foam::functionObjectFile::read(const dictionary& dict)
 {
     writePrecision_ =
         dict.lookupOrDefault("writePrecision", IOstream::defaultPrecision());
+
+    writeToFile_ = dict.lookupOrDefault("writeToFile", true);
 }
 
 
@@ -254,6 +260,11 @@ const Foam::wordHashSet& Foam::functionObjectFile::names() const
 
 Foam::OFstream& Foam::functionObjectFile::file()
 {
+    if (!writeToFile_)
+    {
+        return Snull;
+    }
+
     if (!Pstream::master())
     {
         FatalErrorIn("Foam::OFstream& Foam::functionObjectFile::file()")
@@ -294,6 +305,11 @@ Foam::PtrList<Foam::OFstream>& Foam::functionObjectFile::files()
 
 Foam::OFstream& Foam::functionObjectFile::file(const label i)
 {
+    if (!writeToFile_)
+    {
+        return Snull;
+    }
+
     if (!Pstream::master())
     {
         FatalErrorIn
