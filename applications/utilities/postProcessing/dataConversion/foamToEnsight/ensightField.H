@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -46,6 +46,21 @@ volField
 (
     const Foam::fvMeshSubset&,
     const Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh>& vf
+);
+
+
+//- Wrapper to convert dimensionedInternalField to volField
+template<class Type>
+Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
+volField
+(
+    const Foam::fvMeshSubset&,
+    const typename Foam::GeometricField
+    <
+        Type,
+        Foam::fvPatchField,
+        Foam::volMesh
+    >::DimensionedInternalField& df
 );
 
 
