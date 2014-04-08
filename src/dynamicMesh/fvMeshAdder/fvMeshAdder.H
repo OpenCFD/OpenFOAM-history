@@ -114,6 +114,10 @@ private:
 
 public:
 
+    // Declare name of the class and its debug switch
+    ClassName("fvMeshAdder");
+
+
     // Member Functions
 
         //- Inplace add mesh to fvMesh. Maps all stored fields. Returns map.

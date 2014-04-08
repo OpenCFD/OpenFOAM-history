@@ -28,6 +28,14 @@ License
 #include "faceCoupleInfo.H"
 #include "fvMesh.H"
 
+/* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
+
+namespace Foam
+{
+defineTypeNameAndDebug(fvMeshAdder, 0);
+}
+
+
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 //- Calculate map from new patch faces to old patch faces. -1 where

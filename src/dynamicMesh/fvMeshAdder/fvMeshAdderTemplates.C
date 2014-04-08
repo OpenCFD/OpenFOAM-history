@@ -280,6 +280,12 @@ void Foam::fvMeshAdder::MapVolFields
         ++fieldIter
     )
     {
+        if (debug)
+        {
+            Pout<< "MapVolFields : Storing old time for " << fieldIter()->name()
+                << endl;
+        }
+
         const_cast<GeometricField<Type, fvPatchField, volMesh>*>(fieldIter())
             ->storeOldTimes();
     }
@@ -303,6 +309,12 @@ void Foam::fvMeshAdder::MapVolFields
         {
             const GeometricField<Type, fvPatchField, volMesh>& fldToAdd =
                 *fieldsToAdd[fld.name()];
+
+            if (debug)
+            {
+                Pout<< "MapVolFields : mapping " << fld.name()
+                    << " and " << fldToAdd.name() << endl;
+            }
 
             MapVolField<Type>(meshMap, fld, fldToAdd);
         }
@@ -585,8 +597,13 @@ void Foam::fvMeshAdder::MapSurfaceFields
         ++fieldIter
     )
     {
-        const_cast<fldType*>(fieldIter())
-            ->storeOldTimes();
+        if (debug)
+        {
+            Pout<< "MapSurfaceFields : Storing old time for "
+                << fieldIter()->name() << endl;
+        }
+
+        const_cast<fldType*>(fieldIter())->storeOldTimes();
     }
 
 
@@ -603,6 +620,12 @@ void Foam::fvMeshAdder::MapSurfaceFields
         if (fieldsToAdd.found(fld.name()))
         {
             const fldType& fldToAdd = *fieldsToAdd[fld.name()];
+
+            if (debug)
+            {
+                Pout<< "MapSurfaceFields : mapping " << fld.name()
+                    << " and " << fldToAdd.name() << endl;
+            }
 
             MapSurfaceField<Type>(meshMap, fld, fldToAdd);
         }
@@ -648,14 +671,16 @@ void Foam::fvMeshAdder::MapDimFields
 {
     typedef DimensionedField<Type, volMesh> fldType;
 
+    // Note: use strict flag on lookupClass to avoid picking up
+    //       volFields
     HashTable<const fldType*> fields
     (
-        mesh.objectRegistry::lookupClass<fldType>()
+        mesh.objectRegistry::lookupClass<fldType>(true)
     );
 
     HashTable<const fldType*> fieldsToAdd
     (
-        meshToAdd.objectRegistry::lookupClass<fldType>()
+        meshToAdd.objectRegistry::lookupClass<fldType>(true)
     );
 
     for
@@ -671,6 +696,12 @@ void Foam::fvMeshAdder::MapDimFields
         if (fieldsToAdd.found(fld.name()))
         {
             const fldType& fldToAdd = *fieldsToAdd[fld.name()];
+
+            if (debug)
+            {
+                Pout<< "MapDimFields : mapping " << fld.name()
+                    << " and " << fldToAdd.name() << endl;
+            }
 
             MapDimField<Type>(meshMap, fld, fldToAdd);
         }
