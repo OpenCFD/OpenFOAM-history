@@ -73,6 +73,9 @@ private:
         //- File pointer
         PtrList<OFstream> filePtrs_;
 
+        //- Write precision
+        label writePrecision_;
+
 
 protected:
 
@@ -147,6 +150,9 @@ public:
 
 
     // Member Functions
+
+        //- Read
+        void read(const dictionary& dict);
 
         //- Return const access to the names
         const wordHashSet& names() const;

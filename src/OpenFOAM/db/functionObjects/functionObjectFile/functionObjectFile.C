@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,7 @@ Foam::label Foam::functionObjectFile::addChars = 7;
 void Foam::functionObjectFile::initStream(Ostream& os) const
 {
     os.setf(ios_base::scientific, ios_base::floatfield);
-//    os.precision(IOstream::defaultPrecision());
+    os.precision(writePrecision_);
     os.width(charWidth());
 }
 
@@ -175,7 +175,8 @@ Foam::functionObjectFile::functionObjectFile
     obr_(obr),
     prefix_(prefix),
     names_(),
-    filePtrs_()
+    filePtrs_(),
+    writePrecision_(IOstream::defaultPrecision())
 {}
 
 
@@ -189,7 +190,8 @@ Foam::functionObjectFile::functionObjectFile
     obr_(obr),
     prefix_(prefix),
     names_(),
-    filePtrs_()
+    filePtrs_(),
+    writePrecision_(IOstream::defaultPrecision())
 {
     if (Pstream::master())
     {
@@ -236,6 +238,13 @@ Foam::functionObjectFile::~functionObjectFile()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::functionObjectFile::read(const dictionary& dict)
+{
+    writePrecision_ =
+        dict.lookupOrDefault("writePrecision", IOstream::defaultPrecision());
+}
+
 
 const Foam::wordHashSet& Foam::functionObjectFile::names() const
 {
