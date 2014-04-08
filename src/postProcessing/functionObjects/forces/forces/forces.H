@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -250,6 +250,9 @@ protected:
         //- Return rhoRef if the pressure field is dynamic, i.e. p/rho
         //  otherwise return 1
         scalar rho(const volScalarField& p) const;
+
+        //- Initialise the collection bins
+        void initialiseBins();
 
         //- Accumulate bin data
         void applyBins

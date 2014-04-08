@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -92,23 +92,9 @@ Foam::SprayParcel<ParcelType>::SprayParcel
         }
         else
         {
-            is.read
-            (
-                reinterpret_cast<char*>(&d0_),
-                sizeof(d0_)
-              + sizeof(position0_)
-              + sizeof(sigma_)
-              + sizeof(mu_)
-              + sizeof(liquidCore_)
-              + sizeof(KHindex_)
-              + sizeof(y_)
-              + sizeof(yDot_)
-              + sizeof(tc_)
-              + sizeof(ms_)
-              + sizeof(injector_)
-              + sizeof(tMom_)
-              + sizeof(user_)
-            );
+            label size = long(&user_) - long(&d0_) + sizeof(user_);
+
+            is.read(reinterpret_cast<char*>(&d0_), size);
         }
     }
 
@@ -331,23 +317,9 @@ Foam::Ostream& Foam::operator<<
     else
     {
         os  << static_cast<const ParcelType&>(p);
-        os.write
-        (
-            reinterpret_cast<const char*>(&p.d0_),
-            sizeof(p.d0())
-          + sizeof(p.position0())
-          + sizeof(p.sigma())
-          + sizeof(p.mu())
-          + sizeof(p.liquidCore())
-          + sizeof(p.KHindex())
-          + sizeof(p.y())
-          + sizeof(p.yDot())
-          + sizeof(p.tc())
-          + sizeof(p.ms())
-          + sizeof(p.injector())
-          + sizeof(p.tMom())
-          + sizeof(p.user())
-        );
+
+        label size = long(&p.user_) - long(&p.d0_) + sizeof(p.user_);
+        os.write(reinterpret_cast<const char*>(&p.d0_), size);
     }
 
     // Check state of Ostream

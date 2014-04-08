@@ -200,6 +200,8 @@ void Foam::forces::initialise()
         }
     }
 
+    initialiseBins();
+
     initialised_ = true;
 }
 
@@ -349,6 +351,75 @@ Foam::scalar Foam::forces::rho(const volScalarField& p) const
         }
 
         return rhoRef_;
+    }
+}
+
+
+void Foam::forces::initialiseBins()
+{
+    if (nBin_ > 1)
+    {
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+        const polyBoundaryMesh& pbm = mesh.boundaryMesh();
+
+        // determine extents of patches
+        binMin_ = GREAT;
+        scalar binMax = -GREAT;
+        forAllConstIter(labelHashSet, patchSet_, iter)
+        {
+            label patchI = iter.key();
+            const polyPatch& pp = pbm[patchI];
+            scalarField d(pp.faceCentres() & binDir_);
+            binMin_ = min(min(d), binMin_);
+            binMax = max(max(d), binMax);
+        }
+
+        // include porosity
+        if (porosity_)
+        {
+            const HashTable<const porosityModel*> models =
+                obr_.lookupClass<porosityModel>();
+
+            const scalarField dd(mesh.C() & binDir_);
+
+            forAllConstIter(HashTable<const porosityModel*>, models, iter)
+            {
+                const porosityModel& pm = *iter();
+                const labelList& cellZoneIDs = pm.cellZoneIDs();
+
+                forAll(cellZoneIDs, i)
+                {
+                    label zoneI = cellZoneIDs[i];
+                    const cellZone& cZone = mesh.cellZones()[zoneI];
+                    const scalarField d(dd, cZone);
+                    binMin_ = min(min(d), binMin_);
+                    binMax = max(max(d), binMax);
+                }
+            }
+        }
+
+        reduce(binMin_, minOp<scalar>());
+        reduce(binMax, maxOp<scalar>());
+
+        // slightly boost binMax so that region of interest is fully
+        // within bounds
+        binMax = 1.0001*(binMax - binMin_) + binMin_;
+
+        binDx_ = (binMax - binMin_)/scalar(nBin_);
+
+        // create the bin points used for writing
+        binPoints_.setSize(nBin_);
+        forAll(binPoints_, i)
+        {
+            binPoints_[i] = (i + 0.5)*binDir_*binDx_;
+        }
+
+        // allocate storage for forces and moments
+        forAll(force_, i)
+        {
+            force_[i].setSize(nBin_);
+            moment_[i].setSize(nBin_);
+        }
     }
 }
 
@@ -701,67 +772,26 @@ void Foam::forces::read(const dictionary& dict)
                 )   << "Number of bins (nBin) must be zero or greater"
                     << exit(FatalIOError);
             }
-            else if ((nBin_ == 0) || (nBin_ == 1))
+            else if (nBin_ == 0)
             {
                 nBin_ = 1;
-                forAll(force_, i)
-                {
-                    force_[i].setSize(1);
-                    moment_[i].setSize(1);
-                }
             }
-
-            if (nBin_ > 1)
+            else
             {
+                binDict.lookup("cumulative") >> binCumulative_;
                 binDict.lookup("direction") >> binDir_;
                 binDir_ /= mag(binDir_);
-
-                binMin_ = GREAT;
-                scalar binMax = -GREAT;
-                forAllConstIter(labelHashSet, patchSet_, iter)
-                {
-                    label patchI = iter.key();
-                    const polyPatch& pp = pbm[patchI];
-                    scalarField d(pp.faceCentres() & binDir_);
-                    binMin_ = min(min(d), binMin_);
-                    binMax = max(max(d), binMax);
-                }
-                reduce(binMin_, minOp<scalar>());
-                reduce(binMax, maxOp<scalar>());
-
-                // slightly boost binMax so that region of interest is fully
-                // within bounds
-                binMax = 1.0001*(binMax - binMin_) + binMin_;
-
-                binDx_ = (binMax - binMin_)/scalar(nBin_);
-
-                // create the bin points used for writing
-                binPoints_.setSize(nBin_);
-                forAll(binPoints_, i)
-                {
-                    binPoints_[i] = (i + 0.5)*binDir_*binDx_;
-                }
-
-                binDict.lookup("cumulative") >> binCumulative_;
-
-                // allocate storage for forces and moments
-                forAll(force_, i)
-                {
-                    force_[i].setSize(nBin_);
-                    moment_[i].setSize(nBin_);
-                }
             }
         }
 
         if (nBin_ == 1)
         {
             // allocate storage for forces and moments
-            force_[0].setSize(1);
-            force_[1].setSize(1);
-            force_[2].setSize(1);
-            moment_[0].setSize(1);
-            moment_[1].setSize(1);
-            moment_[2].setSize(1);
+            forAll(force_, i)
+            {
+                force_[i].setSize(1);
+                moment_[i].setSize(1);
+            }
         }
     }
 }
