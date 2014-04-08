@@ -43,6 +43,8 @@ void Foam::fieldValue::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         dict_ = dict;
 
         log_ = dict.lookupOrDefault<Switch>("log", true);

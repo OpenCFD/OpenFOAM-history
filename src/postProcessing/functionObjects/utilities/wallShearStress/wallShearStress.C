@@ -168,6 +168,8 @@ void Foam::wallShearStress::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         log_ = dict.lookupOrDefault<Switch>("log", true);
 
         const fvMesh& mesh = refCast<const fvMesh>(obr_);

@@ -707,6 +707,8 @@ void Foam::forces::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         initialised_ = false;
 
         log_ = dict.lookupOrDefault<Switch>("log", false);
