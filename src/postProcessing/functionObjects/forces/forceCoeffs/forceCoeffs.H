@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,6 +40,7 @@ Description
         functionObjectLibs ("libforces.so");
         ...
         log         yes;
+        writeFields yes;
         patches     (walls);
         liftDir     (0 1 0);
         dragDir     (-1 0 0);
@@ -62,6 +63,7 @@ Description
         Property     | Description             | Required    | Default value
         type         | type name: forces       | yes         |
         log          | write force data to standard output | no | no
+        writeFields  | write the force and moment coefficient fields | no | no
         patches      | patches included in the forces calculation | yes |
         liftDir      | lift direction          | yes         |
         dragDir      | drag direction          | yes         |

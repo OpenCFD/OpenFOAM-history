@@ -28,6 +28,9 @@ License
 #include "Time.H"
 #include "Pstream.H"
 #include "IOmanip.H"
+#include "fvMesh.H"
+#include "dimensionedTypes.H"
+#include "volFields.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -166,29 +169,54 @@ void Foam::forceCoeffs::read(const dictionary& dict)
         // Reference length and area scales
         dict.lookup("lRef") >> lRef_;
         dict.lookup("Aref") >> Aref_;
+
+        if (writeFields_)
+        {
+            const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+            tmp<volVectorField> tforceCoeff
+            (
+                new volVectorField
+                (
+                    IOobject
+                    (
+                        fieldName("forceCoeff"),
+                        mesh.time().timeName(),
+                        mesh,
+                        IOobject::NO_READ,
+                        IOobject::NO_WRITE
+                    ),
+                    mesh,
+                    dimensionedVector("0", dimless, vector::zero)
+                )
+            );
+
+            const_cast<fvMesh&>(mesh).regIOobject::store(tforceCoeff.ptr());
+
+            tmp<volVectorField> tmomentCoeff
+            (
+                new volVectorField
+                (
+                    IOobject
+                    (
+                        fieldName("momentCoeff"),
+                        mesh.time().timeName(),
+                        mesh,
+                        IOobject::NO_READ,
+                        IOobject::NO_WRITE
+                    ),
+                    mesh,
+                    dimensionedVector("0", dimless, vector::zero)
+                )
+            );
+
+            const_cast<fvMesh&>(mesh).regIOobject::store(tmomentCoeff.ptr());
+        }
     }
 }
 
 
 void Foam::forceCoeffs::execute()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::forceCoeffs::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::forceCoeffs::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::forceCoeffs::write()
 {
     forces::calcForcesMoment();
 
@@ -197,11 +225,11 @@ void Foam::forceCoeffs::write()
         return;
     }
 
+    scalar pDyn = 0.5*rhoRef_*magUInf_*magUInf_;
+
     if (Pstream::master())
     {
         functionObjectFile::write();
-
-        scalar pDyn = 0.5*rhoRef_*magUInf_*magUInf_;
 
         Field<vector> totForce(force_[0] + force_[1] + force_[2]);
         Field<vector> totMoment(moment_[0] + moment_[1] + moment_[2]);
@@ -258,8 +286,67 @@ void Foam::forceCoeffs::write()
 
             file(1) << endl;
         }
-
         Info(log_)<< endl;
+    }
+
+    if (writeFields_)
+    {
+        const volVectorField& force =
+            obr_.lookupObject<volVectorField>(fieldName("force"));
+
+        const volVectorField& moment =
+            obr_.lookupObject<volVectorField>(fieldName("moment"));
+
+        volVectorField& forceCoeff =
+            const_cast<volVectorField&>
+            (
+                obr_.lookupObject<volVectorField>(fieldName("forceCoeff"))
+            );
+
+        volVectorField& momentCoeff =
+            const_cast<volVectorField&>
+            (
+                obr_.lookupObject<volVectorField>(fieldName("momentCoeff"))
+            );
+
+        dimensionedScalar f0("f0", dimForce, Aref_*pDyn);
+        dimensionedScalar m0("m0", dimForce*dimLength, Aref_*lRef_*pDyn);
+
+        forceCoeff == force/f0;
+        momentCoeff == moment/m0;
+    }
+}
+
+
+void Foam::forceCoeffs::end()
+{
+    // Do nothing - only valid on write
+}
+
+
+void Foam::forceCoeffs::timeSet()
+{
+    // Do nothing - only valid on write
+}
+
+
+void Foam::forceCoeffs::write()
+{
+    if (!active_)
+    {
+        return;
+    }
+
+    if (writeFields_)
+    {
+        const volVectorField& forceCoeff =
+            obr_.lookupObject<volVectorField>(fieldName("forceCoeff"));
+
+        const volVectorField& momentCoeff =
+            obr_.lookupObject<volVectorField>(fieldName("momentCoeff"));
+
+        forceCoeff.write();
+        momentCoeff.write();
     }
 }
 

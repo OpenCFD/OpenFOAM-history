@@ -43,6 +43,7 @@ Description
         functionObjectLibs ("libforces.so");
         ...
         log         yes;
+        writeFields yes;
         patches     (walls);
 
         binData
@@ -59,6 +60,7 @@ Description
         Property     | Description             | Required    | Default value
         type         | type name: forces       | yes         |
         log          | write force data to standard output | no | no
+        writeFields  | write the force and moment fields | no | no
         patches      | patches included in the forces calculation | yes |
         pName        | pressure field name     | no          | p
         UName        | velocity field name     | no          | U
@@ -223,11 +225,17 @@ protected:
                 bool binCumulative_;
 
 
+            //- Write fields flag
+            bool writeFields_;
+
             //- Initialised flag
             bool initialised_;
 
 
     // Protected Member Functions
+
+        //- Create a field name
+        word fieldName(const word& name) const;
 
         //- Create file names for forces and bins
         wordList createFileNames(const dictionary& dict) const;
@@ -237,6 +245,12 @@ protected:
 
         //- Initialise the fields
         void initialise();
+
+        //- Initialise the collection bins
+        void initialiseBins();
+
+        //- Reset the fields prior to accumulation of force/moments
+        void resetFields();
 
         //- Return the effective viscous stress (laminar + turbulent).
         tmp<volSymmTensorField> devRhoReff() const;
@@ -251,9 +265,6 @@ protected:
         //  otherwise return 1
         scalar rho(const volScalarField& p) const;
 
-        //- Initialise the collection bins
-        void initialiseBins();
-
         //- Accumulate bin data
         void applyBins
         (
@@ -262,6 +273,26 @@ protected:
             const vectorField& fT,
             const vectorField& fP,
             const vectorField& d
+        );
+
+        //- Add patch contributions to force and moment fields
+        void addToFields
+        (
+            const label patchI,
+            const vectorField& Md,
+            const vectorField& fN,
+            const vectorField& fT,
+            const vectorField& fP
+        );
+
+        //- Add cell contributions to force and moment fields
+        void addToFields
+        (
+            const labelList& cellIDs,
+            const vectorField& Md,
+            const vectorField& fN,
+            const vectorField& fT,
+            const vectorField& fP
         );
 
         //- Helper function to write force data
