@@ -14,6 +14,8 @@ EXE_LIBS = \
     -lfiniteVolume \
     -ldecompositionMethods \
     -L$(FOAM_LIBBIN)/dummy -lptscotchDecomp \
+    /* note: scotch < 6.0 does not like both scotch and ptscotch together */ \
+    -lscotchDecomp \
     -lmeshTools \
     -lsurfMesh \
     -lfileFormats \
