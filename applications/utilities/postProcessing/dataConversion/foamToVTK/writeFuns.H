@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -113,7 +113,7 @@ public:
     (
         std::ostream&,
         const bool binary,
-        const GeometricField<Type, fvPatchField, volMesh>&,
+        const DimensionedField<Type, volMesh>&,
         const vtkMesh&
     );
 
@@ -135,8 +135,8 @@ public:
     (
         std::ostream&,
         const bool binary,
-        const GeometricField<Type, fvPatchField, volMesh>&,
-        const GeometricField<Type, pointPatchField, pointMesh>&,
+        const DimensionedField<Type, volMesh>&,
+        const DimensionedField<Type, pointMesh>&,
         const vtkMesh&
     );
 
@@ -147,6 +147,16 @@ public:
         std::ostream&,
         const bool binary,
         const PtrList<GeometricField<Type, PatchField, GeoMesh> >&,
+        const vtkMesh&
+    );
+
+    //- Write generic dimensioned internal fields
+    template<class Type>
+    static void write
+    (
+        std::ostream&,
+        const bool binary,
+        const PtrList<DimensionedField<Type, volMesh> >&,
         const vtkMesh&
     );
 

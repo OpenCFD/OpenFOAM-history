@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -70,11 +70,15 @@ bool Foam::regIOobject::writeObject
         const_cast<regIOobject&>(*this).instance() = time().timeName();
     }
 
-    mkDir(path());
+    if (!mkDir(path()))
+    {
+        return false;
+    }
+
 
     if (OFstream::debug)
     {
-        Info<< "regIOobject::write() : "
+        Pout<< "regIOobject::write() : "
             << "writing file " << objectPath();
     }
 
@@ -109,7 +113,7 @@ bool Foam::regIOobject::writeObject
 
     if (OFstream::debug)
     {
-        Info<< " .... written" << endl;
+        Pout<< " .... written" << endl;
     }
 
     // Only update the lastModified_ time if this object is re-readable,

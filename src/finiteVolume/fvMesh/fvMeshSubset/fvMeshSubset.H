@@ -270,6 +270,24 @@ public:
             (
                 const GeometricField<Type, pointPatchField, pointMesh>&
             ) const;
+
+            //- Map dimensioned fields
+            template<class Type>
+            static tmp<DimensionedField<Type, volMesh> >
+            interpolate
+            (
+                const DimensionedField<Type, volMesh>&,
+                const fvMesh& sMesh,
+                const labelList& cellMap
+            );
+
+            template<class Type>
+            tmp<DimensionedField<Type, volMesh> >
+            interpolate
+            (
+                const DimensionedField<Type, volMesh>&
+            ) const;
+
 };
 
 

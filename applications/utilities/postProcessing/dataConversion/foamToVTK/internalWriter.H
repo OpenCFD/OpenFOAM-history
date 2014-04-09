@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -94,12 +94,27 @@ public:
             const PtrList<GeometricField<Type, PatchField, GeoMesh> >&
         );
 
+        //- Write generic internal fields
+        template<class Type, class GeoMesh>
+        void write
+        (
+            const PtrList<DimensionedField<Type, volMesh> >& flds
+        );
+
         //- Interpolate and write volFields
         template<class Type>
         void write
         (
             const volPointInterpolation&,
             const PtrList<GeometricField<Type, fvPatchField, volMesh> >&
+        );
+
+        //- Interpolate and internal fields
+        template<class Type, class GeoMesh>
+        void write
+        (
+            const volPointInterpolation&,
+            const PtrList<DimensionedField<Type, volMesh> >&
         );
 };
 

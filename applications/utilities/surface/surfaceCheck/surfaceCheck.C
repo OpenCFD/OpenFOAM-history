@@ -31,12 +31,10 @@ Description
 
 #include "triangle.H"
 #include "triSurface.H"
-#include "triSurfaceTools.H"
 #include "triSurfaceSearch.H"
 #include "argList.H"
 #include "OFstream.H"
 #include "OBJstream.H"
-#include "surfaceIntersection.H"
 #include "SortableList.H"
 #include "PatchTools.H"
 #include "vtkSurfaceWriter.H"
@@ -223,7 +221,7 @@ int main(int argc, char *argv[])
     // write bounding box corners
     if (args.optionFound("blockMesh"))
     {
-        pointField cornerPts(boundBox(surf.points()).points());
+        pointField cornerPts(boundBox(surf.points(), false).points());
 
         Info<<"// blockMeshDict info" << nl
             <<"vertices\n(" << nl;
@@ -514,12 +512,12 @@ int main(int argc, char *argv[])
 
     DynamicList<label> problemFaces(surf.size()/100 + 1);
 
-    const labelListList& eFaces = surf.edgeFaces();
+    const labelListList& edgeFaces = surf.edgeFaces();
 
     label nSingleEdges = 0;
-    forAll(eFaces, edgeI)
+    forAll(edgeFaces, edgeI)
     {
-        const labelList& myFaces = eFaces[edgeI];
+        const labelList& myFaces = edgeFaces[edgeI];
 
         if (myFaces.size() == 1)
         {
@@ -530,9 +528,9 @@ int main(int argc, char *argv[])
     }
 
     label nMultEdges = 0;
-    forAll(eFaces, edgeI)
+    forAll(edgeFaces, edgeI)
     {
-        const labelList& myFaces = eFaces[edgeI];
+        const labelList& myFaces = edgeFaces[edgeI];
 
         if (myFaces.size() > 2)
         {
@@ -548,7 +546,8 @@ int main(int argc, char *argv[])
 
     if ((nSingleEdges != 0) || (nMultEdges != 0))
     {
-        Info<< "Surface is not closed since not all edges connected to "
+        Info<< "Surface is not closed since not all edges ("
+            << edgeFaces.size() << ") connected to "
             << "two faces:" << endl
             << "    connected to one face : " << nSingleEdges << endl
             << "    connected to >2 faces : " << nMultEdges << endl;
@@ -577,10 +576,9 @@ int main(int argc, char *argv[])
         boolList borderEdge(surf.nEdges(), false);
         if (splitNonManifold)
         {
-            const labelListList& eFaces = surf.edgeFaces();
-            forAll(eFaces, edgeI)
+            forAll(edgeFaces, edgeI)
             {
-                if (eFaces[edgeI].size() > 2)
+                if (edgeFaces[edgeI].size() > 2)
                 {
                     borderEdge[edgeI] = true;
                 }

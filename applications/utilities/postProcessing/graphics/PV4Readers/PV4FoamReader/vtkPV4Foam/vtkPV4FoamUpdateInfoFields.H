@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -72,6 +72,7 @@ void Foam::vtkPV4Foam::updateInfoFields
     // Search for list of objects for this time and mesh region
     IOobjectList objects(dbPtr_(), dbPtr_().timeName(), regionPrefix);
 
+
     //- Add volume fields to GUI
     addToSelection<GeometricField<scalar, patchType, meshType> >
     (
@@ -98,6 +99,34 @@ void Foam::vtkPV4Foam::updateInfoFields
         select,
         objects
     );
+
+    //- Add dimensioned fields to GUI
+    addToSelection<DimensionedField<scalar, meshType> >
+    (
+        select,
+        objects
+    );
+    addToSelection<DimensionedField<vector, meshType> >
+    (
+        select,
+        objects
+    );
+    addToSelection<DimensionedField<sphericalTensor, meshType> >
+    (
+        select,
+        objects
+    );
+    addToSelection<DimensionedField<symmTensor, meshType> >
+    (
+        select,
+        objects
+    );
+    addToSelection<DimensionedField<tensor, meshType> >
+    (
+        select,
+        objects
+    );
+
 
     // restore the enabled selections
     setSelectedArrayEntries(select, enabledEntries);
