@@ -124,6 +124,8 @@ void Foam::DESModelRegions::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         log_ = dict.lookupOrDefault<Switch>("log", false);
     }
 }

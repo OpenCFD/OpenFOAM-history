@@ -118,6 +118,8 @@ Foam::fieldValues::fieldValueDelta::~fieldValueDelta()
 
 void Foam::fieldValues::fieldValueDelta::read(const dictionary& dict)
 {
+    functionObjectFile::read(dict);
+
     log_ = dict.lookupOrDefault<Switch>("log", true);
     source1Ptr_.reset
     (

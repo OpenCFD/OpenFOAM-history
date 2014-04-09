@@ -86,7 +86,23 @@ Foam::tmp<Foam::volScalarField> Foam::pressureTools::rho
     }
     else
     {
-        return
+        if (!rhoInfInitialised_)
+        {
+            FatalErrorIn
+            (
+                "Foam::tmp<Foam::volScalarField> Foam::pressureTools::rho"
+                "("
+                "    const volScalarField&"
+                ") const"
+            )
+                << type() << " " << name_ << ": "
+                << "pressure identified as incompressible, but reference "
+                << "density is not set.  Please set rhoName to rhoInf, and "
+                << "set an appropriate value for rhoInf"
+                << exit(FatalError);
+        }
+
+       return
             tmp<volScalarField>
             (
                 new volScalarField
@@ -198,7 +214,8 @@ Foam::pressureTools::pressureTools
     calcCoeff_(false),
     pInf_(0.0),
     UInf_(vector::zero),
-    rhoInf_(0.0)
+    rhoInf_(0.0),
+    rhoInfInitialised_(false)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -268,9 +285,12 @@ void Foam::pressureTools::read(const dictionary& dict)
         dict.readIfPresent("UName", UName_);
         dict.readIfPresent("rhoName", rhoName_);
 
+        rhoInfInitialised_ = false;
+
         if (rhoName_ == "rhoInf")
         {
             dict.lookup("rhoInf") >> rhoInf_;
+            rhoInfInitialised_ = true;
         }
 
         dict.lookup("calcTotal") >> calcTotal_;
@@ -296,6 +316,8 @@ void Foam::pressureTools::read(const dictionary& dict)
                     << "pressure level is zero.  Please check the supplied "
                     << "values of pInf, UInf and rhoInf" << endl;
             }
+
+            rhoInfInitialised_ = true;
         }
     }
 }
