@@ -93,37 +93,50 @@ void Foam::fieldValues::fieldValueDelta::processFields(bool& found)
 
     const wordList& fields1 = source1Ptr_->fields();
 
-    const dictionary& results1 = source1Ptr_->resultDict();
-    const dictionary& results2 = source2Ptr_->resultDict();
-
-    Type r1(pTraits<Type>::zero);
-    Type r2(pTraits<Type>::zero);
-
-    forAll(fields1, i)
+    if
+    (
+        (foundProperty(source1Ptr_->name()))
+     && (foundProperty(source2Ptr_->name()))
+    )
     {
-        const word& fieldName = fields1[i];
+        dictionary results1;
+        getProperty(source1Ptr_->name(), results1);
 
-        if
-        (
-            (obr_.foundObject<vf>(fieldName) || obr_.foundObject<sf>(fieldName))
-         && results2.found(fieldName)
-        )
+        dictionary results2;
+        getProperty(source2Ptr_->name(), results2);
+
+        Type r1(pTraits<Type>::zero);
+        Type r2(pTraits<Type>::zero);
+
+        forAll(fields1, i)
         {
-            results1.lookup(fieldName) >> r1;
-            results2.lookup(fieldName) >> r2;
+            const word& fieldName = fields1[i];
 
-            Type result = applyOperation(r1, r2);
-
-            Info(log_)<< "    " << operationTypeNames_[operation_]
-                << "(" << fieldName << ") = " << result
-                << endl;
-
-            if (Pstream::master())
+            if
+            (
+                (
+                    obr_.foundObject<vf>(fieldName)
+                 || obr_.foundObject<sf>(fieldName)
+                )
+             && results2.found(fieldName)
+            )
             {
-                file()<< tab << result;
-            }
+                results1.subDict(fieldName).lookup("value") >> r1;
+                results2.subDict(fieldName).lookup("value") >> r2;
 
-            found = true;
+                Type result = applyOperation(r1, r2);
+
+                Info(log_)<< "    " << operationTypeNames_[operation_]
+                    << "(" << fieldName << ") = " << result
+                    << endl;
+
+                if (Pstream::master())
+                {
+                    file()<< tab << result;
+                }
+
+                found = true;
+            }
         }
     }
 }

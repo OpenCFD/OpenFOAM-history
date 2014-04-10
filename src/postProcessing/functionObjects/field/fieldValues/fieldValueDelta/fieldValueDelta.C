@@ -64,8 +64,8 @@ Foam::fieldValues::fieldValueDelta::fieldValueDelta
     const bool loadFromFiles
 )
 :
+    functionObjectState(obr, name),
     functionObjectFile(obr, name, typeName),
-    name_(name),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
     log_(true),
