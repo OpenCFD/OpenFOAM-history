@@ -31,23 +31,24 @@ License
 
 Foam::parLagrangianRedistributor::parLagrangianRedistributor
 (
-    const fvMesh& baseMesh,
-    const fvMesh& procMesh,
+    const fvMesh& srcMesh,
+    const fvMesh& tgtMesh,
+    const label nSrcCells,
     const mapDistributePolyMesh& distMap
 )
 :
-    baseMesh_(baseMesh),
-    procMesh_(procMesh),
+    srcMesh_(srcMesh),
+    tgtMesh_(tgtMesh),
     distMap_(distMap)
 {
     const mapDistribute& cellMap = distMap_.cellMap();
 
     // Get destination processors and cells
-    destinationProcID_ = labelList(baseMesh_.nCells(), Pstream::myProcNo());
-    cellMap.reverseDistribute(procMesh_.nCells(), destinationProcID_);
+    destinationProcID_ = labelList(tgtMesh_.nCells(), Pstream::myProcNo());
+    cellMap.reverseDistribute(nSrcCells, destinationProcID_);
 
-    destinationCell_ = identity(baseMesh_.nCells());
-    cellMap.reverseDistribute(procMesh_.nCells(), destinationCell_);
+    destinationCell_ = identity(tgtMesh_.nCells());
+    cellMap.reverseDistribute(nSrcCells, destinationCell_);
 }
 
 
@@ -62,16 +63,13 @@ void Foam::parLagrangianRedistributor::findClouds
     List<wordList>& objectNames
 )
 {
-    const fileName regionDir = mesh.dbDir();
-    const fileName prefix = cloud::prefix;
-
     fileNameList localCloudDirs
     (
         readDir
         (
             mesh.time().timePath()
-          / regionDir
-          / prefix,
+          / mesh.dbDir()
+          / cloud::prefix,
             fileName::DIRECTORY
         )
     );
@@ -123,17 +121,14 @@ void Foam::parLagrangianRedistributor::findClouds
     {
         Pstream::combineGather(objectNames[cloudI], ListUniqueEqOp<word>());
         Pstream::combineScatter(objectNames[cloudI]);
-        //Pout<< "Found cloud " << cloudNames[cloudI]
-        //    << " with objects:" << objectNames[cloudI] << endl;
     }
 }
 
 
-//Foam::tmp<Foam::labelField>
 Foam::autoPtr<Foam::mapDistributeBase>
 Foam::parLagrangianRedistributor::redistributeLagrangianPositions
 (
-    const word& cloudName
+    passiveParticleCloud& lpi
 ) const
 {
     labelListList subMap;
@@ -149,9 +144,6 @@ Foam::parLagrangianRedistributor::redistributeLagrangianPositions
         (
             Pstream::nProcs()
         );
-
-        // Load cloud and send particle
-        passiveParticleCloud lpi(procMesh_, cloudName, false);
 
         // Per particle the destination processor
         labelList destProc(lpi.size());
@@ -195,11 +187,11 @@ Foam::parLagrangianRedistributor::redistributeLagrangianPositions
     pBufs.finishedSends(allNTrans);
 
 
-    // New cloud on baseMesh
+    // New cloud on tgtMesh
     passiveParticleCloud lagrangianPositions
     (
-        baseMesh_,
-        cloudName,
+        tgtMesh_,
+        lpi.name(),
         IDLList<passiveParticle>()
     );
 
@@ -219,7 +211,7 @@ Foam::parLagrangianRedistributor::redistributeLagrangianPositions
             IDLList<passiveParticle> newParticles
             (
                 particleStream,
-                passiveParticle::iNew(baseMesh_)
+                passiveParticle::iNew(tgtMesh_)
             );
 
             forAllIter
@@ -277,6 +269,19 @@ Foam::parLagrangianRedistributor::redistributeLagrangianPositions
             constructMap.xfer()
         )
     );
+}
+
+
+Foam::autoPtr<Foam::mapDistributeBase>
+Foam::parLagrangianRedistributor::redistributeLagrangianPositions
+(
+    const word& cloudName
+) const
+{
+    // Load cloud and send particle
+    passiveParticleCloud lpi(srcMesh_, cloudName, false);
+
+    return redistributeLagrangianPositions(lpi);
 }
 
 

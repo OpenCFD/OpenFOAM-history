@@ -383,9 +383,9 @@ Foam::autoPtr<Foam::fvMesh> Foam::loadOrCreateMesh
 //        rmDir(meshFiles);
 //    }
 //
-//    // Force recreation of globalMeshData.
+    // Force recreation of globalMeshData.
 //    mesh.clearOut();
-//    mesh.globalData();
+    mesh.globalData();
 
 
     // Do some checks.

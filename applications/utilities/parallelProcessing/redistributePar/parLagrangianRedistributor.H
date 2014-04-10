@@ -27,7 +27,7 @@ Class
 Description
     Lagrangian field redistributor.
 
-    Runs in parallel. Redistributes from procMesh to baseMesh.
+    Runs in parallel. Redistributes from fromMesh to toMesh.
 
 SourceFiles
     parLagrangianRedistributor.C
@@ -49,6 +49,7 @@ namespace Foam
 class mapDistributePolyMesh;
 class mapDistributeBase;
 class IOobjectList;
+class passiveParticleCloud;
 
 /*---------------------------------------------------------------------------*\
                     Class parLagrangianRedistributor Declaration
@@ -58,19 +59,19 @@ class parLagrangianRedistributor
 {
     // Private data
 
-        //- Destination mesh reference
-        const fvMesh& baseMesh_;
+        //- Source mesh reference
+        const fvMesh& srcMesh_;
 
-        //- Processor mesh reference
-        const fvMesh& procMesh_;
+        //- Destination mesh reference
+        const fvMesh& tgtMesh_;
 
         //- Distribution map reference
         const mapDistributePolyMesh& distMap_;
 
-        //- For every cell the destination processor
+        //- For every src cell the target processor
         labelList destinationProcID_;
 
-        //- For every cell the destination cell
+        //- For every src cell the target cell
         labelList destinationCell_;
 
 
@@ -90,8 +91,9 @@ public:
         //- Construct from components
         parLagrangianRedistributor
         (
-            const fvMesh& baseMesh,
-            const fvMesh& procMesh,
+            const fvMesh& srcMesh,
+            const fvMesh& tgtMesh,
+            const label nOldCells,
             const mapDistributePolyMesh& distMap
         );
 
@@ -106,6 +108,12 @@ public:
             wordList& cloudNames,
             List<wordList>& objectNames
         );
+
+        //- Redistribute and write lagrangian positions
+        autoPtr<mapDistributeBase> redistributeLagrangianPositions
+        (
+            passiveParticleCloud& cloud
+        ) const;
 
         //- Read, redistribute and write lagrangian positions
         autoPtr<mapDistributeBase> redistributeLagrangianPositions
@@ -140,6 +148,24 @@ public:
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
         ) const;
+
+        //- Read and store all fields of a cloud
+        template<class Container>
+        static void readLagrangianFields
+        (
+            const passiveParticleCloud& cloud,
+            const IOobjectList& objects,
+            const HashSet<word>& selectedFields
+        );
+
+        //- Redistribute and write stored lagrangian fields
+        template<class Container>
+        void redistributeStoredLagrangianFields
+        (
+            const mapDistributeBase& map,
+            passiveParticleCloud& cloud
+        ) const;
+
 };
 
 

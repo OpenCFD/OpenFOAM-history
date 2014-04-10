@@ -29,6 +29,7 @@ License
 #include "mapDistributePolyMesh.H"
 #include "cloud.H"
 #include "CompactIOField.H"
+#include "passiveParticleCloud.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -97,9 +98,9 @@ void Foam::parLagrangianRedistributor::redistributeLagrangianFields
                 IOobject
                 (
                     objectNames[i],
-                    procMesh_.time().timeName(),
+                    srcMesh_.time().timeName(),
                     cloud::prefix/cloudName,
-                    procMesh_,
+                    srcMesh_,
                     IOobject::READ_IF_PRESENT,
                     IOobject::NO_WRITE,
                     false
@@ -115,14 +116,14 @@ void Foam::parLagrangianRedistributor::redistributeLagrangianFields
                 IOobject
                 (
                     objectNames[i],
-                    baseMesh_.time().timeName(),
+                    tgtMesh_.time().timeName(),
                     cloud::prefix/cloudName,
-                    baseMesh_,
+                    tgtMesh_,
                     IOobject::NO_READ,
                     IOobject::NO_WRITE,
                     false
                 ),
-                field
+                xferMove<Field<Type> >(field)
             ).write();
         }
     }
@@ -178,9 +179,9 @@ void Foam::parLagrangianRedistributor::redistributeLagrangianFieldFields
                 IOobject
                 (
                     objectNames[i],
-                    procMesh_.time().timeName(),
+                    srcMesh_.time().timeName(),
                     cloud::prefix/cloudName,
-                    procMesh_,
+                    srcMesh_,
                     IOobject::READ_IF_PRESENT,
                     IOobject::NO_WRITE,
                     false
@@ -197,17 +198,112 @@ void Foam::parLagrangianRedistributor::redistributeLagrangianFieldFields
                 IOobject
                 (
                     objectNames[i],
-                    baseMesh_.time().timeName(),
+                    tgtMesh_.time().timeName(),
                     cloud::prefix/cloudName,
-                    baseMesh_,
+                    tgtMesh_,
                     IOobject::NO_READ,
                     IOobject::NO_WRITE,
                     false
                 ),
-                field
+                xferMove<Field<Field<Type> > >(field)
             ).write();
         }
     }
 }
+
+
+template<class Container>
+void Foam::parLagrangianRedistributor::readLagrangianFields
+(
+    const passiveParticleCloud& cloud,
+    const IOobjectList& objects,
+    const HashSet<word>& selectedFields
+)
+{
+    const wordList objectNames
+    (
+        filterObjects<Container>
+        (
+            objects,
+            selectedFields
+        )
+    );
+
+    if (objectNames.size())
+    {
+        const word fieldClassName(Container::typeName);
+
+        Info<< "    Reading lagrangian "
+            << fieldClassName << "s\n" << endl;
+
+        forAll(objectNames, i)
+        {
+            Info<< "        " <<  objectNames[i] << endl;
+
+            // Read if present
+            Container* fieldPtr = new Container
+            (
+                IOobject
+                (
+                    objectNames[i],
+                    cloud.time().timeName(),
+                    cloud,
+                    IOobject::READ_IF_PRESENT,
+                    IOobject::NO_WRITE
+                ),
+                0
+            );
+
+            fieldPtr->store();
+        }
+    }
+}
+
+
+template<class Container>
+void Foam::parLagrangianRedistributor::redistributeStoredLagrangianFields
+(
+    const mapDistributeBase& map,
+    passiveParticleCloud& cloud
+) const
+{
+    HashTable<Container*> fields
+    (
+        cloud.lookupClass<Container >()
+    );
+
+    if (fields.size())
+    {
+        const word fieldClassName(Container::typeName);
+
+        Info<< "    Redistributing lagrangian "
+            << fieldClassName << "s\n" << endl;
+
+        forAllIter(typename HashTable<Container*>, fields, iter)
+        {
+            Container& field = *iter();
+
+            Info<< "        " <<  field.name() << endl;
+
+            map.distribute(field);
+
+            Container
+            (
+                IOobject
+                (
+                    field.name(),
+                    tgtMesh_.time().timeName(),
+                    cloud::prefix/cloud.name(),
+                    tgtMesh_,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE,
+                    false
+                ),
+                xferMove<Field<typename Container::value_type> >(field)
+            ).write();
+        }
+    }
+}
+
 
 // ************************************************************************* //
