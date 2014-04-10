@@ -203,6 +203,12 @@ void Foam::fieldAverage::readAveragingProperties()
                     << " iters = " << totalIter_[fieldI]
                     << " time = " << totalTime_[fieldI] << nl;
             }
+            else
+            {
+                Info<< "        " << fieldName
+                    << ": starting averaging at time "
+                    << obr_.time().timeName() << endl;
+            }
         }
     }
 }
@@ -218,7 +224,8 @@ Foam::fieldAverage::fieldAverage
     const bool loadFromFiles
 )
 :
-    functionObjectState(name, obr),
+    functionObjectState(obr, name),
+    obr_(obr),
     prevTimeIndex_(-1),
     resetOnRestart_(false),
     resetOnOutput_(false),

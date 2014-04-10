@@ -147,6 +147,9 @@ protected:
 
     // Protected data
 
+        //- Reference to the database
+        const objectRegistry& obr_;
+
         //- Time at last call, prevents repeated averaging
         label prevTimeIndex_;
 
