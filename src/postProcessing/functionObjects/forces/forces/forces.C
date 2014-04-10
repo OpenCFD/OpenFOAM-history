@@ -607,6 +607,22 @@ void Foam::forces::writeForces()
             << sum(localMomentP) << setw(1) << ')'
             << endl;
     }
+
+    // write state information
+    {
+        dictionary propsDict;
+        propsDict.add("pressure", sum(force_[0]));
+        propsDict.add("viscous", sum(force_[1]));
+        propsDict.add("moment", sum(force_[2]));
+        setProperty("force", propsDict);
+    }
+    {
+        dictionary propsDict;
+        propsDict.add("pressure", sum(moment_[0]));
+        propsDict.add("viscous", sum(moment_[1]));
+        propsDict.add("moment", sum(moment_[2]));
+        setProperty("moment", propsDict);
+    }
 }
 
 
@@ -700,10 +716,9 @@ Foam::forces::forces
     const bool readFields
 )
 :
+    functionObjectState(obr, name),
     functionObjectFile(obr, name, createFileNames(dict)),
-    name_(name),
     obr_(obr),
-    active_(true),
     log_(true),
     force_(3),
     moment_(3),
@@ -728,7 +743,7 @@ Foam::forces::forces
     initialised_(false)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
-    if (isA<fvMesh>(obr_))
+    if (setActive<fvMesh>())
     {
         if (readFields)
         {
@@ -736,22 +751,6 @@ Foam::forces::forces
             Info<< endl;
         }
     }
-    else
-    {
-        active_ = false;
-        WarningIn
-        (
-            "Foam::forces::forces"
-            "("
-                "const word&, "
-                "const objectRegistry&, "
-                "const dictionary&, "
-                "const bool"
-            ")"
-        )   << "No fvMesh available, deactivating " << name_
-            << endl;
-    }
-
 }
 
 
@@ -768,10 +767,9 @@ Foam::forces::forces
     const coordinateSystem& coordSys
 )
 :
+    functionObjectState(obr, name),
     functionObjectFile(obr, name, typeName),
-    name_(name),
     obr_(obr),
-    active_(true),
     log_(true),
     force_(3),
     moment_(3),

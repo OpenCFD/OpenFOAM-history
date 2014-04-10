@@ -115,6 +115,7 @@ SourceFiles
 #ifndef forces_H
 #define forces_H
 
+#include "functionObjectState.H"
 #include "functionObjectFile.H"
 #include "coordinateSystem.H"
 #include "coordinateSystems.H"
@@ -143,20 +144,15 @@ class mapPolyMesh;
 
 class forces
 :
+    public functionObjectState,
     public functionObjectFile
 {
 protected:
 
     // Protected data
 
-        //- Name of this set of forces,
-        //  Also used as the name of the probes directory.
-        word name_;
-
+        //- Reference to the database
         const objectRegistry& obr_;
-
-        //- On/off switch
-        bool active_;
 
         //- Switch to send output to Info as well as to file
         Switch log_;

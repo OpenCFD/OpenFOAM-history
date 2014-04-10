@@ -287,6 +287,17 @@ void Foam::forceCoeffs::execute()
             file(1) << endl;
         }
         Info(log_)<< endl;
+
+        // write state information
+        {
+            dictionary propsDict;
+            propsDict.add("Cm", Cm);
+            propsDict.add("Cd", Cd);
+            propsDict.add("Cl", Cl);
+            propsDict.add("Cl(f)", Clf);
+            propsDict.add("Cl(r)", Clr);
+            setProperty("forceCoeffs", propsDict);
+        }
     }
 
     if (writeFields_)
