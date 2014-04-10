@@ -86,14 +86,20 @@ void Foam::fieldMinMax::output
     Info(log_)<< endl;
 
     // write state information
-    dictionary propsDict;
-    propsDict.add("minValue", minValue);
-    propsDict.add("minValuePosition", minC);
-    propsDict.add("minValueProc", minProcI);
-    propsDict.add("maxValue", maxValue);
-    propsDict.add("maxValuePosition", maxC);
-    propsDict.add("maxValueProc", maxProcI);
-    setProperty(fieldName, propsDict);
+    {
+        dictionary propsDict;
+        propsDict.add("value", minValue);
+        propsDict.add("position", minC);
+        propsDict.add("processor", minProcI);
+        setProperty("minimum", propsDict);
+    }
+    {
+        dictionary propsDict;
+        propsDict.add("value", maxValue);
+        propsDict.add("position", maxC);
+        propsDict.add("processor", maxProcI);
+        setProperty("maximum", propsDict);
+    }
 }
 
 
