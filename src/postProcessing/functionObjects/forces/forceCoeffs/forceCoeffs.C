@@ -227,29 +227,29 @@ void Foam::forceCoeffs::execute()
 
     scalar pDyn = 0.5*rhoRef_*magUInf_*magUInf_;
 
+    Field<vector> totForce(force_[0] + force_[1] + force_[2]);
+    Field<vector> totMoment(moment_[0] + moment_[1] + moment_[2]);
+
+    List<Field<scalar> > coeffs(3);
+    coeffs[0].setSize(nBin_);
+    coeffs[1].setSize(nBin_);
+    coeffs[2].setSize(nBin_);
+
+    // lift, drag and moment
+    coeffs[0] = (totForce & liftDir_)/(Aref_*pDyn);
+    coeffs[1] = (totForce & dragDir_)/(Aref_*pDyn);
+    coeffs[2] = (totMoment & pitchAxis_)/(Aref_*lRef_*pDyn);
+
+    scalar Cl = sum(coeffs[0]);
+    scalar Cd = sum(coeffs[1]);
+    scalar Cm = sum(coeffs[2]);
+
+    scalar Clf = Cl/2.0 + Cm;
+    scalar Clr = Cl/2.0 - Cm;
+
     if (Pstream::master())
     {
         functionObjectFile::write();
-
-        Field<vector> totForce(force_[0] + force_[1] + force_[2]);
-        Field<vector> totMoment(moment_[0] + moment_[1] + moment_[2]);
-
-        List<Field<scalar> > coeffs(3);
-        coeffs[0].setSize(nBin_);
-        coeffs[1].setSize(nBin_);
-        coeffs[2].setSize(nBin_);
-
-        // lift, drag and moment
-        coeffs[0] = (totForce & liftDir_)/(Aref_*pDyn);
-        coeffs[1] = (totForce & dragDir_)/(Aref_*pDyn);
-        coeffs[2] = (totMoment & pitchAxis_)/(Aref_*lRef_*pDyn);
-
-        scalar Cl = sum(coeffs[0]);
-        scalar Cd = sum(coeffs[1]);
-        scalar Cm = sum(coeffs[2]);
-
-        scalar Clf = Cl/2.0 + Cm;
-        scalar Clr = Cl/2.0 - Cm;
 
         file(0)
             << obr_.time().value() << tab << Cm << tab  << Cd
@@ -288,16 +288,17 @@ void Foam::forceCoeffs::execute()
         }
         Info(log_)<< endl;
 
-        // write state information
-        {
-            dictionary propsDict;
-            propsDict.add("Cm", Cm);
-            propsDict.add("Cd", Cd);
-            propsDict.add("Cl", Cl);
-            propsDict.add("Cl(f)", Clf);
-            propsDict.add("Cl(r)", Clr);
-            setProperty("forceCoeffs", propsDict);
-        }
+    }
+
+    // write state information
+    {
+        dictionary propsDict;
+        propsDict.add("Cm", Cm);
+        propsDict.add("Cd", Cd);
+        propsDict.add("Cl", Cl);
+        propsDict.add("Cl(f)", Clf);
+        propsDict.add("Cl(r)", Clr);
+        setProperty("forceCoeffs", propsDict);
     }
 
     if (writeFields_)

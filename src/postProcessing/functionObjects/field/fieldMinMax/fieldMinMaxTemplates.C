@@ -44,46 +44,49 @@ void Foam::fieldMinMax::output
     const Type& maxValue
 )
 {
-    file()<< obr_.time().value();
-    writeTabbed(file(), fieldName);
-
-    file()
-        << token::TAB << minValue
-        << token::TAB << minC;
-
-    if (Pstream::parRun())
+    if (Pstream::master())
     {
-        file()<< token::TAB << minProcI;
+        file()<< obr_.time().value();
+        writeTabbed(file(), fieldName);
+
+        file()
+            << token::TAB << minValue
+            << token::TAB << minC;
+
+        if (Pstream::parRun())
+        {
+            file()<< token::TAB << minProcI;
+        }
+
+        file()
+            << token::TAB << maxValue
+            << token::TAB << maxC;
+
+        if (Pstream::parRun())
+        {
+            file()<< token::TAB << maxProcI;
+        }
+
+        file() << endl;
+
+        Info(log_)<< "    min(" << outputName << ") = "
+            << minValue << " at position " << minC;
+
+        if (Pstream::parRun())
+        {
+            Info(log_)<< " on processor " << minProcI;
+        }
+
+        Info(log_)<< nl << "    max(" << outputName << ") = "
+            << maxValue << " at position " << maxC;
+
+        if (Pstream::parRun())
+        {
+            Info(log_)<< " on processor " << maxProcI;
+        }
+
+        Info(log_)<< endl;
     }
-
-    file()
-        << token::TAB << maxValue
-        << token::TAB << maxC;
-
-    if (Pstream::parRun())
-    {
-        file()<< token::TAB << maxProcI;
-    }
-
-    file() << endl;
-
-    Info(log_)<< "    min(" << outputName << ") = "
-        << minValue << " at position " << minC;
-
-    if (Pstream::parRun())
-    {
-        Info(log_)<< " on processor " << minProcI;
-    }
-
-    Info(log_)<< nl << "    max(" << outputName << ") = "
-        << maxValue << " at position " << maxC;
-
-    if (Pstream::parRun())
-    {
-        Info(log_)<< " on processor " << maxProcI;
-    }
-
-    Info(log_)<< endl;
 
     // write state information
     {
@@ -168,33 +171,34 @@ void Foam::fieldMinMax::calcMinMaxFields
                 }
 
                 Pstream::gatherList(minVs);
+                Pstream::scatterList(minVs);
                 Pstream::gatherList(minCs);
+                Pstream::scatterList(minCs);
 
                 Pstream::gatherList(maxVs);
+                Pstream::scatterList(maxVs);
                 Pstream::gatherList(maxCs);
+                Pstream::scatterList(maxCs);
 
-                if (Pstream::master())
-                {
-                    label minI = findMin(minVs);
-                    scalar minValue = minVs[minI];
-                    const vector& minC = minCs[minI];
+                label minI = findMin(minVs);
+                scalar minValue = minVs[minI];
+                const vector& minC = minCs[minI];
 
-                    label maxI = findMax(maxVs);
-                    scalar maxValue = maxVs[maxI];
-                    const vector& maxC = maxCs[maxI];
+                label maxI = findMax(maxVs);
+                scalar maxValue = maxVs[maxI];
+                const vector& maxC = maxCs[maxI];
 
-                    output
-                    (
-                        fieldName,
-                        word("mag(" + fieldName + ")"),
-                        minC,
-                        maxC,
-                        minI,
-                        maxI,
-                        minValue,
-                        maxValue
-                    );
-                }
+                output
+                (
+                    fieldName,
+                    word("mag(" + fieldName + ")"),
+                    minC,
+                    maxC,
+                    minI,
+                    maxI,
+                    minValue,
+                    maxValue
+                );
                 break;
             }
             case mdCmpt:
@@ -241,33 +245,34 @@ void Foam::fieldMinMax::calcMinMaxFields
                 }
 
                 Pstream::gatherList(minVs);
+                Pstream::scatterList(minVs);
                 Pstream::gatherList(minCs);
+                Pstream::scatterList(minCs);
 
                 Pstream::gatherList(maxVs);
+                Pstream::scatterList(maxVs);
                 Pstream::gatherList(maxCs);
+                Pstream::scatterList(maxCs);
 
-                if (Pstream::master())
-                {
-                    label minI = findMin(minVs);
-                    Type minValue = minVs[minI];
-                    const vector& minC = minCs[minI];
+                label minI = findMin(minVs);
+                Type minValue = minVs[minI];
+                const vector& minC = minCs[minI];
 
-                    label maxI = findMax(maxVs);
-                    Type maxValue = maxVs[maxI];
-                    const vector& maxC = maxCs[maxI];
+                label maxI = findMax(maxVs);
+                Type maxValue = maxVs[maxI];
+                const vector& maxC = maxCs[maxI];
 
-                    output
-                    (
-                        fieldName,
-                        fieldName,
-                        minC,
-                        maxC,
-                        minI,
-                        maxI,
-                        minValue,
-                        maxValue
-                    );
-                }
+                output
+                (
+                    fieldName,
+                    fieldName,
+                    minC,
+                    maxC,
+                    minI,
+                    maxI,
+                    minValue,
+                    maxValue
+                );
                 break;
             }
             default:

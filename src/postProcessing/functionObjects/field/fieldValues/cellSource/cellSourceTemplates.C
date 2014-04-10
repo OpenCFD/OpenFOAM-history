@@ -173,15 +173,10 @@ bool Foam::fieldValues::cellSource::writeValues(const word& fieldName)
         // apply weight field
         values *= weightField;
 
+        Type result = processValues(values, V, weightField);
+
         if (Pstream::master())
         {
-            Type result = processValues(values, V, weightField);
-
-            // write state information
-            dictionary propsDict;
-            propsDict.add("value", result);
-            setProperty(fieldName, propsDict);
-
             if (valueOutput_)
             {
                 IOField<Type>
@@ -206,6 +201,11 @@ bool Foam::fieldValues::cellSource::writeValues(const word& fieldName)
                 << "(" << sourceName_ << ") for " << fieldName
                 <<  " = " << result << endl;
         }
+
+        // write state information
+        dictionary propsDict;
+        propsDict.add("value", result);
+        setProperty(fieldName, propsDict);
     }
 
     return ok;

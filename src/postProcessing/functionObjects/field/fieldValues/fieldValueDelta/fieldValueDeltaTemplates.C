@@ -135,6 +135,13 @@ void Foam::fieldValues::fieldValueDelta::processFields(bool& found)
                     file()<< tab << result;
                 }
 
+                // write state information
+                {
+                    dictionary propsDict;
+                    propsDict.add("value", result);
+                    setProperty("fieldName", propsDict);
+                }
+
                 found = true;
             }
         }
