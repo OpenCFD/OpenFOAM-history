@@ -47,22 +47,26 @@ SourceFiles
 namespace Foam
 {
 
-
 /*---------------------------------------------------------------------------*\
                      Class functionObjectState Declaration
 \*---------------------------------------------------------------------------*/
 
 class functionObjectState
 {
+private:
+
+    // Private data
+
+        //- Reference to the database
+        const objectRegistry& obr_;
+
+
 protected:
 
     // Protected data
 
         //- Name of model
         const word name_;
-
-        //- Reference to the database
-        const objectRegistry& obr_;
 
         //- Flag to indicate whether the object is active
         bool active_;
@@ -90,8 +94,8 @@ public:
         //- Construct from components
         functionObjectState
         (
-            const word& name,
-            const objectRegistry& obr
+            const objectRegistry& obr,
+            const word& name
         );
 
 

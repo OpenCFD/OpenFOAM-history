@@ -30,12 +30,12 @@ License
 
 Foam::functionObjectState::functionObjectState
 (
-    const word& name,
-    const objectRegistry& obr
+    const objectRegistry& obr,
+    const word& name
 )
 :
-    name_(name),
     obr_(obr),
+    name_(name),
     active_(true),
     stateDict_
     (
