@@ -22,22 +22,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::parFvFieldReconstructor
+    Foam::parLagrangianRedistributor
 
 Description
-    Finite volume reconstructor for volume and surface fields.
+    Lagrangian field redistributor.
 
-    Runs in parallel. Reconstructs from procMesh to baseMesh. baseMesh
-    is non-zero cells on processor0 only.
+    Runs in parallel. Redistributes from procMesh to baseMesh.
 
 SourceFiles
-    parFvFieldReconstructor.C
-    parFvFieldReconstructorReconstructFields.C
+    parLagrangianRedistributor.C
+    parLagrangianRedistributorRedistributeFields.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef parFvFieldReconstructor_H
-#define parFvFieldReconstructor_H
+#ifndef parLagrangianRedistributor_H
+#define parLagrangianRedistributor_H
 
 #include "PtrList.H"
 #include "fvMesh.H"
@@ -52,14 +51,14 @@ class mapDistributeBase;
 class IOobjectList;
 
 /*---------------------------------------------------------------------------*\
-                    Class parFvFieldReconstructor Declaration
+                    Class parLagrangianRedistributor Declaration
 \*---------------------------------------------------------------------------*/
 
-class parFvFieldReconstructor
+class parLagrangianRedistributor
 {
     // Private data
 
-        //- Reconstructed mesh reference
+        //- Destination mesh reference
         const fvMesh& baseMesh_;
 
         //- Processor mesh reference
@@ -68,20 +67,20 @@ class parFvFieldReconstructor
         //- Distribution map reference
         const mapDistributePolyMesh& distMap_;
 
-        //- Patch mappers
-        PtrList<mapDistributeBase> patchFaceMaps_;
+        //- For every cell the destination processor
+        labelList destinationProcID_;
+
+        //- For every cell the destination cell
+        labelList destinationCell_;
 
 
     // Private Member Functions
 
-        //- Construct per-patch addressing
-        void createPatchFaceMaps();
-
         //- Disallow default bitwise copy construct
-        parFvFieldReconstructor(const parFvFieldReconstructor&);
+        parLagrangianRedistributor(const parLagrangianRedistributor&);
 
         //- Disallow default bitwise assignment
-        void operator=(const parFvFieldReconstructor&);
+        void operator=(const parLagrangianRedistributor&);
 
 
 public:
@@ -89,7 +88,7 @@ public:
     // Constructors
 
         //- Construct from components
-        parFvFieldReconstructor
+        parLagrangianRedistributor
         (
             const fvMesh& baseMesh,
             const fvMesh& procMesh,
@@ -99,70 +98,45 @@ public:
 
     // Member Functions
 
-        //- Reconstruct volume internal field
-        template<class Type>
-        tmp<DimensionedField<Type, volMesh> >
-        reconstructFvVolumeInternalField
+        //- Find all clouds (on all processors) and for each cloud all
+        //  the objects. Result will be synchronised on all processors
+        static void findClouds
         (
-            const DimensionedField<Type, volMesh>&
+            const fvMesh&,
+            wordList& cloudNames,
+            List<wordList>& objectNames
+        );
+
+        //- Read, redistribute and write lagrangian positions
+        autoPtr<mapDistributeBase> redistributeLagrangianPositions
+        (
+            const word& cloudName
         ) const;
 
-        //- Read and reconstruct volume internal field
+        //- Pick up any fields of a given type
         template<class Type>
-        tmp<DimensionedField<Type, volMesh> >
-        reconstructFvVolumeInternalField(const IOobject& fieldIoObject) const;
-
-
-
-        //- Reconstruct volume field
-        template<class Type>
-        tmp<GeometricField<Type, fvPatchField, volMesh> >
-        reconstructFvVolumeField
+        static wordList filterObjects
         (
-            const GeometricField<Type, fvPatchField, volMesh>& fld
-        ) const;
+            const IOobjectList& objects,
+            const HashSet<word>& selectedFields
+        );
 
-        //- Read and reconstruct volume field
+        //- Read, redistribute and write all/selected lagrangian fields
         template<class Type>
-        tmp<GeometricField<Type, fvPatchField, volMesh> >
-        reconstructFvVolumeField(const IOobject& fieldIoObject) const;
-
-
-
-        //- Reconstruct surface field
-        template<class Type>
-        tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
-        reconstructFvSurfaceField
+        void redistributeLagrangianFields
         (
-            const GeometricField<Type, fvsPatchField, surfaceMesh>&
-        ) const;
-
-        //- Read and reconstruct surface field
-        template<class Type>
-        tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
-        reconstructFvSurfaceField(const IOobject& fieldIoObject) const;
-
-
-        //- Read, reconstruct and write all/selected volume internal fields
-        template<class Type>
-        void reconstructFvVolumeInternalFields
-        (
+            const mapDistributeBase& map,
+            const word& cloudName,
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
         ) const;
 
-        //- Read, reconstruct and write all/selected volume fields
+        //- Read, redistribute and write all/selected lagrangian fieldFields
         template<class Type>
-        void reconstructFvVolumeFields
+        void redistributeLagrangianFieldFields
         (
-            const IOobjectList& objects,
-            const HashSet<word>& selectedFields
-        ) const;
-
-        //- Read, reconstruct and write all/selected surface fields
-        template<class Type>
-        void reconstructFvSurfaceFields
-        (
+            const mapDistributeBase& map,
+            const word& cloudName,
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
         ) const;
@@ -176,7 +150,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#   include "parFvFieldReconstructorReconstructFields.C"
+#   include "parLagrangianRedistributorRedistributeFields.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

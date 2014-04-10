@@ -82,8 +82,7 @@ Foam::parFvFieldReconstructor::parFvFieldReconstructor
 :
     baseMesh_(baseMesh),
     procMesh_(procMesh),
-    distMap_(distMap),
-    nReconstructed_(0)
+    distMap_(distMap)
 {
     createPatchFaceMaps();
 }

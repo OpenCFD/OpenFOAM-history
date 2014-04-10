@@ -69,6 +69,7 @@ Usage
 #include "distributedUnallocatedDirectFvPatchFieldMapper.H"
 
 #include "parFvFieldReconstructor.H"
+#include "parLagrangianRedistributor.H"
 
 #include "OFstream.H"
 
@@ -1214,6 +1215,241 @@ void readProcAddressing
 }
 
 
+void reconstructMeshFields
+(
+    const parFvFieldReconstructor& fvReconstructor,
+    const IOobjectList& objects,
+    const HashSet<word>& selectedFields
+)
+{
+    // Dimensioned fields
+
+    fvReconstructor.reconstructFvVolumeInternalFields<scalar>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<vector>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<sphericalTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<symmTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<tensor>
+    (
+        objects,
+        selectedFields
+    );
+
+
+    // volFields
+
+    fvReconstructor.reconstructFvVolumeFields<scalar>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<vector>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<sphericalTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<symmTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<tensor>
+    (
+        objects,
+        selectedFields
+    );
+
+
+    // surfaceFields
+
+    fvReconstructor.reconstructFvSurfaceFields<scalar>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<vector>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<sphericalTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<symmTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<tensor>
+    (
+        objects,
+        selectedFields
+    );
+}
+
+
+void reconstructLagrangian
+(
+    autoPtr<parLagrangianRedistributor>& lagrangianReconstructorPtr,
+    const fvMesh& baseMesh,
+    const fvMesh& mesh,
+    const mapDistributePolyMesh& distMap,
+    const HashSet<word>& selectedLagrangianFields
+)
+{
+    // Clouds (note: might not be present on all processors)
+
+    wordList cloudNames;
+    List<wordList> fieldNames;
+    parLagrangianRedistributor::findClouds(mesh, cloudNames, fieldNames);
+
+    if (cloudNames.size())
+    {
+        if (!lagrangianReconstructorPtr.valid())
+        {
+            lagrangianReconstructorPtr.reset
+            (
+                new parLagrangianRedistributor
+                (
+                    baseMesh,
+                    mesh,
+                    distMap
+                )
+            );
+        }
+        const parLagrangianRedistributor& lagrangianReconstructor =
+            lagrangianReconstructorPtr();
+
+        forAll(cloudNames, i)
+        {
+            Info<< "Reconstructing cloud " << cloudNames[i] << endl;
+
+            autoPtr<mapDistributeBase> lagrangianMap =
+            lagrangianReconstructor.redistributeLagrangianPositions
+            (
+                cloudNames[i]
+            );
+            IOobjectList sprayObjs
+            (
+                mesh,
+                mesh.time().timeName(),
+                cloud::prefix/cloudNames[i]
+            );
+
+            lagrangianReconstructor.redistributeLagrangianFields<label>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<label>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<scalar>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<scalar>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<vector>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<vector>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields
+            <sphericalTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields
+            <sphericalTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<symmTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields
+            <symmTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<tensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<tensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+        }
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
     // enable -constant ... if someone really wants it
@@ -1547,6 +1783,9 @@ int main(int argc, char *argv[])
                 distMap
             )
         );
+        // Demand driven lagrangian mapper
+        autoPtr<parLagrangianRedistributor> lagrangianReconstructorPtr;
+
 
         // Loop over all times
         forAll(timeDirs, timeI)
@@ -1596,6 +1835,7 @@ int main(int argc, char *argv[])
                         distMap
                     )
                 );
+                lagrangianReconstructorPtr.clear();
             }
 
             // readUpdate baseMesh
@@ -1627,96 +1867,26 @@ int main(int argc, char *argv[])
             IOobjectList objects(mesh, runTime.timeName());
 
 
-            parFvFieldReconstructor& fvReconstructor = fvReconstructorPtr();
-
-
             const HashSet<word> selectedFields(0);
+            const HashSet<word> selectedLagrangianFields(0);
 
-
-            // Dimensioned fields
-
-            fvReconstructor.reconstructFvVolumeInternalFields<scalar>
+            // Mesh fields (vol, surface, volInternal)
+            reconstructMeshFields
             (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeInternalFields<vector>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeInternalFields<sphericalTensor>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeInternalFields<symmTensor>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeInternalFields<tensor>
-            (
+                fvReconstructorPtr(),
                 objects,
                 selectedFields
             );
 
 
-            // volFields
-
-            fvReconstructor.reconstructFvVolumeFields<scalar>
+            // Clouds (note: might not be present on all processors)
+            reconstructLagrangian
             (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeFields<vector>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeFields<sphericalTensor>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeFields<symmTensor>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvVolumeFields<tensor>
-            (
-                objects,
-                selectedFields
-            );
-
-
-            // surfaceFields
-
-            fvReconstructor.reconstructFvSurfaceFields<scalar>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvSurfaceFields<vector>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvSurfaceFields<sphericalTensor>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvSurfaceFields<symmTensor>
-            (
-                objects,
-                selectedFields
-            );
-            fvReconstructor.reconstructFvSurfaceFields<tensor>
-            (
-                objects,
-                selectedFields
+                lagrangianReconstructorPtr,
+                baseMesh,
+                mesh,
+                distMap,
+                selectedLagrangianFields
             );
         }
     }

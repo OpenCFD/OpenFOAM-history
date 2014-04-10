@@ -420,7 +420,7 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeInternalFields
 (
     const IOobjectList& objects,
     const HashSet<word>& selectedFields
-)
+) const
 {
     const word& fieldClassName = DimensionedField<Type, volMesh>::typeName;
 
@@ -441,8 +441,6 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeInternalFields
                 Info<< "        " << fieldIter()->name() << endl;
 
                 reconstructFvVolumeInternalField<Type>(*fieldIter())().write();
-
-                nReconstructed_++;
             }
         }
         Info<< endl;
@@ -455,7 +453,7 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeFields
 (
     const IOobjectList& objects,
     const HashSet<word>& selectedFields
-)
+) const
 {
     const word& fieldClassName =
         GeometricField<Type, fvPatchField, volMesh>::typeName;
@@ -477,8 +475,6 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeFields
                 Info<< "        " << fieldIter()->name() << endl;
 
                 reconstructFvVolumeField<Type>(*fieldIter())().write();
-
-                nReconstructed_++;
             }
         }
         Info<< endl;
@@ -491,7 +487,7 @@ void Foam::parFvFieldReconstructor::reconstructFvSurfaceFields
 (
     const IOobjectList& objects,
     const HashSet<word>& selectedFields
-)
+) const
 {
     const word& fieldClassName =
         GeometricField<Type, fvsPatchField, surfaceMesh>::typeName;
@@ -513,8 +509,6 @@ void Foam::parFvFieldReconstructor::reconstructFvSurfaceFields
                 Info<< "        " << fieldIter()->name() << endl;
 
                 reconstructFvSurfaceField<Type>(*fieldIter())().write();
-
-                nReconstructed_++;
             }
         }
         Info<< endl;
