@@ -80,6 +80,14 @@ namespace fvm
     template<class Type>
     tmp<fvMatrix<Type> > ddt
     (
+        const volScalarField&,
+        const volScalarField&,
+        const GeometricField<Type, fvPatchField, volMesh>&
+    );
+
+    template<class Type>
+    tmp<fvMatrix<Type> > ddt
+    (
         const one&,
         const one&,
         const GeometricField<Type, fvPatchField, volMesh>&

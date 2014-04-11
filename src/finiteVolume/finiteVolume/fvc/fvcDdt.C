@@ -106,6 +106,29 @@ template<class Type>
 tmp<GeometricField<Type, fvPatchField, volMesh> >
 ddt
 (
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    const GeometricField<Type, fvPatchField, volMesh>& vf
+)
+{
+    return fv::ddtScheme<Type>::New
+    (
+        vf.mesh(),
+        vf.mesh().ddtScheme
+        (
+            "ddt("
+          + alpha.name() + ','
+          + rho.name() + ','
+          + vf.name() + ')'
+        )
+    )().fvcDdt(alpha, rho, vf);
+}
+
+
+template<class Type>
+tmp<GeometricField<Type, fvPatchField, volMesh> >
+ddt
+(
     const one&,
     const GeometricField<Type, fvPatchField, volMesh>& vf
 )
