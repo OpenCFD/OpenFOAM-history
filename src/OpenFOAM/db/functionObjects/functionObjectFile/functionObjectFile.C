@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,7 @@ Foam::label Foam::functionObjectFile::addChars = 7;
 void Foam::functionObjectFile::initStream(Ostream& os) const
 {
     os.setf(ios_base::scientific, ios_base::floatfield);
-//    os.precision(IOstream::defaultPrecision());
+    os.precision(writePrecision_);
     os.width(charWidth());
 }
 
@@ -80,7 +80,7 @@ Foam::fileName Foam::functionObjectFile::baseTimeDir() const
 
 void Foam::functionObjectFile::createFiles()
 {
-    if (Pstream::master())
+    if (Pstream::master() && writeToFile_)
     {
         const word startTimeName =
             obr_.time().timeName(obr_.time().startTime().value());
@@ -175,7 +175,9 @@ Foam::functionObjectFile::functionObjectFile
     obr_(obr),
     prefix_(prefix),
     names_(),
-    filePtrs_()
+    filePtrs_(),
+    writePrecision_(IOstream::defaultPrecision()),
+    writeToFile_(true)
 {}
 
 
@@ -189,7 +191,9 @@ Foam::functionObjectFile::functionObjectFile
     obr_(obr),
     prefix_(prefix),
     names_(),
-    filePtrs_()
+    filePtrs_(),
+    writePrecision_(IOstream::defaultPrecision()),
+    writeToFile_(true)
 {
     if (Pstream::master())
     {
@@ -214,7 +218,9 @@ Foam::functionObjectFile::functionObjectFile
     obr_(obr),
     prefix_(prefix),
     names_(names),
-    filePtrs_()
+    filePtrs_(),
+    writePrecision_(IOstream::defaultPrecision()),
+    writeToFile_(true)
 {
     if (Pstream::master())
     {
@@ -237,6 +243,15 @@ Foam::functionObjectFile::~functionObjectFile()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+void Foam::functionObjectFile::read(const dictionary& dict)
+{
+    writePrecision_ =
+        dict.lookupOrDefault("writePrecision", IOstream::defaultPrecision());
+
+    writeToFile_ = dict.lookupOrDefault("writeToFile", true);
+}
+
+
 const Foam::wordHashSet& Foam::functionObjectFile::names() const
 {
     return names_;
@@ -245,6 +260,11 @@ const Foam::wordHashSet& Foam::functionObjectFile::names() const
 
 Foam::OFstream& Foam::functionObjectFile::file()
 {
+    if (!writeToFile_)
+    {
+        return Snull;
+    }
+
     if (!Pstream::master())
     {
         FatalErrorIn("Foam::OFstream& Foam::functionObjectFile::file()")
@@ -285,6 +305,11 @@ Foam::PtrList<Foam::OFstream>& Foam::functionObjectFile::files()
 
 Foam::OFstream& Foam::functionObjectFile::file(const label i)
 {
+    if (!writeToFile_)
+    {
+        return Snull;
+    }
+
     if (!Pstream::master())
     {
         FatalErrorIn

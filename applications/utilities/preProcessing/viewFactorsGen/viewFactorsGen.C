@@ -491,8 +491,8 @@ int main(int argc, char *argv[])
     DynamicList<label> rayEndFace(rayStartFace.size());
 
 
-    // Return rayStartFace in local index andrayEndFace in global index
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Return rayStartFace in local index and rayEndFace in global index
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     #include "shootRays.H"
 

@@ -707,6 +707,8 @@ void Foam::forces::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         initialised_ = false;
 
         log_ = dict.lookupOrDefault<Switch>("log", false);
@@ -952,7 +954,8 @@ void Foam::forces::calcForcesMoment()
 
         forAllConstIter(HashTable<const porosityModel*>, models, iter)
         {
-            const porosityModel& pm = *iter();
+            // non-const access required if mesh is changing
+            porosityModel& pm = const_cast<porosityModel&>(*iter());
 
             vectorField fPTot(pm.force(U, rho, mu));
 

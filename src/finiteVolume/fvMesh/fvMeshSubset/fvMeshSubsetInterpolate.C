@@ -505,6 +505,47 @@ tmp<GeometricField<Type, pointPatchField, pointMesh> > fvMeshSubset::interpolate
 }
 
 
+template<class Type>
+tmp<DimensionedField<Type, volMesh> > fvMeshSubset::interpolate
+(
+    const DimensionedField<Type, volMesh>& df,
+    const fvMesh& sMesh,
+    const labelList& cellMap
+)
+{
+    // Create the complete field from the pieces
+    tmp<DimensionedField<Type, volMesh> > tresF
+    (
+        new DimensionedField<Type, volMesh>
+        (
+            IOobject
+            (
+                "subset"+df.name(),
+                sMesh.time().timeName(),
+                sMesh,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            sMesh,
+            df.dimensions(),
+            Field<Type>(df, cellMap)
+        )
+    );
+
+    return tresF;
+}
+
+
+template<class Type>
+tmp<DimensionedField<Type, volMesh> > fvMeshSubset::interpolate
+(
+    const DimensionedField<Type, volMesh>& df
+) const
+{
+    return interpolate(df, subMesh(), cellMap());
+}
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam

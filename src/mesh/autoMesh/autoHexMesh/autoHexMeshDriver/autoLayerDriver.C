@@ -3775,16 +3775,30 @@ void Foam::autoLayerDriver::addLayers
                     faceI++
                 )
                 {
-                    meshToNewMesh[map().faceMap()[faceI]] = faceI;
+                    label newMeshFaceI = map().faceMap()[faceI];
+                    if (newMeshFaceI != -1)
+                    {
+                        meshToNewMesh[newMeshFaceI] = faceI;
+                    }
                 }
 
                 List<labelPair> newMeshBaffles(baffles.size());
+                label newI = 0;
                 forAll(baffles, i)
                 {
                     const labelPair& p = baffles[i];
-                    newMeshBaffles[i][0] = meshToNewMesh[p[0]];
-                    newMeshBaffles[i][1] = meshToNewMesh[p[1]];
+                    labelPair newMeshBaffle
+                    (
+                        meshToNewMesh[p[0]],
+                        meshToNewMesh[p[1]]
+                    );
+                    if (newMeshBaffle[0] != -1 && newMeshBaffle[1] != -1)
+                    {
+                        newMeshBaffles[newI++] = newMeshBaffle;
+                    }
                 }
+                newMeshBaffles.setSize(newI);
+
                 internalBaffles = meshRefinement::subsetBaffles
                 (
                     newMesh,

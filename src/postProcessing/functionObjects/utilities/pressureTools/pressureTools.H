@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -172,6 +172,9 @@ class pressureTools
 
             //- Freestream density
             scalar rhoInf_;
+
+            //- Flag to show whether rhoInf has been initialised
+            bool rhoInfInitialised_;
 
 
     // Private Member Functions

@@ -735,7 +735,7 @@ tmp<DimensionedField<scalar, volMesh> > thermoSingleLayer::Srho() const
         (
             IOobject
             (
-                "thermoSingleLayer::Srho",
+                typeName + ":Srho",
                 time().timeName(),
                 primaryMesh(),
                 IOobject::NO_READ,
@@ -787,7 +787,7 @@ tmp<DimensionedField<scalar, volMesh> > thermoSingleLayer::Srho
         (
             IOobject
             (
-                "thermoSingleLayer::Srho(" + Foam::name(i) + ")",
+                typeName + ":Srho(" + Foam::name(i) + ")",
                 time_.timeName(),
                 primaryMesh(),
                 IOobject::NO_READ,
@@ -837,7 +837,7 @@ tmp<DimensionedField<scalar, volMesh> > thermoSingleLayer::Sh() const
         (
             IOobject
             (
-                "thermoSingleLayer::Sh",
+                typeName + ":Sh",
                 time().timeName(),
                 primaryMesh(),
                 IOobject::NO_READ,

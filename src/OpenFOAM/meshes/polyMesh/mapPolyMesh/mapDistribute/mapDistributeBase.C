@@ -1019,6 +1019,228 @@ void Foam::mapDistributeBase::compact(const boolList& elemIsUsed, const int tag)
 }
 
 
+void Foam::mapDistributeBase::compact
+(
+    const boolList& elemIsUsed,
+    const label localSize,            // max index for subMap
+    labelList& oldToNewSub,
+    labelList& oldToNewConstruct,
+    const int tag
+)
+{
+    // 1. send back to sender. Have sender delete the corresponding element
+    //    from the submap and do the same to the constructMap locally
+    //    (and in same order).
+
+    // Send elemIsUsed field to neighbour. Use nonblocking code from
+    // mapDistributeBase but in reverse order.
+    if (Pstream::parRun())
+    {
+        label startOfRequests = Pstream::nRequests();
+
+        // Set up receives from neighbours
+
+        List<boolList> recvFields(Pstream::nProcs());
+
+        for (label domain = 0; domain < Pstream::nProcs(); domain++)
+        {
+            const labelList& map = subMap_[domain];
+
+            if (domain != Pstream::myProcNo() && map.size())
+            {
+                recvFields[domain].setSize(map.size());
+                IPstream::read
+                (
+                    Pstream::nonBlocking,
+                    domain,
+                    reinterpret_cast<char*>(recvFields[domain].begin()),
+                    recvFields[domain].size()*sizeof(bool),
+                    tag
+                );
+            }
+        }
+
+
+        List<boolList> sendFields(Pstream::nProcs());
+
+        for (label domain = 0; domain < Pstream::nProcs(); domain++)
+        {
+            const labelList& map = constructMap_[domain];
+
+            if (domain != Pstream::myProcNo() && map.size())
+            {
+                boolList& subField = sendFields[domain];
+                subField.setSize(map.size());
+                forAll(map, i)
+                {
+                    label index = map[i];
+                    if (constructHasFlip_)
+                    {
+                        index = mag(index)-1;
+                    }
+                    subField[i] = elemIsUsed[index];
+                }
+
+                OPstream::write
+                (
+                    Pstream::nonBlocking,
+                    domain,
+                    reinterpret_cast<const char*>(subField.begin()),
+                    subField.size()*sizeof(bool),
+                    tag
+                );
+            }
+        }
+
+
+
+        // Set up 'send' to myself - write directly into recvFields
+
+        {
+            const labelList& map = constructMap_[Pstream::myProcNo()];
+
+            recvFields[Pstream::myProcNo()].setSize(map.size());
+            forAll(map, i)
+            {
+                label index = map[i];
+                if (constructHasFlip_)
+                {
+                    index = mag(index)-1;
+                }
+                recvFields[Pstream::myProcNo()][i] = elemIsUsed[index];
+            }
+        }
+
+
+        // Wait for all to finish
+
+        Pstream::waitRequests(startOfRequests);
+
+
+
+
+        // Work out which elements on the sending side are needed
+        {
+            oldToNewSub.setSize(localSize, -1);
+
+            boolList sendElemIsUsed(localSize, false);
+
+            for (label domain = 0; domain < Pstream::nProcs(); domain++)
+            {
+                const labelList& map = subMap_[domain];
+                forAll(map, i)
+                {
+                    if (recvFields[domain][i])
+                    {
+                        label index = map[i];
+                        if (subHasFlip_)
+                        {
+                            index = mag(index)-1;
+                        }
+                        sendElemIsUsed[index] = true;
+                    }
+                }
+            }
+
+            label newI = 0;
+            forAll(sendElemIsUsed, i)
+            {
+                if (sendElemIsUsed[i])
+                {
+                    oldToNewSub[i] = newI++;
+                }
+            }
+        }
+
+
+        // Compact out all submap entries that are referring to unused elements
+        for (label domain = 0; domain < Pstream::nProcs(); domain++)
+        {
+            const labelList& map = subMap_[domain];
+
+            labelList newMap(map.size());
+            label newI = 0;
+
+            forAll(map, i)
+            {
+                if (recvFields[domain][i])
+                {
+                    // So element is used on destination side
+                    label index = map[i];
+                    label sign = 1;
+                    if (subHasFlip_)
+                    {
+                        if (index < 0)
+                        {
+                            sign = -1;
+                        }
+                        index = mag(index)-1;
+                    }
+                    label newIndex = oldToNewSub[index];
+                    if (subHasFlip_)
+                    {
+                        newIndex = sign*(newIndex+1);
+                    }
+                    newMap[newI++] = newIndex;
+                }
+            }
+            newMap.setSize(newI);
+            subMap_[domain].transfer(newMap);
+        }
+    }
+
+
+    // 2. remove from construct map - since end-result (element in elemIsUsed)
+    //    not used.
+
+
+    oldToNewConstruct.setSize(elemIsUsed.size(), -1);
+    constructSize_ = 0;
+    forAll(elemIsUsed, i)
+    {
+        if (elemIsUsed[i])
+        {
+            oldToNewConstruct[i] = constructSize_++;
+        }
+    }
+
+    for (label domain = 0; domain < Pstream::nProcs(); domain++)
+    {
+        const labelList& map = constructMap_[domain];
+
+        labelList newMap(map.size());
+        label newI = 0;
+
+        forAll(map, i)
+        {
+            label destinationI = map[i];
+            label sign = 1;
+            if (constructHasFlip_)
+            {
+                if (destinationI < 0)
+                {
+                    sign = -1;
+                }
+                destinationI = mag(destinationI)-1;
+            }
+
+            // Is element is used on destination side
+            if (elemIsUsed[destinationI])
+            {
+                label newIndex = oldToNewConstruct[destinationI];
+                if (constructHasFlip_)
+                {
+                    newIndex = sign*(newIndex+1);
+                }
+                newMap[newI++] = newIndex;
+            }
+        }
+        newMap.setSize(newI);
+        constructMap_[domain].transfer(newMap);
+    }
+}
+
+
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
 void Foam::mapDistributeBase::operator=(const mapDistributeBase& rhs)
