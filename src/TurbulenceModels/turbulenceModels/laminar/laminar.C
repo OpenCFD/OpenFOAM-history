@@ -38,7 +38,7 @@ Foam::laminar<BasicTurbulenceModel>::laminar
     const alphaField& alpha,
     const rhoField& rho,
     const volVectorField& U,
-    const surfaceScalarField& alphaPhi,
+    const surfaceScalarField& alphaRhoPhi,
     const surfaceScalarField& phi,
     const transportModel& transport,
     const word& propertiesName
@@ -49,7 +49,7 @@ Foam::laminar<BasicTurbulenceModel>::laminar
         alpha,
         rho,
         U,
-        alphaPhi,
+        alphaRhoPhi,
         phi,
         transport,
         propertiesName
@@ -66,7 +66,7 @@ Foam::laminar<BasicTurbulenceModel>::New
     const alphaField& alpha,
     const rhoField& rho,
     const volVectorField& U,
-    const surfaceScalarField& alphaPhi,
+    const surfaceScalarField& alphaRhoPhi,
     const surfaceScalarField& phi,
     const transportModel& transport,
     const word& propertiesName
@@ -79,7 +79,7 @@ Foam::laminar<BasicTurbulenceModel>::New
             alpha,
             rho,
             U,
-            alphaPhi,
+            alphaRhoPhi,
             phi,
             transport,
             propertiesName

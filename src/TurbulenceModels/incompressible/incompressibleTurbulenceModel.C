@@ -39,7 +39,7 @@ Foam::incompressibleTurbulenceModel::incompressibleTurbulenceModel
 (
     const geometricOneField&,
     const volVectorField& U,
-    const surfaceScalarField& alphaPhi,
+    const surfaceScalarField& alphaRhoPhi,
     const surfaceScalarField& phi,
     const word& propertiesName
 )
@@ -47,7 +47,7 @@ Foam::incompressibleTurbulenceModel::incompressibleTurbulenceModel
     turbulenceModel
     (
         U,
-        alphaPhi,
+        alphaRhoPhi,
         phi,
         propertiesName
     )

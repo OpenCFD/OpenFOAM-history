@@ -121,12 +121,12 @@ public:
                 const alphaField& alpha,
                 const rhoField& rho,
                 const volVectorField& U,
-                const surfaceScalarField& alphaPhi,
+                const surfaceScalarField& alphaRhoPhi,
                 const surfaceScalarField& phi,
                 const transportModel& transport,
                 const word& propertiesName
             ),
-            (alpha, rho, U, alphaPhi, phi, transport, propertiesName)
+            (alpha, rho, U, alphaRhoPhi, phi, transport, propertiesName)
         );
 
 
@@ -139,7 +139,7 @@ public:
             const alphaField& alpha,
             const rhoField& rho,
             const volVectorField& U,
-            const surfaceScalarField& alphaPhi,
+            const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
             const transportModel& transport,
             const word& propertiesName
@@ -154,7 +154,7 @@ public:
             const alphaField& alpha,
             const rhoField& rho,
             const volVectorField& U,
-            const surfaceScalarField& alphaPhi,
+            const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
             const transportModel& transport,
             const word& propertiesName = turbulenceModel::propertiesName

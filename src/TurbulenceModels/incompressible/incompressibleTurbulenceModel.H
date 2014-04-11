@@ -86,7 +86,7 @@ public:
         (
             const geometricOneField& rho,
             const volVectorField& U,
-            const surfaceScalarField& alphaPhi,
+            const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
             const word& propertiesName
         );

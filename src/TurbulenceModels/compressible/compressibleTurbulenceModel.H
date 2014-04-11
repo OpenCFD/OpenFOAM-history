@@ -85,7 +85,7 @@ public:
         (
             const volScalarField& rho,
             const volVectorField& U,
-            const surfaceScalarField& alphaPhi,
+            const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
             const word& propertiesName
         );
@@ -97,6 +97,9 @@ public:
 
 
     // Member functions
+
+        //- Return the volumetric flux field
+        virtual tmp<surfaceScalarField> phi() const;
 
         //- Return the effective stress tensor including the laminar stress
         virtual tmp<volSymmTensorField> devRhoReff() const = 0;

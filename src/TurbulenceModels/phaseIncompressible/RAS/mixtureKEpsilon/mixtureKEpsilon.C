@@ -47,7 +47,7 @@ mixtureKEpsilon<BasicTurbulenceModel>::mixtureKEpsilon
     const alphaField& alpha,
     const rhoField& rho,
     const volVectorField& U,
-    const surfaceScalarField& alphaPhi,
+    const surfaceScalarField& alphaRhoPhi,
     const surfaceScalarField& phi,
     const transportModel& transport,
     const word& propertiesName,
@@ -60,7 +60,7 @@ mixtureKEpsilon<BasicTurbulenceModel>::mixtureKEpsilon
         alpha,
         rho,
         U,
-        alphaPhi,
+        alphaRhoPhi,
         phi,
         transport,
         propertiesName
@@ -547,7 +547,7 @@ void mixtureKEpsilon<BasicTurbulenceModel>::correct()
     initMixtureFields();
 
     // Local references to gas-phase properties
-    const surfaceScalarField& phig = this->phi_;
+    tmp<surfaceScalarField> phig = this->phi();
     const volVectorField& Ug = this->U_;
     const volScalarField& alphag = this->alpha_;
     volScalarField& kg = this->k_;
@@ -557,7 +557,7 @@ void mixtureKEpsilon<BasicTurbulenceModel>::correct()
     // Local references to liquid-phase properties
     mixtureKEpsilon<BasicTurbulenceModel>& liquidTurbulence =
         this->liquidTurbulence();
-    const surfaceScalarField& phil = liquidTurbulence.phi_;
+    tmp<surfaceScalarField> phil = liquidTurbulence.phi();
     const volVectorField& Ul = liquidTurbulence.U_;
     const volScalarField& alphal = liquidTurbulence.alpha_;
     volScalarField& kl = liquidTurbulence.k_;

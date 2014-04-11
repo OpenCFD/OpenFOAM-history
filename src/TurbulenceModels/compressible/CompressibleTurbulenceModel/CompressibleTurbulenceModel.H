@@ -75,7 +75,7 @@ public:
             const geometricOneField& alpha,
             const volScalarField& rho,
             const volVectorField& U,
-            const surfaceScalarField& alphaPhi,
+            const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
             const transportModel& trasport,
             const word& propertiesName

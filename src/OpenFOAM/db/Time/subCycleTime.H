@@ -75,6 +75,18 @@ public:
         //- End the sub-cycling and reset the time-state
         void endSubCycle();
 
+        //- Return the total number of sub-cycles
+        label nSubCycles() const
+        {
+            return nSubCycles_;
+        }
+
+        //- Return the current sub-cycle index
+        label index() const
+        {
+            return subCycleIndex_;
+        }
+
 
     // Member operators
 
