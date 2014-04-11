@@ -466,13 +466,15 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeFields
 
         forAllConstIter(IOobjectList, fields, fieldIter)
         {
+            const word& name = fieldIter()->name();
+
             if
             (
-                selectedFields.empty()
-             || selectedFields.found(fieldIter()->name())
+                (selectedFields.empty() || selectedFields.found(name))
+             && name != "cellDist"
             )
             {
-                Info<< "        " << fieldIter()->name() << endl;
+                Info<< "        " << name << endl;
 
                 reconstructFvVolumeField<Type>(*fieldIter())().write();
             }
