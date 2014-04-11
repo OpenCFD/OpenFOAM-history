@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -117,6 +117,13 @@ public:
             const GeometricField<Type, fvPatchField, volMesh>&
         );
 
+        tmp<GeometricField<Type, fvPatchField, volMesh> > fvcDdt
+        (
+            const volScalarField&,
+            const volScalarField&,
+            const GeometricField<Type, fvPatchField, volMesh>&
+        );
+
         tmp<fvMatrix<Type> > fvmDdt
         (
             const GeometricField<Type, fvPatchField, volMesh>&
@@ -131,6 +138,13 @@ public:
         tmp<fvMatrix<Type> > fvmDdt
         (
             const volScalarField&,
+            const GeometricField<Type, fvPatchField, volMesh>&
+        );
+
+        tmp<fvMatrix<Type> > fvmDdt
+        (
+            const volScalarField& alpha,
+            const volScalarField& rho,
             const GeometricField<Type, fvPatchField, volMesh>&
         );
 
