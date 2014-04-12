@@ -10,10 +10,9 @@
     fvScalarMatrix he1Eqn
     (
         fvm::ddt(alpha1, rho1, he1) + fvm::div(alphaRhoPhi1, he1)
-      + fvc::ddt(alpha1, rho1, K1) + fvc::div(alphaRhoPhi1, K1)
-
-        // Compressibity correction
       - fvm::Sp(fvc::ddt(alpha1, rho1) + fvc::div(alphaRhoPhi1), he1)
+
+      + fvc::ddt(alpha1, rho1, K1) + fvc::div(alphaRhoPhi1, K1)
       - (fvc::ddt(alpha1, rho1) + fvc::div(alphaRhoPhi1))*K1
 
       + (
@@ -22,7 +21,12 @@
           : -alpha1*dpdt
         )
 
-      - fvm::laplacian(alpha1*thermo1.alphaEff(phase1.turbulence().mut()), he1)
+      - fvm::laplacian
+        (
+            fvc::interpolate(alpha1)
+           *fvc::interpolate(thermo1.alphaEff(phase1.turbulence().mut())),
+            he1
+        )
 
      ==
 
@@ -34,10 +38,9 @@
     fvScalarMatrix he2Eqn
     (
         fvm::ddt(alpha2, rho2, he2) + fvm::div(alphaRhoPhi2, he2)
-      + fvc::ddt(alpha2, rho2, K2) + fvc::div(alphaRhoPhi2, K2)
-
-        // Compressibity correction
       - fvm::Sp(fvc::ddt(alpha2, rho2) + fvc::div(alphaRhoPhi2), he2)
+
+      + fvc::ddt(alpha2, rho2, K2) + fvc::div(alphaRhoPhi2, K2)
       - (fvc::ddt(alpha2, rho2) + fvc::div(alphaRhoPhi2))*K2
 
       + (
@@ -46,7 +49,12 @@
           : -alpha2*dpdt
         )
 
-      - fvm::laplacian(alpha2*thermo2.alphaEff(phase2.turbulence().mut()), he2)
+      - fvm::laplacian
+        (
+            fvc::interpolate(alpha2)
+           *fvc::interpolate(thermo2.alphaEff(phase2.turbulence().mut())),
+            he2
+        )
 
      ==
 
@@ -62,5 +70,7 @@
     he2Eqn.solve();
 
     thermo1.correct();
+    Info<< "T1 " << max(thermo1.T()) << " " << min(thermo1.T()) << endl;
     thermo2.correct();
+    Info<< "T2 " << max(thermo2.T()) << " " << min(thermo2.T()) << endl;
 }
