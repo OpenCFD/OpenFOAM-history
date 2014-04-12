@@ -81,7 +81,7 @@ class NicenoKEqn
 {
     // Private data
 
-        mutable const PhaseIncompressibleTurbulenceModel
+        mutable const PhaseCompressibleTurbulenceModel
         <
             typename BasicTurbulenceModel::transportModel
         > *gasTurbulencePtr_;
@@ -90,7 +90,7 @@ class NicenoKEqn
     // Private Member Functions
 
         //- Return the turbulence model for the gas phase
-        const PhaseIncompressibleTurbulenceModel
+        const PhaseCompressibleTurbulenceModel
         <
             typename BasicTurbulenceModel::transportModel
         >&

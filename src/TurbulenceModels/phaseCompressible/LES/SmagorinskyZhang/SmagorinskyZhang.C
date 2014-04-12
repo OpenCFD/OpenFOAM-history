@@ -23,10 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "NicenoKEqn.H"
-#include "addToRunTimeSelectionTable.H"
-#include "twoPhaseSystem.H"
-#include "dragModel.H"
+#include "SmagorinskyZhang.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -38,7 +35,7 @@ namespace LESModels
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-NicenoKEqn<BasicTurbulenceModel>::NicenoKEqn
+SmagorinskyZhang<BasicTurbulenceModel>::SmagorinskyZhang
 (
     const alphaField& alpha,
     const rhoField& rho,
@@ -50,7 +47,7 @@ NicenoKEqn<BasicTurbulenceModel>::NicenoKEqn
     const word& type
 )
 :
-    kEqn<BasicTurbulenceModel>
+    Smagorinsky<BasicTurbulenceModel>
     (
         alpha,
         rho,
@@ -63,26 +60,6 @@ NicenoKEqn<BasicTurbulenceModel>::NicenoKEqn
     ),
 
     gasTurbulencePtr_(NULL),
-
-    alphaInversion_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "alphaInversion",
-            this->coeffDict_,
-            0.3
-        )
-    ),
-
-    Cp_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "Cp",
-            this->coeffDict_,
-            this->Ck_.value()
-        )
-    ),
 
     Cmub_
     (
@@ -105,12 +82,10 @@ NicenoKEqn<BasicTurbulenceModel>::NicenoKEqn
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-bool NicenoKEqn<BasicTurbulenceModel>::read()
+bool SmagorinskyZhang<BasicTurbulenceModel>::read()
 {
-    if (kEqn<BasicTurbulenceModel>::read())
+    if (Smagorinsky<BasicTurbulenceModel>::read())
     {
-        alphaInversion_.readIfPresent(this->coeffDict());
-        Cp_.readIfPresent(this->coeffDict());
         Cmub_.readIfPresent(this->coeffDict());
 
         return true;
@@ -123,11 +98,11 @@ bool NicenoKEqn<BasicTurbulenceModel>::read()
 
 
 template<class BasicTurbulenceModel>
-const PhaseIncompressibleTurbulenceModel
+const PhaseCompressibleTurbulenceModel
 <
     typename BasicTurbulenceModel::transportModel
 >&
-NicenoKEqn<BasicTurbulenceModel>::gasTurbulence() const
+SmagorinskyZhang<BasicTurbulenceModel>::gasTurbulence() const
 {
     if (!gasTurbulencePtr_)
     {
@@ -139,7 +114,7 @@ NicenoKEqn<BasicTurbulenceModel>::gasTurbulence() const
 
         gasTurbulencePtr_ =
            &U.db()
-           .lookupObject<PhaseIncompressibleTurbulenceModel<transportModel> >
+           .lookupObject<PhaseCompressibleTurbulenceModel<transportModel> >
             (
                 IOobject::groupName
                 (
@@ -154,79 +129,19 @@ NicenoKEqn<BasicTurbulenceModel>::gasTurbulence() const
 
 
 template<class BasicTurbulenceModel>
-void NicenoKEqn<BasicTurbulenceModel>::correctNut()
+void SmagorinskyZhang<BasicTurbulenceModel>::correctNut()
 {
-    const PhaseIncompressibleTurbulenceModel<transportModel>& gasTurbulence =
+    const PhaseCompressibleTurbulenceModel<transportModel>& gasTurbulence =
         this->gasTurbulence();
 
+    volScalarField k(this->k(fvc::grad(this->U_)));
+
     this->nut_ =
-        this->Ck_*sqrt(this->k_)*this->delta()
+        this->Ck_*sqrt(k)*this->delta()
       + Cmub_*gasTurbulence.transport().d()*gasTurbulence.alpha()
        *(mag(this->U_ - gasTurbulence.U()));
 
     this->nut_.correctBoundaryConditions();
-}
-
-
-template<class BasicTurbulenceModel>
-tmp<volScalarField> NicenoKEqn<BasicTurbulenceModel>::bubbleG() const
-{
-    const PhaseIncompressibleTurbulenceModel<transportModel>& gasTurbulence =
-        this->gasTurbulence();
-
-    const transportModel& liquid = this->transport();
-    const twoPhaseSystem& fluid = liquid.fluid();
-    const transportModel& gas = fluid.otherPhase(liquid);
-
-    volScalarField magUr(mag(this->U_ - gasTurbulence.U()));
-
-    tmp<volScalarField> bubbleG
-    (
-        Cp_*sqr(magUr)*fluid.drag(gas).K()/liquid.rho()
-    );
-
-    return bubbleG;
-}
-
-
-template<class BasicTurbulenceModel>
-tmp<volScalarField>
-NicenoKEqn<BasicTurbulenceModel>::phaseTransferCoeff() const
-{
-    const volVectorField& U = this->U_;
-    const alphaField& alpha = this->alpha_;
-    const rhoField& rho = this->rho_;
-
-    const turbulenceModel& gasTurbulence = this->gasTurbulence();
-
-    return
-    (
-        max(alphaInversion_ - alpha, scalar(0))
-       *rho
-       *min
-        (
-            this->Ce_*sqrt(gasTurbulence.k())/this->delta(),
-            1.0/U.time().deltaT()
-        )
-    );
-}
-
-
-template<class BasicTurbulenceModel>
-tmp<fvScalarMatrix> NicenoKEqn<BasicTurbulenceModel>::kSource() const
-{
-    const alphaField& alpha = this->alpha_;
-    const rhoField& rho = this->rho_;
-
-    const PhaseIncompressibleTurbulenceModel<transportModel>& gasTurbulence =
-        this->gasTurbulence();
-
-    const volScalarField phaseTransferCoeff(this->phaseTransferCoeff());
-
-    return
-        alpha*rho*bubbleG()
-      + phaseTransferCoeff*gasTurbulence.k()
-      - fvm::Sp(phaseTransferCoeff, this->k_);
 }
 
 

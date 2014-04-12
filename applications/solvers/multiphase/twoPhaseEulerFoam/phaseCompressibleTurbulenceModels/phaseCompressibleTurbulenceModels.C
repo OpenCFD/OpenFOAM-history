@@ -53,14 +53,14 @@ makeBaseTurbulenceModel
 #include "kEpsilon.H"
 makeRASModel(kEpsilon);
 
-// #include "mixtureKEpsilon.H"
-// makeRASModel(mixtureKEpsilon);
+#include "mixtureKEpsilon.H"
+makeRASModel(mixtureKEpsilon);
 
-// #include "LaheyKEpsilon.H"
-// makeRASModel(LaheyKEpsilon);
+#include "LaheyKEpsilon.H"
+makeRASModel(LaheyKEpsilon);
 
-// #include "continuousGasKEpsilon.H"
-// makeRASModel(continuousGasKEpsilon);
+#include "continuousGasKEpsilon.H"
+makeRASModel(continuousGasKEpsilon);
 
 #include "Smagorinsky.H"
 makeLESModel(Smagorinsky);
@@ -68,14 +68,14 @@ makeLESModel(Smagorinsky);
 #include "kEqn.H"
 makeLESModel(kEqn);
 
-// #include "SmagorinskyZhang.H"
-// makeLESModel(SmagorinskyZhang);
+#include "SmagorinskyZhang.H"
+makeLESModel(SmagorinskyZhang);
 
-// #include "NicenoKEqn.H"
-// makeLESModel(NicenoKEqn);
+#include "NicenoKEqn.H"
+makeLESModel(NicenoKEqn);
 
-// #include "continuousGasKEqn.H"
-// makeLESModel(continuousGasKEqn);
+#include "continuousGasKEqn.H"
+makeLESModel(continuousGasKEqn);
 
 #include "kineticTheoryModel.H"
 makeTurbulenceModel

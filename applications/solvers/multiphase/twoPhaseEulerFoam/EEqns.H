@@ -70,7 +70,5 @@
     he2Eqn.solve();
 
     thermo1.correct();
-    Info<< "T1 " << max(thermo1.T()) << " " << min(thermo1.T()) << endl;
     thermo2.correct();
-    Info<< "T2 " << max(thermo2.T()) << " " << min(thermo2.T()) << endl;
 }

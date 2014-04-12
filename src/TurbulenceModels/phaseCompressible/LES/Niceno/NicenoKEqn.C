@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "LaheyKEpsilon.H"
+#include "NicenoKEqn.H"
 #include "addToRunTimeSelectionTable.H"
 #include "twoPhaseSystem.H"
 #include "dragModel.H"
@@ -32,13 +32,13 @@ License
 
 namespace Foam
 {
-namespace RASModels
+namespace LESModels
 {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-LaheyKEpsilon<BasicTurbulenceModel>::LaheyKEpsilon
+NicenoKEqn<BasicTurbulenceModel>::NicenoKEqn
 (
     const alphaField& alpha,
     const rhoField& rho,
@@ -50,7 +50,7 @@ LaheyKEpsilon<BasicTurbulenceModel>::LaheyKEpsilon
     const word& type
 )
 :
-    kEpsilon<BasicTurbulenceModel>
+    kEqn<BasicTurbulenceModel>
     (
         alpha,
         rho,
@@ -80,17 +80,7 @@ LaheyKEpsilon<BasicTurbulenceModel>::LaheyKEpsilon
         (
             "Cp",
             this->coeffDict_,
-            0.25
-        )
-    ),
-
-    C3_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "C3",
-            this->coeffDict_,
-            this->C2_.value()
+            this->Ck_.value()
         )
     ),
 
@@ -115,13 +105,12 @@ LaheyKEpsilon<BasicTurbulenceModel>::LaheyKEpsilon
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-bool LaheyKEpsilon<BasicTurbulenceModel>::read()
+bool NicenoKEqn<BasicTurbulenceModel>::read()
 {
-    if (kEpsilon<BasicTurbulenceModel>::read())
+    if (kEqn<BasicTurbulenceModel>::read())
     {
         alphaInversion_.readIfPresent(this->coeffDict());
         Cp_.readIfPresent(this->coeffDict());
-        C3_.readIfPresent(this->coeffDict());
         Cmub_.readIfPresent(this->coeffDict());
 
         return true;
@@ -134,11 +123,11 @@ bool LaheyKEpsilon<BasicTurbulenceModel>::read()
 
 
 template<class BasicTurbulenceModel>
-const PhaseIncompressibleTurbulenceModel
+const PhaseCompressibleTurbulenceModel
 <
     typename BasicTurbulenceModel::transportModel
 >&
-LaheyKEpsilon<BasicTurbulenceModel>::gasTurbulence() const
+NicenoKEqn<BasicTurbulenceModel>::gasTurbulence() const
 {
     if (!gasTurbulencePtr_)
     {
@@ -150,7 +139,7 @@ LaheyKEpsilon<BasicTurbulenceModel>::gasTurbulence() const
 
         gasTurbulencePtr_ =
            &U.db()
-           .lookupObject<PhaseIncompressibleTurbulenceModel<transportModel> >
+           .lookupObject<PhaseCompressibleTurbulenceModel<transportModel> >
             (
                 IOobject::groupName
                 (
@@ -165,13 +154,13 @@ LaheyKEpsilon<BasicTurbulenceModel>::gasTurbulence() const
 
 
 template<class BasicTurbulenceModel>
-void LaheyKEpsilon<BasicTurbulenceModel>::correctNut()
+void NicenoKEqn<BasicTurbulenceModel>::correctNut()
 {
-    const PhaseIncompressibleTurbulenceModel<transportModel>& gasTurbulence =
+    const PhaseCompressibleTurbulenceModel<transportModel>& gasTurbulence =
         this->gasTurbulence();
 
     this->nut_ =
-        this->Cmu_*sqr(this->k_)/this->epsilon_
+        this->Ck_*sqrt(this->k_)*this->delta()
       + Cmub_*gasTurbulence.transport().d()*gasTurbulence.alpha()
        *(mag(this->U_ - gasTurbulence.U()));
 
@@ -180,9 +169,9 @@ void LaheyKEpsilon<BasicTurbulenceModel>::correctNut()
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField> LaheyKEpsilon<BasicTurbulenceModel>::bubbleG() const
+tmp<volScalarField> NicenoKEqn<BasicTurbulenceModel>::bubbleG() const
 {
-    const PhaseIncompressibleTurbulenceModel<transportModel>& gasTurbulence =
+    const PhaseCompressibleTurbulenceModel<transportModel>& gasTurbulence =
         this->gasTurbulence();
 
     const transportModel& liquid = this->transport();
@@ -193,14 +182,7 @@ tmp<volScalarField> LaheyKEpsilon<BasicTurbulenceModel>::bubbleG() const
 
     tmp<volScalarField> bubbleG
     (
-        Cp_
-       *(
-            pow3(magUr)
-          + pow(fluid.drag(gas).CdRe()*liquid.nu()/gas.d(), 4.0/3.0)
-           *pow(magUr, 5.0/3.0)
-        )
-       *gas
-       /gas.d()
+        Cp_*sqr(magUr)*fluid.drag(gas).K()/liquid.rho()
     );
 
     return bubbleG;
@@ -209,7 +191,7 @@ tmp<volScalarField> LaheyKEpsilon<BasicTurbulenceModel>::bubbleG() const
 
 template<class BasicTurbulenceModel>
 tmp<volScalarField>
-LaheyKEpsilon<BasicTurbulenceModel>::phaseTransferCoeff() const
+NicenoKEqn<BasicTurbulenceModel>::phaseTransferCoeff() const
 {
     const volVectorField& U = this->U_;
     const alphaField& alpha = this->alpha_;
@@ -221,18 +203,22 @@ LaheyKEpsilon<BasicTurbulenceModel>::phaseTransferCoeff() const
     (
         max(alphaInversion_ - alpha, scalar(0))
        *rho
-       *min(gasTurbulence.epsilon()/gasTurbulence.k(), 1.0/U.time().deltaT())
+       *min
+        (
+            this->Ce_*sqrt(gasTurbulence.k())/this->delta(),
+            1.0/U.time().deltaT()
+        )
     );
 }
 
 
 template<class BasicTurbulenceModel>
-tmp<fvScalarMatrix> LaheyKEpsilon<BasicTurbulenceModel>::kSource() const
+tmp<fvScalarMatrix> NicenoKEqn<BasicTurbulenceModel>::kSource() const
 {
     const alphaField& alpha = this->alpha_;
     const rhoField& rho = this->rho_;
 
-    const PhaseIncompressibleTurbulenceModel<transportModel>& gasTurbulence =
+    const PhaseCompressibleTurbulenceModel<transportModel>& gasTurbulence =
         this->gasTurbulence();
 
     const volScalarField phaseTransferCoeff(this->phaseTransferCoeff());
@@ -244,34 +230,9 @@ tmp<fvScalarMatrix> LaheyKEpsilon<BasicTurbulenceModel>::kSource() const
 }
 
 
-template<class BasicTurbulenceModel>
-tmp<fvScalarMatrix> LaheyKEpsilon<BasicTurbulenceModel>::epsilonSource() const
-{
-    const alphaField& alpha = this->alpha_;
-    const rhoField& rho = this->rho_;
-
-    const PhaseIncompressibleTurbulenceModel<transportModel>& gasTurbulence =
-        this->gasTurbulence();
-
-    const volScalarField phaseTransferCoeff(this->phaseTransferCoeff());
-
-    return
-        alpha*rho*this->C3_*this->epsilon_*bubbleG()/this->k_
-      + phaseTransferCoeff*gasTurbulence.epsilon()
-      - fvm::Sp(phaseTransferCoeff, this->epsilon_);
-}
-
-
-template<class BasicTurbulenceModel>
-void LaheyKEpsilon<BasicTurbulenceModel>::correct()
-{
-    kEpsilon<BasicTurbulenceModel>::correct();
-}
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace RASModels
+} // End namespace LESModels
 } // End namespace Foam
 
 // ************************************************************************* //

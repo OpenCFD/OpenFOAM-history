@@ -22,64 +22,67 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::LESModels::SmagorinskyZhang
+    Foam::RASModels::LaheyKEpsilon
 
 Group
-    grpLESTurbulence
+    grpRASTurbulence
 
 Description
-    The Smagorinsky SGS model including bubble-generated turbulence
+    Continuous-phase k-epsilon model including bubble-generated turbulence.
 
     Reference:
     \verbatim
-        "Numerical simulation of the dynamic flow behavior in a bubble column:
-        A study of closures for turbulence and interface forces"
-        D. Zhang,
-        N.G. Deen,
-        J.A.M. Kuipers,
-        Chemical Engineering Science 61 (2006) pp 7593-7608.
+        "The simulation of multidimensional multiphase flows",
+        Lahey R.T.,
+        Nucl. Eng. & Design
+        2005 (235) pp.1043-1060.
     \endverbatim
 
     The default model coefficients correspond to the following:
     \verbatim
-        SmagorinskyZhangCoeffs
+        LaheyKEpsilonCoeffs
         {
-            Ck              0.094;
-            Ce              1.048;
+            Cmu             0.09;
+            C1              1.44;
+            C2              1.92;
+            C3              -0.33;
+            sigmak          1.0;
+            sigmaEps        1.3;
+            Cp              0.25;
             Cmub            0.6;
+            alphaInversion  0.3;
         }
     \endverbatim
 
 SourceFiles
-    SmagorinskyZhang.C
+    LaheyKEpsilon.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef SmagorinskyZhang_H
-#define SmagorinskyZhang_H
+#ifndef LaheyKEpsilon_H
+#define LaheyKEpsilon_H
 
-#include "LESModel.H"
-#include "eddyViscosity.H"
+#include "kEpsilon.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace LESModels
+namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class SmagorinskyZhang Declaration
+                           Class LaheyKEpsilon Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicTurbulenceModel>
-class SmagorinskyZhang
+class LaheyKEpsilon
 :
-    public Smagorinsky<BasicTurbulenceModel>
+    public kEpsilon<BasicTurbulenceModel>
 {
     // Private data
 
-        mutable const PhaseIncompressibleTurbulenceModel
+        mutable const PhaseCompressibleTurbulenceModel
         <
             typename BasicTurbulenceModel::transportModel
         > *gasTurbulencePtr_;
@@ -88,15 +91,15 @@ class SmagorinskyZhang
     // Private Member Functions
 
         //- Return the turbulence model for the gas phase
-        const PhaseIncompressibleTurbulenceModel
+        const PhaseCompressibleTurbulenceModel
         <
             typename BasicTurbulenceModel::transportModel
         >&
         gasTurbulence() const;
 
         // Disallow default bitwise copy construct and assignment
-        SmagorinskyZhang(const SmagorinskyZhang&);
-        SmagorinskyZhang& operator=(const SmagorinskyZhang&);
+        LaheyKEpsilon(const LaheyKEpsilon&);
+        LaheyKEpsilon& operator=(const LaheyKEpsilon&);
 
 
 protected:
@@ -105,12 +108,19 @@ protected:
 
         // Model coefficients
 
+            dimensionedScalar alphaInversion_;
+            dimensionedScalar Cp_;
+            dimensionedScalar C3_;
             dimensionedScalar Cmub_;
 
 
     // Protected Member Functions
 
         virtual void correctNut();
+        tmp<volScalarField> bubbleG() const;
+        tmp<volScalarField> phaseTransferCoeff() const;
+        virtual tmp<fvScalarMatrix> kSource() const;
+        virtual tmp<fvScalarMatrix> epsilonSource() const;
 
 
 public:
@@ -121,13 +131,13 @@ public:
 
 
     //- Runtime type information
-    TypeName("SmagorinskyZhang");
+    TypeName("LaheyKEpsilon");
 
 
     // Constructors
 
         //- Construct from components
-        SmagorinskyZhang
+        LaheyKEpsilon
         (
             const alphaField& alpha,
             const rhoField& rho,
@@ -141,7 +151,7 @@ public:
 
 
     //- Destructor
-    virtual ~SmagorinskyZhang()
+    virtual ~LaheyKEpsilon()
     {}
 
 
@@ -149,18 +159,21 @@ public:
 
         //- Read model coefficients if they have changed
         virtual bool read();
+
+        //- Solve the turbulence equations and correct the turbulence viscosity
+        virtual void correct();
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace LESModels
+} // End namespace RASModels
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#   include "SmagorinskyZhang.C"
+#   include "LaheyKEpsilon.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
