@@ -26,7 +26,7 @@ RAS
 
     kineticTheoryCoeffs
     {
-        equilibrium             on;
+        equilibrium             off;
 
         e                       0.8;
         alphaMax                0.62;

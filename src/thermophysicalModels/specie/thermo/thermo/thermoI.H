@@ -76,7 +76,6 @@ inline Foam::scalar Foam::species::thermo<Thermo, Type>::T
             )   << "Maximum number of iterations exceeded"
                 << abort(FatalError);
         }
-
     } while (mag(Tnew - Test) > Ttol);
 
     return Tnew;

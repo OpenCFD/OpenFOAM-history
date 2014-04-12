@@ -30,11 +30,10 @@ divSchemes
     default                         none;
 
     "div\(phi,alpha.*\)"            Gauss vanLeer;
-    "div\(phir,alpha.*\)"           Gauss linear;
+    "div\(phir,alpha.*\)"           Gauss vanLeer;
 
     "div\(alphaRhoPhi.*,U.*\)"      Gauss limitedLinearV 1;
     "div\(phi.*,U.*\)"              Gauss limitedLinearV 1;
-    "div\(alphaRhoPhi.*,.*rho.*\)"  Gauss linear;
 
     "div\(alphaRhoPhi.*,(h|e).*\)"  Gauss limitedLinear 1;
     "div\(alphaRhoPhi.*,K.*\)"      Gauss limitedLinear 1;

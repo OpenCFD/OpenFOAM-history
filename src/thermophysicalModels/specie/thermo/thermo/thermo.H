@@ -282,7 +282,7 @@ public:
             ) const;
 
 
-        // Energy->temperature  inversion functions
+        // Energy->temperature inversion functions
 
             //- Temperature from enthalpy or internal energy
             //  given an initial temperature T0
