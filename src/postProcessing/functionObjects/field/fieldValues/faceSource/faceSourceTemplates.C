@@ -335,19 +335,21 @@ bool Foam::fieldValues::faceSource::writeValues(const word& fieldName)
         // apply scale factor and weight field
         values *= scaleFactor_*weightField;
 
+        Type result = processValues(values, Sf, weightField);
+
         if (Pstream::master())
         {
-            Type result = processValues(values, Sf, weightField);
-
-            // add to result dictionary, over-writing any previous entry
-            resultDict_.add(fieldName, result, true);
-
             file()<< tab << result;
 
             Info(log_)<< "    " << operationTypeNames_[operation_]
                 << "(" << sourceName_ << ") for " << fieldName
                 <<  " = " << result << endl;
         }
+
+        // write state information
+        dictionary propsDict;
+        propsDict.add("value", result);
+        setProperty(fieldName, propsDict);
     }
 
     return ok;

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,62 +23,44 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "fieldValue.H"
-#include "fvMesh.H"
+#include "functionObjectState.H"
+#include "Time.H"
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::functionObjectState::functionObjectState
+(
+    const objectRegistry& obr,
+    const word& name
+)
+:
+    obr_(obr),
+    name_(name),
+    active_(true),
+    stateDict_
+    (
+        const_cast<IOdictionary&>(obr.time().functionObjects().stateDict())
+    )
+{}
+
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::functionObjectState::~functionObjectState()
+{}
+
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline const Foam::word& Foam::fieldValue::name() const
+bool Foam::functionObjectState::foundProperty(const word& entryName) const
 {
-    return name_;
-}
+    if (stateDict_.found(name_))
+    {
+        const dictionary& baseDict = stateDict_.subDict(name_);
+        return baseDict.found(entryName);
+    }
 
-
-inline const Foam::objectRegistry& Foam::fieldValue::obr() const
-{
-    return obr_;
-}
-
-
-inline const Foam::dictionary& Foam::fieldValue::dict() const
-{
-    return dict_;
-}
-
-
-inline bool Foam::fieldValue::active() const
-{
-    return active_;
-}
-
-
-inline const Foam::Switch& Foam::fieldValue::log() const
-{
-    return log_;
-}
-
-
-inline const Foam::word& Foam::fieldValue::sourceName() const
-{
-    return sourceName_;
-}
-
-
-inline const Foam::wordList& Foam::fieldValue::fields() const
-{
-    return fields_;
-}
-
-
-inline const Foam::Switch& Foam::fieldValue::valueOutput() const
-{
-    return valueOutput_;
-}
-
-
-inline const Foam::fvMesh& Foam::fieldValue::mesh() const
-{
-    return refCast<const fvMesh>(obr_);
+    return false;
 }
 
 
