@@ -191,7 +191,7 @@ void Foam::forceCoeffs::read(const dictionary& dict)
                 )
             );
 
-            const_cast<fvMesh&>(mesh).regIOobject::store(tforceCoeff.ptr());
+            obr_.store(tforceCoeff.ptr());
 
             tmp<volVectorField> tmomentCoeff
             (
@@ -210,7 +210,7 @@ void Foam::forceCoeffs::read(const dictionary& dict)
                 )
             );
 
-            const_cast<fvMesh&>(mesh).regIOobject::store(tmomentCoeff.ptr());
+            obr_.store(tmomentCoeff.ptr());
         }
     }
 }
