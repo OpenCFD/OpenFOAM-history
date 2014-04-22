@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -117,6 +117,7 @@ SourceFiles
 #ifndef fieldAverage_H
 #define fieldAverage_H
 
+#include "functionObjectState.H"
 #include "volFieldsFwd.H"
 #include "Switch.H"
 
@@ -139,19 +140,15 @@ class mapPolyMesh;
 \*---------------------------------------------------------------------------*/
 
 class fieldAverage
+:
+    public functionObjectState
 {
 protected:
 
     // Protected data
 
-        //- Name of this set of field averages.
-        word name_;
-
-        //- Database this class is registered to
+        //- Reference to the database
         const objectRegistry& obr_;
-
-        //- On/off switch
-        bool active_;
 
         //- Time at last call, prevents repeated averaging
         label prevTimeIndex_;
@@ -251,7 +248,7 @@ protected:
             void writeFields() const;
 
             //- Write averaging properties - steps and time
-            void writeAveragingProperties() const;
+            void writeAveragingProperties();
 
             //- Read averaging properties - steps and time
             void readAveragingProperties();

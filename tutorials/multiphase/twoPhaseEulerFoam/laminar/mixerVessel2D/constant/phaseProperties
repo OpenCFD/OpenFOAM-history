@@ -29,7 +29,7 @@ air
 
 water
 {
-    diameterModel constant;
+    diameterModel   constant;
     constantCoeffs
     {
         d               1e-4;
@@ -73,7 +73,7 @@ drag
     (air in water)
     {
         type            SchillerNaumann;
-        residualAlpha   1e-6;
+        residualAlpha   1e-4;
         residualRe      1e-3;
         swarmCorrection
         {
@@ -84,7 +84,7 @@ drag
     (water in air)
     {
         type            SchillerNaumann;
-        residualAlpha   1e-6;
+        residualAlpha   1e-4;
         residualRe      1e-3;
         swarmCorrection
         {
@@ -95,7 +95,7 @@ drag
     (air and water)
     {
         type            segregated;
-        residualAlpha   1e-6;
+        residualAlpha   1e-4;
         m               0.5;
         n               8;
         swarmCorrection
@@ -125,13 +125,13 @@ heatTransfer
     (air in water)
     {
         type            RanzMarshall;
-        residualAlpha   1e-6;
+        residualAlpha   1e-4;
     }
 
     (water in air)
     {
         type            RanzMarshall;
-        residualAlpha   1e-6;
+        residualAlpha   1e-4;
     }
 );
 

@@ -12,10 +12,9 @@ forceCoeffs1
 
     functionObjectLibs ( "libforces.so" );
 
-    outputControl   timeStep;
-    timeInterval    1;
+    outputControl   outputTime;
 
-    log         yes;
+    writeFields true;
 
     patches     ( motorBikeGroup );
     pName       p;

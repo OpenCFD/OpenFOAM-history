@@ -16,22 +16,22 @@ FoamFile
 
 dimensions          [0 0 0 1 0 0 0];
 
-internalField       uniform 300;
+internalField       uniform 600;
 
 boundaryField
 {
     inlet
     {
         type               fixedValue;
-        value              $internalField;
+        value              uniform 300;
     }
 
     outlet
     {
         type               inletOutlet;
         phi                phi.air;
-        inletValue         $internalField;
-        value              $internalField;
+        inletValue         uniform 300;
+        value              uniform 300;
     }
 
     walls

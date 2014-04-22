@@ -76,6 +76,7 @@ SourceFiles
 #ifndef fieldMinMax_H
 #define fieldMinMax_H
 
+#include "functionObjectState.H"
 #include "functionObjectFile.H"
 #include "primitiveFieldsFwd.H"
 #include "volFieldsFwd.H"
@@ -101,14 +102,15 @@ class mapPolyMesh;
 
 class fieldMinMax
 :
+    public functionObjectState,
     public functionObjectFile
 {
 public:
 
     enum modeType
     {
-        mdMag,
-        mdCmpt
+        mdMag,      // magnitude
+        mdCmpt      // component
     };
 
 protected:
@@ -118,14 +120,8 @@ protected:
         //- Mode type names
         static const NamedEnum<modeType, 2> modeTypeNames_;
 
-        //- Name of this set of field min/max
-        //  Also used as the name of the output directory
-        word name_;
-
+        //- Refence to the database
         const objectRegistry& obr_;
-
-        //- on/off switch
-        bool active_;
 
         //- Switch to send output to Info as well
         Switch log_;
