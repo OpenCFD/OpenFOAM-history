@@ -1277,8 +1277,9 @@ void readProcAddressing
                 mesh.facesInstance(),
                 polyMesh::meshSubDir,
                 mesh,
-                IOobject::MUST_READ
-            )
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
         );
         labelIOList faceProcAddressing
         (
@@ -1288,8 +1289,9 @@ void readProcAddressing
                 mesh.facesInstance(),
                 polyMesh::meshSubDir,
                 mesh,
-                IOobject::MUST_READ
-            )
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
         );
         labelIOList pointProcAddressing
         (
@@ -1299,8 +1301,9 @@ void readProcAddressing
                 mesh.facesInstance(),
                 polyMesh::meshSubDir,
                 mesh,
-                IOobject::MUST_READ
-            )
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
         );
         labelIOList boundaryProcAddressing
         (
@@ -1310,9 +1313,35 @@ void readProcAddressing
                 mesh.facesInstance(),
                 polyMesh::meshSubDir,
                 mesh,
-                IOobject::MUST_READ
-            )
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
         );
+
+
+        if
+        (
+            mesh.nCells() != cellProcAddressing.size()
+         || mesh.nPoints() != pointProcAddressing.size()
+         || mesh.nFaces() != faceProcAddressing.size()
+        )
+        {
+            FatalErrorIn
+            (
+                "readProcAddressing(const fvMesh&, const autoPtr<fvMesh>&,"
+                "autoPtr<mapDistributePolyMesh>&"
+            )   << "Read addressing inconsistent with mesh sizes" << nl
+                << "cells:" << mesh.nCells()
+                << " addressing:" << cellProcAddressing.objectPath()
+                << " size:" << cellProcAddressing.size() << nl
+                << "faces:" << mesh.nFaces()
+                << " addressing:" << faceProcAddressing.objectPath()
+                << " size:" << faceProcAddressing.size() << nl
+                << "points:" << mesh.nPoints()
+                << " addressing:" << pointProcAddressing.objectPath()
+                << " size:" << pointProcAddressing.size()
+                << exit(FatalError);
+        }
 
         distMap.clear();
         distMap = createReconstructMap
@@ -2100,6 +2129,12 @@ int main(int argc, char *argv[])
             Pstream::scatterList(haveMesh);
             Info<< "Per processor mesh availability : " << haveMesh << endl;
 
+
+            // Addressing back to reconstructed mesh as xxxProcAddressing.
+            // - all processors have consistent faceProcAddressing
+            // - processors with no mesh don't need faceProcAddressing
+
+
             IOobject faceIO
             (
                 "faceProcAddressing",
@@ -2109,8 +2144,10 @@ int main(int argc, char *argv[])
                 IOobject::READ_IF_PRESENT
             );
             // Note: filePath searches up on processors that don't have
-            //       processor if instance = constant. Tbd.
+            //       processor if instance = constant so explicitly check found
+            //       filename.
             bool haveAddressing = false;
+            if (haveMesh[Pstream::myProcNo()])
             {
                 const fileName fName = faceIO.filePath();
                 haveAddressing =
@@ -2119,6 +2156,11 @@ int main(int argc, char *argv[])
                  && fName == faceIO.objectPath()
                  && faceIO.headerOk()
                 );
+            }
+            else
+            {
+                // Have no mesh. Don't need addressing
+                haveAddressing = true;
             }
 
             if (!returnReduce(haveAddressing, andOp<bool>()))
