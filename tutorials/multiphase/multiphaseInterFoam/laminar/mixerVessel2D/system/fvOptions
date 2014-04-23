@@ -11,46 +11,27 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      controlDict;
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     MRFMultiphaseInterFoam;
+MRF1
+{
+    type            MRFSource;
+    active          yes;
+    selectionMode   cellZone;
+    cellZone        rotor;
 
-startFrom       startTime;
+    MRFSourceCoeffs
+    {
+        // Fixed patches (by default they 'move' with the MRF zone)
+        nonRotatingPatches ();
 
-startTime       0;
-
-stopAt          endTime;
-
-endTime         4;
-
-deltaT          1e-3;
-
-writeControl    adjustableRunTime;
-
-writeInterval   0.125;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  6;
-
-writeCompression uncompressed;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable yes;
-
-adjustTimeStep  yes;
-
-maxCo           0.5;
-maxAlphaCo      0.5;
-
-maxDeltaT       1;
+        origin    (0 0 0);
+        axis      (0 0 1);
+        omega     constant 6.2831853;
+    }
+}
 
 
 // ************************************************************************* //
