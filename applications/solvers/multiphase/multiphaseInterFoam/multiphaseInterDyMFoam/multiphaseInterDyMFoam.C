@@ -22,18 +22,19 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    interMixingFoam
+    multiphaseInterFoam
 
 Description
-    Solver for 3 incompressible fluids, two of which are miscible,
-    using a VOF method to capture the interface.
+    Solver for n incompressible fluids which captures the interfaces and
+    includes surface-tension and contact-angle effects for each phase.
+
+    Turbulence modelling is generic, i.e. laminar, RAS or LES may be selected.
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "CMULES.H"
-#include "subCycle.H"
-#include "immiscibleIncompressibleThreePhaseMixture.H"
+#include "dynamicFvMesh.H"
+#include "multiphaseMixture.H"
 #include "turbulenceModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
@@ -45,18 +46,33 @@ int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
     #include "createTime.H"
-    #include "createMesh.H"
-    #include "readGravitationalAcceleration.H"
+    #include "createDynamicFvMesh.H"
     #include "initContinuityErrs.H"
-    #include "createFields.H"
-    #include "readTimeControls.H"
-    #include "CourantNo.H"
-    #include "setInitialDeltaT.H"
 
     pimpleControl pimple(mesh);
 
+    #include "createFields.H"
+    #include "readTimeControls.H"
     #include "createPrghCorrTypes.H"
+
+    volScalarField rAU
+    (
+        IOobject
+        (
+            "rAU",
+            runTime.timeName(),
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("rAUf", dimTime/rho.dimensions(), 1.0)
+    );
+
     #include "correctPhi.H"
+    #include "createUf.H"
+    #include "CourantNo.H"
+    #include "setInitialDeltaT.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,22 +80,56 @@ int main(int argc, char *argv[])
 
     while (runTime.run())
     {
-        #include "readTimeControls.H"
+        #include "readControls.H"
         #include "CourantNo.H"
         #include "alphaCourantNo.H"
+
         #include "setDeltaT.H"
 
         runTime++;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // --- Pressure-velocity PIMPLE corrector loop
+        mixture.solve();
+        rho = mixture.rho();
+
+         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
-            #include "alphaControls.H"
-            #include "alphaEqnsSubCycle.H"
+            if (pimple.firstIter() || moveMeshOuterCorrectors)
+            {
+                scalar timeBeforeMeshUpdate = runTime.elapsedCpuTime();
 
-            mixture.correct();
+                mesh.update();
+
+                if (mesh.changing())
+                {
+                    Info<< "Execution time for mesh.update() = "
+                        << runTime.elapsedCpuTime() - timeBeforeMeshUpdate
+                        << " s" << endl;
+
+                    gh = g & mesh.C();
+                    ghf = g & mesh.Cf();
+                }
+
+                if (mesh.changing() && correctPhi)
+                {
+                    // Calculate absolute flux from the mapped surface velocity
+                    phi = mesh.Sf() & Uf;
+
+                    #include "correctPhi.H"
+
+                    // Make the flux relative to the mesh motion
+                    fvc::makeRelative(phi, U);
+
+                    mixture.correct();
+                }
+
+                if (mesh.changing() && checkMeshCourantNo)
+                {
+                    #include "meshCourantNo.H"
+                }
+            }
 
             #include "UEqn.H"
 
@@ -95,8 +145,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        #include "continuityErrs.H"
-
         runTime.write();
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
@@ -104,9 +152,9 @@ int main(int argc, char *argv[])
             << nl << endl;
     }
 
-    Info<< "\n end \n";
+    Info<< "End\n" << endl;
 
-    return(0);
+    return 0;
 }
 
 

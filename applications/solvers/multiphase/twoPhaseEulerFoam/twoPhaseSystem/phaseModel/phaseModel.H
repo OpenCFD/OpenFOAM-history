@@ -182,7 +182,7 @@ public:
         //- Return the laminar dynamic viscosity for patch
         tmp<scalarField> mu(const label patchi) const
         {
-            return thermo_->nu(patchi);
+            return thermo_->mu(patchi);
         }
 
         //- Return the thermal conductivity

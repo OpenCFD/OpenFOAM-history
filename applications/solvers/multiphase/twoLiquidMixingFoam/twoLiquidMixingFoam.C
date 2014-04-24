@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        twoPhaseProperties.correct();
+        mixture.correct();
 
         #include "alphaEqnSubCycle.H"
         #include "alphaDiffusionEqn.H"

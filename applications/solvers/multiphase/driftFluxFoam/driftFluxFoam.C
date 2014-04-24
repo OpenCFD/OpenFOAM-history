@@ -38,10 +38,7 @@ Description
 #include "subCycle.H"
 #include "incompressibleTwoPhaseInteractingMixture.H"
 #include "relativeVelocityModel.H"
-#include "nearWallDist.H"
-#include "wallFvPatch.H"
-#include "bound.H"
-#include "Switch.H"
+#include "turbulenceModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
@@ -86,7 +83,7 @@ int main(int argc, char *argv[])
 
             #include "alphaEqnSubCycle.H"
 
-            twoPhaseProperties.correct();
+            mixture.correct();
 
             #include "UEqn.H"
 
@@ -98,7 +95,7 @@ int main(int argc, char *argv[])
 
             if (pimple.turbCorr())
             {
-                #include "kEpsilon.H"
+                turbulence->correct();
             }
         }
 

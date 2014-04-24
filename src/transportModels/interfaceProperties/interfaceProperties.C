@@ -206,4 +206,20 @@ Foam::interfaceProperties::interfaceProperties
 }
 
 
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::surfaceScalarField>
+Foam::interfaceProperties::surfaceTensionForce() const
+{
+    return fvc::interpolate(sigmaK())*fvc::snGrad(alpha1_);
+}
+
+
+Foam::tmp<Foam::volScalarField>
+Foam::interfaceProperties::nearInterface() const
+{
+    return pos(alpha1_ - 0.01)*pos(0.99 - alpha1_);
+}
+
+
 // ************************************************************************* //
