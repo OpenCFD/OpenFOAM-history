@@ -3963,6 +3963,7 @@ void Foam::autoLayerDriver::addLayers
 
 
         // Update numbering of pointToDuplicate
+        if (returnReduce(pointToDuplicate.size(), sumOp<label>()))
         {
             // The problem is that pointToDuplicate is valid for the old
             // boundary points which are now internal. We need to find the
