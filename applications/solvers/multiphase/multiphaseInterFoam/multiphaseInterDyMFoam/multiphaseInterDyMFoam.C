@@ -90,10 +90,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        mixture.solve();
-        rho = mixture.rho();
-
-         // --- Pressure-velocity PIMPLE corrector loop
+        // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
             if (pimple.firstIter() || moveMeshOuterCorrectors)
@@ -130,6 +127,9 @@ int main(int argc, char *argv[])
                     #include "meshCourantNo.H"
                 }
             }
+
+            mixture.solve();
+            rho = mixture.rho();
 
             #include "UEqn.H"
 
