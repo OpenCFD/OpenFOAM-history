@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,17 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    threePhaseMixture
+    incompressibleThreePhaseMixture
 
 Description
 
 SourceFiles
-    threePhaseMixture.C
+    incompressibleThreePhaseMixture.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef threePhaseMixture_H
-#define threePhaseMixture_H
+#ifndef incompressibleThreePhaseMixture_H
+#define incompressibleThreePhaseMixture_H
 
 #include "incompressible/transportModel/transportModel.H"
 #include "IOdictionary.H"
@@ -46,10 +46,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class threePhaseMixture Declaration
+                           Class incompressibleThreePhaseMixture Declaration
 \*---------------------------------------------------------------------------*/
 
-class threePhaseMixture
+class incompressibleThreePhaseMixture
 :
     public IOdictionary,
     public transportModel
@@ -89,7 +89,7 @@ public:
     // Constructors
 
         //- Construct from components
-        threePhaseMixture
+        incompressibleThreePhaseMixture
         (
             const volVectorField& U,
             const surfaceScalarField& phi
@@ -97,7 +97,7 @@ public:
 
 
     //- Destructor
-    ~threePhaseMixture()
+    ~incompressibleThreePhaseMixture()
     {}
 
 
