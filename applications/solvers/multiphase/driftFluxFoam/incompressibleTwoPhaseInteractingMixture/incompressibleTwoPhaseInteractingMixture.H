@@ -133,6 +133,12 @@ public:
             return mu_;
         }
 
+        //- Return the dynamic mixture viscosity for patch
+        virtual tmp<scalarField> mu(const label patchi) const
+        {
+            return mu_.boundaryField()[patchi];
+        }
+
         //- Return the mixture density
         virtual tmp<volScalarField> rho() const
         {

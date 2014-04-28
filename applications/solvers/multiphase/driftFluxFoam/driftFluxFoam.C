@@ -39,6 +39,7 @@ Description
 #include "incompressibleTwoPhaseInteractingMixture.H"
 #include "relativeVelocityModel.H"
 #include "turbulenceModel.H"
+#include "CompressibleTurbulenceModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
