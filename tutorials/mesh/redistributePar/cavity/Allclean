@@ -9,3 +9,4 @@ cp system/controlDict-startTime system/controlDict
 
 cleanCase
 rm -f constant/polyMesh/boundary
+rm -f constant/polyMesh/procAddressing

@@ -10,6 +10,7 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
+    location    "0";
     object      k;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -22,23 +23,23 @@ boundaryField
 {
     rotor
     {
-        type            zeroGradient;
+        type            kqRWallFunction;
+        value           uniform 0.01;
     }
-
     stator
     {
-        type            zeroGradient;
+        type            kqRWallFunction;
+        value           uniform 0.01;
     }
-
     front
     {
         type            empty;
     }
-
     back
     {
         type            empty;
     }
 }
+
 
 // ************************************************************************* //

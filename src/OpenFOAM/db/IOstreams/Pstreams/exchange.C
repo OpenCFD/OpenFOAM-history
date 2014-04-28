@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -81,7 +81,7 @@ void Pstream::exchange
     // Send sizes across. Note: blocks.
     combineReduce(sizes, UPstream::listEq(), tag, comm);
 
-    if (UPstream::nProcs(comm) > 1)
+    if (UPstream::parRun() && UPstream::nProcs(comm) > 1)
     {
         label startOfRequests = Pstream::nRequests();
 

@@ -71,9 +71,6 @@ class parFvFieldReconstructor
         //- Patch mappers
         PtrList<mapDistributeBase> patchFaceMaps_;
 
-        //- Number of fields reconstructed
-        label nReconstructed_;
-
 
     // Private Member Functions
 
@@ -88,48 +85,6 @@ class parFvFieldReconstructor
 
 
 public:
-
-//        //- Mapper for sizing only - does not do any actual mapping.
-//        class fvPatchFieldReconstructor
-//        :
-//            public fvPatchFieldMapper
-//        {
-//            label size_;
-//
-//        public:
-//
-//            // Constructors
-//
-//                //- Construct given size
-//                fvPatchFieldReconstructor(const label size)
-//                :
-//                    size_(size)
-//                {}
-//
-//
-//            // Member functions
-//
-//                label size() const
-//                {
-//                    return size_;
-//                }
-//
-//                bool direct() const
-//                {
-//                    return true;
-//                }
-//
-//                bool hasUnmapped() const
-//                {
-//                    return false;
-//                }
-//
-//                const labelUList& directAddressing() const
-//                {
-//                    return labelUList::null();
-//                }
-//        };
-
 
     // Constructors
 
@@ -194,7 +149,7 @@ public:
         (
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
-        );
+        ) const;
 
         //- Read, reconstruct and write all/selected volume fields
         template<class Type>
@@ -202,7 +157,7 @@ public:
         (
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
-        );
+        ) const;
 
         //- Read, reconstruct and write all/selected surface fields
         template<class Type>
@@ -210,7 +165,7 @@ public:
         (
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
-        );
+        ) const;
 };
 
 
