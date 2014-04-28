@@ -127,8 +127,6 @@ Foam::twoPhaseSystem::twoPhaseSystem
 
 
     // Blending
-    // ~~~~~~~~
-
     forAllConstIter(dictionary, subDict("blending"), iter)
     {
         blendingMethods_.insert
@@ -144,7 +142,6 @@ Foam::twoPhaseSystem::twoPhaseSystem
 
 
     // Pairs
-    // ~~~~~
 
     phasePair::scalarTable sigmaTable(lookup("sigma"));
     phasePair::dictTable aspectRatioTable(lookup("aspectRatio"));
@@ -186,7 +183,6 @@ Foam::twoPhaseSystem::twoPhaseSystem
 
 
     // Models
-    // ~~~~~~
 
     drag_.set
     (
@@ -447,7 +443,7 @@ void Foam::twoPhaseSystem::solve()
             }
             else if (dgdt_[celli] < 0.0)
             {
-                Sp[celli] += dgdt_[celli]/max(alpha1[celli], 1e-3);
+                Sp[celli] += dgdt_[celli]/max(alpha1[celli], 1e-4);
             }
         }
 

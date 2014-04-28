@@ -35,8 +35,11 @@ divSchemes
     "div\(phirb,alpha.*\)" Gauss linear;
     div(rhoPhi,k)       Gauss limitedLinear 1;
     div(rhoPhi,epsilon) Gauss limitedLinear 1;
+    div(phi,k)          Gauss limitedLinear 1;
+    div(phi,epsilon)    Gauss limitedLinear 1;
 
     div((muEff*dev2(T(grad(U))))) Gauss linear;
+    div((muEff*dev(T(grad(U))))) Gauss linear;
 }
 
 laplacianSchemes

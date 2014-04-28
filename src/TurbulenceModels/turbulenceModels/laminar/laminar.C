@@ -141,7 +141,10 @@ Foam::laminar<BasicTurbulenceModel>::nuEff() const
 {
     return tmp<volScalarField>
     (
-        new volScalarField("nuEff", this->nu())
+        new volScalarField
+        (
+            IOobject::groupName("nuEff", this->U_.group()), this->nu()
+        )
     );
 }
 

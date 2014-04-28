@@ -119,9 +119,9 @@ public:
 
         tmp<GeometricField<Type, fvPatchField, volMesh> > fvcDdt
         (
-            const volScalarField&,
-            const volScalarField&,
-            const GeometricField<Type, fvPatchField, volMesh>&
+            const volScalarField& alpha,
+            const volScalarField& rho,
+            const GeometricField<Type, fvPatchField, volMesh>& psi
         );
 
         tmp<fvMatrix<Type> > fvmDdt
@@ -145,7 +145,7 @@ public:
         (
             const volScalarField& alpha,
             const volScalarField& rho,
-            const GeometricField<Type, fvPatchField, volMesh>&
+            const GeometricField<Type, fvPatchField, volMesh>& psi
         );
 
         typedef typename ddtScheme<Type>::fluxFieldType fluxFieldType;

@@ -165,7 +165,7 @@ public:
             const volScalarField& alpha,
             const volScalarField& rho,
             const GeometricField<Type, fvPatchField, volMesh>&
-        );
+        ) = 0;
 
         virtual tmp<fvMatrix<Type> > fvmDdt
         (
@@ -189,7 +189,7 @@ public:
             const volScalarField& alpha,
             const volScalarField& rho,
             const GeometricField<Type, fvPatchField, volMesh>& vf
-        );
+        ) = 0;
 
         typedef GeometricField
         <
