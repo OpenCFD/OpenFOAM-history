@@ -68,6 +68,9 @@ class parFvFieldReconstructor
         //- Distribution map reference
         const mapDistributePolyMesh& distMap_;
 
+        //- Do I need to to write (usually master only)
+        const bool isWriteProc_;
+
         //- Patch mappers
         PtrList<mapDistributeBase> patchFaceMaps_;
 
@@ -93,7 +96,8 @@ public:
         (
             const fvMesh& baseMesh,
             const fvMesh& procMesh,
-            const mapDistributePolyMesh& distMap
+            const mapDistributePolyMesh& distMap,
+            const bool isWriteProc
         );
 
 

@@ -111,20 +111,23 @@ void Foam::parLagrangianRedistributor::redistributeLagrangianFields
             map.distribute(field);
 
 
-            IOField<Type>
-            (
-                IOobject
+            if (field.size())
+            {
+                IOField<Type>
                 (
-                    objectNames[i],
-                    tgtMesh_.time().timeName(),
-                    cloud::prefix/cloudName,
-                    tgtMesh_,
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE,
-                    false
-                ),
-                xferMove<Field<Type> >(field)
-            ).write();
+                    IOobject
+                    (
+                        objectNames[i],
+                        tgtMesh_.time().timeName(),
+                        cloud::prefix/cloudName,
+                        tgtMesh_,
+                        IOobject::NO_READ,
+                        IOobject::NO_WRITE,
+                        false
+                    ),
+                    xferMove<Field<Type> >(field)
+                ).write();
+            }
         }
     }
 }
@@ -193,20 +196,23 @@ void Foam::parLagrangianRedistributor::redistributeLagrangianFieldFields
             map.distribute(field);
 
             // Write
-            CompactIOField<Field<Type>, Type>
-            (
-                IOobject
+            if (field.size())
+            {
+                CompactIOField<Field<Type>, Type>
                 (
-                    objectNames[i],
-                    tgtMesh_.time().timeName(),
-                    cloud::prefix/cloudName,
-                    tgtMesh_,
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE,
-                    false
-                ),
-                xferMove<Field<Field<Type> > >(field)
-            ).write();
+                    IOobject
+                    (
+                        objectNames[i],
+                        tgtMesh_.time().timeName(),
+                        cloud::prefix/cloudName,
+                        tgtMesh_,
+                        IOobject::NO_READ,
+                        IOobject::NO_WRITE,
+                        false
+                    ),
+                    xferMove<Field<Field<Type> > >(field)
+                ).write();
+            }
         }
     }
 }
@@ -287,20 +293,23 @@ void Foam::parLagrangianRedistributor::redistributeStoredLagrangianFields
 
             map.distribute(field);
 
-            Container
-            (
-                IOobject
+            if (field.size())
+            {
+                Container
                 (
-                    field.name(),
-                    tgtMesh_.time().timeName(),
-                    cloud::prefix/cloud.name(),
-                    tgtMesh_,
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE,
-                    false
-                ),
-                xferMove<Field<typename Container::value_type> >(field)
-            ).write();
+                    IOobject
+                    (
+                        field.name(),
+                        tgtMesh_.time().timeName(),
+                        cloud::prefix/cloud.name(),
+                        tgtMesh_,
+                        IOobject::NO_READ,
+                        IOobject::NO_WRITE,
+                        false
+                    ),
+                    xferMove<Field<typename Container::value_type> >(field)
+                ).write();
+            }
         }
     }
 }
