@@ -140,10 +140,10 @@ public:
         // Access to transport state variables
 
             //- Dynamic viscosity of mixture [kg/m/s]
-            virtual const volScalarField& mu() const;
+            virtual tmp<volScalarField> mu() const;
 
             //- Dynamic viscosity of mixture for patch [kg/m/s]
-            virtual const scalarField& mu(const label patchi) const;
+            virtual tmp<scalarField> mu(const label patchi) const;
 };
 
 

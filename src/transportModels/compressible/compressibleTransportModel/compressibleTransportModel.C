@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,43 +23,27 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "CompressibleTurbulenceModel.H"
 #include "compressibleTransportModel.H"
-#include "addToRunTimeSelectionTable.H"
-#include "makeTurbulenceModel.H"
 
-#include "laminar.H"
-#include "RASModel.H"
-#include "LESModel.H"
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-makeBaseTurbulenceModel
-(
-    geometricOneField,
-    volScalarField,
-    compressibleTurbulenceModel,
-    CompressibleTurbulenceModel,
-    compressibleTransportModel
-);
+namespace Foam
+{
+    defineTypeNameAndDebug(compressibleTransportModel, 0);
+}
 
-#define makeRASModel(Type)                                                     \
-    makeTemplatedTurbulenceModel                                               \
-    (compressibleTransportModelCompressibleTurbulenceModel, RAS, Type)
 
-#define makeLESModel(Type)                                                     \
-    makeTemplatedTurbulenceModel                                               \
-    (compressibleTransportModelCompressibleTurbulenceModel, LES, Type)
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-#include "kEpsilon.H"
-makeRASModel(kEpsilon);
+Foam::compressibleTransportModel::compressibleTransportModel
+()
+{}
 
-#include "buoyantKEpsilon.H"
-makeRASModel(buoyantKEpsilon);
 
-#include "Smagorinsky.H"
-makeLESModel(Smagorinsky);
+// * * * * * * * * * * * * * * * * Destructors * * * * * * * * * * * * * * * //
 
-#include "kEqn.H"
-makeLESModel(kEqn);
+Foam::compressibleTransportModel::~compressibleTransportModel()
+{}
 
 
 // ************************************************************************* //

@@ -95,10 +95,10 @@
     // Construct compressible turbulence model
     autoPtr
     <
-        CompressibleTurbulenceModel<incompressibleTwoPhaseInteractingMixture>
+        CompressibleTurbulenceModel<compressibleTransportModel>
     > turbulence
     (
-        CompressibleTurbulenceModel<incompressibleTwoPhaseInteractingMixture>
+        CompressibleTurbulenceModel<compressibleTransportModel>
         ::New(rho, U, rhoPhi, mixture)
     );
 

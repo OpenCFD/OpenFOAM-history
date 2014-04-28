@@ -108,13 +108,13 @@ const Foam::volScalarField& Foam::psiThermo::psi() const
 }
 
 
-const Foam::volScalarField& Foam::psiThermo::mu() const
+Foam::tmp<Foam::volScalarField> Foam::psiThermo::mu() const
 {
     return mu_;
 }
 
 
-const Foam::scalarField& Foam::psiThermo::mu(const label patchi) const
+Foam::tmp<Foam::scalarField> Foam::psiThermo::mu(const label patchi) const
 {
     return mu_.boundaryField()[patchi];
 }
