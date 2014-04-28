@@ -10,58 +10,57 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    object      epsilon;
+    location    "0";
+    object      nut;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -3 0 0 0 0];
+dimensions      [0 2 -1 0 0 0 0];
 
-internalField   uniform 1.973e-07;
+internalField   uniform 0;
 
 boundaryField
 {
-    SYMP3
+    inlet
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    outlet
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    bottomWall
+    {
+        type            nutkWallFunction;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+        value           uniform 0;
+    }
+
+    endWall
+    {
+        type            nutkWallFunction;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+        value           uniform 0;
+    }
+
+    top
     {
         type            slip;
     }
 
-    INLE1
+    frontAndBack
     {
-        type            fixedValue;
-        value           uniform 1.973e-07;
-    }
-
-    OUTL9
-    {
-        type            zeroGradient;
-    }
-
-    OUTL10
-    {
-        type            zeroGradient;
-    }
-
-    OUTL11
-    {
-        type            zeroGradient;
-    }
-
-    OUTL12
-    {
-        type            zeroGradient;
-    }
-
-    "WALL.*"
-    {
-        type            epsilonWallFunction;
-        value           $internalField;
-    }
-
-    OUTL15
-    {
-        type            inletOutlet;
-        inletValue      uniform 1.973e-07;
+        type            empty;
     }
 }
+
 
 // ************************************************************************* //

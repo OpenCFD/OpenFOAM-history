@@ -24,12 +24,12 @@ boundaryField
     rotor
     {
         type            kqRWallFunction;
-        value           uniform 0.01;
+        value           $internalField;
     }
     stator
     {
         type            kqRWallFunction;
-        value           uniform 0.01;
+        value           $internalField;
     }
     front
     {

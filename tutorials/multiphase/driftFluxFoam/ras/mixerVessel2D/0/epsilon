@@ -24,7 +24,7 @@ boundaryField
     rotor
     {
         type            epsilonWallFunction;
-        value           uniform 0.007;
+        value           $internalField;
         Cmu             0.09;
         kappa           0.41;
         E               9.8;
@@ -32,7 +32,7 @@ boundaryField
     stator
     {
         type            epsilonWallFunction;
-        value           uniform 0.007;
+        value           $internalField;
         Cmu             0.09;
         kappa           0.41;
         E               9.8;
