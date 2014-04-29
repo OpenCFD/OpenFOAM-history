@@ -8,5 +8,6 @@ wmake $makeType interfaceProperties
 wmake $makeType twoPhaseProperties
 wmake $makeType incompressible
 wmake $makeType compressible
+wmake $makeType immiscibleIncompressibleTwoPhaseMixture
 
 # ----------------------------------------------------------------- end-of-file
