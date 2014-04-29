@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -50,6 +50,16 @@ template<class GeoField, class Mesh>
 wordList ReadFields
 (
     const Mesh& mesh,
+    const IOobjectList& objects,
+    PtrList<GeoField>& fields,
+    const bool syncPar = true
+);
+
+//- Helper routine to read non-mesh fields (e.g. uniformDimensionedField like
+//  'g')
+template<class GeoField>
+wordList ReadFields
+(
     const IOobjectList& objects,
     PtrList<GeoField>& fields,
     const bool syncPar = true
