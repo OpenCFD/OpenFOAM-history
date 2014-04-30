@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -103,6 +103,7 @@ SourceFiles
 #ifndef wallBoundedStreamLine_H
 #define wallBoundedStreamLine_H
 
+#include "functionObjectState.H"
 #include "volFieldsFwd.H"
 #include "pointFieldFwd.H"
 #include "Switch.H"
@@ -132,6 +133,8 @@ class sampledSet;
 \*---------------------------------------------------------------------------*/
 
 class wallBoundedStreamLine
+:
+    public functionObjectState
 {
     // Private data
 
