@@ -52,6 +52,24 @@ Foam::functionObjectState::~functionObjectState()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+const Foam::word& Foam::functionObjectState::name() const
+{
+    return name_;
+}
+
+
+bool Foam::functionObjectState::active() const
+{
+    return active_;
+}
+
+
+const Foam::dictionary& Foam::functionObjectState::stateDict() const
+{
+    return stateDict_;
+}
+
+
 bool Foam::functionObjectState::foundProperty(const word& entryName) const
 {
     if (stateDict_.found(name_))

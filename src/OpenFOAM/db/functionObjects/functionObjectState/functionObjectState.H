@@ -105,6 +105,15 @@ public:
 
     // Member Functions
 
+        //- Return the name
+        const word& name() const;
+
+        //- Return the active flag
+        bool active() const;
+
+        //- Return access to the state dictionary
+        const dictionary& stateDict() const;
+
         //- Set the active status by querying objectRegistry type
         //  returns new active status
         template<class Type>
