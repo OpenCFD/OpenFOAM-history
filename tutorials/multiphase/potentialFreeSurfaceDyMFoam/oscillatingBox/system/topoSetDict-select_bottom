@@ -10,48 +10,35 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      fvSchemes;
+    object      topoSetDict;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         Euler;
-}
+actions
+(
+    {
+        name    floatingObject_bottom;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        sourceInfo
+        {
+            name   floatingObject;
+        }
+    }
 
-gradSchemes
-{
-    default         Gauss linear;
-}
-
-divSchemes
-{
-    default         none;
-    div(phi,U)      Gauss upwind;
-    div((nuEff*dev(T(grad(U))))) Gauss linear;
-}
-
-laplacianSchemes
-{
-    default         Gauss linear corrected;
-}
-
-interpolationSchemes
-{
-    default         linear;
-}
-
-snGradSchemes
-{
-    default         corrected;
-}
-
-fluxRequired
-{
-    default         no;
-    p_gh;
-}
-
+    {
+        name    floatingObject_bottom;
+        type    faceSet;
+        action  subset;
+        source  normalToFace;
+        sourceInfo
+        {
+            normal (0 1 0);     // Vector
+            cos     0.01;       // Tolerance (max cos of angle)
+        }
+    }
+);
 
 // ************************************************************************* //

@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     potentialFreeSurfaceFoam;
+application     potentialFreeSurfaceDyMFoam;
 
 startFrom       startTime;
 
@@ -83,7 +83,6 @@ functions
         (
             zeta
         );
-
     }
 };
 

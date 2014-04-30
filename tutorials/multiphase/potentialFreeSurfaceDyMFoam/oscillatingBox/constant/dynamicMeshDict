@@ -11,47 +11,25 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      fvSchemes;
+    object      dynamicMeshDict;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         Euler;
-}
+dynamicFvMesh dynamicMotionSolverFvMesh;
 
-gradSchemes
-{
-    default         Gauss linear;
-}
+motionSolverLibs ("libfvMotionSolvers.so");
 
-divSchemes
-{
-    default         none;
-    div(phi,U)      Gauss upwind;
-    div((nuEff*dev(T(grad(U))))) Gauss linear;
-}
+solver displacementLaplacian;
+//solver velocityComponentLaplacian z;
 
-laplacianSchemes
+displacementLaplacianCoeffs
 {
-    default         Gauss linear corrected;
+    // diffusivity  uniform;
+    // diffusivity  directional (1 200 0);
+    // diffusivity  motionDirectional (1 1000 0);
+    // diffusivity  file motionDiffusivity;
+    diffusivity  inverseDistance 1(floatingObject_bottom);
 }
-
-interpolationSchemes
-{
-    default         linear;
-}
-
-snGradSchemes
-{
-    default         corrected;
-}
-
-fluxRequired
-{
-    default         no;
-    p_gh;
-}
-
 
 // ************************************************************************* //
