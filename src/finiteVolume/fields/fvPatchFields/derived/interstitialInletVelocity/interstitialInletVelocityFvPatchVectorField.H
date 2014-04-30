@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -33,7 +33,7 @@ Description
     inlet
     {
         type              interstitialInletVelocity;
-        inletVelocity     uniform (0 0.2 0; // Non-interstitial inlet velocity
+        inletVelocity     uniform (0 0.2 0);// Non-interstitial inlet velocity
         alpha             alpha.particles;  // Name of the phase-fraction field
         value             uniform (0 0 0);
     }

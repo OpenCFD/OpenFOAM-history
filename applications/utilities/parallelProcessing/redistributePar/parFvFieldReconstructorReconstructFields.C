@@ -420,7 +420,7 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeInternalFields
 (
     const IOobjectList& objects,
     const HashSet<word>& selectedFields
-)
+) const
 {
     const word& fieldClassName = DimensionedField<Type, volMesh>::typeName;
 
@@ -440,9 +440,15 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeInternalFields
             {
                 Info<< "        " << fieldIter()->name() << endl;
 
-                reconstructFvVolumeInternalField<Type>(*fieldIter())().write();
+                tmp<DimensionedField<Type, volMesh> > tfld
+                (
+                    reconstructFvVolumeInternalField<Type>(*fieldIter())
+                );
 
-                nReconstructed_++;
+                if (isWriteProc_)
+                {
+                    tfld().write();
+                }
             }
         }
         Info<< endl;
@@ -455,7 +461,7 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeFields
 (
     const IOobjectList& objects,
     const HashSet<word>& selectedFields
-)
+) const
 {
     const word& fieldClassName =
         GeometricField<Type, fvPatchField, volMesh>::typeName;
@@ -468,17 +474,24 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeFields
 
         forAllConstIter(IOobjectList, fields, fieldIter)
         {
+            const word& name = fieldIter()->name();
+
             if
             (
-                selectedFields.empty()
-             || selectedFields.found(fieldIter()->name())
+                (selectedFields.empty() || selectedFields.found(name))
+             && name != "cellDist"
             )
             {
-                Info<< "        " << fieldIter()->name() << endl;
+                Info<< "        " << name << endl;
 
-                reconstructFvVolumeField<Type>(*fieldIter())().write();
-
-                nReconstructed_++;
+                tmp<GeometricField<Type, fvPatchField, volMesh> > tfld
+                (
+                    reconstructFvVolumeField<Type>(*fieldIter())
+                );
+                if (isWriteProc_)
+                {
+                    tfld().write();
+                }
             }
         }
         Info<< endl;
@@ -491,7 +504,7 @@ void Foam::parFvFieldReconstructor::reconstructFvSurfaceFields
 (
     const IOobjectList& objects,
     const HashSet<word>& selectedFields
-)
+) const
 {
     const word& fieldClassName =
         GeometricField<Type, fvsPatchField, surfaceMesh>::typeName;
@@ -512,9 +525,14 @@ void Foam::parFvFieldReconstructor::reconstructFvSurfaceFields
             {
                 Info<< "        " << fieldIter()->name() << endl;
 
-                reconstructFvSurfaceField<Type>(*fieldIter())().write();
-
-                nReconstructed_++;
+                tmp<GeometricField<Type, fvsPatchField, surfaceMesh> > tfld
+                (
+                    reconstructFvSurfaceField<Type>(*fieldIter())
+                );
+                if (isWriteProc_)
+                {
+                    tfld().write();
+                }
             }
         }
         Info<< endl;

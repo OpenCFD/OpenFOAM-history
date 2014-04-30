@@ -77,13 +77,14 @@ Foam::parFvFieldReconstructor::parFvFieldReconstructor
 (
     const fvMesh& baseMesh,
     const fvMesh& procMesh,
-    const mapDistributePolyMesh& distMap
+    const mapDistributePolyMesh& distMap,
+    const bool isWriteProc
 )
 :
     baseMesh_(baseMesh),
     procMesh_(procMesh),
     distMap_(distMap),
-    nReconstructed_(0)
+    isWriteProc_(isWriteProc)
 {
     createPatchFaceMaps();
 }

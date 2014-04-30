@@ -45,4 +45,36 @@ Foam::basicSpecieMixture::basicSpecieMixture
 {}
 
 
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField> Foam::basicSpecieMixture::W() const
+{
+    const PtrList<volScalarField>& Y(basicMultiComponentMixture::Y());
+
+    tmp<volScalarField> tmpOneByW
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                IOobject::groupName("W", Y[0].group()),
+                Y[0].time().timeName(),
+                Y[0].mesh()
+            ),
+            Y[0].mesh(),
+            dimensionedScalar("zero", dimless, 0)
+        )
+    );
+
+    volScalarField& oneByW = tmpOneByW();
+
+    forAll(Y, i)
+    {
+        oneByW += Y[i]/W(i);
+    }
+
+    return scalar(1)/oneByW;
+}
+
+
 // ************************************************************************* //

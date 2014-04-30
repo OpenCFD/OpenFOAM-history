@@ -68,11 +68,11 @@ class parFvFieldReconstructor
         //- Distribution map reference
         const mapDistributePolyMesh& distMap_;
 
+        //- Do I need to to write (usually master only)
+        const bool isWriteProc_;
+
         //- Patch mappers
         PtrList<mapDistributeBase> patchFaceMaps_;
-
-        //- Number of fields reconstructed
-        label nReconstructed_;
 
 
     // Private Member Functions
@@ -89,48 +89,6 @@ class parFvFieldReconstructor
 
 public:
 
-//        //- Mapper for sizing only - does not do any actual mapping.
-//        class fvPatchFieldReconstructor
-//        :
-//            public fvPatchFieldMapper
-//        {
-//            label size_;
-//
-//        public:
-//
-//            // Constructors
-//
-//                //- Construct given size
-//                fvPatchFieldReconstructor(const label size)
-//                :
-//                    size_(size)
-//                {}
-//
-//
-//            // Member functions
-//
-//                label size() const
-//                {
-//                    return size_;
-//                }
-//
-//                bool direct() const
-//                {
-//                    return true;
-//                }
-//
-//                bool hasUnmapped() const
-//                {
-//                    return false;
-//                }
-//
-//                const labelUList& directAddressing() const
-//                {
-//                    return labelUList::null();
-//                }
-//        };
-
-
     // Constructors
 
         //- Construct from components
@@ -138,7 +96,8 @@ public:
         (
             const fvMesh& baseMesh,
             const fvMesh& procMesh,
-            const mapDistributePolyMesh& distMap
+            const mapDistributePolyMesh& distMap,
+            const bool isWriteProc
         );
 
 
@@ -194,7 +153,7 @@ public:
         (
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
-        );
+        ) const;
 
         //- Read, reconstruct and write all/selected volume fields
         template<class Type>
@@ -202,7 +161,7 @@ public:
         (
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
-        );
+        ) const;
 
         //- Read, reconstruct and write all/selected surface fields
         template<class Type>
@@ -210,7 +169,7 @@ public:
         (
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
-        );
+        ) const;
 };
 
 

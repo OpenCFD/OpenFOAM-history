@@ -86,6 +86,9 @@ public:
             //- Molecular weight [kg/kmol]
             virtual scalar W(const label specieI) const = 0;
 
+            //- Average moleculat weight of the mixture [kg/kmol]
+            tmp<volScalarField> W() const;
+
 
         // Per specie thermo properties
 
