@@ -193,20 +193,18 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
         }
         case opWeightedAverage:
         {
-            result = sum(values)/sum(weightField);
+            result = sum(values)/(sum(weightField) + ROOTVSMALL);
             break;
         }
         case opAreaAverage:
         {
             const scalarField magSf(mag(Sf));
-
-            result = sum(values*magSf)/sum(magSf);
+            result = sum(values*magSf)/(sum(magSf) + ROOTVSMALL);
             break;
         }
         case opAreaIntegrate:
         {
             const scalarField magSf(mag(Sf));
-
             result = sum(values*magSf);
             break;
         }
