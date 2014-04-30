@@ -2,9 +2,7 @@
 cd ${0%/*} || exit 1    # run from this directory
 set -x
 
-wclean
-wclean interDyMFoam
-wclean LTSInterFoam
-wclean interMixingFoam
+wmake
+wmake potentialFreeSurfaceDyMFoam
 
 # ----------------------------------------------------------------- end-of-file

@@ -3,8 +3,6 @@ cd ${0%/*} || exit 1    # run from this directory
 set -x
 
 wclean
-wclean interDyMFoam
-wclean LTSInterFoam
-wclean interMixingFoam
+wclean potentialFreeSurfaceDyMFoam
 
 # ----------------------------------------------------------------- end-of-file

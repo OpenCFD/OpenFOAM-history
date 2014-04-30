@@ -10,48 +10,34 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      fvSchemes;
+    object      createPatchDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         Euler;
-}
+// Do a synchronisation of coupled points after creation of any patches.
+// Note: this does not work with points that are on multiple coupled patches
+//       with transformations (i.e. cyclics).
+pointSync false;
 
-gradSchemes
-{
-    default         Gauss linear;
-}
+// Patches to create.
+patches
+(
+    {
+        // Name of new patch
+        name floatingObjectBottom;
 
-divSchemes
-{
-    default         none;
-    div(phi,U)      Gauss upwind;
-    div((nuEff*dev(T(grad(U))))) Gauss linear;
-}
+        // Dictionary to construct new patch from
+        patchInfo
+        {
+            type wall;
+        }
 
-laplacianSchemes
-{
-    default         Gauss linear corrected;
-}
+        // How to construct: either from 'patches' or 'set'
+        constructFrom set;
 
-interpolationSchemes
-{
-    default         linear;
-}
-
-snGradSchemes
-{
-    default         corrected;
-}
-
-fluxRequired
-{
-    default         no;
-    p_gh;
-}
-
+        // If constructFrom = set : name of faceSet
+        set floatingObjectBottom;
+    }
+);
 
 // ************************************************************************* //
