@@ -10,7 +10,7 @@ application=`getApplication`
 runApplication blockMesh
 runApplication topoSet
 runApplication subsetMesh -overwrite c0 -patch floatingObject
-runApplication -l log.topoSet2 topoSet -dict system/topoSetDict-select_bottom
+runApplication -l log.topoSet2 topoSet -dict system/topoSetDict-selectBottom
 runApplication createPatch -overwrite
 
 cp -r 0.org 0 > /dev/null 2>&1

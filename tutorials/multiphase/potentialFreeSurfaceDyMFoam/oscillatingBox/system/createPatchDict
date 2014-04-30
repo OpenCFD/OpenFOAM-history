@@ -24,7 +24,7 @@ patches
 (
     {
         // Name of new patch
-        name floatingObject_bottom;
+        name floatingObjectBottom;
 
         // Dictionary to construct new patch from
         patchInfo
@@ -36,7 +36,7 @@ patches
         constructFrom set;
 
         // If constructFrom = set : name of faceSet
-        set floatingObject_bottom;
+        set floatingObjectBottom;
     }
 );
 

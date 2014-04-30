@@ -29,7 +29,7 @@ displacementLaplacianCoeffs
     // diffusivity  directional (1 200 0);
     // diffusivity  motionDirectional (1 1000 0);
     // diffusivity  file motionDiffusivity;
-    diffusivity  inverseDistance 1(floatingObject_bottom);
+    diffusivity  inverseDistance 1(floatingObjectBottom);
 }
 
 // ************************************************************************* //

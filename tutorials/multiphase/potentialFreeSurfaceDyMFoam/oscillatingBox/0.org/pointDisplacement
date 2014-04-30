@@ -51,7 +51,7 @@ boundaryField
         n               (1 0 0);
     }
 
-    floatingObject_bottom
+    floatingObjectBottom
     {
         type            oscillatingDisplacement;
         amplitude       (0 -0.05 0);

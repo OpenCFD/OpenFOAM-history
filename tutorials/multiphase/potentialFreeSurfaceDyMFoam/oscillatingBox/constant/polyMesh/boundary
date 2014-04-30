@@ -59,7 +59,7 @@ FoamFile
         nFaces          7658;
         startFace       7868;
     }
-    floatingObject_bottom
+    floatingObjectBottom
     {
         type            wall;
         inGroups        1(wall);
