@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -354,6 +354,7 @@ bool Foam::objectRegistry::writeObject
             Pout<< "objectRegistry::write() : "
                 << name() << " : Considering writing object "
                 << iter.key()
+                << " of type " << iter()->type()
                 << " with writeOpt " << iter()->writeOpt()
                 << " to file " << iter()->objectPath()
                 << endl;
