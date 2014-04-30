@@ -970,17 +970,41 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::fvMeshDistribute::doRemoveCells
         meshMod
     );
 
+
+    PtrList<Field<scalar> > sFlds;
+    saveInternalFields(sFlds);
+    PtrList<Field<vector> > vFlds;
+    saveInternalFields(vFlds);
+    PtrList<Field<sphericalTensor> > sptFlds;
+    saveInternalFields(sptFlds);
+    PtrList<Field<symmTensor> > sytFlds;
+    saveInternalFields(sytFlds);
+    PtrList<Field<tensor> > tFlds;
+    saveInternalFields(tFlds);
+
     // Change the mesh. No inflation. Note: no parallel comms allowed.
     autoPtr<mapPolyMesh> map = meshMod.changeMesh(mesh_, false, false);
 
     // Update fields
     mesh_.updateMesh(map);
 
+
+    // Any exposed faces in a surfaceField will not be mapped. Map the value
+    // of these separately (until there is support in all PatchFields for
+    // mapping from internal faces ...)
+
+    mapExposedFaces(map(), sFlds);
+    mapExposedFaces(map(), vFlds);
+    mapExposedFaces(map(), sptFlds);
+    mapExposedFaces(map(), sytFlds);
+    mapExposedFaces(map(), tFlds);
+
     // Move mesh (since morphing does not do this)
     if (map().hasMotionPoints())
     {
         mesh_.movePoints(map().preMotionPoints());
     }
+
 
     return map;
 }
@@ -2538,35 +2562,6 @@ Foam::autoPtr<Foam::mapDistributePolyMesh> Foam::fvMeshDistribute::distribute
         pTraits<symmTensor>::zero
     );
     initPatchFields<volTensorField, processorFvPatchField<tensor> >
-    (
-        pTraits<tensor>::zero
-    );
-
-    initPatchFields<surfaceScalarField, processorFvsPatchField<scalar> >
-    (
-        pTraits<scalar>::zero
-    );
-    initPatchFields<surfaceVectorField, processorFvsPatchField<vector> >
-    (
-        pTraits<vector>::zero
-    );
-    initPatchFields
-    <
-        surfaceSphericalTensorField,
-        processorFvsPatchField<sphericalTensor>
-    >
-    (
-        pTraits<sphericalTensor>::zero
-    );
-    initPatchFields
-    <
-        surfaceSymmTensorField,
-        processorFvsPatchField<symmTensor>
-    >
-    (
-        pTraits<symmTensor>::zero
-    );
-    initPatchFields<surfaceTensorField, processorFvsPatchField<tensor> >
     (
         pTraits<tensor>::zero
     );

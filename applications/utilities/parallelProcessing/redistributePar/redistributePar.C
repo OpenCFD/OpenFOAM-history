@@ -351,17 +351,20 @@ void determineDecomposition
     if (writeCellDist)
     {
         // Note: on master make sure to write to processor0
-        if (Pstream::master() && decompose)
+        if (decompose)
         {
-            Info<< "Setting caseName to " << baseRunTime.caseName()
-                << " to write undecomposed cellDist" << endl;
+            if (Pstream::master())
+            {
+                Info<< "Setting caseName to " << baseRunTime.caseName()
+                    << " to write undecomposed cellDist" << endl;
 
-            Time& tm = const_cast<Time&>(mesh.time());
+                Time& tm = const_cast<Time&>(mesh.time());
 
-            tm.TimePaths::caseName() = baseRunTime.caseName();
-            writeDecomposition("cellDist", mesh, decomp);
-            Info<< "Restoring caseName to " << proc0CaseName << endl;
-            tm.TimePaths::caseName() = proc0CaseName;
+                tm.TimePaths::caseName() = baseRunTime.caseName();
+                writeDecomposition("cellDist", mesh, decomp);
+                Info<< "Restoring caseName to " << proc0CaseName << endl;
+                tm.TimePaths::caseName() = proc0CaseName;
+            }
         }
         else
         {
@@ -774,11 +777,19 @@ autoPtr<mapDistributePolyMesh> redistributeAndWrite
     PtrList<volSphericalTensorField> volSphereTensorFields;
     PtrList<volSymmTensorField> volSymmTensorFields;
     PtrList<volTensorField> volTensorFields;
+
     PtrList<surfaceScalarField> surfScalarFields;
     PtrList<surfaceVectorField> surfVectorFields;
     PtrList<surfaceSphericalTensorField> surfSphereTensorFields;
     PtrList<surfaceSymmTensorField> surfSymmTensorFields;
     PtrList<surfaceTensorField> surfTensorFields;
+
+    PtrList<DimensionedField<scalar, volMesh> > dimScalarFields;
+    PtrList<DimensionedField<vector, volMesh> > dimVectorFields;
+    PtrList<DimensionedField<sphericalTensor, volMesh> > dimSphereTensorFields;
+    PtrList<DimensionedField<symmTensor, volMesh> > dimSymmTensorFields;
+    PtrList<DimensionedField<tensor, volMesh> > dimTensorFields;
+
 
     if (doReadFields)
     {
@@ -943,6 +954,56 @@ autoPtr<mapDistributePolyMesh> redistributeAndWrite
             objects,
             surfTensorFields
         );
+
+
+        // Dimensioned internal fields
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimScalarFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimVectorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimSphereTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimSymmTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimTensorFields
+        );
+
+
+
         if (Pstream::master() && decompose)
         {
             runTime.TimePaths::caseName() = proc0CaseName;
@@ -1478,7 +1539,7 @@ void reconstructLagrangian
                 (
                     mesh,
                     baseMesh,
-                    mesh.nCells(),  // range of cell indices in clouds
+                    mesh.nCells(),      // range of cell indices in clouds
                     distMap
                 )
             );
@@ -1610,6 +1671,21 @@ void readLagrangian
             i,
             new unmappedPassiveParticleCloud(mesh, cloudNames[i], false)
         );
+
+
+        //forAllConstIter
+        //(
+        //    unmappedPassiveParticleCloud,
+        //    clouds[i],
+        //    iter
+        //)
+        //{
+        //    Pout<< "Particle position:" << iter().position()
+        //        << " cell:" << iter().cell()
+        //        << " with cc:" << mesh.cellCentres()[iter().cell()]
+        //        << endl;
+        //}
+
 
         IOobjectList sprayObjs(clouds[i], clouds[i].time().timeName());
 
@@ -2264,7 +2340,8 @@ int main(int argc, char *argv[])
             (
                 baseMesh,
                 mesh,
-                distMap
+                distMap,
+                Pstream::master()       // do I need to write?
             )
         );
 
@@ -2314,7 +2391,8 @@ int main(int argc, char *argv[])
                     (
                         baseMesh,
                         mesh,
-                        distMap
+                        distMap,
+                        Pstream::master()
                     )
                 );
                 lagrangianReconstructorPtr.clear();

@@ -440,7 +440,15 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeInternalFields
             {
                 Info<< "        " << fieldIter()->name() << endl;
 
-                reconstructFvVolumeInternalField<Type>(*fieldIter())().write();
+                tmp<DimensionedField<Type, volMesh> > tfld
+                (
+                    reconstructFvVolumeInternalField<Type>(*fieldIter())
+                );
+
+                if (isWriteProc_)
+                {
+                    tfld().write();
+                }
             }
         }
         Info<< endl;
@@ -476,7 +484,14 @@ void Foam::parFvFieldReconstructor::reconstructFvVolumeFields
             {
                 Info<< "        " << name << endl;
 
-                reconstructFvVolumeField<Type>(*fieldIter())().write();
+                tmp<GeometricField<Type, fvPatchField, volMesh> > tfld
+                (
+                    reconstructFvVolumeField<Type>(*fieldIter())
+                );
+                if (isWriteProc_)
+                {
+                    tfld().write();
+                }
             }
         }
         Info<< endl;
@@ -510,7 +525,14 @@ void Foam::parFvFieldReconstructor::reconstructFvSurfaceFields
             {
                 Info<< "        " << fieldIter()->name() << endl;
 
-                reconstructFvSurfaceField<Type>(*fieldIter())().write();
+                tmp<GeometricField<Type, fvsPatchField, surfaceMesh> > tfld
+                (
+                    reconstructFvSurfaceField<Type>(*fieldIter())
+                );
+                if (isWriteProc_)
+                {
+                    tfld().write();
+                }
             }
         }
         Info<< endl;

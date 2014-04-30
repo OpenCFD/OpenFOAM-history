@@ -92,12 +92,15 @@
     relativeVelocityModel& UdmModel(UdmModelPtr());
 
 
-    // Construct incompressible turbulence model
-    autoPtr<incompressible::turbulenceModel> turbulence
+    // Construct compressible turbulence model
+    autoPtr
+    <
+        CompressibleTurbulenceModel<compressibleTransportModel>
+    > turbulence
     (
-        incompressible::turbulenceModel::New(U, phi, mixture)
+        CompressibleTurbulenceModel<compressibleTransportModel>
+        ::New(rho, U, rhoPhi, mixture)
     );
-
 
     Info<< "Calculating field (g.h)f\n" << endl;
     volScalarField gh("gh", g & mesh.C());

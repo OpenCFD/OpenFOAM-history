@@ -9,17 +9,41 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      RASProperties;
+    class       volScalarField;
+    location    "0";
+    object      nut;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-RASModel        kEpsilon;
+dimensions      [0 2 -1 0 0 0 0];
 
-turbulence      on;
+internalField   uniform 0;
 
-printCoeffs     on;
+boundaryField
+{
+    SYMP3
+    {
+        type            slip;
+    }
+
+    INLE1
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    "OUTL.*"
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    "WALL.*"
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+}
 
 
 // ************************************************************************* //

@@ -10,6 +10,5 @@ transportModel/transportModel.C
 singlePhaseTransportModel/singlePhaseTransportModel.C
 
 incompressibleTwoPhaseMixture/incompressibleTwoPhaseMixture.C
-immiscibleIncompressibleTwoPhaseMixture/immiscibleIncompressibleTwoPhaseMixture.C
 
 LIB = $(FOAM_LIBBIN)/libincompressibleTransportModels
