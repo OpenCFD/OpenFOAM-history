@@ -37,7 +37,7 @@ SourceFiles
 #ifndef incompressibleTwoPhaseInteractingMixture_H
 #define incompressibleTwoPhaseInteractingMixture_H
 
-#include "incompressible/transportModel/transportModel.H"
+#include "compressibleTransportModel.H"
 #include "incompressible/viscosityModels/viscosityModel/viscosityModel.H"
 #include "mixtureViscosityModel.H"
 #include "twoPhaseMixture.H"
@@ -56,7 +56,7 @@ namespace Foam
 class incompressibleTwoPhaseInteractingMixture
 :
     public IOdictionary,
-    public transportModel,
+    public compressibleTransportModel,
     public twoPhaseMixture
 {
 protected:
@@ -68,6 +68,12 @@ protected:
 
         dimensionedScalar rhod_;
         dimensionedScalar rhoc_;
+
+        //- Optional diameter of the dispersed phase particles
+        dimensionedScalar dd_;
+
+        //- Optional maximum dispersed phase-fraction (e.g. packing limit)
+        scalar alphaMax_;
 
         const volVectorField& U_;
         const surfaceScalarField& phi_;
@@ -120,6 +126,19 @@ public:
         {
             return rhoc_;
         };
+
+        //- Return the diameter of the dispersed-phase particles
+        const dimensionedScalar& dd() const
+        {
+            return dd_;
+        }
+
+        //- Optional maximum phase-fraction (e.g. packing limit)
+        //  Defaults to 1
+        scalar alphaMax() const
+        {
+            return alphaMax_;
+        }
 
         //- Return const-access to the mixture velocity
         const volVectorField& U() const
