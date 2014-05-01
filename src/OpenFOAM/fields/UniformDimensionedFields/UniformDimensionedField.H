@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,6 +28,8 @@ Description
     Dimensioned<Type> registered with the database as a registered IOobject
     which has the functionality of a uniform field and allows values from the
     top-level code to be passed to boundary conditions etc.
+
+    Is a 'global' field, same on all processors
 
 SourceFiles
     UniformDimensionedField.C
@@ -88,6 +90,12 @@ public:
         }
 
         bool writeData(Ostream&) const;
+
+        //- Is object global
+        virtual bool global() const
+        {
+            return true;
+        }
 
 
     // Member Operators

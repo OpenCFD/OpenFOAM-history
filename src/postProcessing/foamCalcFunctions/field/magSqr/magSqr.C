@@ -88,7 +88,7 @@ void Foam::calcTypes::magSqr::calc
     );
 
     // Check field exists
-    if (fieldHeader.headerOk())
+    if (fieldHeader.typeHeaderOk<volScalarField>(false))
     {
         bool processed = false;
 

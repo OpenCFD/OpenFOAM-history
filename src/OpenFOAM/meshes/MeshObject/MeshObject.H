@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -148,6 +148,12 @@ public:
         }
 
         virtual bool writeData(Foam::Ostream&) const
+        {
+            return true;
+        }
+
+        //- Is object global
+        virtual bool global() const
         {
             return true;
         }

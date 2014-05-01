@@ -72,7 +72,7 @@ void Foam::readFields::loadField
 
         if
         (
-            fieldHeader.headerOk()
+            fieldHeader.typeHeaderOk<vfType>(false)
          && fieldHeader.headerClassName() == vfType::typeName
         )
         {
@@ -84,7 +84,7 @@ void Foam::readFields::loadField
         }
         else if
         (
-            fieldHeader.headerOk()
+            fieldHeader.typeHeaderOk<sfType>(false)
          && fieldHeader.headerClassName() == sfType::typeName
         )
         {

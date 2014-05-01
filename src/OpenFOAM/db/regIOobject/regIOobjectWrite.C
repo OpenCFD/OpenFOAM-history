@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -58,17 +58,26 @@ bool Foam::regIOobject::writeObject
         return false;
     }
 
-    bool isGlobal = true;
 
-    if
+
+    //- uncomment this if you want to write global objects on master only
+    //bool isGlobal = global();
+    bool isGlobal = false;
+
+    if (instance() == time().timeName())
+    {
+        // Mark as written to local directory
+        isGlobal = false;
+    }
+    else if
     (
-        instance() != time().timeName()
-     && instance() != time().system()
+        instance() != time().system()
      && instance() != time().caseSystem()
      && instance() != time().constant()
      && instance() != time().caseConstant()
     )
     {
+        // Update instance
         const_cast<regIOobject&>(*this).instance() = time().timeName();
 
         // Mark as written to local directory
@@ -77,8 +86,16 @@ bool Foam::regIOobject::writeObject
 
     if (OFstream::debug)
     {
-        Info<< "regIOobject::write() : "
-            << "writing file " << objectPath();
+        if (isGlobal)
+        {
+            Pout<< "regIOobject::write() : "
+                << "writing (global) file " << objectPath();
+        }
+        else
+        {
+            Pout<< "regIOobject::write() : "
+                << "writing (local) file " << objectPath();
+        }
     }
 
 
@@ -96,8 +113,7 @@ bool Foam::regIOobject::writeObject
 
     if (Pstream::master() || !masterOnly)
     {
-        mkDir(path());
-
+        if (mkDir(path()))
         {
             // Try opening an OFstream for object
             OFstream os(objectPath(), fmt, ver, cmp);
@@ -133,7 +149,7 @@ bool Foam::regIOobject::writeObject
 
     if (OFstream::debug)
     {
-        Info<< " .... written" << endl;
+        Pout<< " .... written" << endl;
     }
 
     // Only update the lastModified_ time if this object is re-readable,

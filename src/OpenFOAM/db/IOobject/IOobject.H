@@ -372,8 +372,13 @@ public:
             }
 
             //- Return complete path + object name if the file exists
-            //  either in the case/processor or case otherwise null
+            //  in the case directory otherwise null. Does not search
+            //  up if parallel. Can be overridden to provide this functionality
+            //  (e.g. IOdictionary)
             virtual fileName filePath() const;
+
+            //- Helper for filePath that optionally searches up if in parallel
+            fileName globalFilePath(const bool global) const;
 
 
         // Reading
@@ -384,6 +389,14 @@ public:
             //- Read and check header info
             bool headerOk();
 
+            //- Read header (uses typeFilePath to find file) and check header
+            //  info. Optionally checks headerClassName against type
+            template<class Type>
+            bool typeHeaderOk(const bool checkType);
+
+            //- Helper: warn that type does not support re-reading
+            template<class Type>
+            void warnNoRereading() const;
 
         // Writing
 
@@ -442,6 +455,14 @@ template<>
 Ostream& operator<<(Ostream& os, const InfoProxy<IOobject>& ip);
 
 
+//- Template function for obtaining filePath
+template<class T>
+inline fileName typeFilePath(const IOobject& io)
+{
+    return io.filePath();
+}
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
@@ -449,6 +470,12 @@ Ostream& operator<<(Ostream& os, const InfoProxy<IOobject>& ip);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #   include "IOobjectI.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "IOobjectTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

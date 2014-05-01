@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -50,6 +50,44 @@ typedef UniformDimensionedField<sphericalTensor>
     uniformDimensionedSphericalTensorField;
 typedef UniformDimensionedField<symmTensor> uniformDimensionedSymmTensorField;
 typedef UniformDimensionedField<tensor> uniformDimensionedTensorField;
+
+//- Template specialisation for obtaining filePath
+template<> inline fileName typeFilePath<uniformDimensionedScalarField>
+(
+    const IOobject& io
+)
+{
+    return io.globalFilePath(true);
+}
+template<> inline fileName typeFilePath<uniformDimensionedVectorField>
+(
+    const IOobject& io
+)
+{
+    return io.globalFilePath(true);
+}
+template<> inline fileName typeFilePath<uniformDimensionedSphericalTensorField>
+(
+    const IOobject& io
+)
+{
+    return io.globalFilePath(true);
+}
+template<> inline fileName typeFilePath<uniformDimensionedSymmTensorField>
+(
+    const IOobject& io
+)
+{
+    return io.globalFilePath(true);
+}
+template<> inline fileName typeFilePath<uniformDimensionedTensorField>
+(
+    const IOobject& io
+)
+{
+    return io.globalFilePath(true);
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

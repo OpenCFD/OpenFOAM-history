@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -124,7 +124,7 @@ CrankNicolsonDdtScheme<Type>::ddt0_
                 name,
                 startTimeName,
                 mesh()
-            ).headerOk()
+            ).template typeHeaderOk<DDt0Field<GeoField> >(true)
         )
         {
             regIOobject::store

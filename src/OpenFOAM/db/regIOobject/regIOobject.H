@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -83,7 +83,7 @@ protected:
         bool read
         (
             const bool masterOnly,
-            const IOstream::streamFormat format,
+            const IOstream::streamFormat PstreamFormat,
             const word& typeName
         );
 
@@ -164,6 +164,9 @@ public:
 
             //- Remove object from registry
             bool checkOut();
+
+            //- Add file watch on object (if registered and READ_IF_MODIFIED)
+            void addWatch();
 
             //- Is this object owned by the registry?
             inline bool ownedByRegistry() const;

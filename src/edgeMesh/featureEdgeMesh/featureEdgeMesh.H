@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -85,7 +85,21 @@ public:
 
         //- WriteData function required for regIOobject write operation
         virtual bool writeData(Ostream&) const;
+
+        //- Is object global
+        virtual bool global() const
+        {
+            return true;
+        }
 };
+
+
+//- Template specialisation for obtaining filePath
+template<>
+inline fileName typeFilePath<featureEdgeMesh>(const IOobject& io)
+{
+    return io.globalFilePath(true);
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

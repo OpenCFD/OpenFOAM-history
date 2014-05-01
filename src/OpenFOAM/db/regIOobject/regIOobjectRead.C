@@ -48,13 +48,19 @@ bool Foam::regIOobject::read
         }
 
         // Set flag for e.g. codeStream
-        bool oldFlag = regIOobject::masterOnlyReading;
+        const bool oldGlobal = globalObject();
+        globalObject() = masterOnly;
+        // If codeStream originates from dictionary which is
+        // not IOdictionary we have a problem so use global
+        const bool oldFlag = regIOobject::masterOnlyReading;
         regIOobject::masterOnlyReading = masterOnly;
 
         // Read file
         ok = readData(readStream(typeName));
         close();
 
+        // Restore flags
+        globalObject() = oldGlobal;
         regIOobject::masterOnlyReading = oldFlag;
     }
 
@@ -133,8 +139,9 @@ Foam::Istream& Foam::regIOobject::readStream()
 {
     if (IFstream::debug)
     {
-        Info<< "regIOobject::readStream() : "
+        Pout<< "regIOobject::readStream() : "
             << "reading object " << name()
+            << " (global " << global() << ")"
             << " from file " << objectPath()
             << endl;
     }
@@ -150,7 +157,6 @@ Foam::Istream& Foam::regIOobject::readStream()
     // Construct object stream and read header if not already constructed
     if (!isPtr_)
     {
-
         fileName objPath;
         if (watchIndex_ != -1)
         {
@@ -161,6 +167,15 @@ Foam::Istream& Foam::regIOobject::readStream()
         {
             // Search intelligently for file
             objPath = filePath();
+
+            if (IFstream::debug)
+            {
+                Pout<< "regIOobject::readStream() : "
+                    << "found object " << name()
+                    << " (global " << global() << ")"
+                    << " in file " << objPath
+                    << endl;
+            }
 
             if (!objPath.size())
             {
@@ -210,7 +225,7 @@ Foam::Istream& Foam::regIOobject::readStream(const word& expectName)
 {
     if (IFstream::debug)
     {
-        Info<< "regIOobject::readStream(const word&) : "
+        Pout<< "regIOobject::readStream(const word&) : "
             << "reading object " << name()
             << " from file " << objectPath()
             << endl;
@@ -247,7 +262,7 @@ void Foam::regIOobject::close()
 {
     if (IFstream::debug)
     {
-        Info<< "regIOobject::close() : "
+        Pout<< "regIOobject::close() : "
             << "finished reading " << filePath()
             << endl;
     }
@@ -302,7 +317,7 @@ bool Foam::regIOobject::readIfModified()
         if (modified())
         {
             const fileName& fName = time().getFile(watchIndex_);
-            Info<< "regIOobject::readIfModified() : " << nl
+            Pout<< "regIOobject::readIfModified() : " << nl
                 << "    Re-reading object " << name()
                 << " from file " << fName << endl;
             return read();

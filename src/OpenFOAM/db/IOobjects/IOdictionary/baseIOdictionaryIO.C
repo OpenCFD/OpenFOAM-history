@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,63 +23,34 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "localIOdictionary.H"
+#include "baseIOdictionary.H"
+#include "Pstream.H"
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Members Functions * * * * * * * * * * * * * //
 
-Foam::localIOdictionary::localIOdictionary(const IOobject& io)
-:
-    baseIOdictionary(io)
+bool Foam::baseIOdictionary::readData(Istream& is)
 {
-    readFile();
+    is >> *this;
 
-    // For if MUST_READ_IF_MODIFIED
-    addWatch();
-}
-
-
-Foam::localIOdictionary::localIOdictionary
-(
-    const IOobject& io,
-    const dictionary& dict
-)
-:
-    baseIOdictionary(io, dict)
-{
-    if (!readFile())
+    if (writeDictionaries && Pstream::master() && !is.bad())
     {
-        dictionary::operator=(dict);
+        Sout<< nl
+            << "--- baseIOdictionary " << name()
+            << ' ' << objectPath() << ":" << nl;
+        writeHeader(Sout);
+        writeData(Sout);
+        Sout<< "--- End of baseIOdictionary " << name() << nl << endl;
     }
 
-    // For if MUST_READ_IF_MODIFIED
-    addWatch();
+    return !is.bad();
 }
 
 
-Foam::localIOdictionary::localIOdictionary
-(
-    const IOobject& io,
-    Istream& is
-)
-:
-    baseIOdictionary(io, is)
+bool Foam::baseIOdictionary::writeData(Ostream& os) const
 {
-    // Note that we do construct the dictionary null and read in
-    // afterwards
-    // so that if there is some fancy massaging due to a
-    // functionEntry in
-    // the dictionary at least the type information is already complete.
-    is  >> *this;
-
-    // For if MUST_READ_IF_MODIFIED
-    addWatch();
+    dictionary::write(os, false);
+    return os.good();
 }
-
-
-// * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * * //
-
-Foam::localIOdictionary::~localIOdictionary()
-{}
 
 
 // ************************************************************************* //

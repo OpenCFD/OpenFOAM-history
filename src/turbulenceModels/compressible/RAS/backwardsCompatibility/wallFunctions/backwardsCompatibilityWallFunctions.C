@@ -59,7 +59,7 @@ tmp<volScalarField> autoCreateAlphat
         false
     );
 
-    if (alphatHeader.headerOk())
+    if (alphatHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<volScalarField>(new volScalarField(alphatHeader, mesh));
     }
@@ -129,7 +129,7 @@ tmp<volScalarField> autoCreateMut
         false
     );
 
-    if (mutHeader.headerOk())
+    if (mutHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<volScalarField>(new volScalarField(mutHeader, mesh));
     }
@@ -199,7 +199,7 @@ tmp<volScalarField> autoCreateLowReMut
         false
     );
 
-    if (mutHeader.headerOk())
+    if (mutHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<volScalarField>(new volScalarField(mutHeader, mesh));
     }

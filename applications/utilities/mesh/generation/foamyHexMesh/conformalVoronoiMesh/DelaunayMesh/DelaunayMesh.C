@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -70,7 +70,7 @@ Foam::DelaunayMesh<Triangulation>::DelaunayMesh
         )
     );
 
-    if (pts.headerOk())
+    if (pts.typeHeaderOk<pointIOField>(true))
     {
         labelIOField types
         (

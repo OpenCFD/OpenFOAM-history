@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -85,7 +85,7 @@ void Foam::meshWriters::STARCD::getCellTable()
     cellTableId_.setSize(mesh_.nCells(), -1);
 
     // get information from constant/polyMesh/cellTableId if possible
-    if (ioList.headerOk())
+    if (ioList.typeHeaderOk<IOList<label> >(false))
     {
         if (ioList.size() == mesh_.nCells())
         {

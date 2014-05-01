@@ -56,7 +56,7 @@ autoCreateWallFunctionField
 
     typedef GeometricField<Type, fvPatchField, volMesh> fieldType;
 
-    if (nutHeader.headerOk())
+    if (nutHeader.typeHeaderOk<fieldType>(true))
     {
         return tmp<fieldType>
         (

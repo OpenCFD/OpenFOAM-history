@@ -141,6 +141,12 @@ public:
         //- writeData member function required by regIOobject
         bool writeData(Ostream&) const;
 
+        //- Is object global
+        virtual bool global() const
+        {
+            return true;
+        }
+
 
     // Member Operators
 
@@ -152,6 +158,14 @@ public:
 
         friend Ostream& operator<<(Ostream&, const polyTopoChanger&);
 };
+
+
+//- Template specialisation for obtaining filePath
+template<>
+inline fileName typeFilePath<polyTopoChanger>(const IOobject& io)
+{
+    return io.globalFilePath(true);
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

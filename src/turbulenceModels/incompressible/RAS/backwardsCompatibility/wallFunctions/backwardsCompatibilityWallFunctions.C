@@ -58,7 +58,7 @@ tmp<volScalarField> autoCreateNut
         false
     );
 
-    if (nutHeader.headerOk())
+    if (nutHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<volScalarField>(new volScalarField(nutHeader, mesh));
     }
@@ -128,7 +128,7 @@ tmp<volScalarField> autoCreateLowReNut
         false
     );
 
-    if (nutHeader.headerOk())
+    if (nutHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<volScalarField>(new volScalarField(nutHeader, mesh));
     }

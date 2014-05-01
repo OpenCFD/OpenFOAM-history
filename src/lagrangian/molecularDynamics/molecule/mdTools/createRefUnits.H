@@ -9,7 +9,7 @@ IOobject reducedUnitsDictIOobject
     IOobject::NO_WRITE
 );
 
-if (reducedUnitsDictIOobject.headerOk())
+if (reducedUnitsDictIOobject.typeHeaderOk<IOdictionary>(true))
 {
     Info<< nl
         << "Reading reference quantities from reducedUnitsDict file." << endl;

@@ -181,10 +181,10 @@ $(functionEntries)/inputModeEntry/inputModeEntry.C
 $(functionEntries)/removeEntry/removeEntry.C
 
 IOdictionary = db/IOobjects/IOdictionary
+$(IOdictionary)/baseIOdictionary.C
+$(IOdictionary)/baseIOdictionaryIO.C
 $(IOdictionary)/IOdictionary.C
-$(IOdictionary)/IOdictionaryIO.C
 $(IOdictionary)/localIOdictionary.C
-$(IOdictionary)/localIOdictionaryIO.C
 
 db/IOobjects/IOMap/IOMapName.C
 

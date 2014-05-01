@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,21 +22,26 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::localIOdictionary
+    Foam::baseIOdictionary
 
 Description
-    localIOdictionary is derived from IOdictionary but excludes parallel
-    master reading.
+    baseIOdictionary is derived from dictionary and IOobject to give the
+    dictionary automatic IO functionality via the objectRegistry.
+    To facilitate IO,
+    IOdictioanry is provided with a constructor from IOobject and writeData and
+    write functions.
 
 SourceFiles
-    localIOdictionary.C
+    baseIOdictionary.C
+    baseIOdictionaryIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef localIOdictionary_H
-#define localIOdictionary_H
+#ifndef baseIOdictionary_H
+#define baseIOdictionary_H
 
-#include "baseIOdictionary.H"
+#include "dictionary.H"
+#include "regIOobject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,57 +49,73 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class localIOdictionary Declaration
+                           Class baseIOdictionary Declaration
 \*---------------------------------------------------------------------------*/
 
-class localIOdictionary
+class baseIOdictionary
 :
-    public baseIOdictionary
+    public regIOobject,
+    public dictionary
 {
+    // Private data
+
+        static bool writeDictionaries;
+
+protected:
+
+    // Protected Member Functions
+
+        //- Wrapper around readFile. Returns true if file read.
+        bool readFile();
+
 
 public:
+
+    TypeName("dictionary");
+
 
     // Constructors
 
         //- Construct given an IOobject
-        localIOdictionary(const IOobject& io);
+        baseIOdictionary(const IOobject&);
 
         //- Construct given an IOobject and dictionary
-        localIOdictionary(const IOobject& io, const dictionary& dict);
+        baseIOdictionary(const IOobject&, const dictionary&);
 
         //- Construct given an IOobject and Istream
-        localIOdictionary(const IOobject& io, Istream& is);
+        baseIOdictionary(const IOobject&, Istream&);
+
 
     //- Destructor
-    virtual ~localIOdictionary();
+    virtual ~baseIOdictionary();
 
 
     // Member functions
 
-        //- Is object global
-        virtual bool global() const
-        {
-            return false;
-        }
-
         //- Return complete path + object name if the file exists
-        //  in the case otherwise null
-        virtual fileName filePath() const
-        {
-            // Use default (local only) search strategy
-            return IOobject::filePath();
-        }
+        //  either in the case/processor or case otherwise null
+        virtual fileName filePath() const = 0;
 
+        //- Name function is needed to disambiguate those inherited
+        //  from regIOobject and dictionary
+        const word& name() const;
+
+        //- ReadData function required for regIOobject read operation
+        virtual bool readData(Istream&);
+
+        //- WriteData function required for regIOobject write operation
+        virtual bool writeData(Ostream&) const;
+
+        //- Is object global
+        virtual bool global() const = 0;
+
+
+    // Member operators
+
+        //- Assignment of other baseIOdictionary's entries to this
+        //  baseIOdictionary
+        void operator=(const baseIOdictionary&);
 };
-
-
-//- Template specialisation for obtaining filePath
-template<>
-inline fileName typeFilePath<localIOdictionary>(const IOobject& io)
-{
-    // Use default (local only) search strategy
-    return io.filePath();
-}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

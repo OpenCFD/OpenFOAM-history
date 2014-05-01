@@ -1368,28 +1368,6 @@ Foam::distributedTriSurfaceMesh::distributedTriSurfaceMesh(const IOobject& io)
         )
     )
 {
-    if
-    (
-        Pstream::parRun()
-     && (
-            dict_.readOpt() == IOobject::MUST_READ
-         || dict_.readOpt() == IOobject::MUST_READ_IF_MODIFIED
-        )
-     && (
-            regIOobject::fileModificationChecking == timeStampMaster
-         || regIOobject::fileModificationChecking == inotifyMaster
-        )
-    )
-    {
-        FatalErrorIn("Foam::distributedTriSurfaceMesh::read()")
-            << "    distributedTriSurfaceMesh is being constructed\n"
-            << "    using 'timeStampMaster' or 'inotifyMaster.'\n"
-            << "    Modify the entry fileModificationChecking\n"
-            << "    in the etc/controlDict.\n"
-            << "    Use 'timeStamp' instead."
-            << exit(FatalError);
-    }
-
     read();
 
     reduce(bounds().min(), minOp<point>());
@@ -1397,7 +1375,7 @@ Foam::distributedTriSurfaceMesh::distributedTriSurfaceMesh(const IOobject& io)
 
     if (debug)
     {
-        Info<< "Read distributedTriSurface from " << io.objectPath()
+        Info<< "Read distributedTriSurface from " << io.filePath()
             << ':' << endl;
         writeStats(Info);
 
@@ -1452,28 +1430,6 @@ Foam::distributedTriSurfaceMesh::distributedTriSurfaceMesh
         )
     )
 {
-    if
-    (
-        Pstream::parRun()
-     && (
-            dict_.readOpt() == IOobject::MUST_READ
-         || dict_.readOpt() == IOobject::MUST_READ_IF_MODIFIED
-        )
-     && (
-            regIOobject::fileModificationChecking == timeStampMaster
-         || regIOobject::fileModificationChecking == inotifyMaster
-        )
-    )
-    {
-        FatalErrorIn("Foam::distributedTriSurfaceMesh::read()")
-            << "    distributedTriSurfaceMesh is being constructed\n"
-            << "    using 'timeStampMaster' or 'inotifyMaster.'\n"
-            << "    Modify the entry fileModificationChecking\n"
-            << "    in the etc/controlDict.\n"
-            << "    Use 'timeStamp' instead."
-            << exit(FatalError);
-    }
-
     read();
 
     reduce(bounds().min(), minOp<point>());
@@ -1481,7 +1437,7 @@ Foam::distributedTriSurfaceMesh::distributedTriSurfaceMesh
 
     if (debug)
     {
-        Info<< "Read distributedTriSurface from " << io.objectPath()
+        Info<< "Read distributedTriSurface from " << io.filePath()
             << " and dictionary:" << endl;
         writeStats(Info);
 

@@ -83,7 +83,7 @@ Foam::fieldValue::fieldValue
     sourceName_(dict.lookupOrDefault<word>("sourceName", "sampledSurface")),
     fields_(dict.lookup("fields")),
     valueOutput_(dict.lookup("valueOutput")),
-    resultDict_(fileName("name"), dictionary::null)
+    resultDict_(fileName("name"))
 {
     // Only active if obr is an fvMesh
     if (isA<fvMesh>(obr_))

@@ -57,7 +57,7 @@ Foam::word Foam::solverTemplate::readFromDict
     const word& entryName
 ) const
 {
-    if (!dictHeader.headerOk())
+    if (!dictHeader.typeHeaderOk<IOdictionary>(true))
     {
         FatalErrorIn
         (
@@ -141,7 +141,7 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                 IOobject::NO_WRITE
             );
 
-            if (turbulencePropertiesHeader.headerOk())
+            if (turbulencePropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 const IOdictionary turbulenceProperties
                 (

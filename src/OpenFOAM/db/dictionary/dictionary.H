@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -196,7 +196,7 @@ public:
         dictionary();
 
         //- Construct top-level empty dictionary with given name
-        dictionary(const fileName& name);
+        explicit dictionary(const fileName& name);
 
         //- Construct given the entry name, parent dictionary and Istream,
         //  reading entries until lastEntry or EOF

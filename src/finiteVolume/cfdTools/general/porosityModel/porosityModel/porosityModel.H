@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -263,9 +263,24 @@ public:
         //- Write
         virtual bool writeData(Ostream& os) const;
 
+        //- Is object global
+        virtual bool global() const
+        {
+            return true;
+        }
+
         //- Read porosity dictionary
         virtual bool read(const dictionary& dict);
 };
+
+
+//- Template specialisation for obtaining filePath
+template<>
+inline fileName typeFilePath<porosityModel>(const IOobject& io)
+{
+    return io.globalFilePath(true);
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
