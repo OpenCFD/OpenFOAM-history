@@ -40,8 +40,7 @@ Description
 #include "fvCFD.H"
 #include "CMULES.H"
 #include "subCycle.H"
-#include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
 #include "fvcSmooth.H"
 #include "pimpleControl.H"
@@ -57,6 +56,7 @@ int main(int argc, char *argv[])
     #include "createMesh.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
+    #include "createFvOptions.H"
 
     pimpleControl pimple(mesh);
 
@@ -82,11 +82,11 @@ int main(int argc, char *argv[])
         {
             #include "alphaControls.H"
 
-            twoPhaseProperties.correct();
-
             #define LTSSOLVE
             #include "alphaEqnSubCycle.H"
             #undef LTSSOLVE
+
+            mixture.correct();
 
             turbulence->correct();
 

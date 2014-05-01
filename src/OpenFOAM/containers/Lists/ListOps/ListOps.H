@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -257,6 +257,15 @@ List<Container> initListList(const T[nRows][nColumns]);
 //- Helper class for list to append y onto the end of x
 template<class T>
 class ListAppendEqOp
+{
+public:
+    void operator()(List<T>& x, const List<T>& y) const;
+};
+
+
+//- Helper class for list to append unique elelements of y onto the end of x
+template<class T>
+class ListUniqueEqOp
 {
 public:
     void operator()(List<T>& x, const List<T>& y) const;

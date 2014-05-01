@@ -340,6 +340,17 @@ public:
                 const int tag = UPstream::msgType()
             );
 
+            //- Compact all maps and layout. Returns compaction maps for
+            //  subMap and constructMap
+            void compact
+            (
+                const boolList& elemIsUsed,
+                const label localSize,            // max index for subMap
+                labelList& oldToNewSub,
+                labelList& oldToNewConstruct,
+                const int tag = UPstream::msgType()
+            );
+
             //- Distribute data. Note:schedule only used for Pstream::scheduled
             //  for now, all others just use send-to-all, receive-from-all.
             template<class T, class negateOp>

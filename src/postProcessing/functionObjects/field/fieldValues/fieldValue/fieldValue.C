@@ -43,6 +43,8 @@ void Foam::fieldValue::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         dict_ = dict;
 
         log_ = dict.lookupOrDefault<Switch>("log", true);
@@ -74,36 +76,19 @@ Foam::fieldValue::fieldValue
     const bool loadFromFiles
 )
 :
+    functionObjectState(obr, name),
     functionObjectFile(obr, name, valueType),
-    name_(name),
     obr_(obr),
     dict_(dict),
-    active_(true),
     log_(true),
     sourceName_(dict.lookupOrDefault<word>("sourceName", "sampledSurface")),
     fields_(dict.lookup("fields")),
-    valueOutput_(dict.lookup("valueOutput")),
-    resultDict_(fileName("name"))
+    valueOutput_(dict.lookup("valueOutput"))
 {
     // Only active if obr is an fvMesh
-    if (isA<fvMesh>(obr_))
+    if (setActive<fvMesh>())
     {
         read(dict);
-    }
-    else
-    {
-        WarningIn
-        (
-            "fieldValue::fieldValue"
-            "("
-                "const word&, "
-                "const objectRegistry&, "
-                "const dictionary&, "
-                "const bool"
-            ")"
-        )   << "No fvMesh available, deactivating " << name << nl
-            << endl;
-        active_ = false;
     }
 }
 

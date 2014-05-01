@@ -320,7 +320,7 @@ void Foam::meshRefinement::getBafflePatches
         (
             surfaceZonesInfo::getUnnamedSurfaces(surfaces_.surfZones()),
             neiCc,
-            testFaces,     // testFaces
+            testFaces,
             globalRegion1,
             globalRegion2
         );
@@ -1687,6 +1687,10 @@ void Foam::meshRefinement::findCellZoneInsideWalk
     regionSplit cellRegion(mesh_, blockedFace);
     blockedFace.clear();
 
+    // Mark off which regions correspond to a zone
+    // (note zone is -1 for the non-zoned bit so initialise to -2)
+    labelList regionToZone(cellRegion.nRegions(), -2);
+
 
     // Force calculation of face decomposition (used in findCell)
     (void)mesh_.tetBasePtIs();
@@ -1694,77 +1698,128 @@ void Foam::meshRefinement::findCellZoneInsideWalk
     // For all locationsInMesh find the cell
     forAll(locationsInMesh, i)
     {
-//        const word& czName = zonesInMesh[i];
-//        if (czName != "noneIfNotSet")
+        // Get location and index of zone ("none" for cellZone -1)
+        const point& insidePoint = locationsInMesh[i];
+        label zoneID = mesh_.cellZones().findZoneID(zonesInMesh[i]);
+
+        // Find the region containing the insidePoint
+        label keepRegionI = findRegion
+        (
+            mesh_,
+            cellRegion,
+            mergeDistance_*vector(1,1,1),
+            insidePoint
+        );
+
+        Info<< "For cellZone " << zonesInMesh[i]
+            << " found point " << insidePoint
+            << " in global region " << keepRegionI
+            << " out of " << cellRegion.nRegions() << " regions." << endl;
+
+        if (keepRegionI == -1)
         {
-            // Get location and index of zone ("none" for cellZone -1)
-            const point& insidePoint = locationsInMesh[i];
-            label zoneID = mesh_.cellZones().findZoneID(zonesInMesh[i]);
-
-            // Find the region containing the insidePoint
-            label keepRegionI = findRegion
+            FatalErrorIn
             (
-                mesh_,
-                cellRegion,
-                mergeDistance_*vector(1,1,1),
-                insidePoint
-            );
+                "meshRefinement::findCellZoneInsideWalk"
+                "(const labelList&, const labelList&"
+                ", const labelList&, const labelList&)"
+            )   << "Point " << insidePoint
+                << " is not inside the mesh." << nl
+                << "Bounding box of the mesh:" << mesh_.bounds()
+                << exit(FatalError);
+        }
 
-            Info<< "For cellZone " << zonesInMesh[i]
-                << " found point " << insidePoint
-                << " in global region " << keepRegionI
-                << " out of " << cellRegion.nRegions() << " regions." << endl;
 
-            if (keepRegionI == -1)
+        // Mark correspondence to zone
+        regionToZone[keepRegionI] = zoneID;
+
+
+        // Set all cells with this region to the zoneID
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        label nWarnings = 0;
+
+        forAll(cellRegion, cellI)
+        {
+            if (cellRegion[cellI] == keepRegionI)
             {
-                FatalErrorIn
-                (
-                    "meshRefinement::findCellZoneInsideWalk"
-                    "(const labelList&, const labelList&"
-                    ", const labelList&, const labelList&)"
-                )   << "Point " << insidePoint
-                    << " is not inside the mesh." << nl
-                    << "Bounding box of the mesh:" << mesh_.bounds()
-                    << exit(FatalError);
-            }
-
-            // Set all cells with this region
-            label nWarnings = 0;
-
-            forAll(cellRegion, cellI)
-            {
-                if (cellRegion[cellI] == keepRegionI)
+                if (cellToZone[cellI] == -2)
                 {
-                    if (cellToZone[cellI] == -2)
+                    // First visit of cell
+                    cellToZone[cellI] = zoneID;
+                }
+                else if (cellToZone[cellI] != zoneID)
+                {
+                    if (nWarnings < 10)
                     {
-                        // First visit of cell
-                        cellToZone[cellI] = zoneID;
-                    }
-                    else if (cellToZone[cellI] != zoneID)
-                    {
-                        if (nWarnings < 10)
-                        {
-                            WarningIn
-                            (
-                                "meshRefinement::findCellZoneInsideWalk"
-                                "(const labelList&, const labelList&"
-                                ", const labelList&, const labelList&)"
-                            )   << "Cell " << cellI
-                                << " at " << mesh_.cellCentres()[cellI]
-                                << " is inside cellZone " << zonesInMesh[i]
-                                << " from locationInMesh " << insidePoint
-                                << " but already marked as being in zone "
-                                << mesh_.cellZones()[cellToZone[cellI]].name()
-                                << endl
-                                << "This can happen if your surfaces are not"
-                                << " (sufficiently) closed."
-                                << endl;
-                            nWarnings++;
-                        }
+                        WarningIn
+                        (
+                            "meshRefinement::findCellZoneInsideWalk"
+                            "(const labelList&, const labelList&"
+                            ", const labelList&, const labelList&)"
+                        )   << "Cell " << cellI
+                            << " at " << mesh_.cellCentres()[cellI]
+                            << " is inside cellZone " << zonesInMesh[i]
+                            << " from locationInMesh " << insidePoint
+                            << " but already marked as being in zone "
+                            << mesh_.cellZones()[cellToZone[cellI]].name()
+                            << endl
+                            << "This can happen if your surfaces are not"
+                            << " (sufficiently) closed."
+                            << endl;
+                        nWarnings++;
                     }
                 }
             }
         }
+    }
+
+
+    // Check if any unassigned regions
+    label nUnzoned = 0;
+    forAll(regionToZone, regionI)
+    {
+        if (regionToZone[regionI] == -2)
+        {
+            // region that has not been assigned a cellZone
+            nUnzoned++;
+        }
+    }
+
+    if (nUnzoned > 0)
+    {
+        Info<< "Detected " << nUnzoned << " regions in the mesh that do"
+            << " not have a locationInMesh." << nl
+            << "Per unzoned region displaying a single cell centre:" << endl;
+
+        // Determine single location per unzoned region
+        pointField regionToLocation
+        (
+            regionToZone.size(),
+            point(GREAT, GREAT, GREAT)
+        );
+        forAll(cellRegion, cellI)
+        {
+            label regionI = cellRegion[cellI];
+            if (regionToZone[regionI] == -2)
+            {
+                const point& cc = mesh_.cellCentres()[cellI];
+                minMagSqrEqOp<point>()(regionToLocation[regionI], cc);
+            }
+        }
+
+        Pstream::listCombineGather(regionToLocation, minMagSqrEqOp<point>());
+        Pstream::listCombineScatter(regionToLocation);
+
+        forAll(regionToZone, regionI)
+        {
+            if (regionToZone[regionI] == -2)
+            {
+                Info<< '\t' << regionI
+                    << '\t' << regionToLocation[regionI] << endl;
+            }
+        }
+        Info<< endl;
     }
 }
 
@@ -2995,6 +3050,38 @@ void Foam::meshRefinement::baffleAndSplitMesh
             globalToMasterPatch,
             globalToSlavePatch
         );
+
+        // Removing additional cells might have created disconnected bits
+        // so re-do the surface intersections
+        {
+            // Swap neighbouring cell centres and cell level
+            neiLevel.setSize(mesh_.nFaces()-mesh_.nInternalFaces());
+            neiCc.setSize(mesh_.nFaces()-mesh_.nInternalFaces());
+            calcNeighbourData(neiLevel, neiCc);
+
+            labelList ownPatch, neiPatch;
+            getBafflePatches
+            (
+                globalToMasterPatch,
+
+                locationsInMesh,
+                zonesInMesh,
+
+                neiLevel,
+                neiCc,
+
+                ownPatch,
+                neiPatch
+            );
+
+            createBaffles(ownPatch, neiPatch);
+        }
+
+        if (debug)
+        {
+            // Debug:test all is still synced across proc patches
+            checkData();
+        }
     }
 
 
@@ -3646,7 +3733,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::zonify
 
     // Zone per cell:
     // -2 : unset
-    // -1 : not in any zone
+    // -1 : not in any zone (zone 'none')
     // >=0: zoneID
     labelList cellToZone(mesh_.nCells(), -2);
 
@@ -3991,6 +4078,41 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::zonify
             }
         }
     }
+
+
+
+    //if (debug&MESH)
+    //{
+    //    const_cast<Time&>(mesh_.time())++;
+    //    Pout<< "Writing mesh to time " << timeName() << endl;
+    //    write
+    //    (
+    //        debugType(debug),
+    //        writeType(writeLevel() | WRITEMESH),
+    //        mesh_.time().path()/"cellToZone"
+    //    );
+    //    volScalarField volCellToZone
+    //    (
+    //        IOobject
+    //        (
+    //            "cellToZone",
+    //            mesh_.time().timeName(),
+    //            mesh_,
+    //            IOobject::NO_READ,
+    //            IOobject::AUTO_WRITE,
+    //            false
+    //        ),
+    //        mesh_,
+    //        dimensionedScalar("zero", dimless, 0),
+    //        zeroGradientFvPatchScalarField::typeName
+    //    );
+    //
+    //    forAll(cellToZone, cellI)
+    //    {
+    //        volCellToZone[cellI] = cellToZone[cellI];
+    //    }
+    //    volCellToZone.write();
+    //}
 
 
 

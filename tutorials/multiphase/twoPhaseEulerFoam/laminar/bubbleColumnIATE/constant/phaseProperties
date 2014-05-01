@@ -146,13 +146,13 @@ heatTransfer
     (air in water)
     {
         type            RanzMarshall;
-        residualAlpha   1e-6;
+        residualAlpha   1e-4;
     }
 
     (water in air)
     {
         type            RanzMarshall;
-        residualAlpha   1e-6;
+        residualAlpha   1e-4;
     }
 );
 

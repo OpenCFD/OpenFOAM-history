@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -282,7 +282,7 @@ public:
             ) const;
 
 
-        // Energy->temperature  inversion functions
+        // Energy->temperature inversion functions
 
             //- Temperature from enthalpy or internal energy
             //  given an initial temperature T0

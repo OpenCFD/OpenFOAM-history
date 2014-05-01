@@ -4,7 +4,6 @@ set -x
 
 wmake
 wmake interDyMFoam
-wmake porousInterFoam
 wmake LTSInterFoam
 wmake interMixingFoam
 

@@ -52,15 +52,30 @@ Usage
 
 \*---------------------------------------------------------------------------*/
 
+#include "fvMeshTools.H"
 #include "fvMeshDistribute.H"
+#include "argList.H"
+#include "Time.H"
 #include "fvMesh.H"
 #include "decompositionMethod.H"
+#include "zeroGradientFvPatchFields.H"
+#include "timeSelector.H"
 #include "PstreamReduceOps.H"
-#include "fvCFD.H"
+#include "volFields.H"
+#include "surfaceFields.H"
 #include "IOmapDistributePolyMesh.H"
 #include "IOobjectList.H"
 #include "globalIndex.H"
 #include "loadOrCreateMesh.H"
+
+#include "distributedUnallocatedDirectFieldMapper.H"
+
+#include "parFvFieldReconstructor.H"
+#include "parLagrangianRedistributor.H"
+
+#include "unmappedPassiveParticleCloud.H"
+
+using namespace Foam;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -221,7 +236,7 @@ void writeDecomposition
         IOobject
         (
             "cellDecomposition",
-            mesh.pointsInstance(),  // mesh read from pointsInstance
+            mesh.facesInstance(),  // mesh read from facesInstance
             mesh,
             IOobject::NO_READ,
             IOobject::NO_WRITE,
@@ -255,6 +270,287 @@ void writeDecomposition
         procCells[cI] = decomp[cI];
     }
     procCells.write();
+}
+
+
+void determineDecomposition
+(
+    const Time& baseRunTime,
+    const bool decompose,       // decompose, i.e. read from undecomposed case
+    const fileName& proc0CaseName,
+    const fvMesh& mesh,
+    const bool writeCellDist,
+
+    label& nDestProcs,
+    labelList& decomp
+)
+{
+    // Read decomposeParDict (on all processors)
+    //bool oldParRun = Pstream::parRun();
+    //Pstream::parRun() = false;
+    IOdictionary decompositionDict
+    (
+        IOobject
+        (
+            "decomposeParDict",
+            mesh.time().system(),
+            mesh,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    );
+    //Pstream::parRun() = oldParRun;
+
+
+    // Create decompositionMethod and new decomposition
+    autoPtr<decompositionMethod> decomposer
+    (
+        decompositionMethod::New
+        (
+            decompositionDict
+        )
+    );
+
+    if (!decomposer().parallelAware())
+    {
+        WarningIn("determineDecomposition(..)")
+            << "You have selected decomposition method "
+            << decomposer().typeName
+            << " which does" << endl
+            << "not synchronise the decomposition across"
+            << " processor patches." << endl
+            << "    You might want to select a decomposition method"
+            << " which is aware of this. Continuing."
+            << endl;
+    }
+
+    scalarField cellWeights;
+    if (decompositionDict.found("weightField"))
+    {
+        word weightName = decompositionDict.lookup("weightField");
+
+        volScalarField weights
+        (
+            IOobject
+            (
+                weightName,
+                mesh.time().timeName(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh
+        );
+        cellWeights = weights.internalField();
+    }
+
+    nDestProcs = decomposer().nDomains();
+    decomp = decomposer().decompose(mesh, cellWeights);
+
+    // Dump decomposition to volScalarField
+    if (writeCellDist)
+    {
+        // Note: on master make sure to write to processor0
+        if (decompose)
+        {
+            if (Pstream::master())
+            {
+                Info<< "Setting caseName to " << baseRunTime.caseName()
+                    << " to write undecomposed cellDist" << endl;
+
+                Time& tm = const_cast<Time&>(mesh.time());
+
+                tm.TimePaths::caseName() = baseRunTime.caseName();
+                writeDecomposition("cellDist", mesh, decomp);
+                Info<< "Restoring caseName to " << proc0CaseName << endl;
+                tm.TimePaths::caseName() = proc0CaseName;
+            }
+        }
+        else
+        {
+            writeDecomposition("cellDist", mesh, decomp);
+        }
+    }
+}
+
+
+// Write addressing if decomposing (1 to many) or reconstructing (many to 1)
+void writeProcAddressing
+(
+    const bool decompose,
+    const fileName& meshSubDir,
+    const fvMesh& mesh,
+    const mapDistributePolyMesh& map
+)
+{
+    Info<< "Writing procXXXAddressing files to " << mesh.facesInstance()
+        << endl;
+
+    labelIOList cellMap
+    (
+        IOobject
+        (
+            "cellProcAddressing",
+            mesh.facesInstance(),
+            meshSubDir,
+            mesh,
+            IOobject::NO_READ
+        ),
+        0
+    );
+
+    labelIOList faceMap
+    (
+        IOobject
+        (
+            "faceProcAddressing",
+            mesh.facesInstance(),
+            meshSubDir,
+            mesh,
+            IOobject::NO_READ
+        ),
+        0
+    );
+
+    labelIOList pointMap
+    (
+        IOobject
+        (
+            "pointProcAddressing",
+            mesh.facesInstance(),
+            meshSubDir,
+            mesh,
+            IOobject::NO_READ
+        ),
+        0
+    );
+
+    labelIOList patchMap
+    (
+        IOobject
+        (
+            "boundaryProcAddressing",
+            mesh.facesInstance(),
+            meshSubDir,
+            mesh,
+            IOobject::NO_READ
+        ),
+        0
+    );
+
+    // Decomposing: see how cells moved from undecomposed case
+    if (decompose)
+    {
+        cellMap = identity(map.nOldCells());
+        map.distributeCellData(cellMap);
+
+        faceMap = identity(map.nOldFaces());
+        {
+            const mapDistribute& faceDistMap = map.faceMap();
+
+            if (faceDistMap.subHasFlip() || faceDistMap.constructHasFlip())
+            {
+                // Offset by 1
+                faceMap = faceMap + 1;
+            }
+            // Apply face flips
+            mapDistributeBase::distribute
+            (
+                Pstream::nonBlocking,
+                List<labelPair>(),
+                faceDistMap.constructSize(),
+                faceDistMap.subMap(),
+                faceDistMap.subHasFlip(),
+                faceDistMap.constructMap(),
+                faceDistMap.constructHasFlip(),
+                faceMap,
+                flipLabelOp()
+            );
+        }
+
+        pointMap = identity(map.nOldPoints());
+        map.distributePointData(pointMap);
+
+        patchMap = identity(map.oldPatchSizes().size());
+        const mapDistribute& patchDistMap = map.patchMap();
+        // Use explicit distribute since we need to provide a null value
+        // (for new patches) and this is the only call that allow us to
+        // provide one ...
+        mapDistributeBase::distribute
+        (
+            Pstream::nonBlocking,
+            List<labelPair>(),
+            patchDistMap.constructSize(),
+            patchDistMap.subMap(),
+            patchDistMap.subHasFlip(),
+            patchDistMap.constructMap(),
+            patchDistMap.constructHasFlip(),
+            patchMap,
+            eqOp<label>(),
+            flipOp(),
+            -1,
+            UPstream::msgType()
+        );
+    }
+    else    // if (nDestProcs == 1)
+    {
+        cellMap = identity(mesh.nCells());
+        map.cellMap().reverseDistribute(map.nOldCells(), cellMap);
+
+        faceMap = identity(mesh.nFaces());
+        {
+            const mapDistribute& faceDistMap = map.faceMap();
+
+            if (faceDistMap.subHasFlip() || faceDistMap.constructHasFlip())
+            {
+                // Offset by 1
+                faceMap = faceMap + 1;
+            }
+
+            mapDistributeBase::distribute
+            (
+                Pstream::nonBlocking,
+                List<labelPair>(),
+                map.nOldFaces(),
+                faceDistMap.constructMap(),
+                faceDistMap.constructHasFlip(),
+                faceDistMap.subMap(),
+                faceDistMap.subHasFlip(),
+                faceMap,
+                flipLabelOp()
+            );
+        }
+
+        pointMap = identity(mesh.nPoints());
+        map.pointMap().reverseDistribute(map.nOldPoints(), pointMap);
+
+        const mapDistribute& patchDistMap = map.patchMap();
+        patchMap = identity(mesh.boundaryMesh().size());
+        patchDistMap.reverseDistribute
+        (
+            map.oldPatchSizes().size(),
+            -1,
+            patchMap
+        );
+    }
+
+    bool cellOk = cellMap.write();
+    bool faceOk = faceMap.write();
+    bool pointOk = pointMap.write();
+    bool patchOk = patchMap.write();
+
+    if (!cellOk || !faceOk || !pointOk || !patchOk)
+    {
+        WarningIn
+        (
+            "void writeProcAddressing"
+            "(const bool, const fvMesh&, const mapDistributePolyMesh&)"
+        )   << "Failed to write " << cellMap.objectPath()
+            << ", " << faceMap.objectPath()
+            << ", " << pointMap.objectPath()
+            << ", " << patchMap.objectPath()
+            << endl;
+    }
 }
 
 
@@ -370,62 +666,1321 @@ void readFields
 }
 
 
-// Debugging: compare two fields.
-void compareFields
+template<class GeoField>
+void correctCoupledBoundaryConditions(fvMesh& mesh)
+{
+    HashTable<GeoField*> flds
+    (
+        mesh.objectRegistry::lookupClass<GeoField>()
+    );
+
+    forAllIter(typename HashTable<GeoField*>, flds, iter)
+    {
+        GeoField& fld = *iter();
+        //fld.correctBoundaryConditions();
+
+        typename GeoField::GeometricBoundaryField& bfld =
+            fld.boundaryField();
+        if
+        (
+            Pstream::defaultCommsType == Pstream::blocking
+         || Pstream::defaultCommsType == Pstream::nonBlocking
+        )
+        {
+            label nReq = Pstream::nRequests();
+
+            forAll(bfld, patchi)
+            {
+                if (bfld[patchi].coupled())
+                {
+                    bfld[patchi].initEvaluate(Pstream::defaultCommsType);
+                }
+            }
+
+            // Block for any outstanding requests
+            if
+            (
+                Pstream::parRun()
+             && Pstream::defaultCommsType == Pstream::nonBlocking
+            )
+            {
+                Pstream::waitRequests(nReq);
+            }
+
+            forAll(bfld, patchi)
+            {
+                if (bfld[patchi].coupled())
+                {
+                    bfld[patchi].evaluate(Pstream::defaultCommsType);
+                }
+            }
+        }
+        else if (Pstream::defaultCommsType == Pstream::scheduled)
+        {
+            const lduSchedule& patchSchedule =
+                fld.mesh().globalData().patchSchedule();
+
+            forAll(patchSchedule, patchEvali)
+            {
+                label patchi = patchSchedule[patchEvali].patch;
+                if (bfld[patchi].coupled())
+                {
+                    if (patchSchedule[patchEvali].init)
+                    {
+                        bfld[patchi].initEvaluate(Pstream::scheduled);
+                    }
+                    else
+                    {
+                        bfld[patchi].evaluate(Pstream::scheduled);
+                    }
+                }
+            }
+        }
+        else
+        {
+            FatalErrorIn("correctCoupledBoundaryConditions()")
+                << "Unsuported communications type "
+                << Pstream::commsTypeNames[Pstream::defaultCommsType]
+                << exit(FatalError);
+        }
+    }
+}
+
+
+// Inplace redistribute mesh and any fields
+autoPtr<mapDistributePolyMesh> redistributeAndWrite
 (
+    const Time& baseRunTime,
     const scalar tolDim,
-    const volVectorField& a,
-    const volVectorField& b
+    const boolList& haveMesh,
+    const fileName& meshSubDir,
+    const bool doReadFields,
+    const bool decompose,       // decompose, i.e. read from undecomposed case
+    const bool overwrite,
+    const fileName& proc0CaseName,
+    const label nDestProcs,
+    const labelList& decomp,
+    const fileName& masterInstDir,
+    fvMesh& mesh
 )
 {
-    forAll(a, cellI)
+    Time& runTime = const_cast<Time&>(mesh.time());
+
+
+    //// Print some statistics
+    //Info<< "Before distribution:" << endl;
+    //printMeshData(mesh);
+
+
+    PtrList<volScalarField> volScalarFields;
+    PtrList<volVectorField> volVectorFields;
+    PtrList<volSphericalTensorField> volSphereTensorFields;
+    PtrList<volSymmTensorField> volSymmTensorFields;
+    PtrList<volTensorField> volTensorFields;
+
+    PtrList<surfaceScalarField> surfScalarFields;
+    PtrList<surfaceVectorField> surfVectorFields;
+    PtrList<surfaceSphericalTensorField> surfSphereTensorFields;
+    PtrList<surfaceSymmTensorField> surfSymmTensorFields;
+    PtrList<surfaceTensorField> surfTensorFields;
+
+    PtrList<DimensionedField<scalar, volMesh> > dimScalarFields;
+    PtrList<DimensionedField<vector, volMesh> > dimVectorFields;
+    PtrList<DimensionedField<sphericalTensor, volMesh> > dimSphereTensorFields;
+    PtrList<DimensionedField<symmTensor, volMesh> > dimSymmTensorFields;
+    PtrList<DimensionedField<tensor, volMesh> > dimTensorFields;
+
+
+    if (doReadFields)
     {
-        if (mag(b[cellI] - a[cellI]) > tolDim)
+        // Create 0 sized mesh to do all the generation of zero sized
+        // fields on processors that have zero sized meshes. Note that this is
+        // only nessecary on master but since polyMesh construction with
+        // Pstream::parRun does parallel comms we have to do it on all
+        // processors
+        autoPtr<fvMeshSubset> subsetterPtr;
+
+        const bool allHaveMesh = (findIndex(haveMesh, false) == -1);
+        if (!allHaveMesh)
+        {
+            // Find last non-processor patch.
+            const polyBoundaryMesh& patches = mesh.boundaryMesh();
+
+            label nonProcI = -1;
+
+            forAll(patches, patchI)
+            {
+                if (isA<processorPolyPatch>(patches[patchI]))
+                {
+                    break;
+                }
+                nonProcI++;
+            }
+
+            if (nonProcI == -1)
+            {
+                FatalErrorIn("redistributeAndWrite(..)")
+                    << "Cannot find non-processor patch on processor "
+                    << Pstream::myProcNo() << endl
+                    << " Current patches:" << patches.names()
+                    << abort(FatalError);
+            }
+
+            // Subset 0 cells, no parallel comms. This is used to create
+            // zero-sized fields.
+            subsetterPtr.reset(new fvMeshSubset(mesh));
+            subsetterPtr().setLargeCellSubset(labelHashSet(0), nonProcI, false);
+        }
+
+
+        // Get original objects (before incrementing time!)
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = baseRunTime.caseName();
+        }
+        IOobjectList objects(mesh, runTime.timeName());
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = proc0CaseName;
+        }
+
+        Info<< "From time " << runTime.timeName()
+            << " have objects:" << objects.names() << endl;
+
+        // We don't want to map the decomposition (mapping already tested when
+        // mapping the cell centre field)
+        IOobjectList::iterator iter = objects.find("cellDist");
+        if (iter != objects.end())
+        {
+            objects.erase(iter);
+        }
+
+
+        // volFields
+
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = baseRunTime.caseName();
+        }
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            volScalarFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            volVectorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            volSphereTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            volSymmTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            volTensorFields
+        );
+
+
+        // surfaceFields
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            surfScalarFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            surfVectorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            surfSphereTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            surfSymmTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            surfTensorFields
+        );
+
+
+        // Dimensioned internal fields
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimScalarFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimVectorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimSphereTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimSymmTensorFields
+        );
+
+        readFields
+        (
+            haveMesh,
+            mesh,
+            subsetterPtr,
+            objects,
+            dimTensorFields
+        );
+
+
+
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = proc0CaseName;
+        }
+    }
+
+
+    // Mesh distribution engine
+    fvMeshDistribute distributor(mesh, tolDim);
+
+    // Do all the distribution of mesh and fields
+    autoPtr<mapDistributePolyMesh> rawMap = distributor.distribute(decomp);
+
+    //// Print some statistics
+    //Info<< "After distribution:" << endl;
+    //printMeshData(mesh);
+
+    // Get other side of processor boundaries
+    correctCoupledBoundaryConditions<volScalarField>(mesh);
+    correctCoupledBoundaryConditions<volVectorField>(mesh);
+    correctCoupledBoundaryConditions<volSphericalTensorField>(mesh);
+    correctCoupledBoundaryConditions<volSymmTensorField>(mesh);
+    correctCoupledBoundaryConditions<volTensorField>(mesh);
+    // No update surface fields
+
+
+    // Set the minimum write precision
+    IOstream::defaultPrecision(max(10u, IOstream::defaultPrecision()));
+
+
+    if (!overwrite)
+    {
+        runTime++;
+        mesh.setInstance(runTime.timeName());
+    }
+    else
+    {
+        mesh.setInstance(masterInstDir);
+    }
+
+
+    IOmapDistributePolyMesh map
+    (
+        IOobject
+        (
+            "procAddressing",
+            mesh.facesInstance(),
+            meshSubDir,
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        )
+    );
+    map.transfer(rawMap());
+
+
+    if (nDestProcs == 1)
+    {
+        if (Pstream::master())
+        {
+            Info<< "Setting caseName to " << baseRunTime.caseName()
+                << " to write reconstructed mesh and fields." << endl;
+            runTime.TimePaths::caseName() = baseRunTime.caseName();
+
+            mesh.write();
+
+            // Now we've written all. Reset caseName on master
+            Info<< "Restoring caseName to " << proc0CaseName << endl;
+            runTime.TimePaths::caseName() = proc0CaseName;
+        }
+    }
+    else
+    {
+        mesh.write();
+    }
+    Info<< "Written redistributed mesh to " << mesh.facesInstance() << nl
+        << endl;
+
+
+    if (decompose || nDestProcs == 1)
+    {
+        writeProcAddressing(decompose, meshSubDir, mesh, map);
+    }
+
+
+    return autoPtr<mapDistributePolyMesh>
+    (
+        new mapDistributePolyMesh(map.xfer())
+    );
+}
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// Field Mapping
+//
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+autoPtr<mapDistributePolyMesh> createReconstructMap
+(
+    const autoPtr<fvMesh>& baseMeshPtr,
+    const fvMesh& mesh,
+    const labelList& cellProcAddressing,
+    const labelList& faceProcAddressing,
+    const labelList& pointProcAddressing,
+    const labelList& boundaryProcAddressing
+)
+{
+    // Send addressing to master
+    labelListList cellAddressing(Pstream::nProcs());
+    cellAddressing[Pstream::myProcNo()] = cellProcAddressing;
+    Pstream::gatherList(cellAddressing);
+
+    labelListList faceAddressing(Pstream::nProcs());
+    faceAddressing[Pstream::myProcNo()] = faceProcAddressing;
+    Pstream::gatherList(faceAddressing);
+
+    labelListList pointAddressing(Pstream::nProcs());
+    pointAddressing[Pstream::myProcNo()] = pointProcAddressing;
+    Pstream::gatherList(pointAddressing);
+
+    labelListList boundaryAddressing(Pstream::nProcs());
+    {
+        // Remove -1 entries
+        DynamicList<label> patchProcAddressing(boundaryProcAddressing.size());
+        forAll(boundaryProcAddressing, i)
+        {
+            if (boundaryProcAddressing[i] != -1)
+            {
+                patchProcAddressing.append(boundaryProcAddressing[i]);
+            }
+        }
+        boundaryAddressing[Pstream::myProcNo()] = patchProcAddressing;
+        Pstream::gatherList(boundaryAddressing);
+    }
+
+
+    autoPtr<mapDistributePolyMesh> mapPtr;
+
+    if (baseMeshPtr.valid() && baseMeshPtr().nCells())    //baseMeshPtr.valid())
+    {
+        const fvMesh& baseMesh = baseMeshPtr();
+
+        labelListList cellSubMap(Pstream::nProcs());
+        cellSubMap[Pstream::masterNo()] = identity(mesh.nCells());
+
+        mapDistribute cellMap
+        (
+            baseMesh.nCells(),
+            cellSubMap.xfer(),
+            cellAddressing.xfer()
+        );
+
+        labelListList faceSubMap(Pstream::nProcs());
+        faceSubMap[Pstream::masterNo()] = identity(mesh.nFaces());
+
+        mapDistribute faceMap
+        (
+            baseMesh.nFaces(),
+            faceSubMap.xfer(),
+            faceAddressing.xfer(),
+            false,          //subHasFlip
+            true            //constructHasFlip
+        );
+
+        labelListList pointSubMap(Pstream::nProcs());
+        pointSubMap[Pstream::masterNo()] = identity(mesh.nPoints());
+
+        mapDistribute pointMap
+        (
+            baseMesh.nPoints(),
+            pointSubMap.xfer(),
+            pointAddressing.xfer()
+        );
+
+        labelListList patchSubMap(Pstream::nProcs());
+        // Send (filtered) patches to master
+        patchSubMap[Pstream::masterNo()] =
+            boundaryAddressing[Pstream::myProcNo()];
+
+        mapDistribute patchMap
+        (
+            baseMesh.boundaryMesh().size(),
+            patchSubMap.xfer(),
+            boundaryAddressing.xfer()
+        );
+
+        const label nOldPoints = mesh.nPoints();
+        const label nOldFaces = mesh.nFaces();
+        const label nOldCells = mesh.nCells();
+
+        const polyBoundaryMesh& pbm = mesh.boundaryMesh();
+        labelList oldPatchStarts(pbm.size());
+        labelList oldPatchNMeshPoints(pbm.size());
+        forAll(pbm, patchI)
+        {
+            oldPatchStarts[patchI] = pbm[patchI].start();
+            oldPatchNMeshPoints[patchI] = pbm[patchI].nPoints();
+        }
+
+        mapPtr.reset
+        (
+            new mapDistributePolyMesh
+            (
+                nOldPoints,
+                nOldFaces,
+                nOldCells,
+                oldPatchStarts.xfer(),
+                oldPatchNMeshPoints.xfer(),
+                pointMap.xfer(),
+                faceMap.xfer(),
+                cellMap.xfer(),
+                patchMap.xfer()
+            )
+        );
+    }
+    else
+    {
+        labelListList cellSubMap(Pstream::nProcs());
+        cellSubMap[Pstream::masterNo()] = identity(mesh.nCells());
+        labelListList cellConstructMap(Pstream::nProcs());
+
+        mapDistribute cellMap
+        (
+            0,
+            cellSubMap.xfer(),
+            cellConstructMap.xfer()
+        );
+
+        labelListList faceSubMap(Pstream::nProcs());
+        faceSubMap[Pstream::masterNo()] = identity(mesh.nFaces());
+        labelListList faceConstructMap(Pstream::nProcs());
+
+        mapDistribute faceMap
+        (
+            0,
+            faceSubMap.xfer(),
+            faceConstructMap.xfer(),
+            false,          //subHasFlip
+            true            //constructHasFlip
+        );
+
+        labelListList pointSubMap(Pstream::nProcs());
+        pointSubMap[Pstream::masterNo()] = identity(mesh.nPoints());
+        labelListList pointConstructMap(Pstream::nProcs());
+
+        mapDistribute pointMap
+        (
+            0,
+            pointSubMap.xfer(),
+            pointConstructMap.xfer()
+        );
+
+        labelListList patchSubMap(Pstream::nProcs());
+        // Send (filtered) patches to master
+        patchSubMap[Pstream::masterNo()] =
+            boundaryAddressing[Pstream::myProcNo()];
+        labelListList patchConstructMap(Pstream::nProcs());
+
+        mapDistribute patchMap
+        (
+            0,
+            patchSubMap.xfer(),
+            patchConstructMap.xfer()
+        );
+
+        const label nOldPoints = mesh.nPoints();
+        const label nOldFaces = mesh.nFaces();
+        const label nOldCells = mesh.nCells();
+
+        const polyBoundaryMesh& pbm = mesh.boundaryMesh();
+        labelList oldPatchStarts(pbm.size());
+        labelList oldPatchNMeshPoints(pbm.size());
+        forAll(pbm, patchI)
+        {
+            oldPatchStarts[patchI] = pbm[patchI].start();
+            oldPatchNMeshPoints[patchI] = pbm[patchI].nPoints();
+        }
+
+        mapPtr.reset
+        (
+            new mapDistributePolyMesh
+            (
+                nOldPoints,
+                nOldFaces,
+                nOldCells,
+                oldPatchStarts.xfer(),
+                oldPatchNMeshPoints.xfer(),
+                pointMap.xfer(),
+                faceMap.xfer(),
+                cellMap.xfer(),
+                patchMap.xfer()
+            )
+        );
+    }
+
+    return mapPtr;
+}
+
+
+void readProcAddressing
+(
+    const fvMesh& mesh,
+    const autoPtr<fvMesh>& baseMeshPtr,
+    autoPtr<mapDistributePolyMesh>& distMap
+)
+{
+    //IOobject io
+    //(
+    //    "procAddressing",
+    //    mesh.facesInstance(),
+    //    polyMesh::meshSubDir,
+    //    mesh,
+    //    IOobject::MUST_READ
+    //);
+    //if (io.headerOk())
+    //{
+    //    Pout<< "Reading addressing from " << io.name() << " at "
+    //        << mesh.facesInstance() << nl << endl;
+    //    distMap.clear();
+    //    distMap.reset(new IOmapDistributePolyMesh(io));
+    //}
+    //else
+    {
+        Info<< "Reading addressing from procXXXAddressing at "
+            << mesh.facesInstance() << nl << endl;
+        labelIOList cellProcAddressing
+        (
+            IOobject
+            (
+                "cellProcAddressing",
+                mesh.facesInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
+        );
+        labelIOList faceProcAddressing
+        (
+            IOobject
+            (
+                "faceProcAddressing",
+                mesh.facesInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
+        );
+        labelIOList pointProcAddressing
+        (
+            IOobject
+            (
+                "pointProcAddressing",
+                mesh.facesInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
+        );
+        labelIOList boundaryProcAddressing
+        (
+            IOobject
+            (
+                "boundaryProcAddressing",
+                mesh.facesInstance(),
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::READ_IF_PRESENT
+            ),
+            labelList(0)
+        );
+
+
+        if
+        (
+            mesh.nCells() != cellProcAddressing.size()
+         || mesh.nPoints() != pointProcAddressing.size()
+         || mesh.nFaces() != faceProcAddressing.size()
+        )
         {
             FatalErrorIn
             (
-                "compareFields"
-                "(const scalar, const volVectorField&, const volVectorField&)"
-            )   << "Did not map volVectorField correctly:" << nl
-                << "cell:" << cellI
-                << " transfer b:" << b[cellI]
-                << " real cc:" << a[cellI]
-                << abort(FatalError);
+                "readProcAddressing(const fvMesh&, const autoPtr<fvMesh>&,"
+                "autoPtr<mapDistributePolyMesh>&"
+            )   << "Read addressing inconsistent with mesh sizes" << nl
+                << "cells:" << mesh.nCells()
+                << " addressing:" << cellProcAddressing.objectPath()
+                << " size:" << cellProcAddressing.size() << nl
+                << "faces:" << mesh.nFaces()
+                << " addressing:" << faceProcAddressing.objectPath()
+                << " size:" << faceProcAddressing.size() << nl
+                << "points:" << mesh.nPoints()
+                << " addressing:" << pointProcAddressing.objectPath()
+                << " size:" << pointProcAddressing.size()
+                << exit(FatalError);
+        }
+
+        distMap.clear();
+        distMap = createReconstructMap
+        (
+            baseMeshPtr,
+            mesh,
+            cellProcAddressing,
+            faceProcAddressing,
+            pointProcAddressing,
+            boundaryProcAddressing
+        );
+    }
+}
+
+
+void reconstructMeshFields
+(
+    const parFvFieldReconstructor& fvReconstructor,
+    const IOobjectList& objects,
+    const HashSet<word>& selectedFields
+)
+{
+    // Dimensioned fields
+
+    fvReconstructor.reconstructFvVolumeInternalFields<scalar>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<vector>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<sphericalTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<symmTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeInternalFields<tensor>
+    (
+        objects,
+        selectedFields
+    );
+
+
+    // volFields
+
+    fvReconstructor.reconstructFvVolumeFields<scalar>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<vector>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<sphericalTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<symmTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvVolumeFields<tensor>
+    (
+        objects,
+        selectedFields
+    );
+
+
+    // surfaceFields
+
+    fvReconstructor.reconstructFvSurfaceFields<scalar>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<vector>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<sphericalTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<symmTensor>
+    (
+        objects,
+        selectedFields
+    );
+    fvReconstructor.reconstructFvSurfaceFields<tensor>
+    (
+        objects,
+        selectedFields
+    );
+}
+
+
+void reconstructLagrangian
+(
+    autoPtr<parLagrangianRedistributor>& lagrangianReconstructorPtr,
+    const fvMesh& baseMesh,
+    const fvMesh& mesh,
+    const mapDistributePolyMesh& distMap,
+    const HashSet<word>& selectedLagrangianFields
+)
+{
+    // Clouds (note: might not be present on all processors)
+
+    wordList cloudNames;
+    List<wordList> fieldNames;
+    // Find all cloudNames on all processors
+    parLagrangianRedistributor::findClouds(mesh, cloudNames, fieldNames);
+
+    if (cloudNames.size())
+    {
+        if (!lagrangianReconstructorPtr.valid())
+        {
+            lagrangianReconstructorPtr.reset
+            (
+                new parLagrangianRedistributor
+                (
+                    mesh,
+                    baseMesh,
+                    mesh.nCells(),      // range of cell indices in clouds
+                    distMap
+                )
+            );
+        }
+        const parLagrangianRedistributor& lagrangianReconstructor =
+            lagrangianReconstructorPtr();
+
+        forAll(cloudNames, i)
+        {
+            Info<< "Reconstructing cloud " << cloudNames[i] << endl;
+
+            autoPtr<mapDistributeBase> lagrangianMap =
+            lagrangianReconstructor.redistributeLagrangianPositions
+            (
+                cloudNames[i]
+            );
+            IOobjectList sprayObjs
+            (
+                mesh,
+                mesh.time().timeName(),
+                cloud::prefix/cloudNames[i]
+            );
+
+            lagrangianReconstructor.redistributeLagrangianFields<label>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<label>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<scalar>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<scalar>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<vector>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<vector>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields
+            <sphericalTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields
+            <sphericalTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<symmTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields
+            <symmTensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFields<tensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
+            lagrangianReconstructor.redistributeLagrangianFieldFields<tensor>
+            (
+                lagrangianMap,
+                cloudNames[i],
+                sprayObjs,
+                selectedLagrangianFields
+            );
         }
     }
-    forAll(a.boundaryField(), patchI)
+}
+
+// Read clouds (note: might not be present on all processors)
+void readLagrangian
+(
+    const fvMesh& mesh,
+    const wordList& cloudNames,
+    const HashSet<word>& selectedLagrangianFields,
+    PtrList<unmappedPassiveParticleCloud>& clouds
+)
+{
+    forAll(cloudNames, i)
     {
-        // We have real mesh cellcentre and
-        // mapped original cell centre.
+        //Pout<< "Loading cloud " << cloudNames[i] << endl;
+        clouds.set
+        (
+            i,
+            new unmappedPassiveParticleCloud(mesh, cloudNames[i], false)
+        );
 
-        const fvPatchVectorField& aBoundary =
-            a.boundaryField()[patchI];
 
-        const fvPatchVectorField& bBoundary =
-            b.boundaryField()[patchI];
+        //forAllConstIter
+        //(
+        //    unmappedPassiveParticleCloud,
+        //    clouds[i],
+        //    iter
+        //)
+        //{
+        //    Pout<< "Particle position:" << iter().position()
+        //        << " cell:" << iter().cell()
+        //        << " with cc:" << mesh.cellCentres()[iter().cell()]
+        //        << endl;
+        //}
 
-        if (!bBoundary.coupled())
+
+        IOobjectList sprayObjs(clouds[i], clouds[i].time().timeName());
+
+        //Pout<< "Found clould objects:" << sprayObjs.names() << endl;
+
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<label> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<Field<label> > >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <CompactIOField<Field<label>, label> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+
+
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<scalar> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<Field<scalar> > >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <CompactIOField<Field<scalar>, scalar> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+
+
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<vector> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<Field<vector> > >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <CompactIOField<Field<vector>, vector> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+
+
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<sphericalTensor> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<Field<sphericalTensor> > >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <CompactIOField<Field<sphericalTensor>, sphericalTensor> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+
+
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<symmTensor> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<Field<symmTensor> > >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <CompactIOField<Field<symmTensor>, symmTensor> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+
+
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<tensor> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <IOField<Field<tensor> > >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+        parLagrangianRedistributor::readLagrangianFields
+        <CompactIOField<Field<tensor>, tensor> >
+        (
+            clouds[i],
+            sprayObjs,
+            selectedLagrangianFields
+        );
+    }
+}
+
+
+void redistributeLagrangian
+(
+    autoPtr<parLagrangianRedistributor>& lagrangianReconstructorPtr,
+    const fvMesh& mesh,
+    const label nOldCells,
+    const mapDistributePolyMesh& distMap,
+    PtrList<unmappedPassiveParticleCloud>& clouds
+)
+{
+    if (clouds.size())
+    {
+        if (!lagrangianReconstructorPtr.valid())
         {
-            forAll(aBoundary, i)
-            {
-                if (mag(aBoundary[i] - bBoundary[i]) > tolDim)
-                {
-                    WarningIn
-                    (
-                        "compareFields"
-                        "(const scalar, const volVectorField&"
-                        ", const volVectorField&)"
-                    )   << "Did not map volVectorField correctly:"
-                        << endl
-                        << "patch:" << patchI << " patchFace:" << i
-                        << " cc:" << endl
-                        << "    real    :" << aBoundary[i] << endl
-                        << "    mapped  :" << bBoundary[i] << endl
-                        << "This might be just a precision entry"
-                        << " on writing the mesh." << endl;
-                        //<< abort(FatalError);
-                }
-            }
+            lagrangianReconstructorPtr.reset
+            (
+                new parLagrangianRedistributor
+                (
+                    mesh,
+                    mesh,
+                    nOldCells,  // range of cell indices in clouds
+                    distMap
+                )
+            );
+        }
+        const parLagrangianRedistributor& distributor =
+            lagrangianReconstructorPtr();
+
+        forAll(clouds, i)
+        {
+            autoPtr<mapDistributeBase> lagrangianMap =
+            distributor.redistributeLagrangianPositions(clouds[i]);
+
+            distributor.redistributeStoredLagrangianFields
+            <IOField<label> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <IOField<Field<label> > >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <CompactIOField<Field<label>, label> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+
+
+            distributor.redistributeStoredLagrangianFields
+            <IOField<scalar> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <IOField<Field<scalar> > >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <CompactIOField<Field<scalar>, scalar> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+
+
+            distributor.redistributeStoredLagrangianFields
+            <IOField<vector> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <IOField<Field<vector> > >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <CompactIOField<Field<vector>, vector> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+
+
+            distributor.redistributeStoredLagrangianFields
+            <IOField<sphericalTensor> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <IOField<Field<sphericalTensor> > >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <CompactIOField<Field<sphericalTensor>, sphericalTensor> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+
+
+            distributor.redistributeStoredLagrangianFields
+            <IOField<symmTensor> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <IOField<Field<symmTensor> > >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <CompactIOField<Field<symmTensor>, symmTensor> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+
+
+            distributor.redistributeStoredLagrangianFields
+            <IOField<tensor> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <IOField<Field<tensor> > >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
+            distributor.redistributeStoredLagrangianFields
+            <CompactIOField<Field<tensor>, tensor> >
+            (
+                lagrangianMap,
+                clouds[i]
+            );
         }
     }
 }
@@ -433,6 +1988,9 @@ void compareFields
 
 int main(int argc, char *argv[])
 {
+    // enable -constant ... if someone really wants it
+    // enable -zeroTime to prevent accidentally trashing the initial fields
+    timeSelector::addOptions(true, true);
 #   include "addRegionOption.H"
 #   include "addOverwriteOption.H"
     argList::addBoolOption("decompose", "decompose case");
@@ -462,6 +2020,11 @@ int main(int argc, char *argv[])
     bool overwrite = args.optionFound("overwrite");
     bool writeCellDist = args.optionFound("cellDist");
 
+
+    const HashSet<word> selectedFields(0);
+    const HashSet<word> selectedLagrangianFields(0);
+
+
     if (decompose)
     {
         Info<< "Decomposing case (like decomposePar)" << nl << endl;
@@ -490,36 +2053,79 @@ int main(int argc, char *argv[])
     }
 
 
+    if (!Pstream::parRun())
+    {
+        FatalErrorIn(args.executable())
+            << ": This utility can only be run parallel"
+            << exit(FatalError);
+    }
+
 
     if (!isDir(args.rootPath()))
     {
-        FatalError
-            << args.executable()
+        FatalErrorIn(args.executable())
             << ": cannot open root directory " << args.rootPath()
             << exit(FatalError);
     }
 
-    if (decompose && isDir(args.path()))
+    if (isDir(args.path()))
     {
-        Info<< "Removing existing processor directories" << endl;
-        rmDir(args.path());
+        if (decompose)
+        {
+            Info<< "Removing existing processor directories" << endl;
+            rmDir(args.path());
+        }
     }
+    else
+    {
+        // Directory does not exist. If this happens on master -> decompose mode
+        decompose = true;
+        Info<< "No processor directories; switching on decompose mode"
+            << nl << endl;
+    }
+    // If master changed to decompose mode make sure all nodes know about
+    // it
+    Pstream::scatter(decompose);
+
 
 
     // Construct time
     // ~~~~~~~~~~~~~~
 
-    // Make sure we do not use the master-only reading so it reads from
-    // undecomposed case
+    // Switch off master-only reading. The system/controlDict
+    // itself is ok but the uniform/time directory is not ok
     regIOobject::fileModificationChecking = regIOobject::timeStamp;
-    // Switch off any reductions if not all processors have same time
-    // (time set later on)
-    bool oldParRun = Pstream::parRun();
+
+    // Switch off any reductions since if there are some processors without
+    // time directories they will read the undecomposed one and if you've
+    // selected latestTime you will have different times on different processors
+    // (Note: time set later on)
+    const bool oldParRun = Pstream::parRun();
     Pstream::parRun() = false;
+
 #   include "createTime.H"
     Pstream::parRun() = oldParRun;
     runTime.functionObjects().off();
 
+
+    // Save local processor0 casename
+    const fileName proc0CaseName = runTime.caseName();
+
+
+    // Construct undecomposed Time
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // This will read the same controlDict but might have a different
+    // set of times so e.g. latestTime will work
+    Info<< "Create undecomposed database"<< nl << endl;
+    Time baseRunTime
+    (
+        runTime.controlDict(),
+        runTime.rootPath(),
+        runTime.globalCaseName(),
+        runTime.system(),
+        runTime.constant(),
+        false                   // enableFunctionObjects
+    );
 
 
 
@@ -539,623 +2145,488 @@ int main(int argc, char *argv[])
 
 
 
-    // Create any processor directories that do not exist
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Special handling for the master to force it reading from the
-    // undecomposed case
+    // Demand driven lagrangian mapper
+    autoPtr<parLagrangianRedistributor> lagrangianReconstructorPtr;
 
-    // Saved casename on master
-    fileName masterCaseName;
 
-    // Time coming from processor0 (or undecomposed if no processor0)
-    scalar masterTime = runTime.value();
-    if (!isDir(args.path()))
+
+    if (reconstruct)
     {
-        if (Pstream::master())
+        // use the times list from the master processor
+        // and select a subset based on the command-line options
+        instantList timeDirs = timeSelector::select(runTime.times(), args);
+        Pstream::scatter(timeDirs);
+
+        if (timeDirs.empty())
         {
-            // No processor0 -> decompose mode
-            decompose = true;
+            FatalErrorIn(args.executable())
+                << "No times selected"
+                << exit(FatalError);
+        }
 
-            // Read parent controlDict (just so we get the correct time).
-            // Switch off parallel comms since
-            // time construction does reduction on time being equal on all procs
-            bool oldParRun = Pstream::parRun();
-            Pstream::parRun() = false;
-            Time baseRunTime
+
+        // Pass1 : reconstruct mesh and addressing
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+        Info<< nl
+            << "Pass1 : reconstructing mesh and addressing" << nl << endl;
+
+        // Loop over all times
+        forAll(timeDirs, timeI)
+        {
+            // Set time for global database
+            runTime.setTime(timeDirs[timeI], timeI);
+            baseRunTime.setTime(timeDirs[timeI], timeI);
+
+            Info<< "Time = " << runTime.timeName() << endl << endl;
+
+
+            // See where the mesh is
+            fileName facesInstance = runTime.findInstance
             (
-                runTime.controlDict(),
-                runTime.rootPath(),
-                runTime.globalCaseName(),
-                runTime.system(),
-                runTime.constant(),
-                false                   // enableFunctionObjects
+                meshSubDir,
+                "faces",
+                IOobject::READ_IF_PRESENT
             );
-            Pstream::parRun() = oldParRun;
+            //Pout<< "facesInstance:" << facesInstance << endl;
 
+            Pstream::scatter(facesInstance);
+
+            // Check who has a mesh
+            const fileName meshPath =
+                runTime.path()/facesInstance/meshSubDir/"faces";
+
+            Info<< "Checking for mesh in " << meshPath << nl << endl;
+
+            boolList haveMesh(Pstream::nProcs(), false);
+            haveMesh[Pstream::myProcNo()] = isFile(meshPath);
+            Pstream::gatherList(haveMesh);
+            Pstream::scatterList(haveMesh);
+            Info<< "Per processor mesh availability : " << haveMesh << endl;
+
+
+            // Addressing back to reconstructed mesh as xxxProcAddressing.
+            // - all processors have consistent faceProcAddressing
+            // - processors with no mesh don't need faceProcAddressing
+
+
+            IOobject faceIO
+            (
+                "faceProcAddressing",
+                facesInstance,
+                meshSubDir,
+                runTime,
+                IOobject::READ_IF_PRESENT
+            );
+            // Note: filePath searches up on processors that don't have
+            //       processor if instance = constant so explicitly check found
+            //       filename.
+            bool haveAddressing = false;
+            if (haveMesh[Pstream::myProcNo()])
+            {
+                const fileName fName = faceIO.filePath();
+                haveAddressing =
+                (
+                    fName.size()
+                 && fName == faceIO.objectPath()
+                 && faceIO.headerOk()
+                );
+            }
+            else
+            {
+                // Have no mesh. Don't need addressing
+                haveAddressing = true;
+            }
+
+            if (!returnReduce(haveAddressing, andOp<bool>()))
+            {
+                Info<< "loading mesh from " << facesInstance << endl;
+                autoPtr<fvMesh> meshPtr = loadOrCreateMesh
+                (
+                    IOobject
+                    (
+                        regionName,
+                        facesInstance,
+                        runTime,
+                        Foam::IOobject::MUST_READ
+                    )
+                );
+                fvMesh& mesh = meshPtr();
+
+                // Global matching tolerance
+                const scalar tolDim = getMergeDistance
+                (
+                    args,
+                    runTime,
+                    mesh.bounds()
+                );
+
+
+                // Determine decomposition
+                // ~~~~~~~~~~~~~~~~~~~~~~~
+
+                Info<< "Reconstructing mesh for time " << facesInstance << endl;
+
+                label nDestProcs = 1;
+                labelList finalDecomp = labelList(mesh.nCells(), 0);
+
+                redistributeAndWrite
+                (
+                    baseRunTime,
+                    tolDim,
+                    haveMesh,
+                    meshSubDir,
+                    false,      // do not read fields
+                    false,      // decompose, i.e. read from undecomposed case
+                    overwrite,
+                    proc0CaseName,
+                    nDestProcs,
+                    finalDecomp,
+                    facesInstance,
+                    mesh
+                );
+            }
+        }
+
+
+        // Pass2 : read mesh and addressing and reconstruct fields
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        Info<< nl
+            << "Pass2 : reconstructing fields" << nl << endl;
+
+        runTime.setTime(timeDirs[0], 0);
+        baseRunTime.setTime(timeDirs[0], 0);
+        Info<< "Time = " << runTime.timeName() << endl << endl;
+
+
+        Info<< "Reading undecomposed mesh (on master)" << endl;
+        autoPtr<fvMesh> baseMeshPtr = fvMeshTools::newMesh
+        (
+            IOobject
+            (
+                regionName,
+                baseRunTime.timeName(),
+                baseRunTime,
+                IOobject::MUST_READ
+            ),
+            true            // read on master only
+        );
+        const fvMesh& baseMesh = baseMeshPtr();
+
+        Info<< "Reading local, decomposed mesh" << endl;
+        autoPtr<fvMesh> meshPtr = loadOrCreateMesh
+        (
+            IOobject
+            (
+                regionName,
+                baseMesh.facesInstance(),
+                runTime,
+                Foam::IOobject::MUST_READ
+            )
+        );
+        fvMesh& mesh = meshPtr();
+
+
+        // Read addressing back to base mesh
+        autoPtr<mapDistributePolyMesh> distMap;
+        readProcAddressing(mesh, baseMeshPtr, distMap);
+
+        // Construct field mapper
+        autoPtr<parFvFieldReconstructor> fvReconstructorPtr
+        (
+            new parFvFieldReconstructor
+            (
+                baseMesh,
+                mesh,
+                distMap,
+                Pstream::master()       // do I need to write?
+            )
+        );
+
+        // Loop over all times
+        forAll(timeDirs, timeI)
+        {
+            // Set time for global database
+            runTime.setTime(timeDirs[timeI], timeI);
+            baseRunTime.setTime(timeDirs[timeI], timeI);
+
+            Info<< "Time = " << runTime.timeName() << endl << endl;
+
+
+            // Check if any new meshes need to be read.
+            fvMesh::readUpdateState procStat = mesh.readUpdate();
+
+            if (procStat == fvMesh::POINTS_MOVED)
+            {
+                // Reconstruct the points for moving mesh cases and write
+                // them out
+                distributedUnallocatedDirectFieldMapper mapper
+                (
+                    labelUList::null(),
+                    distMap().pointMap()
+                );
+                pointField basePoints(mesh.points(), mapper);
+                if (baseMeshPtr.valid())
+                {
+                    fvMesh& baseMesh = baseMeshPtr();
+                    baseMesh.movePoints(basePoints);
+                    baseMesh.write();
+                }
+            }
+            else if
+            (
+                procStat == fvMesh::TOPO_CHANGE
+             || procStat == fvMesh::TOPO_PATCH_CHANGE
+            )
+            {
+                // Re-read procXXXaddressing
+                readProcAddressing(mesh, baseMeshPtr, distMap);
+
+                // Reset field mapper
+                fvReconstructorPtr.reset
+                (
+                    new parFvFieldReconstructor
+                    (
+                        baseMesh,
+                        mesh,
+                        distMap,
+                        Pstream::master()
+                    )
+                );
+                lagrangianReconstructorPtr.clear();
+            }
+
+            // readUpdate baseMesh
+            if (baseMeshPtr.valid())
+            {
+                const label nProcs = UPstream::nProcs();
+                UPstream::setParRun(0);
+
+                fvMesh& baseMesh = baseMeshPtr();
+                fvMesh::readUpdateState meshStat = baseMesh.readUpdate();
+
+                UPstream::setParRun(nProcs);
+
+                if (meshStat != procStat)
+                {
+                    WarningIn(args.executable())
+                        << "readUpdate for the reconstructed mesh:"
+                        << meshStat << nl
+                        << "readUpdate for the processor meshes  :"
+                        << procStat << nl
+                        << "These should be equal or your addressing"
+                        << " might be incorrect."
+                        << " Please check your time directories for any "
+                        << "mesh directories." << endl;
+                }
+            }
+
+            // Get list of objects
+            IOobjectList objects(mesh, runTime.timeName());
+
+
+            // Mesh fields (vol, surface, volInternal)
+            reconstructMeshFields
+            (
+                fvReconstructorPtr(),
+                objects,
+                selectedFields
+            );
+
+            // Clouds (note: might not be present on all processors)
+            reconstructLagrangian
+            (
+                lagrangianReconstructorPtr,
+                baseMesh,
+                mesh,
+                distMap,
+                selectedLagrangianFields
+            );
+        }
+    }
+    else
+    {
+        // Time coming from processor0 (or undecomposed if no processor0)
+        scalar masterTime = runTime.value();
+        if (decompose)
+        {
             // Copy base time. This is to handle e.g. startTime = latestTime
             // which will not do anything if there are no processor directories
             masterTime = baseRunTime.value();
-
-            Info<< "Setting caseName to " << runTime.globalCaseName()
-                << " to read undecomposed mesh and fields." << endl;
-            masterCaseName = runTime.caseName();
-            runTime.TimePaths::caseName() = runTime.globalCaseName();
         }
-        else
-        {
-            // Create slave directory if non-existing
-            mkDir(args.path());
-        }
-    }
-
-    // decompose option possibly switched on if no processor0 detected
-    Pstream::scatter(decompose);
-
-
-    Info<< "Setting time to that of master or undecomposed case : "
-        << masterTime
-        << endl;
-    Pstream::scatter(masterTime);
-    runTime.setTime(masterTime, 0);
-
-
-    Info<< "Time = " << runTime.timeName() << endl;
-
-
-
-    // Get time instance directory
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // At this point we should be able to read at least a mesh on
-    // processor0 (since caseName was changed to point to it)
-
-    fileName masterInstDir;
-    if (Pstream::master())
-    {
-        masterInstDir = runTime.findInstance
-        (
-            meshSubDir,
-            "points",
-            IOobject::READ_IF_PRESENT
-        );
-    }
-    Pstream::scatter(masterInstDir);
-
-    // Check who has a mesh
-    const fileName meshPath = runTime.path()/masterInstDir/meshSubDir;
-
-    Info<< "Found points in " << runTime.caseName()/masterInstDir/meshSubDir
-        << nl << endl;
-
-
-    boolList haveMesh(Pstream::nProcs(), false);
-    haveMesh[Pstream::myProcNo()] = isDir(meshPath);
-    Pstream::gatherList(haveMesh);
-    Pstream::scatterList(haveMesh);
-    Info<< "Per processor mesh availability : " << haveMesh << endl;
-    const bool allHaveMesh = (findIndex(haveMesh, false) == -1);
-
-
-    // Load mesh (or create dummy one)
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    autoPtr<fvMesh> meshPtr = loadOrCreateMesh
-    (
-        IOobject
-        (
-            regionName,
-            masterInstDir,
-            runTime,
-            Foam::IOobject::MUST_READ
-        )
-    );
-
-    fvMesh& mesh = meshPtr();
-
-    // Print some statistics
-    Info<< "Before distribution:" << endl;
-    printMeshData(mesh);
-
-
-    // Determine decomposition
-    // ~~~~~~~~~~~~~~~~~~~~~~~
-
-    labelList finalDecomp;
-    label nDestProcs;
-    {
-        if (reconstruct)
-        {
-            // Move all to master processor
-            finalDecomp = labelList(mesh.nCells(), 0);
-            nDestProcs = 1;
-        }
-        else
-        {
-            // Read decomposeParDict (on all processors)
-            bool oldParRun = Pstream::parRun();
-            Pstream::parRun() = false;
-            IOdictionary decompositionDict
-            (
-                IOobject
-                (
-                    "decomposeParDict",
-                    runTime.system(),
-                    mesh,
-                    IOobject::MUST_READ_IF_MODIFIED,
-                    IOobject::NO_WRITE
-                )
-            );
-            Pstream::parRun() = oldParRun;
-
-
-            // Create decompositionMethod and new decomposition
-            autoPtr<decompositionMethod> decomposer
-            (
-                decompositionMethod::New
-                (
-                    decompositionDict
-                )
-            );
-
-            if (!decomposer().parallelAware())
-            {
-                WarningIn(args.executable())
-                    << "You have selected decomposition method "
-                    << decomposer().typeName
-                    << " which does" << endl
-                    << "not synchronise the decomposition across"
-                    << " processor patches." << endl
-                    << "    You might want to select a decomposition method"
-                    << " which is aware of this. Continuing."
-                    << endl;
-            }
-
-            finalDecomp = decomposer().decompose(mesh, mesh.cellCentres());
-            nDestProcs = decomposer().nDomains();
-
-            // Dump decomposition to volScalarField
-            if (writeCellDist)
-            {
-                // Note: on master make sure to write to processor0
-                const fileName oldCaseName(runTime.TimePaths::caseName());
-                if (Pstream::master() && masterCaseName.size())
-                {
-                    runTime.TimePaths::caseName() = masterCaseName;
-                }
-                writeDecomposition("cellDist", mesh, finalDecomp);
-                runTime.TimePaths::caseName() = oldCaseName;
-            }
-        }
-    }
-
-
-
-    // Create 0 sized mesh to do all the generation of zero sized
-    // fields on processors that have zero sized meshes. Note that this is
-    // only nessecary on master but since polyMesh construction with
-    // Pstream::parRun does parallel comms we have to do it on all
-    // processors
-    autoPtr<fvMeshSubset> subsetterPtr;
-
-    if (!allHaveMesh)
-    {
-        // Find last non-processor patch.
-        const polyBoundaryMesh& patches = mesh.boundaryMesh();
-
-        label nonProcI = -1;
-
-        forAll(patches, patchI)
-        {
-            if (isA<processorPolyPatch>(patches[patchI]))
-            {
-                break;
-            }
-            nonProcI++;
-        }
-
-        if (nonProcI == -1)
-        {
-            FatalErrorIn(args.executable())
-                << "Cannot find non-processor patch on processor "
-                << Pstream::myProcNo() << endl
-                << " Current patches:" << patches.names() << abort(FatalError);
-        }
-
-        // Subset 0 cells, no parallel comms. This is used to create zero-sized
-        // fields.
-        subsetterPtr.reset(new fvMeshSubset(mesh));
-        subsetterPtr().setLargeCellSubset(labelHashSet(0), nonProcI, false);
-    }
-
-
-    // Get original objects (before incrementing time!)
-    IOobjectList objects(mesh, runTime.timeName());
-
-    Info<< "From time " << runTime.timeName()
-        << " have objects:" << objects.names() << endl;
-
-    // We don't want to map the decomposition (mapping already tested when
-    // mapping the cell centre field)
-    IOobjectList::iterator iter = objects.find("cellDist");
-    if (iter != objects.end())
-    {
-        objects.erase(iter);
-    }
-
-
-    // volFields
-
-    PtrList<volScalarField> volScalarFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        volScalarFields
-    );
-
-    PtrList<volVectorField> volVectorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        volVectorFields
-    );
-
-    PtrList<volSphericalTensorField> volSphereTensorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        volSphereTensorFields
-    );
-
-    PtrList<volSymmTensorField> volSymmTensorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        volSymmTensorFields
-    );
-
-    PtrList<volTensorField> volTensorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        volTensorFields
-    );
-
-
-    // surfaceFields
-
-    PtrList<surfaceScalarField> surfScalarFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        surfScalarFields
-    );
-
-    PtrList<surfaceVectorField> surfVectorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        surfVectorFields
-    );
-
-    PtrList<surfaceSphericalTensorField> surfSphereTensorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        surfSphereTensorFields
-    );
-
-    PtrList<surfaceSymmTensorField> surfSymmTensorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        surfSymmTensorFields
-    );
-
-    PtrList<surfaceTensorField> surfTensorFields;
-    readFields
-    (
-        haveMesh,
-        mesh,
-        subsetterPtr,
-        objects,
-        surfTensorFields
-    );
-
-
-    // Now we've read all. Reset caseName on master
-    if (Pstream::master() && masterCaseName.size())
-    {
-        Info<< "Restoring caseName to " << masterCaseName << endl;
-        runTime.TimePaths::caseName() = masterCaseName;
-        masterCaseName.clear();
-    }
-
-    // Debugging: Create additional volField that will be mapped.
-    // Used to test correctness of mapping
-    //volVectorField mapCc("mapCc", 1*mesh.C());
-
-    // Global matching tolerance
-    const scalar tolDim = getMergeDistance
-    (
-        args,
-        runTime,
-        mesh.bounds()
-    );
-
-    // Mesh distribution engine
-    fvMeshDistribute distributor(mesh, tolDim);
-
-    //Pout<< "Wanted distribution:"
-    //    << distributor.countCells(finalDecomp) << nl << endl;
-
-    IOmapDistributePolyMesh map
-    (
-        IOobject
-        (
-            "procAddressing",
-            mesh.facesInstance(),
-            polyMesh::meshSubDir,
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        )
-    );
-    {
-        // Do actual sending/receiving of mesh
-        autoPtr<mapDistributePolyMesh> rawMap = distributor.distribute
-        (
-            finalDecomp
-        );
-        map.transfer(rawMap());
-    }
-
-
-    //// Distribute any non-registered data accordingly
-    //map.distributeFaceData(faceCc);
-
-
-    // Print some statistics
-    Info<< "After distribution:" << endl;
-    printMeshData(mesh);
-
-
-    // Set the minimum write precision
-    IOstream::defaultPrecision(max(10u, IOstream::defaultPrecision()));
-
-
-    if (!overwrite)
-    {
-        runTime++;
-        mesh.setInstance(runTime.timeName());
-    }
-    else
-    {
-        mesh.setInstance(masterInstDir);
-    }
-
-
-    if (nDestProcs == 1)
-    {
+        Pstream::scatter(masterTime);
+        Info<< "Setting time to that of master or undecomposed case : "
+            << masterTime << endl;
+        runTime.setTime(masterTime, 0);
+
+
+        // Get time instance directory
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // At this point we should be able to read at least a mesh on
+        // processor0. Note the changing of the processor0 casename to
+        // enforce it to read/write from the undecomposed case
+
+        fileName masterInstDir;
         if (Pstream::master())
         {
-            Info<< "Setting caseName to " << runTime.globalCaseName()
-                << " to write reconstructed mesh and fields." << endl;
-            fileName masterCaseName = runTime.caseName();
-            runTime.TimePaths::caseName() = runTime.globalCaseName();
-
-            mesh.write();
-
-            // Now we've written all. Reset caseName on master
-            Info<< "Restoring caseName to " << masterCaseName << endl;
-            runTime.TimePaths::caseName() = masterCaseName;
-        }
-    }
-    else
-    {
-        mesh.write();
-    }
-    Info<< "Written redistributed mesh to " << mesh.pointsInstance() << nl
-        << endl;
-
-
-    if (decompose || nDestProcs == 1)
-    {
-        Info<< "Writing procXXXAddressing files to " << mesh.facesInstance()
-            << endl;
-
-        labelIOList cellMap
-        (
-            IOobject
-            (
-                "cellProcAddressing",
-                mesh.facesInstance(),
-                polyMesh::meshSubDir,
-                mesh,
-                IOobject::NO_READ
-            ),
-            0
-        );
-
-        labelIOList faceMap
-        (
-            IOobject
-            (
-                "faceProcAddressing",
-                mesh.facesInstance(),
-                polyMesh::meshSubDir,
-                mesh,
-                IOobject::NO_READ
-            ),
-            0
-        );
-
-        labelIOList pointMap
-        (
-            IOobject
-            (
-                "pointProcAddressing",
-                mesh.pointsInstance(),
-                polyMesh::meshSubDir,
-                mesh,
-                IOobject::NO_READ
-            ),
-            0
-        );
-
-        labelIOList patchMap
-        (
-            IOobject
-            (
-                "boundaryProcAddressing",
-                mesh.pointsInstance(),
-                polyMesh::meshSubDir,
-                mesh,
-                IOobject::NO_READ
-            ),
-            0
-        );
-
-        // Decomposing: see how cells moved from undecomposed case
-        if (decompose)
-        {
-            cellMap = identity(map.nOldCells());
-            map.distributeCellData(cellMap);
-
-            faceMap = identity(map.nOldFaces());
+            if (decompose)
             {
-                const mapDistribute& faceDistMap = map.faceMap();
-
-                if (faceDistMap.subHasFlip() || faceDistMap.constructHasFlip())
-                {
-                    // Offset by 1
-                    faceMap = faceMap + 1;
-                }
-                // Apply face flips
-                mapDistributeBase::distribute
-                (
-                    Pstream::nonBlocking,
-                    List<labelPair>(),
-                    faceDistMap.constructSize(),
-                    faceDistMap.subMap(),
-                    faceDistMap.subHasFlip(),
-                    faceDistMap.constructMap(),
-                    faceDistMap.constructHasFlip(),
-                    faceMap,
-                    flipLabelOp()
-                );
+                Info<< "Setting caseName to " << baseRunTime.caseName()
+                    << " to find undecomposed mesh" << endl;
+                runTime.TimePaths::caseName() = baseRunTime.caseName();
             }
 
-            pointMap = identity(map.nOldPoints());
-            map.distributePointData(pointMap);
-
-            patchMap = identity(map.oldPatchSizes().size());
-            const mapDistribute& patchDistMap = map.patchMap();
-            // Use explicit distribute since we need to provide a null value
-            // (for new patches) and this is the only call that allow us to
-            // provide one ...
-            mapDistributeBase::distribute
+            masterInstDir = runTime.findInstance
             (
-                Pstream::nonBlocking,
-                List<labelPair>(),
-                patchDistMap.constructSize(),
-                patchDistMap.subMap(),
-                patchDistMap.subHasFlip(),
-                patchDistMap.constructMap(),
-                patchDistMap.constructHasFlip(),
-                patchMap,
-                eqOp<label>(),
-                flipOp(),
-                -1,
-                UPstream::msgType()
+                meshSubDir,
+                "faces",
+                IOobject::READ_IF_PRESENT
             );
-        }
-        else if (nDestProcs == 1)
-        {
-            cellMap = identity(mesh.nCells());
-            map.cellMap().reverseDistribute(map.nOldCells(), cellMap);
 
-            faceMap = identity(mesh.nFaces());
+            if (decompose)
             {
-                const mapDistribute& faceDistMap = map.faceMap();
-
-                if (faceDistMap.subHasFlip() || faceDistMap.constructHasFlip())
-                {
-                    // Offset by 1
-                    faceMap = faceMap + 1;
-                }
-
-                mapDistributeBase::distribute
-                (
-                    Pstream::nonBlocking,
-                    List<labelPair>(),
-                    map.nOldFaces(),
-                    faceDistMap.constructMap(),
-                    faceDistMap.constructHasFlip(),
-                    faceDistMap.subMap(),
-                    faceDistMap.subHasFlip(),
-                    faceMap,
-                    flipLabelOp()
-                );
+                Info<< "Restoring caseName to " << proc0CaseName << endl;
+                runTime.TimePaths::caseName() = proc0CaseName;
             }
-
-            pointMap = identity(mesh.nPoints());
-            map.pointMap().reverseDistribute(map.nOldPoints(), pointMap);
-
-            const mapDistribute& patchDistMap = map.patchMap();
-            patchMap = identity(mesh.boundaryMesh().size());
-            patchDistMap.reverseDistribute
-            (
-                map.oldPatchSizes().size(),
-                -1,
-                patchMap
-            );
         }
+        Pstream::scatter(masterInstDir);
 
-        bool cellOk = cellMap.write();
-        bool faceOk = faceMap.write();
-        bool pointOk = pointMap.write();
-        bool patchOk = patchMap.write();
-        if (!cellOk || !faceOk || !pointOk || !patchOk)
+        // Check who has a mesh
+        const fileName meshPath =
+            runTime.path()/masterInstDir/meshSubDir/"faces";
+
+        Info<< "Checking for mesh in " << meshPath << nl << endl;
+
+
+        boolList haveMesh(Pstream::nProcs(), false);
+        haveMesh[Pstream::myProcNo()] = isFile(meshPath);
+        Pstream::gatherList(haveMesh);
+        Pstream::scatterList(haveMesh);
+        Info<< "Per processor mesh availability : " << haveMesh << endl;
+
+        // Load mesh (or create dummy one)
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        if (Pstream::master() && decompose)
         {
-            WarningIn(args.executable())
-                << "Failed to write " << cellMap.objectPath()
-                << ", " << faceMap.objectPath()
-                << ", " << pointMap.objectPath()
-                << ", " << patchMap.objectPath()
-                << endl;
+            Info<< "Setting caseName to " << baseRunTime.caseName()
+                << " to read undecomposed mesh" << endl;
+            runTime.TimePaths::caseName() = baseRunTime.caseName();
         }
+
+        autoPtr<fvMesh> meshPtr = loadOrCreateMesh
+        (
+            IOobject
+            (
+                regionName,
+                masterInstDir,
+                runTime,
+                Foam::IOobject::MUST_READ
+            )
+        );
+
+        if (Pstream::master() && decompose)
+        {
+            Info<< "Restoring caseName to " << proc0CaseName << endl;
+            runTime.TimePaths::caseName() = proc0CaseName;
+        }
+
+        fvMesh& mesh = meshPtr();
+
+
+        label nOldCells = mesh.nCells();
+        //Pout<< "Loaded mesh : nCells:" << nOldCells
+        //    << " nPatches:" << mesh.boundaryMesh().size() << endl;
+
+
+        // Global matching tolerance
+        const scalar tolDim = getMergeDistance
+        (
+            args,
+            runTime,
+            mesh.bounds()
+        );
+
+
+        // Determine decomposition
+        // ~~~~~~~~~~~~~~~~~~~~~~~
+
+        label nDestProcs;
+        labelList finalDecomp;
+        determineDecomposition
+        (
+            baseRunTime,
+            decompose,
+            proc0CaseName,
+            mesh,
+            writeCellDist,
+
+            nDestProcs,
+            finalDecomp
+        );
+
+
+        wordList cloudNames;
+        List<wordList> fieldNames;
+
+        // Read lagrangian fields
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = baseRunTime.caseName();
+        }
+        parLagrangianRedistributor::findClouds
+        (
+            mesh,
+            cloudNames,
+            fieldNames
+        );
+
+        PtrList<unmappedPassiveParticleCloud> clouds(cloudNames.size());
+
+        readLagrangian
+        (
+            mesh,
+            cloudNames,
+            selectedLagrangianFields,
+            clouds
+        );
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = proc0CaseName;
+        }
+
+
+        // Load fields, do all distribution (mesh and fields - but not
+        // lagrangian fields; these are done later)
+        autoPtr<mapDistributePolyMesh> distMap = redistributeAndWrite
+        (
+            baseRunTime,
+            tolDim,
+            haveMesh,
+            meshSubDir,
+            true,           // read fields
+            decompose,      // decompose, i.e. read from undecomposed case
+            overwrite,
+            proc0CaseName,
+            nDestProcs,
+            finalDecomp,
+            masterInstDir,
+            mesh
+        );
+
+
+        // Redistribute any clouds
+        redistributeLagrangian
+        (
+            lagrangianReconstructorPtr,
+            mesh,
+            nOldCells,
+            distMap,
+            clouds
+        );
     }
-
-
-
-    // Debugging: test mapped cellcentre field.
-    //compareFields(tolDim, mesh.C(), mapCc);
 
 
     Info<< "End\n" << endl;

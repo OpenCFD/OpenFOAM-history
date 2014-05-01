@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -76,7 +76,6 @@ inline Foam::scalar Foam::species::thermo<Thermo, Type>::T
             )   << "Maximum number of iterations exceeded"
                 << abort(FatalError);
         }
-
     } while (mag(Tnew - Test) > Ttol);
 
     return Tnew;

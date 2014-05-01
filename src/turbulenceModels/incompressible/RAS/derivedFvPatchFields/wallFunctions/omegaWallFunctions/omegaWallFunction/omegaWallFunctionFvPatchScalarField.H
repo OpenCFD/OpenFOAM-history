@@ -28,7 +28,7 @@ Group
     grpIcoWallFunctions
 
 Description
-    This boundary condition provides a wall function constraint on turbulence
+    This boundary condition provides a wall function constraint on turbulnce
     specific dissipation, omega.  The values are computed using:
 
         \f[
@@ -98,6 +98,9 @@ class omegaWallFunctionFvPatchScalarField
 protected:
 
     // Protected data
+
+        //- Tolerance used in weighted calculations
+        static scalar tolerance_;
 
         //- Cmu coefficient
         scalar Cmu_;

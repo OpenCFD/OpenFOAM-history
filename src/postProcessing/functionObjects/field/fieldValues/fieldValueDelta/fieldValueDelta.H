@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -76,6 +76,7 @@ SourceFiles
 #ifndef fieldValueDelta_H
 #define fieldValueDelta_H
 
+#include "functionObjectState.H"
 #include "functionObjectFile.H"
 #include "fieldValue.H"
 #include "autoPtr.H"
@@ -94,6 +95,7 @@ namespace fieldValues
 
 class fieldValueDelta
 :
+    public functionObjectState,
     public functionObjectFile
 {
 public:
@@ -114,9 +116,6 @@ public:
 private:
 
     // Private data
-
-        //- Name of this fieldValue object
-        word name_;
 
         //- Database this class is registered to
         const objectRegistry& obr_;

@@ -33,8 +33,7 @@ Description
 #include "fvCFD.H"
 #include "CMULES.H"
 #include "subCycle.H"
-#include "threePhaseMixture.H"
-#include "threePhaseInterfaceProperties.H"
+#include "immiscibleIncompressibleThreePhaseMixture.H"
 #include "turbulenceModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
@@ -50,6 +49,7 @@ int main(int argc, char *argv[])
     #include "readGravitationalAcceleration.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
+    #include "createFvOptions.H"
     #include "readTimeControls.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
@@ -78,13 +78,9 @@ int main(int argc, char *argv[])
         while (pimple.loop())
         {
             #include "alphaControls.H"
-
-            threePhaseProperties.correct();
-
             #include "alphaEqnsSubCycle.H"
-            interface.correct();
 
-            #define twoPhaseProperties threePhaseProperties
+            mixture.correct();
 
             #include "UEqn.H"
 

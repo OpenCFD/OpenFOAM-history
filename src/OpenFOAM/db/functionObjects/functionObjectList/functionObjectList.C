@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -70,6 +70,18 @@ Foam::functionObjectList::functionObjectList
     indices_(),
     time_(t),
     parentDict_(t.controlDict()),
+    stateDict_
+    (
+        IOobject
+        (
+            "functionObjectProperties",
+            t.timeName(),
+            "uniform"/word("functionObjects"),
+            t,
+            IOobject::READ_IF_PRESENT,
+            IOobject::NO_WRITE
+        )
+    ),
     execution_(execution),
     updated_(false)
 {}
@@ -87,6 +99,18 @@ Foam::functionObjectList::functionObjectList
     indices_(),
     time_(t),
     parentDict_(parentDict),
+    stateDict_
+    (
+        IOobject
+        (
+            "functionObjectProperties",
+            t.timeName(),
+            "uniform"/word("functionObjects"),
+            t,
+            IOobject::READ_IF_PRESENT,
+            IOobject::NO_WRITE
+        )
+    ),
     execution_(execution),
     updated_(false)
 {}
@@ -99,6 +123,18 @@ Foam::functionObjectList::~functionObjectList()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::IOdictionary& Foam::functionObjectList::stateDict()
+{
+    return stateDict_;
+}
+
+
+const Foam::IOdictionary& Foam::functionObjectList::stateDict() const
+{
+    return stateDict_;
+}
+
 
 void Foam::functionObjectList::clear()
 {
@@ -163,6 +199,12 @@ bool Foam::functionObjectList::execute(const bool forceWrite)
         {
             ok = operator[](objectI).execute(forceWrite) && ok;
         }
+    }
+
+    // force writing of state dictionary after function object execution
+    if (time_.outputTime())
+    {
+        stateDict_.regIOobject::write();
     }
 
     return ok;
@@ -292,7 +334,8 @@ bool Foam::functionObjectList::read()
                 else
                 {
                     // new functionObject
-                    objPtr = functionObject::New(key, time_, dict).ptr();
+                    objPtr =
+                        functionObject::New(key, time_, dict).ptr();
                     ok = objPtr->start() && ok;
                 }
 
@@ -334,7 +377,8 @@ bool Foam::functionObjectList::read()
                 else
                 {
                     // new functionObject
-                    objPtr = functionObject::New(key, time_, dict).ptr();
+                    objPtr =
+                        functionObject::New(key, time_, dict).ptr();
                     ok = objPtr->start() && ok;
                 }
 

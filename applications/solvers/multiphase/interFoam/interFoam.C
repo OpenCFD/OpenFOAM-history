@@ -40,8 +40,7 @@ Description
 #include "fvCFD.H"
 #include "CMULES.H"
 #include "subCycle.H"
-#include "interfaceProperties.H"
-#include "incompressibleTwoPhaseMixture.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulenceModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
@@ -59,6 +58,7 @@ int main(int argc, char *argv[])
 
     #include "initContinuityErrs.H"
     #include "createFields.H"
+    #include "createFvOptions.H"
     #include "readTimeControls.H"
     #include "createPrghCorrTypes.H"
     #include "correctPhi.H"
@@ -84,11 +84,9 @@ int main(int argc, char *argv[])
         while (pimple.loop())
         {
             #include "alphaControls.H"
-
-            twoPhaseProperties.correct();
-
             #include "alphaEqnSubCycle.H"
-            interface.correct();
+
+            mixture.correct();
 
             #include "UEqn.H"
 

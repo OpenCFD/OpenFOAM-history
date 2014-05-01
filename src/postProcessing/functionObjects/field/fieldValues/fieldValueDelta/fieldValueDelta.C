@@ -64,8 +64,8 @@ Foam::fieldValues::fieldValueDelta::fieldValueDelta
     const bool loadFromFiles
 )
 :
+    functionObjectState(obr, name),
     functionObjectFile(obr, name, typeName),
-    name_(name),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
     log_(true),
@@ -118,6 +118,8 @@ Foam::fieldValues::fieldValueDelta::~fieldValueDelta()
 
 void Foam::fieldValues::fieldValueDelta::read(const dictionary& dict)
 {
+    functionObjectFile::read(dict);
+
     log_ = dict.lookupOrDefault<Switch>("log", true);
     source1Ptr_.reset
     (

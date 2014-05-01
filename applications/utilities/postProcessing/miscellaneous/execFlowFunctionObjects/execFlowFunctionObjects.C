@@ -41,6 +41,7 @@ Description
 #include "volFields.H"
 #include "surfaceFields.H"
 #include "pointFields.H"
+#include "uniformDimensionedFields.H"
 #include "ReadFields.H"
 #include "fvIOoptionList.H"
 
@@ -90,6 +91,23 @@ void calc
         PtrList<volTensorField> vtFlds;
         ReadFields(mesh, objects, vtFlds);
 
+        // Read vol-internal fields.
+
+        PtrList<volScalarField::DimensionedInternalField> vsiFlds;
+        ReadFields(mesh, objects, vsiFlds);
+
+        PtrList<volVectorField::DimensionedInternalField> vviFlds;
+        ReadFields(mesh, objects, vviFlds);
+
+        PtrList<volSphericalTensorField::DimensionedInternalField> vstiFlds;
+        ReadFields(mesh, objects, vstiFlds);
+
+        PtrList<volSymmTensorField::DimensionedInternalField> vsymtiFlds;
+        ReadFields(mesh, objects, vsymtiFlds);
+
+        PtrList<volTensorField::DimensionedInternalField> vtiFlds;
+        ReadFields(mesh, objects, vtiFlds);
+
         // Read surface fields.
 
         PtrList<surfaceScalarField> ssFlds;
@@ -124,6 +142,24 @@ void calc
 
         PtrList<pointTensorField> ptFlds;
         ReadFields(pMesh, objects, ptFlds);
+
+        // Read uniform dimensioned fields
+        IOobjectList constantObjects(mesh, runTime.constant());
+
+        PtrList<uniformDimensionedScalarField> usFlds;
+        ReadFields(constantObjects, usFlds, true);
+
+        PtrList<uniformDimensionedVectorField> uvFlds;
+        ReadFields(constantObjects, uvFlds, true);
+
+        PtrList<uniformDimensionedSphericalTensorField> ustFlds;
+        ReadFields(constantObjects, ustFlds, true);
+
+        PtrList<uniformDimensionedSymmTensorField> usymmtFlds;
+        ReadFields(constantObjects, usymmtFlds, true);
+
+        PtrList<uniformDimensionedTensorField> utFlds;
+        ReadFields(constantObjects, utFlds, true);
 
         fol.execute(true);
     }
@@ -393,6 +429,8 @@ int main(int argc, char *argv[])
 
         Info<< endl;
     }
+
+    Info<< "End\n" << endl;
 
     return 0;
 }

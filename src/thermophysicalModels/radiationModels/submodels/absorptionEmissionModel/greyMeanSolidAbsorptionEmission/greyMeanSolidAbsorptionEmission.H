@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,7 +51,7 @@ SourceFiles
 
 #include "absorptionEmissionModel.H"
 #include "solidThermo.H"
-#include "basicMultiComponentMixture.H"
+#include "basicSpecieMixture.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -90,7 +90,7 @@ private:
         HashTable<label> speciesNames_;
 
         //- Basic multicomponent mixture
-        const basicMultiComponentMixture& mixture_;
+        const basicSpecieMixture& mixture_;
 
         //- List of solid species data
         List<FixedList<scalar, 2> > solidData_;
