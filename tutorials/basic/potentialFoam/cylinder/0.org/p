@@ -20,10 +20,8 @@ internalField   uniform 0;
 
 boundaryField
 {
-    down
-    {
-        type            symmetryPlane;
-    }
+    //- Set patchGroups for constraint patches
+    #include "${WM_PROJECT_DIR}/etc/caseDicts/setConstraintTypes"
 
     right
     {
@@ -31,24 +29,9 @@ boundaryField
         value           uniform 0;
     }
 
-    up
-    {
-        type            symmetryPlane;
-    }
-
     left
     {
         type            zeroGradient;
-    }
-
-    cylinder
-    {
-        type            symmetry;
-    }
-
-    defaultFaces
-    {
-        type            empty;
     }
 }
 
