@@ -34,6 +34,7 @@ Description
 #include "psiThermo.H"
 #include "turbulenceModel.H"
 #include "pimpleControl.H"
+#include "fvIOoptionList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
     #include "createFields.H"
+    #include "createFvOptions.H"
     #include "initContinuityErrs.H"
 
     pimpleControl pimple(mesh);

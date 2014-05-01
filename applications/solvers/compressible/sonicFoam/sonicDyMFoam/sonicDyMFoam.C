@@ -35,6 +35,7 @@ Description
 #include "turbulenceModel.H"
 #include "motionSolver.H"
 #include "pimpleControl.H"
+#include "fvIOoptionList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,6 +45,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
     #include "createFields.H"
+    #include "createFvOptions.H"
     #include "createRhoUf.H"
     #include "initContinuityErrs.H"
 
