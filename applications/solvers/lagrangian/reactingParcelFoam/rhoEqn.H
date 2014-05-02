@@ -39,14 +39,8 @@ Description
       + fvOptions(rho)
     );
 
-    fvOptions.constrain(rhoEqn);
-
     rhoEqn.solve();
-
     fvOptions.correct(rho);
-
-    Info<< "rho min/max = " << min(rho).value() << ", " << max(rho).value()
-        << endl;
 }
 
 // ************************************************************************* //

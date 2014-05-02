@@ -40,10 +40,7 @@ Description
       + fvOptions(rho)
     );
 
-    fvOptions.constrain(rhoEqn);
-
     rhoEqn.solve();
-
     fvOptions.correct(rho);
 }
 
