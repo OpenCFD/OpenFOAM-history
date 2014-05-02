@@ -1549,7 +1549,8 @@ void reconstructLagrangian
 
         forAll(cloudNames, i)
         {
-            Info<< "Reconstructing cloud " << cloudNames[i] << endl;
+            Info<< "Reconstructing lagrangian fields for cloud "
+                << cloudNames[i] << nl << endl;
 
             autoPtr<mapDistributeBase> lagrangianMap =
             lagrangianReconstructor.redistributeLagrangianPositions

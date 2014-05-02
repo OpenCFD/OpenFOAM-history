@@ -129,6 +129,8 @@ void Foam::parLagrangianRedistributor::redistributeLagrangianFields
                 ).write();
             }
         }
+
+        Info<< endl;
     }
 }
 
