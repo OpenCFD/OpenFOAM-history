@@ -771,7 +771,6 @@ Foam::labelList Foam::dynamicRefineFvMesh::selectRefineCells
     const PackedBoolList& candidateCell
 ) const
 {
-Debug(0);
     // Every refined cell causes 7 extra cells
     label nTotToRefine = (maxCells - globalData().nTotalCells()) / 7;
 
