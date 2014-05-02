@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -56,7 +56,7 @@ autoCreateWallFunctionField
 
     typedef GeometricField<Type, fvPatchField, volMesh> fieldType;
 
-    if (mutHeader.typeHeaderOk<fieldType>(true))
+    if (mutHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<fieldType>
         (
@@ -91,14 +91,7 @@ autoCreateWallFunctionField
             false
         );
 
-        tmp<fieldType> fieldOrig
-        (
-            new fieldType
-            (
-                ioObj,
-                mesh
-            )
-        );
+        tmp<fieldType> fieldOrig(new fieldType(ioObj, mesh));
 
         // rename file
         Info<< "    Backup original " << fieldName << " to "
