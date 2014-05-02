@@ -53,7 +53,7 @@
 
         tpEqn().setReference(pRefCell, pRefValue);
 
-        fvOptions.constrain(tpEqn(), rho.name());
+        fvOptions.constrain(tpEqn());
 
         tpEqn().solve();
 

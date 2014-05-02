@@ -169,24 +169,13 @@ Foam::tmp<Foam::fvMatrix<Type> > Foam::fv::optionList::operator()
 template<class Type>
 void Foam::fv::optionList::constrain(fvMatrix<Type>& eqn)
 {
-    constrain(eqn, eqn.psi().name());
-}
-
-
-template<class Type>
-void Foam::fv::optionList::constrain
-(
-    fvMatrix<Type>& eqn,
-    const word& fieldName
-)
-{
     checkApplied();
 
     forAll(*this, i)
     {
         option& source = this->operator[](i);
 
-        label fieldI = source.applyToField(fieldName);
+        label fieldI = source.applyToField(eqn.psi().name());
 
         if (fieldI != -1)
         {
@@ -197,7 +186,7 @@ void Foam::fv::optionList::constrain
                 if (debug)
                 {
                     Info<< "Applying constraint " << source.name()
-                        << " to field " << fieldName << endl;
+                        << " to field " << eqn.psi().name() << endl;
                 }
 
                 source.setValue(eqn, fieldI);
