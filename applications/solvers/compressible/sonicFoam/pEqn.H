@@ -30,8 +30,6 @@ while (pimple.correctNonOrthogonal())
         fvOptions(psi, p, rho.name())
     );
 
-    fvOptions.constrain(pEqn);
-
     pEqn.solve();
 
     if (pimple.finalNonOrthogonalIter())

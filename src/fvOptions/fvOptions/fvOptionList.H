@@ -155,10 +155,6 @@ public:
             template<class Type>
             void constrain(fvMatrix<Type>& eqn);
 
-            //- Apply constraints to equation with specified name
-            template<class Type>
-            void constrain(fvMatrix<Type>& eqn, const word& fieldName);
-
 
         // Flux manipulations
 
