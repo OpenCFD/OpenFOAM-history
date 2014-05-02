@@ -57,35 +57,35 @@ template<> inline fileName typeFilePath<uniformDimensionedScalarField>
     const IOobject& io
 )
 {
-    return io.globalFilePath(true);
+    return io.globalFilePath();
 }
 template<> inline fileName typeFilePath<uniformDimensionedVectorField>
 (
     const IOobject& io
 )
 {
-    return io.globalFilePath(true);
+    return io.globalFilePath();
 }
 template<> inline fileName typeFilePath<uniformDimensionedSphericalTensorField>
 (
     const IOobject& io
 )
 {
-    return io.globalFilePath(true);
+    return io.globalFilePath();
 }
 template<> inline fileName typeFilePath<uniformDimensionedSymmTensorField>
 (
     const IOobject& io
 )
 {
-    return io.globalFilePath(true);
+    return io.globalFilePath();
 }
 template<> inline fileName typeFilePath<uniformDimensionedTensorField>
 (
     const IOobject& io
 )
 {
-    return io.globalFilePath(true);
+    return io.globalFilePath();
 }
 
 

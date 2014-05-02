@@ -82,7 +82,7 @@ public:
         virtual fileName filePath() const
         {
             // Use default (local only) search strategy
-            return IOobject::filePath();
+            return localFilePath();
         }
 
 };
@@ -93,7 +93,7 @@ template<>
 inline fileName typeFilePath<localIOdictionary>(const IOobject& io)
 {
     // Use default (local only) search strategy
-    return io.filePath();
+    return io.localFilePath();
 }
 
 

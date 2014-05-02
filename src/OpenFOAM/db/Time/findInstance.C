@@ -105,7 +105,13 @@ Foam::word Foam::Time::findInstance
           :
             (
                 isFile(tPath/ts[instanceI].name()/dir/name)
-             && IOobject(name, ts[instanceI].name(), dir, *this).headerOk()
+             && IOobject
+                (
+                    name,
+                    ts[instanceI].name(),
+                    dir,
+                    *this
+                ).typeHeaderOk<IOList<label> >(false)
             )
         )
         {
@@ -184,7 +190,13 @@ Foam::word Foam::Time::findInstance
       :
         (
             isFile(tPath/constant()/dir/name)
-         && IOobject(name, constant(), dir, *this).headerOk()
+         && IOobject
+            (
+                name,
+                constant(),
+                dir,
+                *this
+            ).typeHeaderOk<IOList<label> >(false)
         )
     )
     {

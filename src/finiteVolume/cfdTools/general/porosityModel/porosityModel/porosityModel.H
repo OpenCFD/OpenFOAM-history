@@ -267,6 +267,13 @@ public:
             return true;
         }
 
+        //- Return complete path + object name if the file exists
+        //  either in the case/processor or case otherwise null
+        virtual fileName filePath() const
+        {
+            return globalFilePath();
+        }
+
         //- Read porosity dictionary
         virtual bool read(const dictionary& dict);
 };
@@ -276,7 +283,7 @@ public:
 template<>
 inline fileName typeFilePath<porosityModel>(const IOobject& io)
 {
-    return io.globalFilePath(true);
+    return io.globalFilePath();
 }
 
 

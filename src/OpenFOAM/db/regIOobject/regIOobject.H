@@ -87,6 +87,10 @@ protected:
             const word& typeName
         );
 
+        //- Construct and return an IFstream for the object.
+        //  The results is NULL if the stream construction failed
+        Istream* objectStream();
+
         //- To flag master-only reading of objects
         static bool masterOnlyReading;
 
@@ -238,6 +242,15 @@ public:
 
 
         // Reading
+
+            //- Return complete path + object name if the file exists
+            //  in the case directory otherwise null. Does not search
+            //  up if parallel. Can be overridden to provide this functionality
+            //  (e.g. IOdictionary)
+            virtual fileName filePath() const;
+
+            //- Read and check header info
+            bool headerOk();
 
             //- Return Istream and check object type against that given
             Istream& readStream(const word&);

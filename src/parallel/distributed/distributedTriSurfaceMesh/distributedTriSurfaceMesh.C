@@ -1375,7 +1375,8 @@ Foam::distributedTriSurfaceMesh::distributedTriSurfaceMesh(const IOobject& io)
 
     if (debug)
     {
-        Info<< "Read distributedTriSurface from " << io.filePath()
+        Info<< "Read distributedTriSurface from "
+            << searchableSurface::filePath()
             << ':' << endl;
         writeStats(Info);
 
@@ -1437,7 +1438,8 @@ Foam::distributedTriSurfaceMesh::distributedTriSurfaceMesh
 
     if (debug)
     {
-        Info<< "Read distributedTriSurface from " << io.filePath()
+        Info<< "Read distributedTriSurface from "
+            << searchableSurface::filePath()
             << " and dictionary:" << endl;
         writeStats(Info);
 

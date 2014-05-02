@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -161,10 +161,6 @@ private:
 protected:
 
     // Protected Member Functions
-
-        //- Construct and return an IFstream for the object.
-        //  The results is NULL if the stream construction failed
-        Istream* objectStream();
 
         //- Construct and return an IFstream for the object given the
         //  exact file. The results is NULL if the stream construction failed
@@ -371,23 +367,17 @@ public:
                 return path()/name();
             }
 
-            //- Return complete path + object name if the file exists
-            //  in the case directory otherwise null. Does not search
-            //  up if parallel. Can be overridden to provide this functionality
-            //  (e.g. IOdictionary)
-            virtual fileName filePath() const;
+            //- Helper for filePath that searches locally
+            fileName localFilePath() const;
 
-            //- Helper for filePath that optionally searches up if in parallel
-            fileName globalFilePath(const bool global) const;
+            //- Helper for filePath that searches up if in parallel
+            fileName globalFilePath() const;
 
 
         // Reading
 
             //- Read header
             bool readHeader(Istream&);
-
-            //- Read and check header info
-            bool headerOk();
 
             //- Read header (uses typeFilePath to find file) and check header
             //  info. Optionally checks headerClassName against type
@@ -459,7 +449,7 @@ Ostream& operator<<(Ostream& os, const InfoProxy<IOobject>& ip);
 template<class T>
 inline fileName typeFilePath(const IOobject& io)
 {
-    return io.filePath();
+    return io.localFilePath();
 }
 
 

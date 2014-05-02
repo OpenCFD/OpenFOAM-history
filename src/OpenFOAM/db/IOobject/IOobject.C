@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -321,7 +321,7 @@ Foam::fileName Foam::IOobject::path
 }
 
 
-Foam::fileName Foam::IOobject::filePath() const
+Foam::fileName Foam::IOobject::localFilePath() const
 {
     if (instance().isAbsolute())
     {
@@ -375,7 +375,7 @@ Foam::fileName Foam::IOobject::filePath() const
 }
 
 
-Foam::fileName Foam::IOobject::globalFilePath(const bool global) const
+Foam::fileName Foam::IOobject::globalFilePath() const
 {
     if (instance().isAbsolute())
     {
@@ -418,7 +418,7 @@ Foam::fileName Foam::IOobject::globalFilePath(const bool global) const
         {
             if
             (
-                (time().processorCase() && global)
+                (time().processorCase())
              && (
                     instance() == time().system()
                  || instance() == time().constant()
@@ -481,12 +481,6 @@ Foam::fileName Foam::IOobject::globalFilePath(const bool global) const
 }
 
 
-Foam::Istream* Foam::IOobject::objectStream()
-{
-    return objectStream(filePath());
-}
-
-
 Foam::Istream* Foam::IOobject::objectStream(const fileName& fName)
 {
     if (fName.size())
@@ -507,47 +501,6 @@ Foam::Istream* Foam::IOobject::objectStream(const fileName& fName)
     {
         return NULL;
     }
-}
-
-
-bool Foam::IOobject::headerOk()
-{
-    bool ok = true;
-
-    Istream* isPtr = objectStream();
-
-    // If the stream has failed return
-    if (!isPtr)
-    {
-        if (objectRegistry::debug)
-        {
-            Info
-                << "IOobject::headerOk() : "
-                << "file " << objectPath() << " could not be opened"
-                << endl;
-        }
-
-        ok = false;
-    }
-    else
-    {
-        // Try reading header
-        if (!readHeader(*isPtr))
-        {
-            if (objectRegistry::debug)
-            {
-                IOWarningIn("IOobject::headerOk()", (*isPtr))
-                    << "failed to read header of file " << objectPath()
-                    << endl;
-            }
-
-            ok = false;
-        }
-    }
-
-    delete isPtr;
-
-    return ok;
 }
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -191,7 +191,7 @@ Foam::Istream& Foam::regIOobject::readStream()
             }
         }
 
-        if (!(isPtr_ = objectStream(objPath)))
+        if (!(isPtr_ = IOobject::objectStream(objPath)))
         {
             FatalIOError
             (
@@ -227,6 +227,7 @@ Foam::Istream& Foam::regIOobject::readStream(const word& expectName)
     {
         Pout<< "regIOobject::readStream(const word&) : "
             << "reading object " << name()
+            << " of type " << type()
             << " from file " << objectPath()
             << endl;
     }

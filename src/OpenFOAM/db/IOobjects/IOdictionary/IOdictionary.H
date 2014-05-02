@@ -84,7 +84,7 @@ public:
         //  either in the case/processor or case otherwise null
         virtual fileName filePath() const
         {
-            return globalFilePath(true);
+            return globalFilePath();
         }
 
 };
@@ -94,7 +94,7 @@ public:
 template<>
 inline fileName typeFilePath<IOdictionary>(const IOobject& io)
 {
-    return io.globalFilePath(true);
+    return io.globalFilePath();
 }
 
 

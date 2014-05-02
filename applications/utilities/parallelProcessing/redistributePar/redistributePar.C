@@ -1319,7 +1319,7 @@ void readProcAddressing
     //    mesh,
     //    IOobject::MUST_READ
     //);
-    //if (io.headerOk())
+    //if (io.typeHeaderOk<labelIOList>(true))
     //{
     //    Pout<< "Reading addressing from " << io.name() << " at "
     //        << mesh.facesInstance() << nl << endl;
@@ -2211,27 +2211,20 @@ int main(int argc, char *argv[])
             // - processors with no mesh don't need faceProcAddressing
 
 
-            IOobject faceIO
-            (
-                "faceProcAddressing",
-                facesInstance,
-                meshSubDir,
-                runTime,
-                IOobject::READ_IF_PRESENT
-            );
             // Note: filePath searches up on processors that don't have
             //       processor if instance = constant so explicitly check found
             //       filename.
             bool haveAddressing = false;
             if (haveMesh[Pstream::myProcNo()])
             {
-                const fileName fName = faceIO.filePath();
-                haveAddressing =
+                haveAddressing = IOobject
                 (
-                    fName.size()
-                 && fName == faceIO.objectPath()
-                 && faceIO.headerOk()
-                );
+                    "faceProcAddressing",
+                    facesInstance,
+                    meshSubDir,
+                    runTime,
+                    IOobject::READ_IF_PRESENT
+                ).typeHeaderOk<labelIOList>(true);
             }
             else
             {

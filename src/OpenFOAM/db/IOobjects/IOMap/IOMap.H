@@ -90,6 +90,13 @@ public:
             return true;
         }
 
+        //- Return complete path + object name if the file exists
+        //  either in the case/processor or case otherwise null
+        virtual fileName filePath() const
+        {
+            return globalFilePath();
+        }
+
     // Member operators
 
         //- Assignment of other IOMap's entries to this IOMap

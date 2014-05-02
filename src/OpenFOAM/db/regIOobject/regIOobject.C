@@ -384,6 +384,59 @@ void Foam::regIOobject::rename(const word& newName)
 }
 
 
+Foam::fileName Foam::regIOobject::filePath() const
+{
+    return localFilePath();
+}
+
+
+Foam::Istream* Foam::regIOobject::objectStream()
+{
+    return IOobject::objectStream(filePath());
+}
+
+
+bool Foam::regIOobject::headerOk()
+{
+    bool ok = true;
+
+    Istream* isPtr = objectStream();
+
+    // If the stream has failed return
+    if (!isPtr)
+    {
+        if (objectRegistry::debug)
+        {
+            Info
+                << "regIOobject::headerOk() : "
+                << "file " << objectPath() << " could not be opened"
+                << endl;
+        }
+
+        ok = false;
+    }
+    else
+    {
+        // Try reading header
+        if (!readHeader(*isPtr))
+        {
+            if (objectRegistry::debug)
+            {
+                IOWarningIn("regIOobject::headerOk()", (*isPtr))
+                    << "failed to read header of file " << objectPath()
+                    << endl;
+            }
+
+            ok = false;
+        }
+    }
+
+    delete isPtr;
+
+    return ok;
+}
+
+
 // Assign to IOobject
 void Foam::regIOobject::operator=(const IOobject& io)
 {

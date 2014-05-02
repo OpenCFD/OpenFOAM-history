@@ -34,7 +34,7 @@ namespace Foam
     template<>
     fileName typeFilePath<IOMap<dictionary> >(const IOobject& io)
     {
-        return io.globalFilePath(true);
+        return io.globalFilePath();
     }
 }
 
