@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -319,6 +319,9 @@ public:
 
             //- Return group (extension part of name)
             word group() const;
+
+            //- Return member (name without the extension)
+            word member() const;
 
             const fileName& rootPath() const;
 

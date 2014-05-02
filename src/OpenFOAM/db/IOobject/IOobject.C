@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -283,6 +283,21 @@ Foam::word Foam::IOobject::group() const
     else
     {
         return name_.substr(i+1, word::npos);
+    }
+}
+
+
+Foam::word Foam::IOobject::member() const
+{
+    word::size_type i = name_.find_last_of('.');
+
+    if (i == word::npos || i == 0)
+    {
+        return name_;
+    }
+    else
+    {
+        return name_.substr(0, i);
     }
 }
 
