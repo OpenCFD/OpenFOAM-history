@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -89,7 +89,7 @@ Foam::heThermo<BasicThermo, MixtureType>::heThermo
 )
 :
     BasicThermo(mesh, phaseName),
-    MixtureType(*this, mesh),
+    MixtureType(*this, mesh, phaseName),
 
     he_
     (
@@ -123,7 +123,7 @@ Foam::heThermo<BasicThermo, MixtureType>::heThermo
 )
 :
     BasicThermo(mesh, dict, phaseName),
-    MixtureType(*this, mesh),
+    MixtureType(*this, mesh, phaseName),
 
     he_
     (

@@ -41,14 +41,16 @@ template<class ThermoType>
 Foam::homogeneousMixture<ThermoType>::homogeneousMixture
 (
     const dictionary& thermoDict,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
     basicCombustionMixture
     (
         thermoDict,
         speciesTable(nSpecies_, specieNames_),
-        mesh
+        mesh,
+        phaseName
     ),
 
     reactants_(thermoDict.subDict("reactants")),

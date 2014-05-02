@@ -38,7 +38,8 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
 (
     const dictionary& thermoDict,
     const wordList& specieNames,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
     species_(specieNames),
@@ -54,7 +55,7 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
 
         IOobject header
         (
-            species_[i],
+            IOobject::groupName(species_[i], phaseName),
             mesh.time().timeName(),
             mesh,
             IOobject::NO_READ
@@ -76,7 +77,7 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
                 (
                     IOobject
                     (
-                        species_[i],
+                        IOobject::groupName(species_[i], phaseName),
                         mesh.time().timeName(),
                         mesh,
                         IOobject::MUST_READ,
@@ -114,7 +115,7 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
                 (
                     IOobject
                     (
-                        species_[i],
+                        IOobject::groupName(species_[i], phaseName),
                         mesh.time().timeName(),
                         mesh,
                         IOobject::NO_READ,
