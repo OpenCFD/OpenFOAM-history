@@ -53,8 +53,6 @@
 
         tpEqn().setReference(pRefCell, pRefValue);
 
-        fvOptions.constrain(tpEqn());
-
         tpEqn().solve();
 
         if (simple.finalNonOrthogonalIter())
