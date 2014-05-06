@@ -76,7 +76,7 @@ class functionObjectList
         const dictionary& parentDict_;
 
         //- Function object properties - stores state information
-        IOdictionary stateDict_;
+        mutable autoPtr<IOdictionary> stateDictPtr_;
 
         //- Switch for the execution of the functionObjects
         bool execution_;
@@ -86,6 +86,9 @@ class functionObjectList
 
 
     // Private Member Functions
+
+        //- Create state dictionary
+        void createStateDict() const;
 
         //- Remove and return the function object pointer by name,
         //  and returns the old index via the parameter.

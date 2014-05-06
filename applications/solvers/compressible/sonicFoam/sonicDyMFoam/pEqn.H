@@ -32,8 +32,6 @@ for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
         fvOptions(psi, p, rho.name())
     );
 
-    fvOptions.constrain(pEqn);
-
     pEqn.solve();
 
     phi = pEqn.flux();

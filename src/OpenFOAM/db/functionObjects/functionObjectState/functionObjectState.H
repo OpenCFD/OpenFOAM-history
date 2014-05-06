@@ -40,7 +40,7 @@ SourceFiles
 #define functionObjectState_H
 
 #include "objectRegistry.H"
-#include "dictionary.H"
+#include "IOdictionary.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -72,7 +72,7 @@ protected:
         bool active_;
 
         //- Reference to the state dictionary
-        dictionary& stateDict_;
+        IOdictionary& stateDict_;
 
 
 protected:

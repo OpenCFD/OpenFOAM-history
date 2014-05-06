@@ -39,8 +39,6 @@ if (pimple.transonic())
             fvOptions(psi, p, rho.name())
         );
 
-        fvOptions.constrain(pEqn);
-
         pEqn.solve(mesh.solver(p.select(pimple.finalInnerIter())));
 
         if (pimple.finalNonOrthogonalIter())
@@ -76,8 +74,6 @@ else
           ==
             fvOptions(psi, p, rho.name())
         );
-
-        fvOptions.constrain(pEqn);
 
         pEqn.solve(mesh.solver(p.select(pimple.finalInnerIter())));
 

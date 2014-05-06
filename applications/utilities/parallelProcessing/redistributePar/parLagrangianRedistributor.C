@@ -216,7 +216,7 @@ Foam::parLagrangianRedistributor::redistributeLagrangianPositions
 
             forAllIter
             (
-                typename IDLList<passiveParticle>,
+                IDLList<passiveParticle>,
                 newParticles,
                 newpIter
             )
