@@ -44,6 +44,10 @@ init()
 }
 
 
+# create the comms directory
+mkdir ${commsDir}
+
+
 # tutorial case employs the 'initByExternalOption', so we need to provide
 # the initial values
 init
