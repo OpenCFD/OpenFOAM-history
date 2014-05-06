@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -67,6 +67,12 @@ protected:
 
 
     // Protected Member Functions
+
+        //- Return the "options" sub-dictionary if present otherwise return dict
+        const dictionary& optionsDict(const dictionary& dict) const;
+
+        //- Read options dictionary
+        bool readOptions(const dictionary& dict);
 
         //- Check that all sources have been applied
         void checkApplied() const;
@@ -148,10 +154,6 @@ public:
             //- Apply constraints to equation
             template<class Type>
             void constrain(fvMatrix<Type>& eqn);
-
-            //- Apply constraints to equation with specified name
-            template<class Type>
-            void constrain(fvMatrix<Type>& eqn, const word& fieldName);
 
 
         // Flux manipulations

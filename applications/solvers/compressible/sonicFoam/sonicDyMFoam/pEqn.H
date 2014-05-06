@@ -19,6 +19,7 @@ surfaceScalarField phid
 );
 
 fvc::makeRelative(phid, psi, U);
+fvOptions.makeRelative(fvc::interpolate(psi), phid);
 
 for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
 {
@@ -27,6 +28,8 @@ for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
         fvm::ddt(psi, p)
       + fvm::div(phid, p)
       - fvm::laplacian(rhorAUf, p)
+     ==
+        fvOptions(psi, p, rho.name())
     );
 
     pEqn.solve();
@@ -38,6 +41,8 @@ for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
 
 U = HbyA - rAU*fvc::grad(p);
 U.correctBoundaryConditions();
+fvOptions.correct(U);
+K = 0.5*magSqr(U);
 
 {
     rhoUf = fvc::interpolate(rho*U);
