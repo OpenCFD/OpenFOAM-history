@@ -360,6 +360,12 @@ public:
 
             //- Print some info on mesh.
             static void printMeshInfo(const fvMesh&);
+
+            //- Generate a test field on faces
+            static tmp<surfaceScalarField> generateTestField(const fvMesh&);
+
+            //- Check whether field consistent with face orientation
+            static void testField(const surfaceScalarField&);
 };
 
 

@@ -210,11 +210,12 @@ void Foam::fvMeshDistribute::mapExposedFaces
         forAll(bfld, patchI)
         {
             fvsPatchField<T>& patchFld = bfld[patchI];
-            label faceI = patchFld.patch().start();
 
             forAll(patchFld, i)
             {
-                label oldFaceI = faceMap[faceI++];
+                const label faceI = patchFld.patch().start()+i;
+
+                label oldFaceI = faceMap[faceI];
 
                 if (oldFaceI < oldInternal.size())
                 {
