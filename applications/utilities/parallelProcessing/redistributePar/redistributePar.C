@@ -2364,6 +2364,9 @@ int main(int argc, char *argv[])
 
             if (procStat == fvMesh::POINTS_MOVED)
             {
+                Info<< "    Dected mesh motion; reconstructing points" << nl
+                    << endl;
+
                 // Reconstruct the points for moving mesh cases and write
                 // them out
                 distributedUnallocatedDirectFieldMapper mapper
@@ -2385,6 +2388,9 @@ int main(int argc, char *argv[])
              || procStat == fvMesh::TOPO_PATCH_CHANGE
             )
             {
+                Info<< "   Detected topology change; reconstructing addressing"
+                    << nl << endl;
+
                 if (baseMeshPtr.valid())
                 {
                     // Cannot do a baseMesh::readUpdate() since not all
