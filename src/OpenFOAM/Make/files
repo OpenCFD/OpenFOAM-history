@@ -591,6 +591,9 @@ $(Fields)/quaternionField/quaternionIOField.C
 $(Fields)/triadField/triadIOField.C
 $(Fields)/transformField/transformField.C
 
+$(Fields)/globalField/globalIOFields.C
+
+
 pointPatchFields = fields/pointPatchFields
 $(pointPatchFields)/pointPatchField/pointPatchFields.C
 
