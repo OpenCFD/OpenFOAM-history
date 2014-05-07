@@ -2570,7 +2570,7 @@ int main(int argc, char *argv[])
         wordList cloudNames;
         List<wordList> fieldNames;
 
-        // Read lagrangian fields
+        // Detect lagrangian fields
         if (Pstream::master() && decompose)
         {
             runTime.TimePaths::caseName() = baseRunTime.caseName();
@@ -2582,8 +2582,8 @@ int main(int argc, char *argv[])
             fieldNames
         );
 
+        // Read lagrangian fields and store on cloud (objectRegistry)
         PtrList<unmappedPassiveParticleCloud> clouds(cloudNames.size());
-
         readLagrangian
         (
             mesh,
