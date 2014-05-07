@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -289,11 +289,9 @@ void Foam::MPPICCloud<CloudType>::info()
     forAll(this->mesh().cells(), cellI)
     {
         const label n = this->cellOccupancy()[cellI].size();
-        const scalar nPack = n*alphaMax/alpha()[cellI];
-
-        if (n > 0 && nPack < nMin)
+        if (n > 0)
         {
-            nMin = nPack;
+            nMin = min(nMin, n*alphaMax/alpha()[cellI]);
         }
     }
 
