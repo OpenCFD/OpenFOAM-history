@@ -53,13 +53,7 @@ Type Foam::functionObjectState::getProperty
 ) const
 {
     Type result = defaultValue;
-
-    if (stateDict_.found(name_))
-    {
-        const dictionary& baseDict = stateDict_.subDict(name_);
-        baseDict.readIfPresent(entryName, result);
-    }
-
+    getProperty(entryName, result);
     return result;
 }
 
@@ -71,11 +65,7 @@ void Foam::functionObjectState::getProperty
     Type& value
 ) const
 {
-    if (stateDict_.found(name_))
-    {
-        const dictionary& baseDict = stateDict_.subDict(name_);
-        baseDict.readIfPresent(entryName, value);
-    }
+    getObjectProperty(name_, entryName, value);
 }
 
 
@@ -86,16 +76,7 @@ void Foam::functionObjectState::setProperty
     const Type& value
 )
 {
-    if (stateDict_.found(name_))
-    {
-        dictionary& baseDict = stateDict_.subDict(name_);
-        baseDict.add(entryName, value, true);
-    }
-    else
-    {
-        stateDict_.add(name_, dictionary());
-        stateDict_.subDict(name_).add(entryName, value);
-    }
+    setObjectProperty(name_, entryName, value);
 }
 
 
@@ -108,13 +89,7 @@ Type Foam::functionObjectState::getObjectProperty
 ) const
 {
     Type result = defaultValue;
-
-    if (stateDict_.found(objectName))
-    {
-        const dictionary& baseDict = stateDict_.subDict(objectName);
-        baseDict.readIfPresent(entryName, result);
-    }
-
+    getObjectProperty(objectName, entryName, result);
     return result;
 }
 
@@ -130,7 +105,17 @@ void Foam::functionObjectState::getObjectProperty
     if (stateDict_.found(objectName))
     {
         const dictionary& baseDict = stateDict_.subDict(objectName);
-        baseDict.readIfPresent(entryName, value);
+        if (baseDict.found(entryName))
+        {
+            if (baseDict.isDict(entryName))
+            {
+                value = baseDict.subDict(entryName);
+            }
+            else
+            {
+                baseDict.lookup(entryName) >> value;
+            }
+        }
     }
 }
 

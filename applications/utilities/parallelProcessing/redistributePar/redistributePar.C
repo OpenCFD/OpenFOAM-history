@@ -1385,6 +1385,7 @@ void readProcAddressing
             mesh.nCells() != cellProcAddressing.size()
          || mesh.nPoints() != pointProcAddressing.size()
          || mesh.nFaces() != faceProcAddressing.size()
+         || mesh.boundaryMesh().size() != boundaryProcAddressing.size()
         )
         {
             FatalErrorIn
@@ -1401,6 +1402,9 @@ void readProcAddressing
                 << "points:" << mesh.nPoints()
                 << " addressing:" << pointProcAddressing.objectPath()
                 << " size:" << pointProcAddressing.size()
+                << "patches:" << mesh.boundaryMesh().size()
+                << " addressing:" << boundaryProcAddressing.objectPath()
+                << " size:" << boundaryProcAddressing.size()
                 << exit(FatalError);
         }
 
@@ -2307,7 +2311,6 @@ int main(int argc, char *argv[])
             ),
             true            // read on master only
         );
-        const fvMesh& baseMesh = baseMeshPtr();
 
         Info<< "Reading local, decomposed mesh" << endl;
         autoPtr<fvMesh> meshPtr = loadOrCreateMesh
@@ -2315,7 +2318,7 @@ int main(int argc, char *argv[])
             IOobject
             (
                 regionName,
-                baseMesh.facesInstance(),
+                baseMeshPtr().facesInstance(),
                 runTime,
                 Foam::IOobject::MUST_READ
             )
@@ -2332,7 +2335,7 @@ int main(int argc, char *argv[])
         (
             new parFvFieldReconstructor
             (
-                baseMesh,
+                baseMeshPtr(),
                 mesh,
                 distMap,
                 Pstream::master()       // do I need to write?
@@ -2375,6 +2378,25 @@ int main(int argc, char *argv[])
              || procStat == fvMesh::TOPO_PATCH_CHANGE
             )
             {
+                if (baseMeshPtr.valid())
+                {
+                    // Cannot do a baseMesh::readUpdate() since not all
+                    // processors will have mesh files. So instead just
+                    // recreate baseMesh
+                    baseMeshPtr.clear();
+                    baseMeshPtr = fvMeshTools::newMesh
+                    (
+                        IOobject
+                        (
+                            regionName,
+                            baseRunTime.timeName(),
+                            baseRunTime,
+                            IOobject::MUST_READ
+                        ),
+                        true            // read on master only
+                    );
+                }
+
                 // Re-read procXXXaddressing
                 readProcAddressing(mesh, baseMeshPtr, distMap);
 
@@ -2383,7 +2405,7 @@ int main(int argc, char *argv[])
                 (
                     new parFvFieldReconstructor
                     (
-                        baseMesh,
+                        baseMeshPtr(),
                         mesh,
                         distMap,
                         Pstream::master()
@@ -2392,30 +2414,6 @@ int main(int argc, char *argv[])
                 lagrangianReconstructorPtr.clear();
             }
 
-            // readUpdate baseMesh
-            if (baseMeshPtr.valid())
-            {
-                const label nProcs = UPstream::nProcs();
-                UPstream::setParRun(0);
-
-                fvMesh& baseMesh = baseMeshPtr();
-                fvMesh::readUpdateState meshStat = baseMesh.readUpdate();
-
-                UPstream::setParRun(nProcs);
-
-                if (meshStat != procStat)
-                {
-                    WarningIn(args.executable())
-                        << "readUpdate for the reconstructed mesh:"
-                        << meshStat << nl
-                        << "readUpdate for the processor meshes  :"
-                        << procStat << nl
-                        << "These should be equal or your addressing"
-                        << " might be incorrect."
-                        << " Please check your time directories for any "
-                        << "mesh directories." << endl;
-                }
-            }
 
             // Get list of objects
             IOobjectList objects(mesh, runTime.timeName());
@@ -2433,7 +2431,7 @@ int main(int argc, char *argv[])
             reconstructLagrangian
             (
                 lagrangianReconstructorPtr,
-                baseMesh,
+                baseMeshPtr(),
                 mesh,
                 distMap,
                 selectedLagrangianFields
@@ -2565,7 +2563,7 @@ int main(int argc, char *argv[])
         wordList cloudNames;
         List<wordList> fieldNames;
 
-        // Read lagrangian fields
+        // Detect lagrangian fields
         if (Pstream::master() && decompose)
         {
             runTime.TimePaths::caseName() = baseRunTime.caseName();
@@ -2577,8 +2575,8 @@ int main(int argc, char *argv[])
             fieldNames
         );
 
+        // Read lagrangian fields and store on cloud (objectRegistry)
         PtrList<unmappedPassiveParticleCloud> clouds(cloudNames.size());
-
         readLagrangian
         (
             mesh,
