@@ -29,6 +29,28 @@ License
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
+void Foam::functionObjectList::createStateDict() const
+{
+    // cannot set the state dictionary on construction since Time has not
+    // been fully initialised
+    stateDictPtr_.reset
+    (
+        new IOdictionary
+        (
+            IOobject
+            (
+                "functionObjectProperties",
+                time_.timeName(),
+                "uniform"/word("functionObjects"),
+                time_,
+                IOobject::READ_IF_PRESENT,
+                IOobject::NO_WRITE
+            )
+        )
+    );
+}
+
+
 Foam::functionObject* Foam::functionObjectList::remove
 (
     const word& key,
@@ -70,18 +92,7 @@ Foam::functionObjectList::functionObjectList
     indices_(),
     time_(t),
     parentDict_(t.controlDict()),
-    stateDict_
-    (
-        IOobject
-        (
-            "functionObjectProperties",
-            t.timeName(),
-            "uniform"/word("functionObjects"),
-            t,
-            IOobject::READ_IF_PRESENT,
-            IOobject::NO_WRITE
-        )
-    ),
+    stateDictPtr_(),
     execution_(execution),
     updated_(false)
 {}
@@ -99,18 +110,7 @@ Foam::functionObjectList::functionObjectList
     indices_(),
     time_(t),
     parentDict_(parentDict),
-    stateDict_
-    (
-        IOobject
-        (
-            "functionObjectProperties",
-            t.timeName(),
-            "uniform"/word("functionObjects"),
-            t,
-            IOobject::READ_IF_PRESENT,
-            IOobject::NO_WRITE
-        )
-    ),
+    stateDictPtr_(),
     execution_(execution),
     updated_(false)
 {}
@@ -126,13 +126,23 @@ Foam::functionObjectList::~functionObjectList()
 
 Foam::IOdictionary& Foam::functionObjectList::stateDict()
 {
-    return stateDict_;
+    if (!stateDictPtr_.valid())
+    {
+        createStateDict();
+    }
+
+    return stateDictPtr_();
 }
 
 
 const Foam::IOdictionary& Foam::functionObjectList::stateDict() const
 {
-    return stateDict_;
+    if (!stateDictPtr_.valid())
+    {
+        createStateDict();
+    }
+
+    return stateDictPtr_();
 }
 
 
@@ -204,7 +214,7 @@ bool Foam::functionObjectList::execute(const bool forceWrite)
     // force writing of state dictionary after function object execution
     if (time_.outputTime())
     {
-        stateDict_.regIOobject::write();
+        stateDictPtr_->regIOobject::write();
     }
 
     return ok;
@@ -276,6 +286,11 @@ bool Foam::functionObjectList::adjustTimeStep()
 
 bool Foam::functionObjectList::read()
 {
+    if (!stateDictPtr_.valid())
+    {
+        createStateDict();
+    }
+
     bool ok = true;
     updated_ = execution_;
 
