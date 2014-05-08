@@ -132,18 +132,37 @@ public:
             );
 
             //- Return source for equation
-            template<class Type, class RhoType>
+            template<class Type>
             tmp<fvMatrix<Type> > operator()
             (
-                const RhoType& rho,
+                const volScalarField& rho,
                 GeometricField<Type, fvPatchField, volMesh>& fld
             );
 
             //- Return source for equation with specified name
-            template<class Type, class RhoType>
+            template<class Type>
             tmp<fvMatrix<Type> > operator()
             (
-                const RhoType& rho,
+                const volScalarField& rho,
+                GeometricField<Type, fvPatchField, volMesh>& fld,
+                const word& fieldName
+            );
+
+            //- Return source for equation
+            template<class Type>
+            tmp<fvMatrix<Type> > operator()
+            (
+                const volScalarField& alpha,
+                const volScalarField& rho,
+                GeometricField<Type, fvPatchField, volMesh>& fld
+            );
+
+            //- Return source for equation with specified name
+            template<class Type>
+            tmp<fvMatrix<Type> > operator()
+            (
+                const volScalarField& alpha,
+                const volScalarField& rho,
                 GeometricField<Type, fvPatchField, volMesh>& fld,
                 const word& fieldName
             );
