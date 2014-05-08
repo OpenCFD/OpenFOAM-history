@@ -61,8 +61,8 @@ wmake $makeType topoChangerFvMesh
 wmake $makeType ODE
 wmake $makeType randomProcesses
 
-thermophysicalModels/Allwmake $*
 transportModels/Allwmake $*
+thermophysicalModels/Allwmake $*
 turbulenceModels/Allwmake $*
 TurbulenceModels/Allwmake $*
 wmake $makeType combustionModels

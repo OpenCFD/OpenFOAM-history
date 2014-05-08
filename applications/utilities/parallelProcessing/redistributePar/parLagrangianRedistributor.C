@@ -131,6 +131,8 @@ Foam::parLagrangianRedistributor::redistributeLagrangianPositions
     passiveParticleCloud& lpi
 ) const
 {
+    //Debug(lpi.size());
+
     labelListList subMap;
 
 
@@ -187,50 +189,63 @@ Foam::parLagrangianRedistributor::redistributeLagrangianPositions
     pBufs.finishedSends(allNTrans);
 
 
-    // New cloud on tgtMesh
-    passiveParticleCloud lagrangianPositions
-    (
-        tgtMesh_,
-        lpi.name(),
-        IDLList<passiveParticle>()
-    );
-
-
-    // Retrieve from receive buffers
-    forAll(allNTrans, procI)
     {
-        label nRec = allNTrans[procI][Pstream::myProcNo()];
+        // Temporarily rename original cloud so we can construct a new one
+        // (to distribute the positions) without getting a duplicate
+        // registration warning
+        const word cloudName = lpi.name();
+        lpi.rename(cloudName + "_old");
 
-        //Pout<< "From processor " << procI << " receiving bytes " << nRec
-        //    << endl;
+        // New cloud on tgtMesh
+        passiveParticleCloud lagrangianPositions
+        (
+            tgtMesh_,
+            cloudName,
+            IDLList<passiveParticle>()
+        );
 
-        if (nRec)
+
+        // Retrieve from receive buffers
+        forAll(allNTrans, procI)
         {
-            UIPstream particleStream(procI, pBufs);
+            label nRec = allNTrans[procI][Pstream::myProcNo()];
 
-            IDLList<passiveParticle> newParticles
-            (
-                particleStream,
-                passiveParticle::iNew(tgtMesh_)
-            );
+            //Pout<< "From processor " << procI << " receiving bytes " << nRec
+            //    << endl;
 
-            forAllIter
-            (
-                typename IDLList<passiveParticle>,
-                newParticles,
-                newpIter
-            )
+            if (nRec)
             {
-                passiveParticle& newp = newpIter();
+                UIPstream particleStream(procI, pBufs);
 
-                lagrangianPositions.addParticle(newParticles.remove(&newp));
+                IDLList<passiveParticle> newParticles
+                (
+                    particleStream,
+                    passiveParticle::iNew(tgtMesh_)
+                );
+
+                forAllIter
+                (
+                    IDLList<passiveParticle>,
+                    newParticles,
+                    newpIter
+                )
+                {
+                    passiveParticle& newp = newpIter();
+
+                    lagrangianPositions.addParticle(newParticles.remove(&newp));
+                }
             }
         }
+
+
+        //OFstream::debug = 1;
+        //Debug(lagrangianPositions.size());
+        IOPosition<passiveParticleCloud>(lagrangianPositions).write();
+        //OFstream::debug = 0;
+
+        // Restore cloud name
+        lpi.rename(cloudName);
     }
-
-
-    IOPosition<passiveParticleCloud>(lagrangianPositions).write();
-
 
     // Work the send indices (subMap) into a mapDistributeBase
     labelListList sizes(Pstream::nProcs());
