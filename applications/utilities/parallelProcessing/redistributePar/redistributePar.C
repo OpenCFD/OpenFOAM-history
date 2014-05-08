@@ -383,7 +383,7 @@ void writeProcAddressing
     const mapDistributePolyMesh& map
 )
 {
-    Info<< "Writing procXXXAddressing files to " << mesh.facesInstance()
+    Info<< "Writing procAddressing files to " << mesh.facesInstance()
         << endl;
 
     labelIOList cellMap
@@ -2349,6 +2349,20 @@ int main(int argc, char *argv[])
             )
         );
 
+
+
+        // Since we start from Times[0] and not runTime.timeName() we
+        // might overlook point motion in the first timestep
+        // (since mesh.readUpdate() below will not be triggered). Instead
+        // detect points by hand
+        if (mesh.pointsInstance() != mesh.facesInstance())
+        {
+            Info<< "    Dected initial mesh motion; reconstructing points" << nl
+                << endl;
+            fvReconstructorPtr().reconstructPoints();
+        }
+
+
         // Loop over all times
         forAll(timeDirs, timeI)
         {
@@ -2366,21 +2380,7 @@ int main(int argc, char *argv[])
             {
                 Info<< "    Dected mesh motion; reconstructing points" << nl
                     << endl;
-
-                // Reconstruct the points for moving mesh cases and write
-                // them out
-                distributedUnallocatedDirectFieldMapper mapper
-                (
-                    labelUList::null(),
-                    distMap().pointMap()
-                );
-                pointField basePoints(mesh.points(), mapper);
-                if (baseMeshPtr.valid())
-                {
-                    fvMesh& baseMesh = baseMeshPtr();
-                    baseMesh.movePoints(basePoints);
-                    baseMesh.write();
-                }
+                fvReconstructorPtr().reconstructPoints();
             }
             else if
             (
