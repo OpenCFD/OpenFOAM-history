@@ -67,6 +67,7 @@ Usage
 #include "IOobjectList.H"
 #include "globalIndex.H"
 #include "loadOrCreateMesh.H"
+#include "processorFvPatchField.H"
 
 #include "distributedUnallocatedDirectFieldMapper.H"
 
@@ -666,7 +667,9 @@ void readFields
 }
 
 
-template<class GeoField>
+// Variant of GeometricField::correctBoundaryConditions that only
+// evaluates selected patch fields
+template<class GeoField, class CoupledPatchType>
 void correctCoupledBoundaryConditions(fvMesh& mesh)
 {
     HashTable<GeoField*> flds
@@ -677,7 +680,6 @@ void correctCoupledBoundaryConditions(fvMesh& mesh)
     forAllIter(typename HashTable<GeoField*>, flds, iter)
     {
         GeoField& fld = *iter();
-        //fld.correctBoundaryConditions();
 
         typename GeoField::GeometricBoundaryField& bfld =
             fld.boundaryField();
@@ -691,9 +693,13 @@ void correctCoupledBoundaryConditions(fvMesh& mesh)
 
             forAll(bfld, patchi)
             {
-                if (bfld[patchi].coupled())
+                typename GeoField::PatchFieldType& pfld = bfld[patchi];
+
+                //if (pfld.coupled())
+                //if (isA<CoupledPatchType>(pfld))
+                if (pfld.patch().coupled())
                 {
-                    bfld[patchi].initEvaluate(Pstream::defaultCommsType);
+                    pfld.initEvaluate(Pstream::defaultCommsType);
                 }
             }
 
@@ -709,9 +715,13 @@ void correctCoupledBoundaryConditions(fvMesh& mesh)
 
             forAll(bfld, patchi)
             {
-                if (bfld[patchi].coupled())
+                typename GeoField::PatchFieldType& pfld = bfld[patchi];
+
+                //if (pfld.coupled())
+                //if (isA<CoupledPatchType>(pfld))
+                if (pfld.patch().coupled())
                 {
-                    bfld[patchi].evaluate(Pstream::defaultCommsType);
+                    pfld.evaluate(Pstream::defaultCommsType);
                 }
             }
         }
@@ -723,15 +733,19 @@ void correctCoupledBoundaryConditions(fvMesh& mesh)
             forAll(patchSchedule, patchEvali)
             {
                 label patchi = patchSchedule[patchEvali].patch;
-                if (bfld[patchi].coupled())
+                typename GeoField::PatchFieldType& pfld = bfld[patchi];
+
+                //if (pfld.coupled())
+                //if (isA<CoupledPatchType>(pfld))
+                if (pfld.patch().coupled())
                 {
                     if (patchSchedule[patchEvali].init)
                     {
-                        bfld[patchi].initEvaluate(Pstream::scheduled);
+                        pfld.initEvaluate(Pstream::scheduled);
                     }
                     else
                     {
-                        bfld[patchi].evaluate(Pstream::scheduled);
+                        pfld.evaluate(Pstream::scheduled);
                     }
                 }
             }
@@ -1022,11 +1036,31 @@ autoPtr<mapDistributePolyMesh> redistributeAndWrite
     //printMeshData(mesh);
 
     // Get other side of processor boundaries
-    correctCoupledBoundaryConditions<volScalarField>(mesh);
-    correctCoupledBoundaryConditions<volVectorField>(mesh);
-    correctCoupledBoundaryConditions<volSphericalTensorField>(mesh);
-    correctCoupledBoundaryConditions<volSymmTensorField>(mesh);
-    correctCoupledBoundaryConditions<volTensorField>(mesh);
+    correctCoupledBoundaryConditions
+    <
+        volScalarField,
+        processorFvPatchField<scalar>
+    >(mesh);
+    correctCoupledBoundaryConditions
+    <
+        volVectorField,
+        processorFvPatchField<vector>
+    >(mesh);
+    correctCoupledBoundaryConditions
+    <
+        volSphericalTensorField,
+        processorFvPatchField<sphericalTensor>
+    >(mesh);
+    correctCoupledBoundaryConditions
+    <
+        volSymmTensorField,
+        processorFvPatchField<symmTensor>
+    >(mesh);
+    correctCoupledBoundaryConditions
+    <
+        volTensorField,
+        processorFvPatchField<tensor>
+    >(mesh);
     // No update surface fields
 
 
