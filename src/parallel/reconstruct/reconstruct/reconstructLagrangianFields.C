@@ -132,7 +132,11 @@ Foam::reconstructLagrangianFieldField
 
         if
         (
-            localIOobject.typeHeaderOk<CompactIOField<Field<Type>, Type> >(true)
+            localIOobject.typeHeaderOk<CompactIOField<Field<Type>, Type> >
+            (
+                false
+            )
+         || localIOobject.typeHeaderOk<IOField<Field<Type> > >(false)
         )
         {
             CompactIOField<Field<Type>, Type> fieldi(localIOobject);
