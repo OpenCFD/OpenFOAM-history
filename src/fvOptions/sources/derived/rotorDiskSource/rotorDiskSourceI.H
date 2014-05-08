@@ -51,23 +51,4 @@ const Foam::cylindricalCS& Foam::fv::rotorDiskSource::coordSys() const
 }
 
 
-bool Foam::fv::rotorDiskSource::compressible() const
-{
-    return rhoName_ != "none";
-}
-
-
-Foam::tmp<Foam::volScalarField> Foam::fv::rotorDiskSource::rho() const
-{
-    if (compressible())
-    {
-        return mesh_.lookupObject<volScalarField>(rhoName_);
-    }
-    else
-    {
-        return volScalarField::null();
-    }
-}
-
-
 // ************************************************************************* //

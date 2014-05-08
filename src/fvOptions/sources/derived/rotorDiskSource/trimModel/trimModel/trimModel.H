@@ -120,7 +120,19 @@ public:
         virtual tmp<scalarField> thetag() const = 0;
 
         //- Correct the model
-        virtual void correct(const vectorField& U, vectorField& force) = 0;
+        virtual void correct
+        (
+            const vectorField& U,
+            vectorField& force
+        ) = 0;
+
+        //- Correct the model for compressible flow
+        virtual void correct
+        (
+            const volScalarField rho,
+            const vectorField& U,
+            vectorField& force
+        ) = 0;
 };
 
 

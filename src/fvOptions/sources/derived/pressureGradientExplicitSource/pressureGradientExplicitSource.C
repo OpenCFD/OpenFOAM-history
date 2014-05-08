@@ -203,6 +203,17 @@ void Foam::fv::pressureGradientExplicitSource::addSup
 }
 
 
+void Foam::fv::pressureGradientExplicitSource::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<vector>& eqn,
+    const label fieldI
+)
+{
+    this->addSup(eqn, fieldI);
+}
+
+
 void Foam::fv::pressureGradientExplicitSource::setValue
 (
     fvMatrix<vector>& eqn,

@@ -410,13 +410,13 @@ void Foam::fv::enthalpyPorositySource::addSup
         );
 
         // isothermal phase change - only include time derivative
-//        eqn -= L/Cp*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
+        // eqn -= L/Cp*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
         eqn -= L/Cp*(fvc::ddt(rho, alpha1_));
     }
     else
     {
         // isothermal phase change - only include time derivative
-//        eqn -= L*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
+        // eqn -= L*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
         eqn -= L*(fvc::ddt(rho, alpha1_));
     }
 }
@@ -461,6 +461,30 @@ void Foam::fv::enthalpyPorositySource::addSup
         Sp[cellI] += Vc*S;
         Su[cellI] += Vc*Sb;
     }
+}
+
+
+void Foam::fv::enthalpyPorositySource::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<scalar>& eqn,
+    const label fieldI
+)
+{
+    // **HGW implement correctly
+    addSup(eqn, fieldI);
+}
+
+
+void Foam::fv::enthalpyPorositySource::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<vector>& eqn,
+    const label fieldI
+)
+{
+    // ***HGW implement correctly
+    addSup(eqn, fieldI);
 }
 
 

@@ -247,10 +247,32 @@ public:
         virtual bool alwaysApply() const;
 
 
-        // Public Functions
+        // Add explicit and implicit contributions
 
-            //- Source term to fvMatrix<scalar>
-            virtual void addSup(fvMatrix<scalar>& eqn, const label fieldI);
+            //- Scalar
+            virtual void addSup
+            (
+                fvMatrix<scalar>& eqn,
+                const label fieldI
+            )
+            {
+                notImplemented
+                (
+                    "effectivenessHeatExchangerSource::addSup(eqn, fieldI): "
+                    "only compressible solvers supported."
+                );
+            }
+
+
+        // Add explicit and implicit contributions to compressible equation
+
+            //- Scalar
+            virtual void addSup
+            (
+                const volScalarField& rho,
+                fvMatrix<scalar>& eqn,
+                const label fieldI
+            );
 
 
         // I-O

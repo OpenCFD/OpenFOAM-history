@@ -91,9 +91,6 @@ protected:
         //- Velocity field name, default = U
         word UName_;
 
-        //- Density field name (compressible case only), default = rho
-        word rhoName_;
-
         //- Dynamic viscosity field name (compressible case only)
         //  default = thermo:mu
         word muName_;
@@ -149,6 +146,17 @@ public:
             //- Vector
             virtual void addSup
             (
+                fvMatrix<vector>& eqn,
+                const label fieldI
+            );
+
+
+        // Add explicit and implicit contributions to compressible equation
+
+            //- Vector
+            virtual void addSup
+            (
+                const volScalarField& rho,
                 fvMatrix<vector>& eqn,
                 const label fieldI
             );

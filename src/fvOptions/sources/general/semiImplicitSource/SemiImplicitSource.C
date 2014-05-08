@@ -193,4 +193,22 @@ void Foam::fv::SemiImplicitSource<Type>::addSup
 }
 
 
+template<class Type>
+void Foam::fv::SemiImplicitSource<Type>::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<Type>& eqn,
+    const label fieldI
+)
+{
+    if (debug)
+    {
+        Info<< "SemiImplicitSource<" << pTraits<Type>::typeName
+            << ">::addSup for source " << name_ << endl;
+    }
+
+    return this->addSup(eqn, fieldI);
+}
+
+
 // ************************************************************************* //

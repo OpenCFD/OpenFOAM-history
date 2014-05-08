@@ -204,6 +204,7 @@ bool Foam::fv::effectivenessHeatExchangerSource::alwaysApply() const
 
 void Foam::fv::effectivenessHeatExchangerSource::addSup
 (
+    const volScalarField& rho,
     fvMatrix<scalar>& eqn,
     const label
 )

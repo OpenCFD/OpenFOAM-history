@@ -263,6 +263,17 @@ void Foam::fv::interRegionHeatTransferModel::addSup
 }
 
 
+void Foam::fv::interRegionHeatTransferModel::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<scalar>& eqn,
+    const label fieldI
+)
+{
+    addSup(eqn, fieldI);
+}
+
+
 void Foam::fv::interRegionHeatTransferModel::writeData(Ostream& os) const
 {
     os.writeKeyword("name") << this->name() << token::END_STATEMENT << nl;

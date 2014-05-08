@@ -143,9 +143,17 @@ public:
 
         // Add explicit and implicit contributions
 
-            //- Vector
+            //- Add implicit contribution to momentum equation
             virtual void addSup
             (
+                fvMatrix<vector>& eqn,
+                const label fieldI
+            );
+
+            //- Add implicit contribution to compressible momentum equation
+            virtual void addSup
+            (
+                const volScalarField& rho,
                 fvMatrix<vector>& eqn,
                 const label fieldI
             );

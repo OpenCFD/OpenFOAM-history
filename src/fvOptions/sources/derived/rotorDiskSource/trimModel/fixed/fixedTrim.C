@@ -86,7 +86,21 @@ Foam::tmp<Foam::scalarField> Foam::fixedTrim::thetag() const
 }
 
 
-void Foam::fixedTrim::correct(const vectorField& U, vectorField& force)
+void Foam::fixedTrim::correct
+(
+    const vectorField& U,
+    vectorField& force
+)
+{
+    // do nothing
+}
+
+
+void Foam::fixedTrim::correct
+(
+    const volScalarField rho,
+    const vectorField& U,
+    vectorField& force)
 {
     // do nothing
 }
