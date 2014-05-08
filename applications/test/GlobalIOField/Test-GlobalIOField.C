@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,19 +21,63 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Application
+    Test-globalIOField
+
+Description
+    Test application for the GlobalIOField container
+
 \*---------------------------------------------------------------------------*/
 
-#include "kinematicParcelInjectionDataIOList.H"
+#include "argList.H"
+#include "Time.H"
+#include "polyMesh.H"
+#include "fvCFD.H"
+#include "globalIOFields.H"
+
+using namespace Foam;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
+//  Main program:
+
+int main(int argc, char *argv[])
 {
-    defineTemplateTypeNameAndDebug
+#   include "setRootCase.H"
+#   include "createTime.H"
+#   include "createMesh.H"
+
+    // Read undecomposed file
+
+    Pout<< "\nReading g" << endl;
+    uniformDimensionedVectorField g
     (
-        GlobalIOList<kinematicParcelInjectionData>,
-        0
+        IOobject
+        (
+            "g",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
     );
+    while (runTime.loop())
+    {
+        Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        Pout<< "g:" << g << endl;
+
+        sleep(1);
+
+        runTime.write();
+
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
+
+
+    return 0;
 }
 
 

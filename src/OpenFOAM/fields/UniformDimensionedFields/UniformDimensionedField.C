@@ -38,24 +38,7 @@ Foam::UniformDimensionedField<Type>::UniformDimensionedField
     dimensioned<Type>(dt)
 {
     // Read value
-    if
-    (
-        (
-            io.readOpt() == IOobject::MUST_READ
-         || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
-        )
-     || (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
-    )
-    {
-        // For if MUST_READ_IF_MODIFIED
-        addWatch();
-
-        dictionary dict(readStream(typeName));
-        scalar multiplier;
-        this->dimensions().read(dict.lookup("dimensions"), multiplier);
-        dict.lookup("value") >> this->value();
-        this->value() *= multiplier;
-    }
+    readHeaderOk(IOstream::ASCII, typeName);
 }
 
 
@@ -82,11 +65,8 @@ Foam::UniformDimensionedField<Type>::UniformDimensionedField
     // For if MUST_READ_IF_MODIFIED
     addWatch();
 
-    dictionary dict(readStream(typeName));
-    scalar multiplier;
-    this->dimensions().read(dict.lookup("dimensions"), multiplier);
-    dict.lookup("value") >> this->value();
-    this->value() *= multiplier;
+    // Read unless NO_READ
+    readHeaderOk(IOstream::ASCII, typeName);
 }
 
 
@@ -98,6 +78,19 @@ Foam::UniformDimensionedField<Type>::~UniformDimensionedField()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+template<class Type>
+bool Foam::UniformDimensionedField<Type>::readData(Istream& is)
+{
+    dictionary dict(is);
+    scalar multiplier;
+    this->dimensions().read(dict.lookup("dimensions"), multiplier);
+    dict.lookup("value") >> this->value();
+    this->value() *= multiplier;
+
+    return is.good();
+}
+
 
 template<class Type>
 bool Foam::UniformDimensionedField<Type>::writeData(Ostream& os) const

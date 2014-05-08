@@ -89,6 +89,10 @@ public:
             return dimensioned<Type>::name();
         }
 
+        //- ReadData function required for regIOobject read operation
+        virtual bool readData(Istream&);
+
+        //- WriteData function required for regIOobject write operation
         bool writeData(Ostream&) const;
 
         //- Is object global
