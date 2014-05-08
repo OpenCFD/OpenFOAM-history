@@ -34,18 +34,18 @@ Description
 #define globalIOFields_H
 
 #include "primitiveFields.H"
-#include "globalIOField.H"
+#include "GlobalIOField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef globalIOField<label> labelGlobalIOField;
-    typedef globalIOField<scalar> scalarGlobalIOField;
-    typedef globalIOField<vector> vectorGlobalIOField;
-    typedef globalIOField<sphericalTensor> sphericalTensorGlobalIOField;
-    typedef globalIOField<symmTensor> symmTensorGlobalIOField;
-    typedef globalIOField<tensor> tensorGlobalIOField;
+    typedef GlobalIOField<label> labelGlobalIOField;
+    typedef GlobalIOField<scalar> scalarGlobalIOField;
+    typedef GlobalIOField<vector> vectorGlobalIOField;
+    typedef GlobalIOField<sphericalTensor> sphericalTensorGlobalIOField;
+    typedef GlobalIOField<symmTensor> symmTensorGlobalIOField;
+    typedef GlobalIOField<tensor> tensorGlobalIOField;
 
     //- Template specialisation for obtaining filePath
     template<>

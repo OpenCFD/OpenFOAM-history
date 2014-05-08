@@ -87,6 +87,13 @@ protected:
             const word& typeName
         );
 
+        //- Check readOpt flags and read if necessary. Uses above read
+        bool readHeaderOk
+        (
+            const IOstream::streamFormat PstreamFormat,
+            const word& typeName
+        );
+
         //- Construct and return an IFstream for the object.
         //  The results is NULL if the stream construction failed
         Istream* objectStream();

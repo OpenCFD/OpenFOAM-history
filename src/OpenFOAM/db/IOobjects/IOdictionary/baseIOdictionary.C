@@ -41,67 +41,6 @@ bool baseIOdictionary::writeDictionaries
 }
 
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-bool Foam::baseIOdictionary::readFile()
-{
-    // Temporary warning
-    if (debug && readOpt() == IOobject::MUST_READ)
-    {
-        WarningIn("baseIOdictionary::baseIOdictionary(const IOobject&)")
-            << "Dictionary " << name()
-            << " constructed with IOobject::MUST_READ"
-            " instead of IOobject::MUST_READ_IF_MODIFIED." << nl
-            << "Use MUST_READ_IF_MODIFIED if you need automatic rereading."
-            << endl;
-    }
-
-    // Everyone check or just master
-    bool masterOnly =
-        global()
-     && (
-            regIOobject::fileModificationChecking == timeStampMaster
-         || regIOobject::fileModificationChecking == inotifyMaster
-        );
-
-
-    // Check if header is ok for READ_IF_PRESENT
-    bool isHeaderOk = false;
-    if (readOpt() == IOobject::READ_IF_PRESENT)
-    {
-        if (masterOnly)
-        {
-            if (Pstream::master())
-            {
-                isHeaderOk = headerOk();
-            }
-            Pstream::scatter(isHeaderOk);
-        }
-        else
-        {
-            isHeaderOk = headerOk();
-        }
-    }
-
-
-    if
-    (
-        (
-            readOpt() == IOobject::MUST_READ
-         || readOpt() == IOobject::MUST_READ_IF_MODIFIED
-        )
-     || isHeaderOk
-    )
-    {
-        return regIOobject::read(masterOnly, IOstream::ASCII, typeName);
-    }
-    else
-    {
-        return false;
-    }
-}
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::baseIOdictionary::baseIOdictionary(const IOobject& io)

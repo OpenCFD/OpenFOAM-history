@@ -136,7 +136,6 @@ Foam::IOList<T>::~IOList()
 {}
 
 
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class T>

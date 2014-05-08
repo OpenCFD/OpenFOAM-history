@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,25 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::baseIOdictionary
+    Foam::GlobalIOList
 
 Description
-    baseIOdictionary is derived from dictionary and IOobject to give the
-    dictionary automatic IO functionality via the objectRegistry.
-    To facilitate IO,
-    IOdictioanry is provided with a constructor from IOobject and writeData and
-    write functions.
+    IOList with global data (so optionally read from master)
 
 SourceFiles
-    baseIOdictionary.C
-    baseIOdictionaryIO.C
+    GlobalIOList.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef baseIOdictionary_H
-#define baseIOdictionary_H
+#ifndef GlobalIOList_H
+#define GlobalIOList_H
 
-#include "dictionary.H"
+#include "List.H"
 #include "regIOobject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -49,70 +44,79 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class baseIOdictionary Declaration
+                           Class GlobalIOList Declaration
 \*---------------------------------------------------------------------------*/
 
-class baseIOdictionary
+template<class Type>
+class GlobalIOList
 :
     public regIOobject,
-    public dictionary
+    public List<Type>
 {
-    // Private data
-
-        static bool writeDictionaries;
 
 public:
 
-    TypeName("dictionary");
+    TypeName("List");
 
 
     // Constructors
 
-        //- Construct given an IOobject
-        baseIOdictionary(const IOobject&);
+        //- Construct from IOobject
+        GlobalIOList(const IOobject&);
 
-        //- Construct given an IOobject and dictionary
-        baseIOdictionary(const IOobject&, const dictionary&);
+        //- Construct from IOobject
+        GlobalIOList(const IOobject&, const label size);
 
-        //- Construct given an IOobject and Istream
-        baseIOdictionary(const IOobject&, Istream&);
+        //- Construct from IOobject and a List
+        GlobalIOList(const IOobject&, const List<Type>&);
+
+        //- Construct by transferring the List contents
+        GlobalIOList(const IOobject&, const Xfer<List<Type> >&);
 
 
     //- Destructor
-    virtual ~baseIOdictionary();
+    virtual ~GlobalIOList();
 
 
     // Member functions
 
+        //- Is object global
+        virtual bool global() const
+        {
+            return true;
+        }
+
         //- Return complete path + object name if the file exists
         //  either in the case/processor or case otherwise null
-        virtual fileName filePath() const = 0;
-
-        //- Name function is needed to disambiguate those inherited
-        //  from regIOobject and dictionary
-        const word& name() const;
+        virtual fileName filePath() const
+        {
+            return globalFilePath();
+        }
 
         //- ReadData function required for regIOobject read operation
         virtual bool readData(Istream&);
 
         //- WriteData function required for regIOobject write operation
-        virtual bool writeData(Ostream&) const;
-
-        //- Is object global
-        virtual bool global() const = 0;
+        bool writeData(Ostream&) const;
 
 
     // Member operators
 
-        //- Assignment of other baseIOdictionary's entries to this
-        //  baseIOdictionary
-        void operator=(const baseIOdictionary&);
+        void operator=(const GlobalIOList<Type>&);
+
+        void operator=(const List<Type>&);
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "GlobalIOList.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

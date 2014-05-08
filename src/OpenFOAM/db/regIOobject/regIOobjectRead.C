@@ -28,7 +28,7 @@ License
 #include "Time.H"
 #include "Pstream.H"
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 bool Foam::regIOobject::read
 (
@@ -130,6 +130,57 @@ bool Foam::regIOobject::read
         }
     }
     return ok;
+}
+
+
+bool Foam::regIOobject::readHeaderOk
+(
+    const IOstream::streamFormat format,
+    const word& typeName
+)
+{
+    // Everyone check or just master
+    bool masterOnly =
+        global()
+     && (
+            regIOobject::fileModificationChecking == timeStampMaster
+         || regIOobject::fileModificationChecking == inotifyMaster
+        );
+
+
+    // Check if header is ok for READ_IF_PRESENT
+    bool isHeaderOk = false;
+    if (readOpt() == IOobject::READ_IF_PRESENT)
+    {
+        if (masterOnly)
+        {
+            if (Pstream::master())
+            {
+                isHeaderOk = headerOk();
+            }
+            Pstream::scatter(isHeaderOk);
+        }
+        else
+        {
+            isHeaderOk = headerOk();
+        }
+    }
+
+    if
+    (
+        (
+            readOpt() == IOobject::MUST_READ
+         || readOpt() == IOobject::MUST_READ_IF_MODIFIED
+        )
+     || isHeaderOk
+    )
+    {
+        return regIOobject::read(masterOnly, format, typeName);
+    }
+    else
+    {
+        return false;
+    }
 }
 
 

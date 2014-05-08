@@ -22,18 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::globalIOField
+    Foam::GlobalIOField
 
 Description
-    IOField with global search scope.
+    IOField with global data (so optionally read from master)
 
 SourceFiles
-    globalIOField.C
+    GlobalIOField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef globalIOField_H
-#define globalIOField_H
+#ifndef GlobalIOField_H
+#define GlobalIOField_H
 
 #include "regIOobject.H"
 #include "Field.H"
@@ -44,11 +44,11 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class globalIOField Declaration
+                           Class GlobalIOField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
-class globalIOField
+class GlobalIOField
 :
     public regIOobject,
     public Field<Type>
@@ -62,20 +62,20 @@ public:
     // Constructors
 
         //- Construct from IOobject
-        globalIOField(const IOobject&);
+        GlobalIOField(const IOobject&);
 
         //- Construct from IOobject and size (does not set values)
-        globalIOField(const IOobject&, const label size);
+        GlobalIOField(const IOobject&, const label size);
 
         //- Construct from components
-        globalIOField(const IOobject&, const Field<Type>&);
+        GlobalIOField(const IOobject&, const Field<Type>&);
 
         //- Construct by transferring the Field contents
-        globalIOField(const IOobject&, const Xfer<Field<Type> >&);
+        GlobalIOField(const IOobject&, const Xfer<Field<Type> >&);
 
 
     //- Destructor
-    virtual ~globalIOField();
+    virtual ~GlobalIOField();
 
 
     // Member functions
@@ -93,12 +93,16 @@ public:
             return globalFilePath();
         }
 
+        //- ReadData function required for regIOobject read operation
+        virtual bool readData(Istream&);
+
+        //- WriteData function required for regIOobject write operation
         bool writeData(Ostream&) const;
 
 
     // Member operators
 
-        void operator=(const globalIOField<Type>&);
+        void operator=(const GlobalIOField<Type>&);
 
         void operator=(const Field<Type>&);
 };
@@ -111,7 +115,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#   include "globalIOField.C"
+#   include "GlobalIOField.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

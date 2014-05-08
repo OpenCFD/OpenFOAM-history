@@ -34,7 +34,7 @@ Foam::IOdictionary::IOdictionary(const IOobject& io)
 :
     baseIOdictionary(io)
 {
-    readFile();
+    readHeaderOk(IOstream::ASCII, typeName);
 
     // For if MUST_READ_IF_MODIFIED
     addWatch();
@@ -49,7 +49,7 @@ Foam::IOdictionary::IOdictionary
 :
     baseIOdictionary(io, dict)
 {
-    if (!readFile())
+    if (!readHeaderOk(IOstream::ASCII, typeName))
     {
         dictionary::operator=(dict);
     }
