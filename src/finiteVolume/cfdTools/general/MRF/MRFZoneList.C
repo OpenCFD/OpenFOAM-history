@@ -160,6 +160,46 @@ void Foam::MRFZoneList::addCoriolis
 }
 
 
+Foam::tmp<Foam::volVectorField> Foam::MRFZoneList::operator()
+(
+    const volVectorField& U
+)
+{
+    tmp<volVectorField> tacceleration
+    (
+        new volVectorField
+        (
+            IOobject
+            (
+                "MRFZoneList:acceleration",
+                U.mesh().time().timeName(),
+                U.mesh()
+            ),
+            U.mesh(),
+            dimensionedVector("0", U.dimensions()/dimTime, vector::zero)
+        )
+    );
+    volVectorField& acceleration = tacceleration();
+
+    forAll(*this, i)
+    {
+        operator[](i).addCoriolis(U, acceleration);
+    }
+
+    return tacceleration;
+}
+
+
+Foam::tmp<Foam::volVectorField> Foam::MRFZoneList::operator()
+(
+    const volScalarField& rho,
+    const volVectorField& U
+)
+{
+    return rho*operator()(U);
+}
+
+
 void Foam::MRFZoneList::makeRelative(volVectorField& U) const
 {
     forAll(*this, i)

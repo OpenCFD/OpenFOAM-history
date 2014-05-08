@@ -102,6 +102,19 @@ public:
         //- Add the Coriolis force contribution to the momentum equation
         void addCoriolis(const volScalarField& rho, fvVectorMatrix& UEqn) const;
 
+        //- Return the frame acceleration
+        tmp<volVectorField> operator()
+        (
+            const volVectorField& U
+        );
+
+        //- Return the frame acceleration force
+        tmp<volVectorField> operator()
+        (
+            const volScalarField& rho,
+            const volVectorField& U
+        );
+
         //- Make the given absolute velocity relative within the MRF region
         void makeRelative(volVectorField& U) const;
 
