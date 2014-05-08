@@ -24,6 +24,9 @@ License
 Application
     rhoLTSPimpleFoam
 
+Group
+    grpCompressibleSolvers
+
 Description
     Transient solver for laminar or turbulent flow of compressible fluids
     with support for run-time selectable finite volume options, e.g. MRF,

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,9 +24,16 @@ License
 Application
     potentialFoam
 
+Group
+    grpBasicSolvers
+
 Description
-    Simple potential flow solver which can be used to generate starting fields
-    for full Navier-Stokes codes.
+    Potential flow solver which can be used to generate starting fields
+    for full Navier-Stokes codes.  The flow is evolved using the equation:
+
+    \f[
+        \laplacian p = \div \vec{U}
+    \f]
 
 \*---------------------------------------------------------------------------*/
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,8 +24,27 @@ License
 Application
     laplacianFoam
 
+Group
+    grpBasicSolvers
+
 Description
-    Solves a simple Laplace equation, e.g. for thermal diffusion in a solid.
+    Solves a Laplace equation for a scalar quantity, e.g. for thermal
+    diffusion in a solid.  The equation is given by:
+
+    \f[
+        \ddt{T}  = \div \left( D_T \grad T \right)
+    \f]
+
+    Where:
+    \vartable
+        T     | Scalar field which is solved for, e.g. temperature
+        D_T   | Diffusion coefficient
+    \endvartable
+
+    Required fields include:
+    \plaintable
+        T     | Scalar field which is solved for, e.g. temperature
+    \endplaintable
 
 \*---------------------------------------------------------------------------*/
 

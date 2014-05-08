@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,6 +23,9 @@ License
 
 Application
     PDRFoam
+
+Group
+    grpCombustionSolvers
 
 Description
     Solver for compressible premixed/partially-premixed combustion with
@@ -54,16 +57,17 @@ Description
     regions containing blockages which cannot be resolved by the mesh.
 
     The fields used by this solver are:
-
-    betav:  Volume porosity
-    Lobs:   Average diameter of obstacle in cell (m)
-    Aw:     Obstacle surface area per unit volume (1/m)
-    CR:     Drag tensor (1/m)
-    CT:     Turbulence generation parameter (1/m)
-    Nv:     Number of obstacles in cell per unit volume (m^-2)
-    nsv:    Tensor whose diagonal indicates the number to substract from
-            Nv to get the number of obstacles crossing the flow in each
-            direction.
+    \plaintable
+    betav  | Volume porosity
+    Lobs   | Average diameter of obstacle in cell (m)
+    Aw     | Obstacle surface area per unit volume (1/m)
+    CR     | Drag tensor (1/m)
+    CT     | Turbulence generation parameter (1/m)
+    Nv     | Number of obstacles in cell per unit volume (m^-2)
+    nsv    | Tensor whose diagonal indicates the number to substract from
+           | Nv to get the number of obstacles crossing the flow in each
+           | direction.
+    \endplaintable
 
 \*---------------------------------------------------------------------------*/
 

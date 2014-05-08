@@ -24,6 +24,9 @@ License
 Application
     pimpleFoam
 
+Group
+    grpIncompressibleSolvers
+
 Description
     Large time-step transient solver for incompressible, flow using the PIMPLE
     (merged PISO-SIMPLE) algorithm.
