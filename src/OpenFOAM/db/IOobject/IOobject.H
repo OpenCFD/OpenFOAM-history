@@ -382,7 +382,7 @@ public:
             //- Read header (uses typeFilePath to find file) and check header
             //  info. Optionally checks headerClassName against type
             template<class Type>
-            bool typeHeaderOk(const bool checkType);
+            bool typeHeaderOk(const bool checkType = true);
 
             //- Helper: warn that type does not support re-reading
             template<class Type>
