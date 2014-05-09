@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,7 +26,6 @@ License
 #include "doxygenXmlParser.H"
 #include "wordRe.H"
 
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::doxygenXmlParser::doxygenXmlParser
@@ -34,11 +33,14 @@ Foam::doxygenXmlParser::doxygenXmlParser
     const fileName& fName,
     const string& startTag,
     const string& searchStr,
-    const bool exactMatch
+    const bool exactMatch,
+    const word& ext
 )
 :
     dictionary(dictionary::null)
 {
+    const wordRe nameStr(".*." + ext, wordRe::DETECT);
+
     IFstream is(fName);
 
     char c;
@@ -95,7 +97,9 @@ Foam::doxygenXmlParser::doxygenXmlParser
                     if (entryName == "name")
                     {
                         getValue<word>(is, name);
-                        if (wordRe(".*.H", wordRe::DETECT).match(name))
+
+//                        if (wordRe(".*." + ext, wordRe::DETECT).match(name))
+                        if (nameStr.match(name))
                         {
                             foundName = true;
                         }
@@ -139,7 +143,7 @@ Foam::doxygenXmlParser::doxygenXmlParser
                     // NOTE: not ideal for cases where there are multiple types
                     //    but contained within different namespaces
                     //    preferentially take exact match if it exists
-                    if (exactMatch && (tName + ".H") == name)
+                    if (exactMatch && (tName + "." + ext) == name)
                     {
                         dictionary dict(dictionary::null);
                         dict.add("name", name);
@@ -150,7 +154,7 @@ Foam::doxygenXmlParser::doxygenXmlParser
                     else if
                     (
                         !exactMatch
-                     && !found(tName)
+                     && !found(tName) // not already added
                      && wordRe(".*" + tName + ".*", wordRe::DETECT).match(name)
                     )
                     {
