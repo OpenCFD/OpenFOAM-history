@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -103,6 +103,7 @@ SourceFiles
 #ifndef streamLine_H
 #define streamLine_H
 
+#include "functionObjectState.H"
 #include "volFieldsFwd.H"
 #include "pointFieldFwd.H"
 #include "Switch.H"
@@ -130,14 +131,13 @@ class sampledSet;
 \*---------------------------------------------------------------------------*/
 
 class streamLine
+:
+    public functionObjectState
 {
     // Private data
 
         //- Input dictionary
         dictionary dict_;
-
-        //- Name of this set of field averages.
-        word name_;
 
         //- Database this class is registered to
         const objectRegistry& obr_;

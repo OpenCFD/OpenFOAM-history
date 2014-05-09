@@ -330,8 +330,8 @@ Foam::streamLine::streamLine
     const bool loadFromFiles
 )
 :
+    functionObjectState(obr, name),
     dict_(dict),
-    name_(name),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
     active_(true),
@@ -722,6 +722,14 @@ void Foam::streamLine::write()
                     scalarValues,
                     OFstream(vtkFile)()
                 );
+
+                forAll(scalarNames_, nameI)
+                {
+                    dictionary propsDict;
+                    propsDict.add("file", vtkFile);
+                    const word& fieldName = scalarNames_[nameI];
+                    setProperty(fieldName, propsDict);
+                }
             }
 
             // Convert vector values
@@ -763,6 +771,14 @@ void Foam::streamLine::write()
                     vectorValues,
                     OFstream(vtkFile)()
                 );
+
+                forAll(vectorNames_, nameI)
+                {
+                    dictionary propsDict;
+                    propsDict.add("file", vtkFile);
+                    const word& fieldName = vectorNames_[nameI];
+                    setProperty(fieldName, propsDict);
+                }
             }
         }
     }

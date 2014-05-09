@@ -207,7 +207,7 @@ bool Foam::domainDecomposition::writeDecomposition(const bool decomposeSets)
             IOobject::MUST_READ,
             IOobject::NO_WRITE
         );
-        if (io.headerOk())
+        if (io.typeHeaderOk<labelIOList>(true))
         {
             Info<< "Reading hexRef8 data : " << io.name() << endl;
             cellLevelPtr.reset(new labelIOList(io));
@@ -224,7 +224,7 @@ bool Foam::domainDecomposition::writeDecomposition(const bool decomposeSets)
             IOobject::MUST_READ,
             IOobject::NO_WRITE
         );
-        if (io.headerOk())
+        if (io.typeHeaderOk<labelIOList>(true))
         {
             Info<< "Reading hexRef8 data : " << io.name() << endl;
             pointLevelPtr.reset(new labelIOList(io));
@@ -241,7 +241,7 @@ bool Foam::domainDecomposition::writeDecomposition(const bool decomposeSets)
             IOobject::MUST_READ,
             IOobject::NO_WRITE
         );
-        if (io.headerOk())
+        if (io.typeHeaderOk<uniformDimensionedScalarField>(true))
         {
             Info<< "Reading hexRef8 data : " << io.name() << endl;
             level0EdgePtr.reset(new uniformDimensionedScalarField(io));

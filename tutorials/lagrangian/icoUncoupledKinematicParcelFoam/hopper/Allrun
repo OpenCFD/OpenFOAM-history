@@ -13,6 +13,7 @@ cd ..
 
 cd hopperEmptying
 runApplication blockMesh
+cp -r 0.org 0
 runApplication mapFields ../hopperInitialState -sourceTime latestTime
 runApplication decomposePar
 runParallel `getApplication` 4

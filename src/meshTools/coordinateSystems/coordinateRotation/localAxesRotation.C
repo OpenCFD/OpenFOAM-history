@@ -27,7 +27,6 @@ License
 #include "axesRotation.H"
 #include "addToRunTimeSelectionTable.H"
 #include "polyMesh.H"
-#include "tensorIOField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 

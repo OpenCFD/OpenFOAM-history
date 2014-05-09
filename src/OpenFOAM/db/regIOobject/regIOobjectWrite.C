@@ -58,57 +58,93 @@ bool Foam::regIOobject::writeObject
         return false;
     }
 
-    if
+
+
+    //- uncomment this if you want to write global objects on master only
+    //bool isGlobal = global();
+    bool isGlobal = false;
+
+    if (instance() == time().timeName())
+    {
+        // Mark as written to local directory
+        isGlobal = false;
+    }
+    else if
     (
-        instance() != time().timeName()
-     && instance() != time().system()
+        instance() != time().system()
      && instance() != time().caseSystem()
      && instance() != time().constant()
      && instance() != time().caseConstant()
     )
     {
+        // Update instance
         const_cast<regIOobject&>(*this).instance() = time().timeName();
-    }
 
-    if (!mkDir(path()))
-    {
-        return false;
+        // Mark as written to local directory
+        isGlobal = false;
     }
-
 
     if (OFstream::debug)
     {
-        Pout<< "regIOobject::write() : "
-            << "writing file " << objectPath();
+        if (isGlobal)
+        {
+            Pout<< "regIOobject::write() : "
+                << "writing (global) file " << objectPath();
+        }
+        else
+        {
+            Pout<< "regIOobject::write() : "
+                << "writing (local) file " << objectPath();
+        }
     }
 
 
     bool osGood = false;
 
+
+    // Everyone check or just master
+    bool masterOnly =
+        isGlobal
+     && (
+            regIOobject::fileModificationChecking == timeStampMaster
+         || regIOobject::fileModificationChecking == inotifyMaster
+        );
+
+
+    if (Pstream::master() || !masterOnly)
     {
-        // Try opening an OFstream for object
-        OFstream os(objectPath(), fmt, ver, cmp);
-
-        // If any of these fail, return (leave error handling to Ostream class)
-        if (!os.good())
+        if (mkDir(path()))
         {
-            return false;
+            // Try opening an OFstream for object
+            OFstream os(objectPath(), fmt, ver, cmp);
+
+            // If any of these fail, return (leave error handling to Ostream
+            // class)
+            if (!os.good())
+            {
+                return false;
+            }
+
+            if (!writeHeader(os))
+            {
+                return false;
+            }
+
+            // Write the data to the Ostream
+            if (!writeData(os))
+            {
+                return false;
+            }
+
+            writeEndDivider(os);
+
+            osGood = os.good();
         }
-
-        if (!writeHeader(os))
-        {
-            return false;
-        }
-
-        // Write the data to the Ostream
-        if (!writeData(os))
-        {
-            return false;
-        }
-
-        writeEndDivider(os);
-
-        osGood = os.good();
+    }
+    else
+    {
+        // Or scatter the master osGood?
+        osGood = true;
     }
 
     if (OFstream::debug)
@@ -136,5 +172,6 @@ bool Foam::regIOobject::write() const
         time().writeCompression()
     );
 }
+
 
 // ************************************************************************* //

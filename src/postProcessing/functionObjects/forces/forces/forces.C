@@ -214,6 +214,11 @@ void Foam::forces::initialise()
 
 void Foam::forces::initialiseBins()
 {
+    if (!active_)
+    {
+        return;
+    }
+
     if (nBin_ > 1)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
@@ -943,7 +948,13 @@ void Foam::forces::execute()
         return;
     }
 
+    // calcForcesMoment may have reset the active flag - need to re-check
     calcForcesMoment();
+
+    if (!active_)
+    {
+        return;
+    }
 
     if (Pstream::master())
     {
@@ -1009,6 +1020,12 @@ void Foam::forces::calcForcesMoment()
     }
 
     initialise();
+
+    // initialise may have reset the active flag - need to re-check
+    if (!active_)
+    {
+        return;
+    }
 
     resetFields();
 

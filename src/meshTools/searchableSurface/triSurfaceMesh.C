@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -283,7 +283,10 @@ Foam::triSurfaceMesh::triSurfaceMesh(const IOobject& io)
     (
         checkFile
         (
-            searchableSurface::filePath(),
+            typeFilePath<searchableSurface>
+            (
+                static_cast<const searchableSurface&>(*this)
+            ),
             searchableSurface::objectPath()
         )
     ),
@@ -334,7 +337,10 @@ Foam::triSurfaceMesh::triSurfaceMesh
     (
         checkFile
         (
-            searchableSurface::filePath(),
+            typeFilePath<searchableSurface>
+            (
+                static_cast<const searchableSurface&>(*this)
+            ),
             searchableSurface::objectPath()
         )
     ),
