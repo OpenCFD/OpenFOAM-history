@@ -47,7 +47,7 @@ solvers
         relTol          0;
     }
 
-    p
+    "(p|Phi)"
     {
         solver          GAMG;
         tolerance       0;

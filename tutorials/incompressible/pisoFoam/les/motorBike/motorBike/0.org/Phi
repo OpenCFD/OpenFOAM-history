@@ -11,45 +11,44 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      k;
+    object      Phi;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -2 0 0 0 0];
+dimensions      [ 0 2 -1 0 0 0 0 ];
 
-internalField   uniform 3.75e-9;
+internalField   uniform 0;
 
 boundaryField
 {
-    back
+    inlet
     {
-        type            symmetryPlane;
-    }
-    front
-    {
-        type            symmetryPlane;
-    }
-    inletCentral
-    {
-        type            turbulentIntensityKineticEnergyInlet;
-        intensity       0.15;
-        value           uniform 3.75e-9;
-    }
-    inletSides
-    {
-        type            turbulentIntensityKineticEnergyInlet;
-        intensity       0.16;
-        value           uniform 3.75e-9;
+        type            zeroGradient;
     }
     outlet
     {
-        type            inletOutlet;
-        inletValue      uniform 3.75e-9;
-    }
-    walls
-    {
-        type            compressible::kqRWallFunction;
+        type            fixedValue;
         value           uniform 0;
+    }
+    lowerWall
+    {
+        type            zeroGradient;
+    }
+    "motorBike_.*"
+    {
+        type            zeroGradient;
+    }
+    upperWall
+    {
+        type            symmetryPlane;
+    }
+    "(front|back)"
+    {
+        type            symmetryPlane;
+    }
+    "proc.*"
+    {
+        type            processor;
     }
 }
 
