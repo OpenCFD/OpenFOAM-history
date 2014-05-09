@@ -4,6 +4,7 @@ cd ${0%/*} || exit 1    # run from this directory
 
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
+. $WM_PROJECT_DIR/bin/tools/CleanFunctions
 
 rm -rf constant/polyMesh/sets
 
@@ -11,6 +12,9 @@ runApplication blockMesh
 runApplication surfaceFeatureExtract
 
 runApplication snappyHexMesh -overwrite
+# Remove any cellLevel files etc.
+cleanSnappyFiles
+
 runApplication splitMeshRegions -cellZones -overwrite
 
 # remove fluid fields from solid regions (important for post-processing)

@@ -75,7 +75,7 @@ void Foam::parFvFieldReconstructor::createPatchFaceMaps()
 
 Foam::parFvFieldReconstructor::parFvFieldReconstructor
 (
-    const fvMesh& baseMesh,
+    fvMesh& baseMesh,
     const fvMesh& procMesh,
     const mapDistributePolyMesh& distMap,
     const bool isWriteProc
@@ -87,6 +87,26 @@ Foam::parFvFieldReconstructor::parFvFieldReconstructor
     isWriteProc_(isWriteProc)
 {
     createPatchFaceMaps();
+}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::parFvFieldReconstructor::reconstructPoints()
+{
+    // Reconstruct the points for moving mesh cases and write
+    // them out
+    distributedUnallocatedDirectFieldMapper mapper
+    (
+        labelUList::null(),
+        distMap_.pointMap()
+    );
+    pointField basePoints(procMesh_.points(), mapper);
+    baseMesh_.movePoints(basePoints);
+    if (Pstream::master())
+    {
+        baseMesh_.write();
+    }
 }
 
 

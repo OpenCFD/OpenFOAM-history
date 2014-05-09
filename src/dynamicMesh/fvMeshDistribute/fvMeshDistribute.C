@@ -47,6 +47,39 @@ License
 namespace Foam
 {
 defineTypeNameAndDebug(fvMeshDistribute, 0);
+
+//- Less function class that can be used for sorting processor patches
+class lessProcPatches
+{
+    const labelList& nbrProc_;
+    const labelList& referPatchID_;
+
+public:
+
+    lessProcPatches( const labelList& nbrProc, const labelList& referPatchID)
+    :
+        nbrProc_(nbrProc),
+        referPatchID_(referPatchID)
+    {}
+
+    bool operator()(const label a, const label b)
+    {
+        if (nbrProc_[a] < nbrProc_[b])
+        {
+            return true;
+        }
+        else if (nbrProc_[a] > nbrProc_[b])
+        {
+            return false;
+        }
+        else
+        {
+            // Equal neighbour processor
+            return referPatchID_[a] < referPatchID_[b];
+        }
+    }
+};
+
 }
 
 
@@ -353,6 +386,114 @@ Foam::label Foam::fvMeshDistribute::findNonEmptyPatch() const
     }
 
     return nonEmptyPatchI;
+}
+
+
+Foam::tmp<Foam::surfaceScalarField> Foam::fvMeshDistribute::generateTestField
+(
+    const fvMesh& mesh
+)
+{
+    vector testNormal(1, 1, 1);
+    testNormal /= mag(testNormal);
+
+    tmp<surfaceScalarField> tfld
+    (
+        new surfaceScalarField
+        (
+            IOobject
+            (
+                "myFlux",
+                mesh.time().timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh,
+            dimensionedScalar("zero", dimless, 0.0)
+        )
+    );
+    surfaceScalarField& fld = tfld();
+
+    const surfaceVectorField n(mesh.Sf()/mesh.magSf());
+
+    forAll(fld, faceI)
+    {
+        fld[faceI] = (n[faceI] & testNormal);
+    }
+    forAll(fld.boundaryField(), patchI)
+    {
+        fvsPatchScalarField& fvp = fld.boundaryField()[patchI];
+
+        scalarField newPfld(fvp.size());
+        forAll(newPfld, i)
+        {
+            newPfld[i] = (n.boundaryField()[patchI][i] & testNormal);
+        }
+        fvp == newPfld;
+    }
+
+    return tfld;
+}
+
+
+void Foam::fvMeshDistribute::testField(const surfaceScalarField& fld)
+{
+    const fvMesh& mesh = fld.mesh();
+
+    vector testNormal(1, 1, 1);
+    testNormal /= mag(testNormal);
+
+    const surfaceVectorField n(mesh.Sf()/mesh.magSf());
+
+    forAll(fld, faceI)
+    {
+        scalar cos = (n[faceI] & testNormal);
+
+        if (mag(cos-fld[faceI]) > 1e-6)
+        {
+            //FatalErrorIn
+            WarningIn
+            (
+                "fvMeshDistribute::testField(const surfaceScalarField&)"
+            )   << "On internal face " << faceI << " at "
+                << mesh.faceCentres()[faceI]
+                << " the field value is " << fld[faceI]
+                << " whereas cos angle of " << testNormal
+                << " with mesh normal " << n[faceI]
+                << " is " << cos
+                //<< exit(FatalError);
+                << endl;
+        }
+    }
+    forAll(fld.boundaryField(), patchI)
+    {
+        const fvsPatchScalarField& fvp = fld.boundaryField()[patchI];
+        const fvsPatchVectorField& np = n.boundaryField()[patchI];
+
+        forAll(fvp, i)
+        {
+            scalar cos = (np[i] & testNormal);
+
+            if (mag(cos-fvp[i]) > 1e-6)
+            {
+                label faceI = fvp.patch().start()+i;
+                //FatalErrorIn
+                WarningIn
+                (
+                    "fvMeshDistribute::testField(const surfaceScalarField&)"
+                )   << "On face " << faceI
+                    << " on patch " << fvp.patch().name()
+                    << " at " << mesh.faceCentres()[faceI]
+                    << " the field value is " << fvp[i]
+                    << " whereas cos angle of " << testNormal
+                    << " with mesh normal " << np[i]
+                    << " is " << cos
+                    //<< exit(FatalError);
+                    << endl;
+            }
+        }
+    }
 }
 
 
@@ -971,6 +1112,11 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::fvMeshDistribute::doRemoveCells
     );
 
 
+    //// Generate test field
+    //tmp<surfaceScalarField> sfld(generateTestField(mesh_));
+
+    // Save internal fields (note: not as DimensionedFields since would
+    // get mapped)
     PtrList<Field<scalar> > sFlds;
     saveInternalFields(sFlds);
     PtrList<Field<vector> > vFlds;
@@ -999,6 +1145,11 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::fvMeshDistribute::doRemoveCells
     mapExposedFaces(map(), sytFlds);
     mapExposedFaces(map(), tFlds);
 
+
+    //// Test test field
+    //testField(sfld);
+
+
     // Move mesh (since morphing does not do this)
     if (map().hasMotionPoints())
     {
@@ -1023,10 +1174,18 @@ void Foam::fvMeshDistribute::addProcPatches
     // contain for all current boundary faces the global patchID (for non-proc
     // patch) or the processor.
 
+    // Determine a visit order such that the processor patches get added
+    // in order of increasing neighbour processor (and for same neighbour
+    // processor (in case of processor cyclics) in order of increasing
+    // 'refer' patch)
+    labelList indices;
+    sortedOrder(nbrProc, indices, lessProcPatches(nbrProc, referPatchID));
+
     procPatchID.setSize(Pstream::nProcs());
 
-    forAll(nbrProc, bFaceI)
+    forAll(indices, i)
     {
+        label bFaceI = indices[i];
         label procI = nbrProc[bFaceI];
 
         if (procI != -1 && procI != Pstream::myProcNo())
@@ -1054,7 +1213,7 @@ void Foam::fvMeshDistribute::addProcPatches
                         mesh_.boundaryMesh().size(),
                         mesh_.boundaryMesh(),
                         Pstream::myProcNo(),
-                        nbrProc[bFaceI]
+                        procI
                     );
 
                     procPatchID[procI].insert
@@ -1097,7 +1256,7 @@ void Foam::fvMeshDistribute::addProcPatches
                         mesh_.boundaryMesh().size(),
                         mesh_.boundaryMesh(),
                         Pstream::myProcNo(),
-                        nbrProc[bFaceI],
+                        procI,
                         cycName,
                         pcPatch.transform()
                     );
