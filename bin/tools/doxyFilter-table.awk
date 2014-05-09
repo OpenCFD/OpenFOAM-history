@@ -37,7 +37,7 @@ BEGIN {
 /\\endvartable/ {
     if (data != "")
     {
-        printf "<table border="0">\n";
+        printf "<table class=\"OFPlainTable\" border="0">\n";
         printf data;
         printf "</table>\n";
     }
@@ -58,7 +58,7 @@ BEGIN {
 /\\endplaintable/ {
     if (data != "")
     {
-        printf "<table border="0">\n";
+        printf "<table class=\"OFPlainTable\" border="0">\n";
         printf data;
         printf "</table>\n";
     }
