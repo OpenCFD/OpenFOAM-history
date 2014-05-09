@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -75,43 +75,65 @@ pointFile::pointFile
 
 List<Vb::Point> pointFile::initialPoints() const
 {
-    pointIOField points
-    (
-        IOobject
+    pointField points;
+    {
+        // Look for points
+        IOobject pointsIO
         (
             pointFileName_.name(),
             time().timeName(),
             time(),
             IOobject::MUST_READ,
             IOobject::NO_WRITE
-        )
-    );
+        );
 
-    Info<< "    Inserting points from file " << pointFileName_ << endl;
+        Info<< "    Inserting points from file " << pointFileName_ << endl;
 
-    if (points.empty())
-    {
-        FatalErrorIn("List<Vb::Point> pointFile::initialPoints() const")
-            << "Point file contain no points"
-            << exit(FatalError) << endl;
-    }
-
-    if (Pstream::parRun())
-    {
-        // Testing filePath to see if the file originated in a processor
-        // directory, if so, assume that the points in each processor file
-        // are unique.  They are unlikely to belong on the current
-        // processor as the background mesh is unlikely to be the same.
-
-        const bool isParentFile = (points.objectPath() != points.filePath());
-
-        if (!isParentFile)
+        // See if processor local file
+        if (pointsIO.typeHeaderOk<pointIOField>(true))
         {
-            decomposition().distributePoints(points);
+            // Found it (processor local)
+            points = pointIOField(pointsIO);
+
+            if (points.empty())
+            {
+                FatalErrorIn("List<Vb::Point> pointFile::initialPoints() const")
+                    << "Point file contain no points"
+                    << exit(FatalError) << endl;
+            }
+
+            if (Pstream::parRun())
+            {
+                // assume that the points in each processor file
+                // are unique.  They are unlikely to belong on the current
+                // processor as the background mesh is unlikely to be the same.
+                decomposition().distributePoints(points);
+            }
         }
-        else
+        else if (Pstream::parRun())
         {
-            // Otherwise, this is assumed to be points covering the whole
+            // See if points can be found in parent directory
+            // (only if timeName = constant)
+            points = pointIOField
+            (
+                IOobject
+                (
+                    pointFileName_.name(),
+                    time().caseConstant(),
+                    time(),
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE
+                )
+            );
+
+            if (points.empty())
+            {
+                FatalErrorIn("List<Vb::Point> pointFile::initialPoints() const")
+                    << "Point file contain no points"
+                    << exit(FatalError) << endl;
+            }
+
+            // Points are assumed to be covering the whole
             // domain, so filter the points to be only those on this processor
             boolList procPt(decomposition().positionOnThisProcessor(points));
 
@@ -146,7 +168,73 @@ List<Vb::Point> pointFile::initialPoints() const
 
             inplaceSubset(procPt, points);
         }
+        else
+        {
+            FatalErrorIn("List<Vb::Point> pointFile::initialPoints() const")
+                << "Cannot find points file " << pointsIO.objectPath()
+                << exit(FatalError) << endl;
+        }
     }
+
+
+//    if (points.empty())
+//    {
+//        FatalErrorIn("List<Vb::Point> pointFile::initialPoints() const")
+//            << "Point file contain no points"
+//            << exit(FatalError) << endl;
+//    }
+//
+//    if (Pstream::parRun())
+//    {
+//        // Testing filePath to see if the file originated in a processor
+//        // directory, if so, assume that the points in each processor file
+//        // are unique.  They are unlikely to belong on the current
+//        // processor as the background mesh is unlikely to be the same.
+//
+//        const bool isParentFile = (points.objectPath() != points.filePath());
+//
+//        if (!isParentFile)
+//        {
+//            decomposition().distributePoints(points);
+//        }
+//        else
+//        {
+//            // Otherwise, this is assumed to be points covering the whole
+//            // domain, so filter the points to be only those on this processor
+//            boolList procPt(decomposition().positionOnThisProcessor(points));
+//
+//            List<boolList> allProcPt(Pstream::nProcs());
+//
+//            allProcPt[Pstream::myProcNo()] = procPt;
+//
+//            Pstream::gatherList(allProcPt);
+//
+//            Pstream::scatterList(allProcPt);
+//
+//            forAll(procPt, ptI)
+//            {
+//                bool foundAlready = false;
+//
+//                forAll(allProcPt, procI)
+//                {
+//                    // If a processor with a lower index has found this point
+//                    // to insert already, defer to it and don't insert.
+//                    if (foundAlready)
+//                    {
+//                        allProcPt[procI][ptI] = false;
+//                    }
+//                    else if (allProcPt[procI][ptI])
+//                    {
+//                        foundAlready = true;
+//                    }
+//                }
+//            }
+//
+//            procPt = allProcPt[Pstream::myProcNo()];
+//
+//            inplaceSubset(procPt, points);
+//        }
+//    }
 
     Field<bool> insidePoints(points.size(), true);
 

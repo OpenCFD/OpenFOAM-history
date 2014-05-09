@@ -46,7 +46,7 @@ backgroundMeshDecomposition
 initialPoints
 {
     initialPointsMethod         autoDensity;
-    // initialPointsMethod     pointFile;
+    //initialPointsMethod     pointFile;
 
     autoDensityCoeffs
     {
@@ -58,7 +58,10 @@ initialPoints
 
     pointFileCoeffs
     {
-        pointFile               "constant/internalDelaunayVertices";
+        insideOutsideCheck      off;
+        randomiseInitialGrid    off;
+        randomPerturbationCoeff 1e-3;
+        pointFile               "internalDelaunayVertices";
     }
 }
 

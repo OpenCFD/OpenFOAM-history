@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -58,7 +58,7 @@ tmp<volScalarField> autoCreateNut
         false
     );
 
-    if (nutHeader.headerOk())
+    if (nutHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<volScalarField>(new volScalarField(nutHeader, mesh));
     }
@@ -128,7 +128,7 @@ tmp<volScalarField> autoCreateLowReNut
         false
     );
 
-    if (nutHeader.headerOk())
+    if (nutHeader.typeHeaderOk<volScalarField>(true))
     {
         return tmp<volScalarField>(new volScalarField(nutHeader, mesh));
     }

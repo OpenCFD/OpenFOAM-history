@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -240,7 +240,7 @@ void timeVaryingMappedFixedValueFvPatchField<Type>::checkTable()
             IOobject
             (
                 "points",
-                this->db().time().constant(),
+                this->db().time().caseConstant(),
                 "boundaryData"/this->patch().name(),
                 this->db(),
                 IOobject::MUST_READ,
@@ -351,7 +351,7 @@ void timeVaryingMappedFixedValueFvPatchField<Type>::checkTable()
                 IOobject
                 (
                     fieldTableName_,
-                    this->db().time().constant(),
+                    this->db().time().caseConstant(),
                     "boundaryData"
                    /this->patch().name()
                    /sampleTimes_[startSampleTime_].name(),
@@ -409,7 +409,7 @@ void timeVaryingMappedFixedValueFvPatchField<Type>::checkTable()
                 IOobject
                 (
                     fieldTableName_,
-                    this->db().time().constant(),
+                    this->db().time().caseConstant(),
                     "boundaryData"
                    /this->patch().name()
                    /sampleTimes_[endSampleTime_].name(),

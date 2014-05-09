@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,6 @@ SourceFiles
 #define thermalBaffleModel_H
 
 #include "runTimeSelectionTables.H"
-#include "scalarIOField.H"
 #include "autoPtr.H"
 #include "volFieldsFwd.H"
 #include "solidThermo.H"

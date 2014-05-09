@@ -27,7 +27,6 @@ License
 #include "axesRotation.H"
 #include "addToRunTimeSelectionTable.H"
 #include "polyMesh.H"
-#include "tensorIOField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -110,6 +109,33 @@ Foam::localAxesRotation::localAxesRotation(const dictionary& dict)
            "    const dictionary&, const objectRegistry&"
            ")"
         << exit(FatalIOError);
+}
+
+
+Foam::localAxesRotation::localAxesRotation
+(
+    const objectRegistry& obr,
+    const vector& axis,
+    const point& origin
+)
+:
+    Rptr_(),
+    origin_(origin),
+    e3_(axis)
+{
+    const polyMesh& mesh = refCast<const polyMesh>(obr);
+
+    Rptr_.reset(new tensorField(mesh.nCells()));
+    init(obr);
+}
+
+Foam::localAxesRotation::localAxesRotation(const tensorField& R)
+:
+    Rptr_(),
+    origin_(vector::zero),
+    e3_(vector::zero)
+{
+    Rptr_() = R;
 }
 
 

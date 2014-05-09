@@ -228,7 +228,7 @@ void calc
                 false
             );
 
-            if (RASPropertiesHeader.headerOk())
+            if (RASPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary RASProperties(RASPropertiesHeader);
 
@@ -246,7 +246,7 @@ void calc
 
                 fol.execute(true);
             }
-            else if (LESPropertiesHeader.headerOk())
+            else if (LESPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary LESProperties(LESPropertiesHeader);
 
@@ -311,7 +311,7 @@ void calc
                 false
             );
 
-            if (RASPropertiesHeader.headerOk())
+            if (RASPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary RASProperties(RASPropertiesHeader);
 
@@ -328,7 +328,7 @@ void calc
 
                 fol.execute(true);
             }
-            else if (LESPropertiesHeader.headerOk())
+            else if (LESPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary LESProperties(LESPropertiesHeader);
 

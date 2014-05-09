@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -151,6 +151,9 @@ private:
         //- Register object created from this IOobject with registry if true
         bool registerObject_;
 
+        //- Is object same for all processors
+        bool globalObject_;
+
         //- IOobject state
         objectState objState_;
 
@@ -158,10 +161,6 @@ private:
 protected:
 
     // Protected Member Functions
-
-        //- Construct and return an IFstream for the object.
-        //  The results is NULL if the stream construction failed
-        Istream* objectStream();
 
         //- Construct and return an IFstream for the object given the
         //  exact file. The results is NULL if the stream construction failed
@@ -214,7 +213,8 @@ public:
             const objectRegistry& registry,
             readOption r=NO_READ,
             writeOption w=NO_WRITE,
-            bool registerObject=true
+            bool registerObject=true,
+            bool globalObject = false
         );
 
         //- Construct from path, registry, io options
@@ -291,6 +291,18 @@ public:
                 return registerObject_;
             }
 
+            //- Is object same for all processors
+            bool& globalObject()
+            {
+                return globalObject_;
+            }
+
+            //- Is object same for all processors
+            bool globalObject() const
+            {
+                return globalObject_;
+            }
+
 
         // Read/write options
 
@@ -355,9 +367,11 @@ public:
                 return path()/name();
             }
 
-            //- Return complete path + object name if the file exists
-            //  either in the case/processor or case otherwise null
-            fileName filePath() const;
+            //- Helper for filePath that searches locally
+            fileName localFilePath() const;
+
+            //- Helper for filePath that searches up if in parallel
+            fileName globalFilePath() const;
 
 
         // Reading
@@ -365,9 +379,14 @@ public:
             //- Read header
             bool readHeader(Istream&);
 
-            //- Read and check header info
-            bool headerOk();
+            //- Read header (uses typeFilePath to find file) and check header
+            //  info. Optionally checks headerClassName against type
+            template<class Type>
+            bool typeHeaderOk(const bool checkType = true);
 
+            //- Helper: warn that type does not support re-reading
+            template<class Type>
+            void warnNoRereading() const;
 
         // Writing
 
@@ -426,6 +445,14 @@ template<>
 Ostream& operator<<(Ostream& os, const InfoProxy<IOobject>& ip);
 
 
+//- Template function for obtaining filePath
+template<class T>
+inline fileName typeFilePath(const IOobject& io)
+{
+    return io.localFilePath();
+}
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
@@ -433,6 +460,12 @@ Ostream& operator<<(Ostream& os, const InfoProxy<IOobject>& ip);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #   include "IOobjectI.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "IOobjectTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
