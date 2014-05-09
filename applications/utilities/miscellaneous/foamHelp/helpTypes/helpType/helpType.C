@@ -161,7 +161,8 @@ void Foam::helpType::displayDoc
             "("
                 "const word&, "
                 "const string&, "
-                "const bool"
+                "const bool, "
+                "const word&"
             ")"
         )
             << "No help for type " << className << " found."
