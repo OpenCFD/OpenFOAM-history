@@ -39,7 +39,8 @@ Foam::doxygenXmlParser::doxygenXmlParser
 :
     dictionary(dictionary::null)
 {
-    const wordRe nameStr(".*." + ext, wordRe::DETECT);
+    const wordRe nameRegEx(".*." + ext, wordRe::DETECT);
+    const wordRe searchRegEx(searchStr, wordRe::DETECT);
 
     IFstream is(fName);
 
@@ -98,8 +99,7 @@ Foam::doxygenXmlParser::doxygenXmlParser
                     {
                         getValue<word>(is, name);
 
-//                        if (wordRe(".*." + ext, wordRe::DETECT).match(name))
-                        if (nameStr.match(name))
+                        if (nameRegEx.match(name))
                         {
                             foundName = true;
                         }
@@ -114,7 +114,7 @@ Foam::doxygenXmlParser::doxygenXmlParser
                         getValue<fileName>(is, path);
 
                         // filter path on regExp
-                        if (wordRe(searchStr, wordRe::DETECT).match(path))
+                        if (searchRegEx.match(path))
                         {
                             foundPath = true;
                         }
