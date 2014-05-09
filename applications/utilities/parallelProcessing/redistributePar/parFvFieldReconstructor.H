@@ -60,7 +60,7 @@ class parFvFieldReconstructor
     // Private data
 
         //- Reconstructed mesh reference
-        const fvMesh& baseMesh_;
+        fvMesh& baseMesh_;
 
         //- Processor mesh reference
         const fvMesh& procMesh_;
@@ -94,7 +94,7 @@ public:
         //- Construct from components
         parFvFieldReconstructor
         (
-            const fvMesh& baseMesh,
+            fvMesh& baseMesh,
             const fvMesh& procMesh,
             const mapDistributePolyMesh& distMap,
             const bool isWriteProc
@@ -170,6 +170,10 @@ public:
             const IOobjectList& objects,
             const HashSet<word>& selectedFields
         ) const;
+
+        //- Helper: reconstruct and write mesh points
+        //  (note: should be moved to something like processorMeshes class)
+        void reconstructPoints();
 };
 
 
