@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -365,6 +365,10 @@ public:
 
             //- Search the case for valid time directories
             instantList times() const;
+
+            //- Search the case for the time directory path
+            //  corresponding to the given instance
+            word findInstancePath(const fileName& path, const instant&) const;
 
             //- Search the case for the time directory path
             //  corresponding to the given instance

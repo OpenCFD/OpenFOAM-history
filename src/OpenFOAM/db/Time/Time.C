@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -702,11 +702,12 @@ Foam::instantList Foam::Time::times() const
 }
 
 
-Foam::word Foam::Time::findInstancePath(const instant& t) const
+Foam::word Foam::Time::findInstancePath
+(
+    const fileName& directory,
+    const instant& t
+) const
 {
-    const fileName directory = path();
-    const word& constantName = constant();
-
     // Read directory entries into a list
     fileNameList dirEntries(readDir(directory, fileName::DIRECTORY));
 
@@ -721,6 +722,8 @@ Foam::word Foam::Time::findInstancePath(const instant& t) const
 
     if (t.equal(0.0))
     {
+        const word& constantName = constant();
+
         // Looking for 0 or constant. 0 already checked above.
         if (isDir(directory/constantName))
         {
@@ -729,6 +732,12 @@ Foam::word Foam::Time::findInstancePath(const instant& t) const
     }
 
     return word::null;
+}
+
+
+Foam::word Foam::Time::findInstancePath(const instant& t) const
+{
+    return findInstancePath(path(), t);
 }
 
 

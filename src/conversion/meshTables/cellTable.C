@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -332,7 +332,7 @@ void Foam::cellTable::readDict
         )
     );
 
-    if (ioObj.headerOk())
+    if (ioObj.typeHeaderOk<IOMap<dictionary> >(false))
     {
         *this = ioObj;
         addDefaults();
