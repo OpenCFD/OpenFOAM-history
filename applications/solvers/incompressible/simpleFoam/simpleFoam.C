@@ -28,7 +28,32 @@ Group
     grpIncompressibleSolvers
 
 Description
-    Steady-state solver for incompressible, turbulent flow
+    Steady-state solver for incompressible flow with RAS turbulence modelling.
+    The solver uses the SIMPLE algorithm to solve the continuity equation:
+
+        \f[
+            \div \vec{U} = 0
+        \f]
+
+    and momentum equation:
+
+        \f[
+            \div \left( \vec{U} \vec{U} \right) - \div \vec{R} = - \grad p
+        \f]
+
+    Where:
+    \vartable
+        \vec{U} | Velocity
+        p       | Pressure
+        \vec{R} | Stress tensor
+    \endvartable
+
+    Basic required fields include:
+    \plaintable
+        U     | Velocity [m/s]
+        p     | Kinematic pressure, p/rho [m2/s2]
+        \<turbulence fields\> | As required by user selection
+    \endplaintable
 
 \*---------------------------------------------------------------------------*/
 

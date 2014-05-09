@@ -46,7 +46,7 @@ Description
     Required fields include:
     \plaintable
         T       | Passive scalar
-        \vec{U} | Velocity
+        U       | Velocity [m/s]
     \endplaintable
 
 \*---------------------------------------------------------------------------*/
