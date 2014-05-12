@@ -28,12 +28,38 @@ Group
     grpIncompressibleSolvers
 
 Description
-    Large time-step transient solver for incompressible, flow using the PIMPLE
-    (merged PISO-SIMPLE) algorithm.
+    Large time-step transient solver for incompressible flow.
 
-    Sub-models include:
-    - turbulence modelling, i.e. laminar, RAS or LES
-    - run-time selectable finite volume options, e.g. MRF, explicit porosity
+    \heading Solver details
+    Turbulence modelling is generic, i.e. laminar, RAS or LES may be selected.
+    The solver uses the PIMPLE (merged PISO-SIMPLE) algorithm to solve the
+    continuity equation:
+
+        \f[
+            \div \vec{U} = 0
+        \f]
+
+    and momentum equation:
+
+        \f[
+            \ddt{\vec{U}} + \div \left( \vec{U} \vec{U} \right) - \div \gvec{R}
+          = - \grad p + \vec{S}_U
+        \f]
+
+    Where:
+    \vartable
+        \vec{U} | Velocity
+        p       | Pressure
+        \vec{R} | Stress tensor
+        \vec{S}_U | Momentum source
+    \endvartable
+
+    \heading Required fields
+    \plaintable
+        U       | Velocity [m/s]
+        p       | Kinematic pressure, p/rho [m2/s2]
+        \<turbulence fields\> | As required by user selection
+    \endplaintable
 
 \*---------------------------------------------------------------------------*/
 

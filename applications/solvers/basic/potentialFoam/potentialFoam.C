@@ -28,8 +28,12 @@ Group
     grpBasicSolvers
 
 Description
-    Potential flow solver which can be used to generate starting fields
-    for full Navier-Stokes codes.  The flow is evolved using the equation:
+    Potential flow solver.
+
+    \heading Solver details
+    The potential flow solution is typically employed to generate initial
+    fields for full Navier-Stokes codes.  The flow is evolved using the
+    equation:
 
     \f[
         \laplacian \Phi = \div \vec{U}
@@ -41,7 +45,7 @@ Description
         U       | Velocity [m/s]
     \endvartable
 
-    Required fields include:
+    \heading Required fields
     \plaintable
         Phi     | Velocity potential [m2/s]
         U       | Velocity [m/s]

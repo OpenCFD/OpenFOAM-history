@@ -28,8 +28,10 @@ Group
     grpBasicSolvers
 
 Description
-    Solves a transport equation for a passive scalar.  The equation is given
-    by:
+    Passive scalar transport equation solver.
+
+    \heading Solver details
+    The equation is given by:
 
     \f[
         \ddt{T} + \div \left(\vec{U} T\right) - \div \left(D_T \grad T \right)
@@ -43,7 +45,7 @@ Description
         S_T     | Source
     \endvartable
 
-    Required fields include:
+    \heading Required fields
     \plaintable
         T       | Passive scalar
         U       | Velocity [m/s]

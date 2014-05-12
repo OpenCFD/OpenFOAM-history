@@ -28,8 +28,11 @@ Group
     grpBasicSolvers
 
 Description
-    Solves a Laplace equation for a scalar quantity, e.g. for thermal
-    diffusion in a solid.  The equation is given by:
+    Laplace equation solver for a scalar quantity.
+
+    \heading Solver details
+    The solver is applicable to, e.g. for thermal diffusion in a solid.  The
+    equation is given by:
 
     \f[
         \ddt{T}  = \div \left( D_T \grad T \right)
@@ -41,7 +44,7 @@ Description
         D_T   | Diffusion coefficient
     \endvartable
 
-    Required fields include:
+    \heading Required fields
     \plaintable
         T     | Scalar field which is solved for, e.g. temperature
     \endplaintable
