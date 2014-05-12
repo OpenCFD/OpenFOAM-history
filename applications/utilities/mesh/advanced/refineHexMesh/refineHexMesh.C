@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
         mesh.movePoints(map().preMotionPoints());
     }
 
-    Pout<< "Refined from " << returnReduce(map().nOldCells(), sumOp<label>())
+    Info<< "Refined from " << returnReduce(map().nOldCells(), sumOp<label>())
         << " to " << mesh.globalData().nTotalCells() << " cells." << nl << endl;
 
     if (overwrite)

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -57,7 +57,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
         IOobject::MUST_READ
     );
 
-    if (phiHeader.headerOk())
+    if (phiHeader.typeHeaderOk<surfaceScalarField>(true))
     {
         autoPtr<surfaceScalarField> PePtr;
 
@@ -98,7 +98,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 
         if (phi.dimensions() == dimensionSet(0, 3, -1, 0, 0))
         {
-            if (RASPropertiesHeader.headerOk())
+            if (RASPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary RASProperties(RASPropertiesHeader);
 
@@ -134,7 +134,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
                     )
                 );
             }
-            else if (LESPropertiesHeader.headerOk())
+            else if (LESPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary LESProperties(LESPropertiesHeader);
 
@@ -204,7 +204,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
         }
         else if (phi.dimensions() == dimensionSet(1, 0, -1, 0, 0))
         {
-            if (RASPropertiesHeader.headerOk())
+            if (RASPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary RASProperties(RASPropertiesHeader);
 
@@ -252,7 +252,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
                     )
                 );
             }
-            else if (LESPropertiesHeader.headerOk())
+            else if (LESPropertiesHeader.typeHeaderOk<IOdictionary>(true))
             {
                 IOdictionary LESProperties(LESPropertiesHeader);
 

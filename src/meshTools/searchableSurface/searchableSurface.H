@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -158,6 +158,19 @@ public:
 
 
     // Member Functions
+
+        //- Is object global
+        virtual bool global() const
+        {
+            return true;
+        }
+
+        //- Return complete path + object name if the file exists
+        //  either in the case/processor or case otherwise null
+        virtual fileName filePath() const
+        {
+            return globalFilePath();
+        }
 
         //- Return const reference to boundBox
         const boundBox& bounds() const
@@ -369,6 +382,14 @@ public:
                 values.clear();
             }
 };
+
+
+//- Template specialisation for obtaining filePath
+template<>
+inline fileName typeFilePath<searchableSurface>(const IOobject& io)
+{
+    return io.globalFilePath();
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

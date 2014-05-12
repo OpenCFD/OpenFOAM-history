@@ -222,6 +222,7 @@ bool Foam::objectRegistry::checkIn(regIOobject& io) const
     {
         Pout<< "objectRegistry::checkIn(regIOobject&) : "
             << name() << " : checking in " << io.name()
+            << " of type " << io.type()
             << endl;
     }
 

@@ -25,7 +25,8 @@ Class
     Foam::unmappedPassiveParticleCloud
 
 Description
-    passiveParticleCloud but with autoMap disabled
+    passiveParticleCloud but with autoMap and writing disabled. Only used
+    for its objectRegistry to store lagrangian fields
 
 SourceFiles
     unmappedPassiveParticleCloud.C
@@ -81,10 +82,21 @@ public:
         virtual ~unmappedPassiveParticleCloud()
         {}
 
-        //- Remap the cells of particles corresponding to the
-        //  mesh topology change
+        //- Switch off remapping of cells of particles when
+        //  mesh topology changes
         virtual void autoMap(const mapPolyMesh&)
         {}
+
+        //- Switch off writing the objects
+        virtual bool writeObject
+        (
+            IOstream::streamFormat fmt,
+            IOstream::versionNumber ver,
+            IOstream::compressionType cmp
+        ) const
+        {
+            return true;
+        }
 
 };
 

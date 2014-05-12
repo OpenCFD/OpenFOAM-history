@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -66,7 +66,7 @@ bool caseIsCompressible(const fvMesh& mesh)
         IOobject::NO_WRITE
     );
 
-    if (phiHeader.headerOk())
+    if (phiHeader.typeHeaderOk<surfaceScalarField>(true))
     {
         surfaceScalarField phi(phiHeader, mesh);
         if (phi.dimensions() == dimDensity*dimVelocity*dimArea)
@@ -85,7 +85,7 @@ bool caseIsCompressible(const fvMesh& mesh)
         IOobject::NO_WRITE
     );
 
-    if (rhoHeader.headerOk())
+    if (rhoHeader.typeHeaderOk<volScalarField>(true))
     {
         volScalarField rho(rhoHeader, mesh);
         if (rho.dimensions() == dimDensity)
@@ -104,7 +104,7 @@ bool caseIsCompressible(const fvMesh& mesh)
         IOobject::NO_WRITE
     );
 
-    if (pHeader.headerOk())
+    if (pHeader.typeHeaderOk<volScalarField>(true))
     {
         volScalarField p(pHeader, mesh);
         if (p.dimensions() == dimMass/sqr(dimTime)/dimLength)
@@ -134,7 +134,7 @@ void createVolScalarField
         IOobject::NO_WRITE
     );
 
-    if (!fieldHeader.headerOk())
+    if (!fieldHeader.typeHeaderOk<volScalarField>(true))
     {
         Info<< "Creating field " << fieldName << nl << endl;
 
@@ -174,7 +174,8 @@ void replaceBoundaryType
         IOobject::NO_WRITE
     );
 
-    if (!header.headerOk())
+    // Check for any field type
+    if (!header.typeHeaderOk<volScalarField>(false))
     {
         return;
     }
