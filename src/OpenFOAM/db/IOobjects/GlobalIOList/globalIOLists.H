@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,67 +21,65 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-InClass
-    Foam::UniformDimensionedField
+Typedef
+    Foam::globalIOLists
 
 Description
-
-SourceFiles
-    uniformDimensionedFields.C
+    Typedefs for globalIOLists of primitive types. These are fully compatible
+    with 'normal' IOLists except have global filePath() scope.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef UniformDimensionedFields_H
-#define UniformDimensionedFields_H
+#ifndef globalIOLists_H
+#define globalIOLists_H
 
-#include "UniformDimensionedField.H"
-#include "fieldTypes.H"
+#include "primitiveFields.H"
+#include "GlobalIOList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+    typedef GlobalIOList<label> labelGlobalIOList;
+    typedef GlobalIOList<scalar> scalarGlobalIOList;
+    typedef GlobalIOList<vector> vectorGlobalIOList;
+    typedef GlobalIOList<sphericalTensor> sphericalTensorGlobalIOList;
+    typedef GlobalIOList<symmTensor> symmTensorGlobalIOList;
+    typedef GlobalIOList<tensor> tensorGlobalIOList;
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    //- Template function for obtaining global status
+    template<>
+    inline bool typeGlobal<labelGlobalIOList>()
+    {
+        return true;
+    }
+    template<>
+    inline bool typeGlobal<scalarGlobalIOList>()
+    {
+        return true;
+    }
+    template<>
+    inline bool typeGlobal<vectorGlobalIOList>()
+    {
+        return true;
+    }
+    template<>
+    inline bool typeGlobal<sphericalTensorGlobalIOList>()
+    {
+        return true;
+    }
+    template<>
+    inline bool typeGlobal<symmTensorGlobalIOList>()
+    {
+        return true;
+    }
+    template<>
+    inline bool typeGlobal<tensorGlobalIOList>()
+    {
+        return true;
+    }
 
-typedef UniformDimensionedField<scalar> uniformDimensionedScalarField;
-typedef UniformDimensionedField<vector> uniformDimensionedVectorField;
-typedef UniformDimensionedField<sphericalTensor>
-    uniformDimensionedSphericalTensorField;
-typedef UniformDimensionedField<symmTensor> uniformDimensionedSymmTensorField;
-typedef UniformDimensionedField<tensor> uniformDimensionedTensorField;
-
-//- Template function for obtaining global status
-template<>
-inline bool typeGlobal<uniformDimensionedScalarField>()
-{
-    return true;
 }
-template<>
-inline bool typeGlobal<uniformDimensionedVectorField>()
-{
-    return true;
-}
-template<>
-inline bool typeGlobal<uniformDimensionedSphericalTensorField>()
-{
-    return true;
-}
-template<>
-inline bool typeGlobal<uniformDimensionedSymmTensorField>()
-{
-    return true;
-}
-template<>
-inline bool typeGlobal<uniformDimensionedTensorField>()
-{
-    return true;
-}
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
