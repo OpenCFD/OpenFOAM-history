@@ -38,7 +38,7 @@ Foam::UniformDimensionedField<Type>::UniformDimensionedField
     dimensioned<Type>(dt)
 {
     // Read value
-    readHeaderOk(IOstream::ASCII, typeName);
+    readHeaderOk(IOstream::BINARY, typeName);
 }
 
 
@@ -66,7 +66,7 @@ Foam::UniformDimensionedField<Type>::UniformDimensionedField
     addWatch();
 
     // Read unless NO_READ
-    readHeaderOk(IOstream::ASCII, typeName);
+    readHeaderOk(IOstream::BINARY, typeName);
 }
 
 
@@ -102,7 +102,7 @@ bool Foam::UniformDimensionedField<Type>::writeData(Ostream& os) const
     os.writeKeyword("value") << this->value()/multiplier << token::END_STATEMENT
         << nl << nl;
 
-    return (os.good());
+    return os.good();
 }
 
 
