@@ -37,7 +37,7 @@ BEGIN {
 /\\endvartable/ {
     if (data != "")
     {
-        printf "<table border="0">\n";
+        printf "<table class=\"OFPlainTable\" border="0">\n";
         printf data;
         printf "</table>\n";
     }
@@ -58,7 +58,7 @@ BEGIN {
 /\\endplaintable/ {
     if (data != "")
     {
-        printf "<table border="0">\n";
+        printf "<table class=\"OFPlainTable\" border="0">\n";
         printf data;
         printf "</table>\n";
     }
@@ -99,8 +99,19 @@ BEGIN {
             {
                 if (i == 1)
                 {
-                    data = (data "    <td style=\"padding-left: 10px\">\\f$"$i"\\f$</td>\n");
-                    data = (data "    <td style=\"padding-left: 10px; padding-right: 10px;\">=</td>\n");
+                    tmp = $i
+                    gsub(" ", "", tmp)
+
+                    if (tmp == "")
+                    {
+                        data = (data "    <td></td>\n");
+                        data = (data "    <td></td>\n");
+                    }
+                    else
+                    {
+                        data = (data "    <td style=\"padding-left: 10px\">\\f$"$i"\\f$</td>\n");
+                        data = (data "    <td style=\"padding-left: 10px; padding-right: 10px;\">=</td>\n");
+                    }
                 }
                 else if (i > 1)
                 {
@@ -114,8 +125,19 @@ BEGIN {
             {
                 if (i == 1)
                 {
-                    data = (data "    <td style=\"padding-left: 10px\">"$i"</td>\n");
-                    data = (data "    <td style=\"padding-left: 10px; padding-right: 10px;\">:</td>\n");
+                    tmp = $i
+                    gsub(" ", "", tmp)
+
+                    if (tmp == "")
+                    {
+                        data = (data "    <td></td>\n");
+                        data = (data "    <td></td>\n");
+                    }
+                    else
+                    {
+                        data = (data "    <td style=\"padding-left: 10px\">"$i"</td>\n");
+                        data = (data "    <td style=\"padding-left: 10px; padding-right: 10px;\">:</td>\n");
+                    }
                 }
                 else if (i > 1)
                 {

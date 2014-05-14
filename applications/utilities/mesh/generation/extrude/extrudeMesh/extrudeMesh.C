@@ -717,6 +717,7 @@ int main(int argc, char *argv[])
     {
         // Read from surface
         fileName surfName(dict.lookup("surface"));
+        surfName.expand();
 
         Info<< "Extruding surfaceMesh read from file " << surfName << nl
             << endl;

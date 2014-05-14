@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,25 +28,24 @@ Description
     Basic sub-grid obstacle flame-wrinking enhancement factor model.
     Details supplied by J Puttock 2/7/06.
 
-    <b> Sub-grid flame area generation </b>
+    \heading Sub-grid flame area generation
 
     \f$ n = N - \hat{\dwea{\vec{U}}}.n_{s}.\hat{\dwea{\vec{U}}} \f$
     \f$ n_{r} = \sqrt{n} \f$
 
     where:
-
         \f$ \hat{\dwea{\vec{U}}} = \dwea{\vec{U}} / \vert \dwea{\vec{U}}
         \vert \f$
 
         \f$ b = \hat{\dwea{\vec{U}}}.B.\hat{\dwea{\vec{U}}} / n_{r} \f$
 
     where:
+    \vartable
+        B | field "B"
+        N | field "N"
+        n_{s} |is the field "ns"
+    \endvartable
 
-        \f$ B \f$ is the file "B".
-
-        \f$ N \f$ is the file "N".
-
-        \f$  n_{s} \f$ is the file "ns".
 
     The flame area enhancement factor \f$ \Xi_{sub} \f$ is expected to
     approach:

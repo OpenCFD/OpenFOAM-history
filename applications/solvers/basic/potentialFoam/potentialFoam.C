@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,9 +24,32 @@ License
 Application
     potentialFoam
 
+Group
+    grpBasicSolvers
+
 Description
-    Simple potential flow solver which can be used to generate starting fields
-    for full Navier-Stokes codes.
+    Potential flow solver.
+
+    \heading Solver details
+    The potential flow solution is typically employed to generate initial
+    fields for full Navier-Stokes codes.  The flow is evolved using the
+    equation:
+
+    \f[
+        \laplacian \Phi = \div \vec{U}
+    \f]
+
+    Where:
+    \vartable
+        \Phi    | Velocity potential [m2/s]
+        U       | Velocity [m/s]
+    \endvartable
+
+    \heading Required fields
+    \plaintable
+        Phi     | Velocity potential [m2/s]
+        U       | Velocity [m/s]
+    \endplaintable
 
 \*---------------------------------------------------------------------------*/
 
@@ -61,33 +84,23 @@ int main(int argc, char *argv[])
 
     fvOptions.makeRelative(phi);
 
-    adjustPhi(phi, U, p);
-
+    adjustPhi(phi, U, Phi);
 
     for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
     {
-        fvScalarMatrix pEqn
+        fvScalarMatrix PhiEqn
         (
-            fvm::laplacian
-            (
-                dimensionedScalar
-                (
-                    "1",
-                    dimTime/p.dimensions()*dimensionSet(0, 2, -2, 0, 0),
-                    1
-                ),
-                p
-            )
+            fvm::laplacian(dimensionedScalar("1", dimless, 1), Phi)
          ==
             fvc::div(phi)
         );
 
-        pEqn.setReference(pRefCell, pRefValue);
-        pEqn.solve();
+        PhiEqn.setReference(PhiRefCell, PhiRefValue);
+        PhiEqn.solve();
 
         if (nonOrth == nNonOrthCorr)
         {
-            phi -= pEqn.flux();
+            phi -= PhiEqn.flux();
         }
     }
 
@@ -109,9 +122,9 @@ int main(int argc, char *argv[])
     U.write();
     phi.write();
 
-    if (args.optionFound("writep"))
+    if (args.optionFound("writePhi"))
     {
-        p.write();
+        Phi.write();
     }
 
     runTime.functionObjects().end();

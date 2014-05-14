@@ -9,48 +9,17 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0";
-    object      p;
+    class       dictionary;
+    location    "constant";
+    object      RASProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [ 0 2 -2 0 0 0 0 ];
+RASModel        kEpsilon;
 
-internalField   uniform 0;
+turbulence      on;
 
-boundaryField
-{
-    inlet
-    {
-        type            zeroGradient;
-    }
-    outlet
-    {
-        type            fixedValue;
-        value           uniform 0;
-    }
-    lowerWall
-    {
-        type            zeroGradient;
-    }
-    "motorBike_.*"
-    {
-        type            zeroGradient;
-    }
-    upperWall
-    {
-        type            symmetryPlane;
-    }
-    "(front|back)"
-    {
-        type            symmetryPlane;
-    }
-    "proc.*"
-    {
-        type            processor;
-    }
-}
+printCoeffs     on;
 
 
 // ************************************************************************* //

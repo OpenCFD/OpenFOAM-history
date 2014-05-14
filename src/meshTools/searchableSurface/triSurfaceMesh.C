@@ -231,7 +231,7 @@ Foam::triSurfaceMesh::triSurfaceMesh(const IOobject& io, const triSurface& s)
         (
             io.name(),
             io.instance(),
-            io.local(),
+            io.local(),  //"triSurfaceFields",
             io.db(),
             io.readOpt(),
             io.writeOpt(),
@@ -272,7 +272,7 @@ Foam::triSurfaceMesh::triSurfaceMesh(const IOobject& io)
         (
             io.name(),
             static_cast<const searchableSurface&>(*this).instance(),
-            io.local(),
+            io.local(), //"triSurfaceFields",
             io.db(),
             io.readOpt(),
             io.writeOpt(),
@@ -326,7 +326,7 @@ Foam::triSurfaceMesh::triSurfaceMesh
         (
             io.name(),
             static_cast<const searchableSurface&>(*this).instance(),
-            io.local(),
+            io.local(), //"triSurfaceFields",
             io.db(),
             io.readOpt(),
             io.writeOpt(),
@@ -453,9 +453,20 @@ bool Foam::triSurfaceMesh::overlaps(const boundBox& bb) const
 
 void Foam::triSurfaceMesh::movePoints(const pointField& newPoints)
 {
+    // Update local information (instance, event number)
+    searchableSurface::instance() = objectRegistry::time().timeName();
+    objectRegistry::instance() = searchableSurface::instance();
+
+    label event = getEvent();
+    searchableSurface::eventNo() = event;
+    objectRegistry::eventNo() = searchableSurface::eventNo();
+
+    // Clear additional addressing
     triSurfaceRegionSearch::clearOut();
     edgeTree_.clear();
     triSurface::movePoints(newPoints);
+
+    bounds() = boundBox(triSurface::points());
 }
 
 
@@ -728,7 +739,7 @@ void Foam::triSurfaceMesh::setField(const labelList& values)
             (
                 "values",
                 objectRegistry::time().timeName(),  // instance
-                "triSurface",                       // local
+                "triSurface",   // "" for triSurfaceFields   // local
                 *this,
                 IOobject::NO_READ,
                 IOobject::AUTO_WRITE
@@ -795,9 +806,6 @@ void Foam::triSurfaceMesh::getVolumeType
             // - use cached volume type per each tree node
             volType[pointI] = tree().getVolumeType(pt);
         }
-
-//        Info<< "octree : " << pt << " = "
-//            << volumeType::names[volType[pointI]] << endl;
     }
 
     indexedOctree<treeDataTriSurface>::perturbTol() = oldTol;
@@ -812,6 +820,24 @@ bool Foam::triSurfaceMesh::writeObject
     IOstream::compressionType cmp
 ) const
 {
+    const Time& runTime = searchableSurface::time();
+    const fileName& instance = searchableSurface::instance();
+
+    if
+    (
+        instance != runTime.timeName()
+     && instance != runTime.system()
+     && instance != runTime.caseSystem()
+     && instance != runTime.constant()
+     && instance != runTime.caseConstant()
+    )
+    {
+        const_cast<triSurfaceMesh&>(*this).searchableSurface::instance() =
+            runTime.timeName();
+        const_cast<triSurfaceMesh&>(*this).objectRegistry::instance() =
+            runTime.timeName();
+    }
+
     fileName fullPath(searchableSurface::objectPath());
 
     if (!mkDir(fullPath.path()))

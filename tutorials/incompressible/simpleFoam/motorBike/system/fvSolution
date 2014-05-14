@@ -16,7 +16,7 @@ FoamFile
 
 solvers
 {
-    p
+    "(p|Phi)"
     {
         solver           GAMG;
         tolerance        1e-7;

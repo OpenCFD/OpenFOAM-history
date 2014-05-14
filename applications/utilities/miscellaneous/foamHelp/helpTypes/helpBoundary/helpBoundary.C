@@ -112,7 +112,7 @@ void Foam::helpTypes::helpBoundary::execute
         // TODO: strip scoping info if present?
         // e.g. conditions with leading "compressible::" will not be found
         // ".*[fF]vPatchField.*" + className + ".*"
-        displayDoc(condition, ".*[fF]vPatchField.*", false);
+        displayDoc(condition, ".*[fF]vPatchField.*", false, "H");
     }
     else if (args.optionFound("constraint"))
     {
@@ -185,7 +185,7 @@ void Foam::helpTypes::helpBoundary::execute
         // TODO: strip scoping info if present?
         // e.g. conditions with leading "compressible::" will not be found
         // ".*[fF]vPatchField.*" + className + ".*"
-        displayDocOptions(".*[fF]vPatchField.*", false);
+        displayDocOptions(".*[fF]vPatchField.*", false, "H");
     }
 }
 

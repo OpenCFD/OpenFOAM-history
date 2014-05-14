@@ -11,42 +11,44 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      air;
+    object      Phi;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
+dimensions      [ 0 2 -1 0 0 0 0 ];
 
-internalField   uniform 0.99;
+internalField   uniform 0;
 
 boundaryField
 {
-    back
-    {
-        type            symmetryPlane;
-    }
-    front
-    {
-        type            symmetryPlane;
-    }
-    walls
+    inlet
     {
         type            zeroGradient;
     }
     outlet
     {
-        type            inletOutlet;
-        inletValue      uniform 1.0;
-    }
-    inletSides
-    {
         type            fixedValue;
-        value           uniform 0.99;
+        value           uniform 0;
     }
-    inletCentral
+    lowerWall
     {
-        type            fixedValue;
-        value           uniform 0.99;
+        type            zeroGradient;
+    }
+    "motorBike_.*"
+    {
+        type            zeroGradient;
+    }
+    upperWall
+    {
+        type            symmetryPlane;
+    }
+    "(front|back)"
+    {
+        type            symmetryPlane;
+    }
+    "proc.*"
+    {
+        type            processor;
     }
 }
 

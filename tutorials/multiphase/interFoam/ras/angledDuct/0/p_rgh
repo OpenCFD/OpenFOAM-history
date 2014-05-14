@@ -10,28 +10,45 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    object      p;
+    object      p_rgh;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -2 0 0 0 0];
+dimensions      [1 -1 -2 0 0 0 0];
 
 internalField   uniform 0;
 
 boundaryField
 {
-    //- Set patchGroups for constraint patches
-    #include "${WM_PROJECT_DIR}/etc/caseDicts/setConstraintTypes"
-
-    right
+    front
+    {
+        type            fixedFluxPressure;
+        value           $internalField;
+    }
+    back
+    {
+        type            fixedFluxPressure;
+        value           $internalField;
+    }
+    walls
+    {
+        type            fixedFluxPressure;
+        value           $internalField;
+    }
+    porosityWall
+    {
+        type            fixedFluxPressure;
+        value           $internalField;
+    }
+    inlet
+    {
+        type            fixedFluxPressure;
+        value           $internalField;
+    }
+    outlet
     {
         type            fixedValue;
-        value           uniform 0;
-    }
-
-    left
-    {
-        type            zeroGradient;
+        value           $internalField;
     }
 }
 

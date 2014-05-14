@@ -11,50 +11,47 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      omega;
+    object      epsilon;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 -1 0 0 0 0];
+dimensions      [0 2 -3 0 0 0 0];
 
-internalField   uniform 4.5e-3;
+internalField   uniform 200;
 
 boundaryField
 {
-    back
-    {
-        type            symmetryPlane;
-    }
     front
     {
-        type            symmetryPlane;
+        type            epsilonWallFunction;
+        value           uniform 200;
     }
-    inletCentral
+    back
     {
-        type            compressible::turbulentMixingLengthFrequencyInlet;
-        mixingLength    0.007;
-        k               k;
-        value           uniform 4.5e-3;
+        type            epsilonWallFunction;
+        value           uniform 200;
     }
-    inletSides
+    walls
     {
-        type            compressible::turbulentMixingLengthFrequencyInlet;
-        mixingLength    0.007;
-        k               k;
-        value           uniform 4.5e-3;
+        type            epsilonWallFunction;
+        value           uniform 200;
+    }
+    porosityWall
+    {
+        type            epsilonWallFunction;
+        value           uniform 200;
+    }
+    inlet
+    {
+        type            turbulentMixingLengthDissipationRateInlet;
+        mixingLength    0.005;
+        value           uniform 200;
     }
     outlet
     {
         type            inletOutlet;
-        inletValue      uniform 4.5e-3;
-    }
-    walls
-    {
-        type            compressible::omegaWallFunction;
-        Cmu             0.09;
-        kappa           0.41;
-        E               9.8;
-        value           $internalField;
+        inletValue      uniform 200;
+        value           uniform 200;
     }
 }
 

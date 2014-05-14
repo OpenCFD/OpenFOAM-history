@@ -9,46 +9,54 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0";
-    object      H2O;
+    class       polyBoundaryMesh;
+    location    "constant/polyMesh";
+    object      boundary;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
-
-internalField   uniform 0.01;
-
-boundaryField
-{
-    back
-    {
-        type            symmetryPlane;
-    }
+6
+(
     front
     {
-        type            symmetryPlane;
+        type            wall;
+        inGroups        1(wall);
+        nFaces          700;
+        startFace       63400;
+    }
+    back
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          700;
+        startFace       64100;
     }
     walls
     {
-        type            zeroGradient;
+        type            wall;
+        inGroups        1(wall);
+        nFaces          1400;
+        startFace       64800;
+    }
+    porosityWall
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          1600;
+        startFace       66200;
+    }
+    inlet
+    {
+        type            patch;
+        nFaces          400;
+        startFace       67800;
     }
     outlet
     {
-        type            inletOutlet;
-        inletValue      uniform 0.0;
+        type            patch;
+        nFaces          400;
+        startFace       68200;
     }
-    inletSides
-    {
-        type            fixedValue;
-        value           uniform 0.01;
-    }
-    inletCentral
-    {
-        type            fixedValue;
-        value           uniform 0.01;
-    }
-}
-
+)
 
 // ************************************************************************* //
