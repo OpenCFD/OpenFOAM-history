@@ -2107,6 +2107,20 @@ int main(int argc, char *argv[])
             << exit(FatalError);
     }
 
+    // Detect if running data-distributed (multiple roots)
+    bool nfs = true;
+    {
+        List<fileName> roots(1, args.rootPath());
+        combineReduce(roots, ListUniqueEqOp<fileName>());
+        nfs = (roots.size() == 1);
+    }
+
+    if (!nfs)
+    {
+        Info<< "Detected multiple roots i.e. non-nfs running"
+            << nl << endl;
+    }
+
     if (isDir(args.path()))
     {
         if (decompose)
@@ -2128,22 +2142,32 @@ int main(int argc, char *argv[])
 
 
 
+
+    // If running distributed we have problem of new processors not finding
+    // a system/controlDict. However if we switch on the master-only reading
+    // the problem becomes that the time directories are differing sizes and
+    // e.g. latestTime will pick up a different time (which causes createTime.H
+    // to abort). So for now make sure to have master times on all
+    // processors
+    {
+        Info<< "Creating time directories on all processors" << nl << endl;
+        instantList timeDirs;
+        if (Pstream::master())
+        {
+            timeDirs = Time::findTimes(args.path(), "constant");
+        }
+        Pstream::scatter(timeDirs);
+        forAll(timeDirs, i)
+        {
+            mkDir(args.path()/timeDirs[i].name());
+        }
+    }
+
+
     // Construct time
     // ~~~~~~~~~~~~~~
 
-    // Switch off master-only reading. The system/controlDict
-    // itself is ok but the uniform/time directory is not ok
-    regIOobject::fileModificationChecking = regIOobject::timeStamp;
-
-    // Switch off any reductions since if there are some processors without
-    // time directories they will read the undecomposed one and if you've
-    // selected latestTime you will have different times on different processors
-    // (Note: time set later on)
-    const bool oldParRun = Pstream::parRun();
-    Pstream::parRun() = false;
-
 #   include "createTime.H"
-    Pstream::parRun() = oldParRun;
     runTime.functionObjects().off();
 
 
@@ -2154,7 +2178,28 @@ int main(int argc, char *argv[])
     // Construct undecomposed Time
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // This will read the same controlDict but might have a different
-    // set of times so e.g. latestTime will work
+    // set of times so enforce same times
+
+    if (!nfs)
+    {
+        Info<< "Creating time directories for undecomposed Time"
+            << " on all processors" << nl << endl;
+        instantList timeDirs;
+
+        const fileName basePath(args.rootPath()/args.globalCaseName());
+
+        if (Pstream::master())
+        {
+            timeDirs = Time::findTimes(basePath, "constant");
+        }
+        Pstream::scatter(timeDirs);
+        forAll(timeDirs, i)
+        {
+            mkDir(basePath/timeDirs[i].name());
+        }
+    }
+
+
     Info<< "Create undecomposed database"<< nl << endl;
     Time baseRunTime
     (
