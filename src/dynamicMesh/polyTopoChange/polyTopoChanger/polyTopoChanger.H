@@ -167,11 +167,11 @@ public:
 };
 
 
-//- Template specialisation for obtaining filePath
+//- Template function for obtaining global status
 template<>
-inline fileName typeFilePath<polyTopoChanger>(const IOobject& io)
+inline bool typeGlobal<polyTopoChanger>()
 {
-    return io.globalFilePath();
+    return true;
 }
 
 

@@ -32,7 +32,65 @@ License
 namespace Foam
 {
 defineTypeNameAndDebug(IOobject, 0);
+
+template<>
+const char* NamedEnum
+<
+    IOobject::fileCheckTypes,
+    4
+>::names[] =
+{
+    "timeStamp",
+    "timeStampMaster",
+    "inotify",
+    "inotifyMaster"
+};
 }
+
+
+const Foam::NamedEnum<Foam::IOobject::fileCheckTypes, 4>
+    Foam::IOobject::fileCheckTypesNames;
+
+// Default fileCheck type
+Foam::IOobject::fileCheckTypes Foam::IOobject::fileModificationChecking
+(
+    fileCheckTypesNames.read
+    (
+        debug::optimisationSwitches().lookup
+        (
+            "fileModificationChecking"
+        )
+    )
+);
+// Register re-reader
+class addfileModificationCheckingToOpt
+:
+    public ::Foam::simpleRegIOobject
+{
+public:
+    addfileModificationCheckingToOpt(const char* name)
+    :
+        ::Foam::simpleRegIOobject(Foam::debug::addOptimisationObject, name)
+    {}
+    virtual ~addfileModificationCheckingToOpt()
+    {}
+    virtual void readData(Foam::Istream& is)
+    {
+        Foam::IOobject::fileModificationChecking =
+            Foam::IOobject::fileCheckTypesNames.read(is);
+    }
+    virtual void writeData(Foam::Ostream& os) const
+    {
+        os <<   Foam::IOobject::fileCheckTypesNames
+                [
+                    Foam::IOobject::fileModificationChecking
+                ];
+    }
+};
+addfileModificationCheckingToOpt addfileModificationCheckingToOpt_
+(
+    "fileModificationChecking"
+);
 
 
 // * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * * //
