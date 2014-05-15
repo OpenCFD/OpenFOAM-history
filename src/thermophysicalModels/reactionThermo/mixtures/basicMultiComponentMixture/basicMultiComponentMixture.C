@@ -62,7 +62,7 @@ Foam::basicMultiComponentMixture::basicMultiComponentMixture
         );
 
         // check if field exists and can be read
-        if (header.headerOk())
+        if (header.typeHeaderOk<volScalarField>(true))
         {
             if (debug)
             {

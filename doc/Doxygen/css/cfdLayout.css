@@ -107,6 +107,7 @@ p:after {
 .sitename h1 {
     font-weight:normal;
     font-size:240%;
+    white-space:nowrap;
 }
 
 .sitename h2 {

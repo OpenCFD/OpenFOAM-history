@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,17 +30,12 @@ Description
     IOdictioanry is provided with a constructor from IOobject and writeData and
     write functions.
 
-SourceFiles
-    IOdictionary.C
-    IOdictionaryIO.C
-
 \*---------------------------------------------------------------------------*/
 
 #ifndef IOdictionary_H
 #define IOdictionary_H
 
-#include "dictionary.H"
-#include "regIOobject.H"
+#include "baseIOdictionary.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -53,36 +48,25 @@ namespace Foam
 
 class IOdictionary
 :
-    public regIOobject,
-    public dictionary
+    public baseIOdictionary
 {
-    // Private data
-
-        static bool writeDictionaries;
-
-
-    // Private Member Functions
-
-        //- Read dictionary from file
-        void readFile(const bool);
-
 
 public:
-
-    TypeName("dictionary");
-
 
     // Constructors
 
         //- Construct given an IOobject
-        IOdictionary(const IOobject&);
+        IOdictionary(const IOobject& io);
 
         //- Construct given an IOobject and dictionary
-        IOdictionary(const IOobject&, const dictionary&);
+        IOdictionary
+        (
+            const IOobject& io,
+            const dictionary& dict
+        );
 
         //- Construct given an IOobject and Istream
-        IOdictionary(const IOobject&, Istream&);
-
+        IOdictionary(const IOobject& io, Istream& is);
 
     //- Destructor
     virtual ~IOdictionary();
@@ -90,22 +74,28 @@ public:
 
     // Member functions
 
-        //- Name function is needed to disambiguate those inherited
-        //  from regIOobject and dictionary
-        const word& name() const;
+        //- Is object global
+        virtual bool global() const
+        {
+            return true;
+        }
 
-        //- ReadData function required for regIOobject read operation
-        bool readData(Istream&);
+        //- Return complete path + object name if the file exists
+        //  either in the case/processor or case otherwise null
+        virtual fileName filePath() const
+        {
+            return globalFilePath();
+        }
 
-        //- WriteData function required for regIOobject write operation
-        bool writeData(Ostream&) const;
-
-
-    // Member operators
-
-        //- Assignment of other IOdictionary's entries to this IOdictionary
-        void operator=(const IOdictionary&);
 };
+
+
+//- Template specialisation for obtaining filePath
+template<>
+inline fileName typeFilePath<IOdictionary>(const IOobject& io)
+{
+    return io.globalFilePath();
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

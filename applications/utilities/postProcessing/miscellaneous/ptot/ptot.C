@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,7 +68,11 @@ int main(int argc, char *argv[])
 
 
         // Check p and U exist
-        if (pheader.headerOk() && Uheader.headerOk())
+        if
+        (
+            pheader.typeHeaderOk<volScalarField>(true)
+         && Uheader.typeHeaderOk<volVectorField>(true)
+        )
         {
             mesh.readUpdate();
 
@@ -105,7 +109,7 @@ int main(int argc, char *argv[])
                 );
 
                 // Check rho exists
-                if (rhoheader.headerOk())
+                if (rhoheader.typeHeaderOk<volScalarField>(true))
                 {
                     Info<< "    Reading rho" << endl;
                     volScalarField rho(rhoheader, mesh);

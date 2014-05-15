@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -78,6 +78,25 @@ public:
 
 
 protected:
+
+        //- Read everywhere or only on master and scatter
+        bool read
+        (
+            const bool masterOnly,
+            const IOstream::streamFormat PstreamFormat,
+            const word& typeName
+        );
+
+        //- Check readOpt flags and read if necessary. Uses above read
+        bool readHeaderOk
+        (
+            const IOstream::streamFormat PstreamFormat,
+            const word& typeName
+        );
+
+        //- Construct and return an IFstream for the object.
+        //  The results is NULL if the stream construction failed
+        Istream* objectStream();
 
         //- To flag master-only reading of objects
         static bool masterOnlyReading;
@@ -157,6 +176,9 @@ public:
             //- Remove object from registry
             bool checkOut();
 
+            //- Add file watch on object (if registered and READ_IF_MODIFIED)
+            void addWatch();
+
             //- Is this object owned by the registry?
             inline bool ownedByRegistry() const;
 
@@ -228,6 +250,15 @@ public:
 
         // Reading
 
+            //- Return complete path + object name if the file exists
+            //  in the case directory otherwise null. Does not search
+            //  up if parallel. Can be overridden to provide this functionality
+            //  (e.g. IOdictionary)
+            virtual fileName filePath() const;
+
+            //- Read and check header info
+            bool headerOk();
+
             //- Return Istream and check object type against that given
             Istream& readStream(const word&);
 
@@ -272,6 +303,15 @@ public:
 
             //- Write using setting from DB
             virtual bool write() const;
+
+
+        // Other
+
+            //- Is object global
+            virtual bool global() const
+            {
+                return false;
+            }
 
 
     // Member operators

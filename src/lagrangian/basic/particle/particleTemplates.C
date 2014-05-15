@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -135,7 +135,7 @@ void Foam::particle::readFields(CloudType& c)
 
     IOobject procIO(c.fieldIOobject("origProcId", IOobject::MUST_READ));
 
-    if (procIO.headerOk())
+    if (procIO.typeHeaderOk<IOField<label> >(true))
     {
         IOField<label> origProcId(procIO);
         c.checkFieldIOobject(c, origProcId);

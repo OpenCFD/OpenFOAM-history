@@ -11,30 +11,37 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      mut;
+    object      nut;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 -1 -1 0 0 0 0];
+dimensions      [0 2 -1 0 0 0 0];
 
 internalField   uniform 0;
 
 boundaryField
 {
-    back
-    {
-        type            symmetryPlane;
-    }
     front
     {
-        type            symmetryPlane;
-    }
-    inletCentral
-    {
-        type            calculated;
+        type            nutkWallFunction;
         value           uniform 0;
     }
-    inletSides
+    back
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+    walls
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+    porosityWall
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+    inlet
     {
         type            calculated;
         value           uniform 0;
@@ -42,14 +49,6 @@ boundaryField
     outlet
     {
         type            calculated;
-        value           uniform 0;
-    }
-    walls
-    {
-        type            mutkWallFunction;
-        Cmu             0.09;
-        kappa           0.41;
-        E               9.8;
         value           uniform 0;
     }
 }

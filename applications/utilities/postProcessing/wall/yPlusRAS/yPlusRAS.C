@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -119,7 +119,7 @@ void calcCompressibleYPlus
         IOobject::NO_WRITE
     );
 
-    if (!rhoHeader.headerOk())
+    if (!rhoHeader.typeHeaderOk<volScalarField>(true))
     {
         Info<< "    no rho field" << endl;
         return;
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
             IOobject::NO_WRITE
         );
 
-        if (UHeader.headerOk())
+        if (UHeader.typeHeaderOk<volVectorField>(true))
         {
             Info<< "Reading field U\n" << endl;
             volVectorField U(UHeader, mesh);

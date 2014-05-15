@@ -11,13 +11,13 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      H2O;
+    object      Phi;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
+dimensions      [0 2 -1 0 0 0 0];
 
-internalField   uniform 0.01;
+internalField   uniform 0;
 
 boundaryField
 {
@@ -29,24 +29,22 @@ boundaryField
     {
         type            symmetryPlane;
     }
-    walls
+    inletCentral
+    {
+        type            zeroGradient;
+    }
+    inletSides
     {
         type            zeroGradient;
     }
     outlet
     {
-        type            inletOutlet;
-        inletValue      uniform 0.0;
-    }
-    inletSides
-    {
         type            fixedValue;
-        value           uniform 0.01;
+        value           uniform 0;
     }
-    inletCentral
+    walls
     {
-        type            fixedValue;
-        value           uniform 0.01;
+        type            zeroGradient;
     }
 }
 

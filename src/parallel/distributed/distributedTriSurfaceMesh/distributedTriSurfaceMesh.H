@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,7 @@ SourceFiles
 #define distributedTriSurfaceMesh_H
 
 #include "triSurfaceMesh.H"
-#include "IOdictionary.H"
+#include "localIOdictionary.H"
 #include "Pair.H"
 #include "globalIndex.H"
 
@@ -99,7 +99,7 @@ private:
         autoPtr<decompositionMethod> decomposer_;
 
         //- Bounding box settings
-        IOdictionary dict_;
+        localIOdictionary dict_;
 
         //- bounding boxes of all processors
         List<List<treeBoundBox> > procBb_;

@@ -234,6 +234,29 @@ void Foam::fv::rotorDiskSource::setFaceArea(vector& axis, const bool correct)
         reduce(n, sumOp<vector>());
         axis = n/mag(n);
     }
+
+    if (debug)
+    {
+        volScalarField area
+        (
+            IOobject
+            (
+                name_ + ":area",
+                mesh_.time().timeName(),
+                mesh_,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh_,
+            dimensionedScalar("0", dimArea, 0)
+        );
+        UIndirectList<scalar>(area.internalField(), cells_) = area_;
+
+        Info<< type() << ": " << name_ << " writing field " << area.name()
+            << endl;
+
+        area.write();
+    }
 }
 
 
@@ -311,6 +334,17 @@ void Foam::fv::rotorDiskSource::createCoordinateSystem()
 
             coeffs_.lookup("refDirection") >> refDir;
 
+            localAxesRotation_.reset
+            (
+                new localAxesRotation
+                (
+                    mesh_,
+                    axis,
+                    origin,
+                    cells_
+                )
+            );
+
             // set the face areas and apply correction to calculated axis
             // e.g. if cellZone is more than a single layer in thickness
             setFaceArea(axis, true);
@@ -322,6 +356,17 @@ void Foam::fv::rotorDiskSource::createCoordinateSystem()
             coeffs_.lookup("origin") >> origin;
             coeffs_.lookup("axis") >> axis;
             coeffs_.lookup("refDirection") >> refDir;
+
+            localAxesRotation_.reset
+            (
+                new localAxesRotation
+                (
+                    mesh_,
+                    axis,
+                    origin,
+                    cells_
+                )
+            );
 
             setFaceArea(axis, false);
 
@@ -446,6 +491,7 @@ Foam::fv::rotorDiskSource::rotorDiskSource
     invR_(cells_.size(), I),
     area_(cells_.size(), 0.0),
     coordSys_(false),
+    localAxesRotation_(),
     rMax_(0.0),
     trim_(trimModel::New(*this, coeffs_)),
     blade_(coeffs_.subDict("blade")),
@@ -491,7 +537,7 @@ void Foam::fv::rotorDiskSource::calculate
             const scalar radius = x_[i].x();
 
             // velocity in local cylindrical reference frame
-            vector Uc = coordSys_.localVector(U[cellI]);
+            vector Uc = localAxesRotation_->transform(U[cellI], i);
 
             // transform from rotor cylindrical into local coning system
             Uc = R_[i] & Uc;
@@ -556,7 +602,7 @@ void Foam::fv::rotorDiskSource::calculate
             localForce = invR_[i] & localForce;
 
             // convert force to global cartesian co-ordinate system
-            force[cellI] = coordSys_.globalVector(localForce);
+            force[cellI] = localAxesRotation_->invTransform(localForce, i);
 
             if (divideVolume)
             {

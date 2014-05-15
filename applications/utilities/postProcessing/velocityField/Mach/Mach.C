@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -58,7 +58,11 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
     );
 
     // Check U and T exists
-    if (Uheader.headerOk() && Theader.headerOk())
+    if
+    (
+        Uheader.typeHeaderOk<volVectorField>(true)
+     && Theader.typeHeaderOk<volScalarField>(true)
+    )
     {
         autoPtr<volScalarField> MachPtr;
 
@@ -71,7 +75,7 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
                 "thermophysicalProperties",
                 runTime.constant(),
                 mesh
-            ).headerOk()
+            ).typeHeaderOk<IOdictionary>(false)
         )
         {
             // thermophysical Mach

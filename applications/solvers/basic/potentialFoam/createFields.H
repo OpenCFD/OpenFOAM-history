@@ -1,9 +1,9 @@
-    Info<< "Reading field p\n" << endl;
-    volScalarField p
+    Info<< "Reading field Phi\n" << endl;
+    volScalarField Phi
     (
         IOobject
         (
-            "p",
+            "Phi",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
@@ -12,7 +12,7 @@
         mesh
     );
 
-    p = dimensionedScalar("zero", p.dimensions(), 0.0);
+    Phi = dimensionedScalar("zero", Phi.dimensions(), 0.0);
 
 
     Info<< "Reading field U\n" << endl;
@@ -51,12 +51,12 @@
     }
 
 
-    label pRefCell = 0;
-    scalar pRefValue = 0.0;
+    label PhiRefCell = 0;
+    scalar PhiRefValue = 0.0;
     setRefCell
     (
-        p,
+        Phi,
         potentialFlow,
-        pRefCell,
-        pRefValue
+        PhiRefCell,
+        PhiRefValue
     );

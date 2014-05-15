@@ -279,7 +279,7 @@ void turbulentTemperatureRadCoupledMixedFvPatchScalarField::write
     os.writeKeyword("Qr")<< QrName_ << token::END_STATEMENT << nl;
     os.writeKeyword("Qr")<< QrName_ << token::END_STATEMENT << nl;
     thicknessLayers_.writeEntry("thicknessLayers", os);
-    thicknessLayers_.writeEntry("kappaLayers", os);
+    kappaLayers_.writeEntry("kappaLayers", os);
 
     temperatureCoupledBase::write(os);
 }
