@@ -129,8 +129,8 @@ Foam::sixDoFRigidBodyMotionRestraints::linearAxialAngularSpring::restrain
     restraintForce = vector::zero;
 
     // Not needed to be altered as restraintForce is zero, but set to
-    // centreOfMass to be sure of no spurious moment
-    restraintPosition = motion.centreOfMass();
+    // centreOfRotation to be sure of no spurious moment
+    restraintPosition = motion.centreOfRotation();
 
     if (motion.report())
     {

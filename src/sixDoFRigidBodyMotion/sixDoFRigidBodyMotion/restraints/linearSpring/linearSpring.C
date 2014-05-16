@@ -80,14 +80,14 @@ void Foam::sixDoFRigidBodyMotionRestraints::linearSpring::restrain
     vector& restraintMoment
 ) const
 {
-    restraintPosition = motion.currentPosition(refAttachmentPt_);
+    restraintPosition = motion.transform(refAttachmentPt_);
 
     vector r = restraintPosition - anchor_;
 
     scalar magR = mag(r);
     r /= (magR + VSMALL);
 
-    vector v = motion.currentVelocity(restraintPosition);
+    vector v = motion.velocity(restraintPosition);
 
     restraintForce = -stiffness_*(magR - restLength_)*r - damping_*(r & v)*r;
 

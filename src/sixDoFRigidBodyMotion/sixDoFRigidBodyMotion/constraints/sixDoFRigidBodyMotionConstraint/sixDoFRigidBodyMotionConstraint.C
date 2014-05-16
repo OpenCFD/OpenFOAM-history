@@ -39,11 +39,13 @@ namespace Foam
 Foam::sixDoFRigidBodyMotionConstraint::sixDoFRigidBodyMotionConstraint
 (
     const word& name,
-    const dictionary& sDoFRBMCDict
+    const dictionary& sDoFRBMCDict,
+    const sixDoFRigidBodyMotion& motion
 )
 :
     name_(name),
-    sDoFRBMCCoeffs_(sDoFRBMCDict)
+    sDoFRBMCCoeffs_(sDoFRBMCDict),
+    motion_(motion)
 {}
 
 

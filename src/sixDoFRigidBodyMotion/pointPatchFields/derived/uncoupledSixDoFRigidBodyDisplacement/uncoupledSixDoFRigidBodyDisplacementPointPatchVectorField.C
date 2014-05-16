@@ -180,7 +180,7 @@ void uncoupledSixDoFRigidBodyDisplacementPointPatchVectorField::updateCoeffs()
 
     Field<vector>::operator=
     (
-        motion_.currentPosition(initialPoints_) - initialPoints_
+        motion_.transform(initialPoints_) - initialPoints_
     );
 
     fixedValuePointPatchField<vector>::updateCoeffs();

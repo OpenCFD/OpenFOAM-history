@@ -31,7 +31,8 @@ Foam::autoPtr<Foam::sixDoFRigidBodyMotionConstraint>
 Foam::sixDoFRigidBodyMotionConstraint::New
 (
     const word& name,
-    const dictionary& sDoFRBMCDict
+    const dictionary& sDoFRBMCDict,
+    const sixDoFRigidBodyMotion& motion
 )
 {
     const word constraintType
@@ -48,7 +49,9 @@ Foam::sixDoFRigidBodyMotionConstraint::New
         (
             "sixDoFRigidBodyMotionConstraint::New"
             "("
+                "const word& name,"
                 "const dictionary& sDoFRBMCDict"
+                "const sixDoFRigidBodyMotion& motion"
             ")"
         )   << "Unknown sixDoFRigidBodyMotionConstraint type "
             << constraintType << nl << nl
@@ -59,7 +62,7 @@ Foam::sixDoFRigidBodyMotionConstraint::New
 
     return autoPtr<sixDoFRigidBodyMotionConstraint>
     (
-        cstrIter()(name, sDoFRBMCDict)
+        cstrIter()(name, sDoFRBMCDict, motion)
     );
 }
 
