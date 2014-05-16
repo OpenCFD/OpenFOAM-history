@@ -417,7 +417,7 @@ void Foam::meshToMesh::distributeCells
             labelList globalElems(sendElems.size());
             forAll(sendElems, i)
             {
-                if (debug)
+                if (debug > 1)
                 {
                     Pout<< "tgtProc:" << Pstream::myProcNo()
                         << " sending tgt cell " << sendElems[i]
@@ -605,7 +605,7 @@ void Foam::meshToMesh::distributeAndMergeCells
                 }
                 else
                 {
-                    if (debug)
+                    if (debug > 1)
                     {
                         Pout<< "Additional internal face between procs:"
                             << key[0] << " and " << key[1]
@@ -732,7 +732,7 @@ void Foam::meshToMesh::distributeAndMergeCells
                         label newNbr = fnd();
                         label tgtFaceI = internalFaceOffset[procI]++;
 
-                        if (debug)
+                        if (debug > 1)
                         {
                             Pout<< "    proc " << procI
                                 << "\tinserting face:" << tgtFaceI
@@ -812,7 +812,7 @@ void Foam::meshToMesh::distributeAndMergeCells
                     label newOwn = cellOffset[procI] + faceOs[i];
                     label tgtFaceI = nIntFaces++;
 
-                    if (debug)
+                    if (debug > 1)
                     {
                         Pout<< "    proc " << procI
                             << "\tinserting boundary face:" << tgtFaceI
