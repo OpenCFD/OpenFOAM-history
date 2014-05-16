@@ -38,14 +38,16 @@ template<class ThermoType>
 Foam::egrMixture<ThermoType>::egrMixture
 (
     const dictionary& thermoDict,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
     basicCombustionMixture
     (
         thermoDict,
         speciesTable(nSpecies_, specieNames_),
-        mesh
+        mesh,
+        phaseName
     ),
 
     stoicRatio_(thermoDict.lookup("stoichiometricAirFuelMassRatio")),

@@ -42,14 +42,16 @@ template<class ThermoType>
 Foam::inhomogeneousMixture<ThermoType>::inhomogeneousMixture
 (
     const dictionary& thermoDict,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
     basicCombustionMixture
     (
         thermoDict,
         speciesTable(nSpecies_, specieNames_),
-        mesh
+        mesh,
+        phaseName
     ),
 
     stoicRatio_(thermoDict.lookup("stoichiometricAirFuelMassRatio")),

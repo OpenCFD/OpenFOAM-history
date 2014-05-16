@@ -157,7 +157,7 @@ void Foam::surfaceAlignedSBRStressFvMotionSolver::calculateCellRot()
 
         const vectorField& SfMesh = fvMesh_.faceAreas();
 
-        const vectorField nSfMesh = SfMesh/mag(SfMesh);
+        const vectorField nSfMesh(SfMesh/mag(SfMesh));
 
         DynamicList<label> cellsHit;
 

@@ -38,10 +38,11 @@ Foam::basicCombustionMixture::basicCombustionMixture
 (
     const dictionary& thermoDict,
     const wordList& specieNames,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
-    basicSpecieMixture(thermoDict, specieNames, mesh)
+    basicSpecieMixture(thermoDict, specieNames, mesh, phaseName)
 {}
 
 
