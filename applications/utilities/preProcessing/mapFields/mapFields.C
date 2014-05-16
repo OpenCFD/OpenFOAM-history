@@ -304,8 +304,9 @@ int main(int argc, char *argv[])
         )
     );
 
-    Info<< "Source mesh size: " << meshSource.nCells() << tab
-        << "Target mesh size: " << meshTarget.nCells() << nl << endl;
+    Info<< "Source mesh size: " << meshSource.globalData().nTotalCells() << tab
+        << "Target mesh size: " << meshTarget.globalData().nTotalCells()
+        << nl << endl;
 
     if (consistent)
     {

@@ -129,7 +129,7 @@ Foam::layerParameters::layerParameters
         dict.lookupOrDefault<scalar>
         (
             "mergePatchFacesAngle",
-            0.5*featureAngle_
+            featureAngle_
         )
     ),
     concaveAngle_
