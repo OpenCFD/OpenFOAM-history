@@ -60,7 +60,7 @@ Description
 
 int main(int argc, char *argv[])
 {
-    argList::addBoolOption("writep", "write the final pressure field");
+    argList::addBoolOption("writePhi", "write the final pressure field");
     argList::addBoolOption
     (
         "initialiseUBCs",
