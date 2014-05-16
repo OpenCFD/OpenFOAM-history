@@ -9,15 +9,15 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volVectorField;
+    class       volScalarField;
     location    "0";
-    object      U;
+    object      Phi;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 1 -1 0 0 0 0];
+dimensions      [0 2 -1 0 0 0 0];
 
-internalField   uniform (0 0 0);
+internalField   uniform 0;
 
 boundaryField
 {
@@ -31,27 +31,20 @@ boundaryField
     }
     inletCentral
     {
-        type            flowRateInletVelocity;
-        rhoInlet        1.2;
-        massFlowRate    constant 0.00379;
-        value           uniform (0 14.68 0);
+        type            zeroGradient;
     }
     inletSides
     {
-        type            flowRateInletVelocity;
-        rhoInlet        1.2;
-        massFlowRate    constant 0.00832;
-        value           uniform (0 17.79 0);
+        type            zeroGradient;
     }
     outlet
     {
-        type            inletOutlet;
-        inletValue      uniform (0 0 0);
+        type            fixedValue;
+        value           uniform 0;
     }
     walls
     {
-        type            fixedValue;
-        value           uniform (0 0 0);
+        type            zeroGradient;
     }
 }
 

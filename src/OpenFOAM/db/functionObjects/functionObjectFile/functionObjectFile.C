@@ -130,11 +130,11 @@ void Foam::functionObjectFile::write()
 
 void Foam::functionObjectFile::resetNames(const wordList& names)
 {
+    names_.clear();
+    names_.insert(names);
+
     if (Pstream::master())
     {
-        names_.clear();
-        names_.insert(names);
-
         filePtrs_.clear();
         filePtrs_.setSize(names_.toc().size());
 
@@ -145,11 +145,11 @@ void Foam::functionObjectFile::resetNames(const wordList& names)
 
 void Foam::functionObjectFile::resetName(const word& name)
 {
+    names_.clear();
+    names_.insert(name);
+
     if (Pstream::master())
     {
-        names_.clear();
-        names_.insert(name);
-
         filePtrs_.clear();
         filePtrs_.setSize(1);
 
@@ -195,11 +195,11 @@ Foam::functionObjectFile::functionObjectFile
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
 {
+    names_.clear();
+    names_.insert(name);
+
     if (Pstream::master())
     {
-        names_.clear();
-        names_.insert(name);
-
         filePtrs_.clear();
         filePtrs_.setSize(1);
 
@@ -222,11 +222,11 @@ Foam::functionObjectFile::functionObjectFile
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
 {
+    names_.clear();
+    names_.insert(names);
+
     if (Pstream::master())
     {
-        names_.clear();
-        names_.insert(names);
-
         filePtrs_.clear();
         filePtrs_.setSize(names_.size());
 

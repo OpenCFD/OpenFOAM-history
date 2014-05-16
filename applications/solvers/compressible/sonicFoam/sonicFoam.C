@@ -24,6 +24,9 @@ License
 Application
     sonicFoam
 
+Group
+    grpCompressibleSolvers
+
 Description
     Transient solver for trans-sonic/supersonic, laminar or turbulent flow
     of a compressible gas.
