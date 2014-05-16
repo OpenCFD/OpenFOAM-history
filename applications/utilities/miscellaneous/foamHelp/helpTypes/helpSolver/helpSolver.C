@@ -76,11 +76,11 @@ void Foam::helpTypes::helpSolver::execute
 
     if (args.optionReadIfPresent("browse", solver))
     {
-        displayDoc(solver, ".*Foam/", true, "C");
+        displayDoc(solver, ".*solvers/.*Foam/", true, "C");
     }
     else
     {
-        displayDocOptions(".*Foam/", true, "C");
+        displayDocOptions(".*solvers/.*Foam/", true, "C");
     }
 }
 
