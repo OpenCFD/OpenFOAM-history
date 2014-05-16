@@ -1031,9 +1031,9 @@ autoPtr<mapDistributePolyMesh> redistributeAndWrite
     // Do all the distribution of mesh and fields
     autoPtr<mapDistributePolyMesh> rawMap = distributor.distribute(decomp);
 
-    //// Print some statistics
-    //Info<< "After distribution:" << endl;
-    //printMeshData(mesh);
+    // Print some statistics
+    Info<< "After distribution:" << endl;
+    printMeshData(mesh);
 
     // Get other side of processor boundaries
     correctCoupledBoundaryConditions
