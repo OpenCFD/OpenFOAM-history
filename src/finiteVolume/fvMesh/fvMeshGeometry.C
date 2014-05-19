@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -441,7 +441,7 @@ const surfaceScalarField& fvMesh::phi() const
     {
         FatalErrorIn("fvMesh::phi()")
             << "mesh flux field does not exist, is the mesh actually moving?"
-            << exit(FatalError);
+            << abort(FatalError);
     }
 
     // Set zero current time
@@ -461,7 +461,7 @@ surfaceScalarField& fvMesh::setPhi()
     {
         FatalErrorIn("fvMesh::setPhi()")
             << "mesh flux field does not exist, is the mesh actually moving?"
-            << exit(FatalError);
+            << abort(FatalError);
     }
 
     return *phiPtr_;
