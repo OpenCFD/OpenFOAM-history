@@ -75,12 +75,13 @@ public:
 
     // Constructors
 
-        //- Construct from dictionary and mesh
+        //- Construct from dictionary, species names, mesh and phase name
         basicMultiComponentMixture
         (
             const dictionary&,
             const wordList& specieNames,
-            const fvMesh&
+            const fvMesh&,
+            const word&
         );
 
 

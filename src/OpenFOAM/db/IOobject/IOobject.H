@@ -332,6 +332,9 @@ public:
             //- Return group (extension part of name)
             word group() const;
 
+            //- Return member (name without the extension)
+            word member() const;
+
             const fileName& rootPath() const;
 
             const fileName& caseName() const;

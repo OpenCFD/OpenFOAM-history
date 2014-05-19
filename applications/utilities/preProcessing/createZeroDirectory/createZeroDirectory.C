@@ -261,8 +261,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    baseDir.toAbsolute();
     baseDir.expand();
+    baseDir.toAbsolute();
 
     // read the solver
     const word& solverName = controlDict.lookup("application");

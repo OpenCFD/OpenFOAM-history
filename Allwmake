@@ -25,13 +25,18 @@ else
     echo "no ThirdParty sources found - skipping"
 fi
 
+buildDoc=""
+if [ "$1" = doc ]
+then
+    buildDoc="build"
+    shift
+fi
+
 # build OpenFOAM libraries and applications
 src/Allwmake $*
 applications/Allwmake $*
 
-if [ "$1" = doc ]
-then
-    doc/Allwmake $*
-fi
+[ "$buildDoc" ] && doc/Allwmake
+
 
 # ----------------------------------------------------------------- end-of-file

@@ -76,8 +76,8 @@ public:
 
     // Constructors
 
-        //- Construct from dictionary and mesh
-        homogeneousMixture(const dictionary&, const fvMesh&);
+        //- Construct from dictionary, mesh and phase name
+        homogeneousMixture(const dictionary&, const fvMesh&, const word&);
 
 
     //- Destructor

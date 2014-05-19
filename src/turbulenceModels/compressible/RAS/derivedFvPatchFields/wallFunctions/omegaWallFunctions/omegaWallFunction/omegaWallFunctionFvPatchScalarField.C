@@ -100,17 +100,17 @@ void omegaWallFunctionFvPatchScalarField::setMaster()
 
 void omegaWallFunctionFvPatchScalarField::createAveragingWeights()
 {
-    if (initialised_)
-    {
-        return;
-    }
-
     const volScalarField& omega =
         static_cast<const volScalarField&>(this->dimensionedInternalField());
 
     const volScalarField::GeometricBoundaryField& bf = omega.boundaryField();
 
     const fvMesh& mesh = omega.mesh();
+
+    if (initialised_ && !mesh.changing())
+    {
+        return;
+    }
 
     volScalarField weights
     (
@@ -490,7 +490,7 @@ void omegaWallFunctionFvPatchScalarField::updateCoeffs
 
     scalarField& omegaf = *this;
 
-    // only set the values if the weights are > tolerance
+    // only set the values if the weights are > tolerance_
     forAll(weights, faceI)
     {
         scalar w = weights[faceI];
