@@ -624,6 +624,8 @@ $(derivedPointPatchFields)/codedFixedValue/codedFixedValuePointPatchFields.C
 
 fields/GeometricFields/pointFields/pointFields.C
 
+fields/ReadFields/ReadFields.C
+
 meshes/bandCompression/bandCompression.C
 meshes/preservePatchTypes/preservePatchTypes.C
 
