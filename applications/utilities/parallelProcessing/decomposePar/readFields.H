@@ -42,22 +42,22 @@ SourceFiles
 namespace Foam
 {
     // Read the fields and hold on the pointer list
+    template<class Type, template<class> class PatchField, class GeoMesh>
+    void readFields
+    (
+        const typename GeoMesh::Mes& mesh,
+        const IOobjectList& objects,
+        PtrList<GeometricField<Type, PatchField, GeoMesh> >& fields,
+        const bool readOldTime = false
+    );
+
+    // Read the fields and hold on the pointer list
     template<class Mesh, class GeoField>
     void readFields
     (
         const Mesh& mesh,
         const IOobjectList& objects,
-        PtrList<GeoField>& fields,
-        const bool readOldTime = false
-    );
-
-    // Read the fields and hold on the pointer list
-    template<class Mesh, class Type>
-    void readFields
-    (
-        const Mesh& mesh,
-        const IOobjectList& objects,
-        PtrList<DimensionedField<Type, Mesh> >& fields
+        PtrList<GeoField>& fields
     );
 }
 
