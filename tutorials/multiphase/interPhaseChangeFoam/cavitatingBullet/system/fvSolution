@@ -29,6 +29,7 @@ solvers
         smoother        symGaussSeidel;
         tolerance       1e-8;
         relTol          0;
+        maxIter         10;
     };
 
     "U.*"
@@ -64,6 +65,12 @@ solvers
         relTol           0;
     };
 
+    Phi
+    {
+        $p_rgh;
+        relTol           0;
+    };
+
     p_rghFinal
     {
         solver            PCG;
@@ -91,6 +98,13 @@ solvers
         maxIter          50;
     };
 }
+
+
+potentialFlow
+{
+    nNonOrthogonalCorrectors   3;
+}
+
 
 PIMPLE
 {
