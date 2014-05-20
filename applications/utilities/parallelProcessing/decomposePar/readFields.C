@@ -28,15 +28,17 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Mesh, class GeoField>
+template<class Type, template<class> class PatchField, class GeoMesh>
 void Foam::readFields
 (
-    const Mesh& mesh,
+    const typename GeoMesh::Mes& mesh,
     const IOobjectList& objects,
-    PtrList<GeoField>& fields,
+    PtrList<GeometricField<Type, PatchField, GeoMesh> >& fields,
     const bool readOldTime
 )
 {
+    typedef GeometricField<Type, PatchField, GeoMesh> GeoField;
+
     // Search list of objects for fields of type GeomField
     IOobjectList fieldObjects(objects.lookupClass(GeoField::typeName));
 
@@ -62,22 +64,16 @@ void Foam::readFields
 }
 
 
-template<class Mesh, class Type>
+template<class Mesh, class GeoField>
 void Foam::readFields
 (
     const Mesh& mesh,
     const IOobjectList& objects,
-    PtrList<DimensionedField<Type, volMesh> >& fields
+    PtrList<GeoField>& fields
 )
 {
-    // Search list of objects for fields of type DimensionedField
-    IOobjectList fieldObjects
-    (
-        objects.lookupClass
-        (
-            DimensionedField<Type, volMesh>::typeName
-        )
-    );
+    // Search list of objects for fields of type GeomField
+    IOobjectList fieldObjects(objects.lookupClass(GeoField::typeName));
 
     // Construct the fields
     fields.setSize(fieldObjects.size());
@@ -85,11 +81,7 @@ void Foam::readFields
     label fieldI = 0;
     forAllIter(IOobjectList, fieldObjects, iter)
     {
-        fields.set
-        (
-            fieldI++,
-            new DimensionedField<Type, volMesh>(*iter(), mesh)
-        );
+        fields.set(fieldI++, new GeoField(*iter(), mesh));
     }
 }
 
