@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,7 +34,8 @@ Description
     - 'fluidThermo' : use fluidThermo and default compressible::turbulenceModel
        to calculate kappa
     - 'solidThermo' : use solidThermo kappa()
-    - 'directionalSolidThermo' directionalKappa()
+    - 'directionalSolidThermo': uses look up for volSymmTensorField for
+       transformed kappa vector. Named 'Anialpha' in solid solver
 
 SourceFiles
     temperatureCoupledBase.C
@@ -88,17 +89,21 @@ private:
         //- Name of thermal conductivity field (if looked up from database)
         const word kappaName_;
 
+        //- Name of the non-Isotropic alpha (default: Anialpha)
+        const word alphaAniName_;
+
 
 public:
 
     // Constructors
 
-        //- Construct from patch and K name
+        //- Construct from components
         temperatureCoupledBase
         (
             const fvPatch& patch,
             const word& calculationMethod,
-            const word& KName
+            const word& kappaName,
+            const word& alphaAniName
         );
 
         //- Construct from patch and dictionary
@@ -106,6 +111,13 @@ public:
         (
             const fvPatch& patch,
             const dictionary& dict
+        );
+
+        //- Construct from patch and temperatureCoupledBase
+        temperatureCoupledBase
+        (
+            const fvPatch& patch,
+            const temperatureCoupledBase& base
         );
 
 

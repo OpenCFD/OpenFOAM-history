@@ -349,6 +349,21 @@ Foam::word Foam::IOobject::group() const
 }
 
 
+Foam::word Foam::IOobject::member() const
+{
+    word::size_type i = name_.find_last_of('.');
+
+    if (i == word::npos || i == 0)
+    {
+        return name_;
+    }
+    else
+    {
+        return name_.substr(0, i);
+    }
+}
+
+
 const Foam::fileName& Foam::IOobject::rootPath() const
 {
     return time().rootPath();

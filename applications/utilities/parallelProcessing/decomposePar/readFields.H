@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -47,7 +47,17 @@ namespace Foam
     (
         const Mesh& mesh,
         const IOobjectList& objects,
-        PtrList<GeoField>& fields
+        PtrList<GeoField>& fields,
+        const bool readOldTime = false
+    );
+
+    // Read the fields and hold on the pointer list
+    template<class Mesh, class Type>
+    void readFields
+    (
+        const Mesh& mesh,
+        const IOobjectList& objects,
+        PtrList<DimensionedField<Type, Mesh> >& fields
     );
 }
 

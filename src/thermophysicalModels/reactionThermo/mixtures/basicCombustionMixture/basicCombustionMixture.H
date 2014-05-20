@@ -62,12 +62,13 @@ public:
 
     // Constructors
 
-        //- Construct from dictionary and mesh
+        //- Construct from dictionary, mesh and phase name
         basicCombustionMixture
         (
             const dictionary&,
             const wordList& specieNames,
-            const fvMesh&
+            const fvMesh&,
+            const word&
         );
 
 

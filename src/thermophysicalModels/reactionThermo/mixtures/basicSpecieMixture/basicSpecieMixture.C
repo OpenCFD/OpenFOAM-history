@@ -38,10 +38,11 @@ Foam::basicSpecieMixture::basicSpecieMixture
 (
     const dictionary& thermoDict,
     const wordList& specieNames,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
-    basicMultiComponentMixture(thermoDict, specieNames, mesh)
+    basicMultiComponentMixture(thermoDict, specieNames, mesh, phaseName)
 {}
 
 

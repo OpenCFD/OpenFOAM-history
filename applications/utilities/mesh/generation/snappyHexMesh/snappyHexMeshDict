@@ -478,7 +478,8 @@ addLayersControls
         // are perpendicular
         featureAngle 130;
 
-        // When to merge patch faces. Default is 0.5*featureAngle
+        // When to merge patch faces. Default is featureAngle. Useful when
+        // featureAngle is large.
         //mergePatchFacesAngle 45;
 
         // Do not extrude around sharp edge if not both faces are extruded.

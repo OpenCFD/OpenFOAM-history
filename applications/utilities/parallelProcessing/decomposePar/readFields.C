@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,6 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "GeometricField.H"
 #include "readFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -32,7 +33,8 @@ void Foam::readFields
 (
     const Mesh& mesh,
     const IOobjectList& objects,
-    PtrList<GeoField>& fields
+    PtrList<GeoField>& fields,
+    const bool readOldTime
 )
 {
     // Search list of objects for fields of type GeomField
@@ -54,7 +56,39 @@ void Foam::readFields
         fields.set
         (
             fieldI++,
-            new GeoField(*iter(), mesh)
+            new GeoField(*iter(), mesh, readOldTime)
+        );
+    }
+}
+
+
+template<class Mesh, class Type>
+void Foam::readFields
+(
+    const Mesh& mesh,
+    const IOobjectList& objects,
+    PtrList<DimensionedField<Type, volMesh> >& fields
+)
+{
+    // Search list of objects for fields of type DimensionedField
+    IOobjectList fieldObjects
+    (
+        objects.lookupClass
+        (
+            DimensionedField<Type, volMesh>::typeName
+        )
+    );
+
+    // Construct the fields
+    fields.setSize(fieldObjects.size());
+
+    label fieldI = 0;
+    forAllIter(IOobjectList, fieldObjects, iter)
+    {
+        fields.set
+        (
+            fieldI++,
+            new DimensionedField<Type, volMesh>(*iter(), mesh)
         );
     }
 }

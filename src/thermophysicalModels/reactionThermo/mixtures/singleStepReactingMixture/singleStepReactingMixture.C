@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -191,10 +191,11 @@ template<class ThermoType>
 Foam::singleStepReactingMixture<ThermoType>::singleStepReactingMixture
 (
     const dictionary& thermoDict,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
-    reactingMixture<ThermoType>(thermoDict, mesh),
+    reactingMixture<ThermoType>(thermoDict, mesh, phaseName),
     stoicRatio_(dimensionedScalar("stoicRatio", dimless, 0.0)),
     s_(dimensionedScalar("s", dimless, 0.0)),
     qFuel_(dimensionedScalar("qFuel", sqr(dimVelocity), 0.0)),
