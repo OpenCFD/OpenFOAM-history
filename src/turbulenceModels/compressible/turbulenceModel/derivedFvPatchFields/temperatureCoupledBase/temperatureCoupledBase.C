@@ -58,13 +58,14 @@ Foam::temperatureCoupledBase::temperatureCoupledBase
 (
     const fvPatch& patch,
     const word& calculationType,
-    const word& kappaName
+    const word& kappaName,
+    const word& alphaAniName
 )
 :
     patch_(patch),
     method_(KMethodTypeNames_[calculationType]),
     kappaName_(kappaName),
-    alphaAniName_(alphaAniName_)
+    alphaAniName_(alphaAniName)
 {}
 
 
@@ -78,6 +79,19 @@ Foam::temperatureCoupledBase::temperatureCoupledBase
     method_(KMethodTypeNames_.read(dict.lookup("kappa"))),
     kappaName_(dict.lookup("kappaName")),
     alphaAniName_(dict.lookupOrDefault<word>("alphaAniName","Anialpha"))
+{}
+
+
+Foam::temperatureCoupledBase::temperatureCoupledBase
+(
+    const fvPatch& patch,
+    const temperatureCoupledBase& base
+)
+:
+    patch_(patch),
+    method_(base.method_),
+    kappaName_(base.kappaName_),
+    alphaAniName_(base.alphaAniName_)
 {}
 
 

@@ -97,12 +97,13 @@ public:
 
     // Constructors
 
-        //- Construct from patch and K name
+        //- Construct from components
         temperatureCoupledBase
         (
             const fvPatch& patch,
             const word& calculationMethod,
-            const word& KName
+            const word& kappaName,
+            const word& alphaAniName
         );
 
         //- Construct from patch and dictionary
@@ -110,6 +111,13 @@ public:
         (
             const fvPatch& patch,
             const dictionary& dict
+        );
+
+        //- Construct from patch and temperatureCoupledBase
+        temperatureCoupledBase
+        (
+            const fvPatch& patch,
+            const temperatureCoupledBase& base
         );
 
 
