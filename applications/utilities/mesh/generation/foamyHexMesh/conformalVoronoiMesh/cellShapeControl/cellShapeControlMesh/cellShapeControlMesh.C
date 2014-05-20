@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -392,59 +392,59 @@ Foam::cellShapeControlMesh::cellShapeControlMesh(const Time& runTime)
 
         if (mesh.nPoints() == this->vertexCount())
         {
-            pointScalarField sizes
+            IOobject io
             (
-                IOobject
-                (
-                    "sizes",
-                    runTime.timeName(),
-                    meshSubDir,
-                    runTime,
-                    IOobject::READ_IF_PRESENT,
-                    IOobject::NO_WRITE
-                ),
-                pointMesh::New(mesh)
+                "sizes",
+                runTime.timeName(),
+                meshSubDir,
+                runTime,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE,
+                false
             );
 
-            triadIOField alignments
-            (
-                IOobject
-                (
-                    "alignments",
-                    mesh.time().timeName(),
-                    meshSubDir,
-                    mesh.time(),
-                    IOobject::READ_IF_PRESENT,
-                    IOobject::AUTO_WRITE
-                )
-            );
-
-            if
-            (
-                sizes.size() == this->vertexCount()
-             && alignments.size() == this->vertexCount()
-            )
+            if (io.typeHeaderOk<pointScalarField>())
             {
-                for
+                pointScalarField sizes(io, pointMesh::New(mesh));
+
+                triadIOField alignments
                 (
-                    Finite_vertices_iterator vit = finite_vertices_begin();
-                    vit != finite_vertices_end();
-                    ++vit
-                )
+                    IOobject
+                    (
+                        "alignments",
+                        mesh.time().timeName(),
+                        meshSubDir,
+                        mesh.time(),
+                        IOobject::MUST_READ,
+                        IOobject::NO_WRITE,
+                        false
+                    )
+                );
+
+                if (alignments.size() == this->vertexCount())
                 {
-                    vit->targetCellSize() = sizes[vit->index()];
-                    vit->alignment() = alignments[vit->index()];
+                    for
+                    (
+                        Finite_vertices_iterator vit = finite_vertices_begin();
+                        vit != finite_vertices_end();
+                        ++vit
+                    )
+                    {
+                        vit->targetCellSize() = sizes[vit->index()];
+                        vit->alignment() = alignments[vit->index()];
+                    }
                 }
-            }
-            else
-            {
-                FatalErrorIn
-                (
-                    "Foam::cellShapeControlMesh::cellShapeControlMesh"
-                    "(const Time&)"
-                )   << "Cell size point field is not the same size as the "
-                    << "mesh."
-                    << abort(FatalError);
+                else
+                {
+                    FatalErrorIn
+                    (
+                        "Foam::cellShapeControlMesh::cellShapeControlMesh"
+                        "(const Time&)"
+                    )   << "Cell alignments point field " << alignments.size()
+                        << " is not the same size as the number of vertices"
+                        << " in the mesh " << this->vertexCount()
+                        << abort(FatalError);
+                }
             }
         }
     }
@@ -670,7 +670,7 @@ void Foam::cellShapeControlMesh::write() const
             IOobject::AUTO_WRITE
         ),
         pointMesh::New(mesh),
-        scalar(0)
+        dimensionedScalar("zero", dimLength, scalar(0))
     );
 
     triadIOField alignments
