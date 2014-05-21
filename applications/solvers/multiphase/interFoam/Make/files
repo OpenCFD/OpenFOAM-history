@@ -1,3 +1,4 @@
+correctPhi.C
 interFoam.C
 
 EXE = $(FOAM_APPBIN)/interFoam
