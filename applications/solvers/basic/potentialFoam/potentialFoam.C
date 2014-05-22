@@ -41,14 +41,20 @@ Description
 
     Where:
     \vartable
-        \Phi    | Velocity potential [m2/s]
-        U       | Velocity [m/s]
+        \Phi      | Velocity potential [m2/s]
+        \vec{U}   | Velocity [m/s]
     \endvartable
 
     \heading Required fields
     \plaintable
-        Phi     | Velocity potential [m2/s]
-        U       | Velocity [m/s]
+        Phi       | Velocity potential [m2/s]
+        U         | Velocity [m/s]
+    \endplaintable
+
+    \heading Options
+    \plaintable
+        -writePhi | Write the computed velocity potential
+        -initialiseUBCs | Update the velocity boundaries before solving for Phi
     \endplaintable
 
 \*---------------------------------------------------------------------------*/
@@ -60,7 +66,7 @@ Description
 
 int main(int argc, char *argv[])
 {
-    argList::addBoolOption("writePhi", "write the final pressure field");
+    argList::addBoolOption("writePhi", "write the final potential field");
     argList::addBoolOption
     (
         "initialiseUBCs",
