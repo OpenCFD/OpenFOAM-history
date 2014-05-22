@@ -40,7 +40,7 @@ InfoSwitches
     writeDictionaries 0;
 
     // Allow case-supplied C++ code (#codeStream, codedFixedValue)
-    allowSystemOperations   0;
+    allowSystemOperations   1;
 }
 
 
