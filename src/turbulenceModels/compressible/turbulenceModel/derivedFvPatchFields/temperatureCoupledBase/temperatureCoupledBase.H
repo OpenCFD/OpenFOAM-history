@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -73,9 +73,9 @@ public:
         };
 
 
-private:
+protected:
 
-    // Private data
+    // Protected data
 
         static const NamedEnum<KMethodType, 4> KMethodTypeNames_;
 
