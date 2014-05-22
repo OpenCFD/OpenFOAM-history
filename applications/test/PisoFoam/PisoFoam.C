@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,25 +24,58 @@ License
 Application
     pisoFoam
 
+Group
+    grpIncompressibleSolvers
+
 Description
     Transient solver for incompressible flow.
 
+    \heading Solver details
     Turbulence modelling is generic, i.e. laminar, RAS or LES may be selected.
+    The solver uses the PISO algorithm to solve the continuity equation:
+
+        \f[
+            \div \vec{U} = 0
+        \f]
+
+    and momentum equation:
+
+        \f[
+            \ddt{\vec{U}} + \div \left( \vec{U} \vec{U} \right) - \div \gvec{R}
+          = - \grad p
+        \f]
+
+    Where:
+    \vartable
+        \vec{U} | Velocity
+        p       | Pressure
+        \vec{R} | Stress tensor
+    \endvartable
+
+    \heading Required fields
+    \plaintable
+        U       | Velocity [m/s]
+        p       | Kinematic pressure, p/rho [m2/s2]
+        \<turbulence fields\> | As required by user selection
+    \endplaintable
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
 #include "IncompressibleTurbulenceModel.H"
+#include "pimpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
-
     #include "createTime.H"
     #include "createMesh.H"
+
+    pimpleControl piso(mesh, "PISO");
+
     #include "createFields.H"
     #include "initContinuityErrs.H"
 
@@ -54,7 +87,6 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "readPISOControls.H"
         #include "CourantNo.H"
 
         // Pressure-velocity PISO corrector
@@ -70,14 +102,14 @@ int main(int argc, char *argv[])
 
             UEqn.relax();
 
-            if (momentumPredictor)
+            if (piso.momentumPredictor())
             {
                 solve(UEqn == -fvc::grad(p));
             }
 
             // --- PISO loop
 
-            for (int corr=0; corr<nCorr; corr++)
+            while (piso.correct())
             {
                 volScalarField rAU(1.0/UEqn.A());
 
@@ -87,13 +119,13 @@ int main(int argc, char *argv[])
                 (
                     "phiHbyA",
                     (fvc::interpolate(HbyA) & mesh.Sf())
-                  + fvc::ddtCorr(rAU, U, phi)
+                  + fvc::interpolate(rAU)*fvc::ddtCorr(U, phi)
                 );
 
                 adjustPhi(phiHbyA, U, p);
 
                 // Non-orthogonal pressure corrector loop
-                for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+                while (piso.correctNonOrthogonal())
                 {
                     // Pressure corrector
 
@@ -104,20 +136,9 @@ int main(int argc, char *argv[])
 
                     pEqn.setReference(pRefCell, pRefValue);
 
-                    if
-                    (
-                        corr == nCorr-1
-                     && nonOrth == nNonOrthCorr
-                    )
-                    {
-                        pEqn.solve(mesh.solver("pFinal"));
-                    }
-                    else
-                    {
-                        pEqn.solve();
-                    }
+                    pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
 
-                    if (nonOrth == nNonOrthCorr)
+                    if (piso.finalNonOrthogonalIter())
                     {
                         phi = phiHbyA - pEqn.flux();
                     }
@@ -130,7 +151,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        laminarTransport.correct();
         turbulence->correct();
 
         runTime.write();
