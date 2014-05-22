@@ -17,6 +17,32 @@ FoamFile
 
 numberOfSubdomains  2;
 
+// Optional decomposition constraints
+//constraints
+//{
+//    preserveBaffles
+//    {
+//        type    preserveBaffles;
+//    }
+//
+//    preserveFaceZones
+//    {
+//        type    preserveFaceZones;
+//        zones   (".*");
+//    }
+//    singleProcessorFaceSets
+//    {
+//        type    singleProcessorFaceSets;
+//        singleProcessorFaceSets ((f1 -1));
+//    }
+//    refinementHistory
+//    {
+//        type    refinementHistory;
+//    }
+//}
+
+
+// Deprecated form of specifying decomposition constraints:
 //- Keep owner and neighbour on same processor for faces in zones:
 // preserveFaceZones (heater solid1 solid3);
 
@@ -32,11 +58,12 @@ numberOfSubdomains  2;
 // for a good load balance) or explicitly provided (upsets balance).
 //singleProcessorFaceSets ((f0 -1));
 
-
 //- Keep owner and neighbour of baffles on same processor (i.e. keep it
 //  detectable as a baffle). Baffles are two boundary face sharing the
 //  same points.
 //preserveBaffles true;
+
+
 
 //- Use the volScalarField named here as a weight for each cell in the
 //  decomposition.  For example, use a particle population field to decompose

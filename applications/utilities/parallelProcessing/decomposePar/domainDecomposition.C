@@ -31,14 +31,14 @@ License
 #include "fvMesh.H"
 #include "OSspecific.H"
 #include "Map.H"
-#include "globalMeshData.H"
 #include "DynamicList.H"
 #include "fvFieldDecomposer.H"
 #include "IOobjectList.H"
 #include "cellSet.H"
 #include "faceSet.H"
 #include "pointSet.H"
-#include "uniformDimensionedFields.H"
+
+#include "hexRef8Data.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -196,57 +196,20 @@ bool Foam::domainDecomposition::writeDecomposition(const bool decomposeSets)
     }
 
 
-    autoPtr<labelIOList> cellLevelPtr;
-    {
-        IOobject io
+    // Load refinement data (if any)
+    hexRef8Data baseMeshData
+    (
+        IOobject
         (
-            "cellLevel",
+            "dummy",
             facesInstance(),
             polyMesh::meshSubDir,
             *this,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        );
-        if (io.typeHeaderOk<labelIOList>(true))
-        {
-            Info<< "Reading hexRef8 data : " << io.name() << endl;
-            cellLevelPtr.reset(new labelIOList(io));
-        }
-    }
-    autoPtr<labelIOList> pointLevelPtr;
-    {
-        IOobject io
-        (
-            "pointLevel",
-            facesInstance(),
-            polyMesh::meshSubDir,
-            *this,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        );
-        if (io.typeHeaderOk<labelIOList>(true))
-        {
-            Info<< "Reading hexRef8 data : " << io.name() << endl;
-            pointLevelPtr.reset(new labelIOList(io));
-        }
-    }
-    autoPtr<uniformDimensionedScalarField> level0EdgePtr;
-    {
-        IOobject io
-        (
-            "level0Edge",
-            facesInstance(),
-            polyMesh::meshSubDir,
-            *this,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        );
-        if (io.typeHeaderOk<uniformDimensionedScalarField>(true))
-        {
-            Info<< "Reading hexRef8 data : " << io.name() << endl;
-            level0EdgePtr.reset(new uniformDimensionedScalarField(io));
-        }
-    }
+            IOobject::READ_IF_PRESENT,
+            IOobject::NO_WRITE,
+            false
+        )
+    );
 
 
 
@@ -888,64 +851,23 @@ bool Foam::domainDecomposition::writeDecomposition(const bool decomposeSets)
         }
 
 
-        // hexRef8 data
-        if (cellLevelPtr.valid())
-        {
-            labelIOList
+        // Optional hexRef8 data
+        hexRef8Data
+        (
+            IOobject
             (
-                IOobject
-                (
-                    cellLevelPtr().name(),
-                    facesInstance(),
-                    polyMesh::meshSubDir,
-                    procMesh,
-                    IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                UIndirectList<label>
-                (
-                    cellLevelPtr(),
-                    procCellAddressing_[procI]
-                )()
-            ).write();
-        }
-        if (pointLevelPtr.valid())
-        {
-            labelIOList
-            (
-                IOobject
-                (
-                    pointLevelPtr().name(),
-                    facesInstance(),
-                    polyMesh::meshSubDir,
-                    procMesh,
-                    IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                UIndirectList<label>
-                (
-                    pointLevelPtr(),
-                    procPointAddressing_[procI]
-                )()
-            ).write();
-        }
-        if (level0EdgePtr.valid())
-        {
-            uniformDimensionedScalarField
-            (
-                IOobject
-                (
-                    level0EdgePtr().name(),
-                    facesInstance(),
-                    polyMesh::meshSubDir,
-                    procMesh,
-                    IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                level0EdgePtr()
-            ).write();
-        }
-
+                "dummy",
+                facesInstance(),
+                polyMesh::meshSubDir,
+                procMesh,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            baseMeshData,
+            procCellAddressing_[procI],
+            procPointAddressing_[procI]
+        ).write();
 
 
         // Statistics
