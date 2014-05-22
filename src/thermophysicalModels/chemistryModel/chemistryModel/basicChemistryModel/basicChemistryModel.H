@@ -104,14 +104,14 @@ public:
     // Constructors
 
         //- Construct from mesh
-        basicChemistryModel(const fvMesh& mesh);
+        basicChemistryModel(const fvMesh& mesh, const word& phaseName);
 
 
     // Selectors
 
         //- Generic New for each of the related chemistry model
         template<class Thermo>
-        static autoPtr<Thermo> New(const fvMesh&);
+        static autoPtr<Thermo> New(const fvMesh& mesh, const word& phaseName);
 
 
     //- Destructor

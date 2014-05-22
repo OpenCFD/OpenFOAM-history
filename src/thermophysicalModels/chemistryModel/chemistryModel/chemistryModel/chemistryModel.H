@@ -117,7 +117,7 @@ public:
     // Constructors
 
         //- Construct from mesh
-        chemistryModel(const fvMesh& mesh);
+        chemistryModel(const fvMesh& mesh, const word& phaseName);
 
 
     //- Destructor
