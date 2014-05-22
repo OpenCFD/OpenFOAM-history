@@ -555,6 +555,39 @@ void writeProcAddressing
 }
 
 
+
+// Generic mesh-based field reading
+template<class GeoField>
+void readField
+(
+    const IOobject& io,
+    const fvMesh& mesh,
+    const label i,
+    PtrList<GeoField>& fields
+)
+{
+    fields.set(i, new GeoField(io, mesh));
+}
+
+
+// Definition of readField for GeometricFields only
+template<class Type, template<class> class PatchField, class GeoMesh>
+void readField
+(
+    const IOobject& io,
+    const fvMesh& mesh,
+    const label i,
+    PtrList<GeometricField<Type, PatchField, GeoMesh> >& fields
+)
+{
+    fields.set
+    (
+        i,
+        new GeometricField<Type, PatchField, GeoMesh>(io, mesh, false)
+    );
+}
+
+
 // Read vol or surface fields
 template<class GeoField>
 void readFields
@@ -597,9 +630,8 @@ void readFields
             IOobject& io = *objects[name];
             io.writeOpt() = IOobject::AUTO_WRITE;
 
-            // Load field
-            fields.set(i, new GeoField(io, mesh));
-
+            // Load field (but not oldTime)
+            readField(io, mesh, i, fields);
             // Create zero sized field and send
             if (subsetterPtr.valid())
             {
@@ -660,8 +692,8 @@ void readFields
             IOobject& io = *objects[name];
             io.writeOpt() = IOobject::AUTO_WRITE;
 
-            // Load field
-            fields.set(i, new GeoField(io, mesh));
+            // Load field (but not oldtime)
+            readField(io, mesh, i, fields);
         }
     }
 }

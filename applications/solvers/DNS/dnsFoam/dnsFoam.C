@@ -33,6 +33,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "pimpleControl.H"
 #include "Kmesh.H"
 #include "UOprocess.H"
 #include "fft.H"
@@ -47,6 +48,9 @@ int main(int argc, char *argv[])
 
     #include "createTime.H"
     #include "createMeshNoClear.H"
+
+    pimpleControl piso(mesh, "PISO");
+
     #include "readTransportProperties.H"
     #include "createFields.H"
     #include "readTurbulenceProperties.H"
@@ -59,8 +63,6 @@ int main(int argc, char *argv[])
     while (runTime.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        #include "readPISOControls.H"
 
         force.internalField() = ReImSum
         (
@@ -81,12 +83,14 @@ int main(int argc, char *argv[])
             force
         );
 
-        solve(UEqn == -fvc::grad(p));
-
+        if (piso.momentumPredictor())
+        {
+            solve(UEqn == -fvc::grad(p));
+        }
 
         // --- PISO loop
 
-        for (int corr=1; corr<=1; corr++)
+        while (piso.correct())
         {
             volScalarField rAU(1.0/UEqn.A());
             surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU));
@@ -100,14 +104,24 @@ int main(int argc, char *argv[])
               + rAUf*fvc::ddtCorr(U, phi)
             );
 
-            fvScalarMatrix pEqn
-            (
-                fvm::laplacian(rAUf, p) == fvc::div(phiHbyA)
-            );
+            // Non-orthogonal pressure corrector loop
+            while (piso.correctNonOrthogonal())
+            {
+                // Pressure corrector
+                fvScalarMatrix pEqn
+                (
+                    fvm::laplacian(rAUf, p) == fvc::div(phiHbyA)
+                );
 
-            pEqn.solve();
+                pEqn.setReference(pRefCell, pRefValue);
 
-            phi = phiHbyA - pEqn.flux();
+                pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
+
+                if (piso.finalNonOrthogonalIter())
+                {
+                    phi = phiHbyA - pEqn.flux();
+                }
+            }
 
             #include "continuityErrs.H"
 

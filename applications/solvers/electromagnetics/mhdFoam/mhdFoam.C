@@ -52,16 +52,19 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "OSspecific.H"
+#include "pimpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
-
     #include "createTime.H"
     #include "createMesh.H"
+
+    pimpleControl piso(mesh, "PISO");
+    pimpleControl bpiso(mesh, "BPISO");
+
     #include "createFields.H"
     #include "initContinuityErrs.H"
 
@@ -71,9 +74,6 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
-        #include "readPISOControls.H"
-        #include "readBPISOControls.H"
-
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"
@@ -88,12 +88,14 @@ int main(int argc, char *argv[])
               + fvc::grad(DBU*magSqr(B))
             );
 
-            solve(UEqn == -fvc::grad(p));
-
+            if (piso.momentumPredictor())
+            {
+                solve(UEqn == -fvc::grad(p));
+            }
 
             // --- PISO loop
 
-            for (int corr=0; corr<nCorr; corr++)
+            while (piso.correct())
             {
                 volScalarField rAU(1.0/UEqn.A());
                 surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU));
@@ -108,7 +110,8 @@ int main(int argc, char *argv[])
                   + rAUf*fvc::ddtCorr(U, phi)
                 );
 
-                for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+                // Non-orthogonal pressure corrector loop
+                while (piso.correctNonOrthogonal())
                 {
                     fvScalarMatrix pEqn
                     (
@@ -116,9 +119,10 @@ int main(int argc, char *argv[])
                     );
 
                     pEqn.setReference(pRefCell, pRefValue);
-                    pEqn.solve();
 
-                    if (nonOrth == nNonOrthCorr)
+                    pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
+
+                    if (piso.finalNonOrthogonalIter())
                     {
                         phi = phiHbyA - pEqn.flux();
                     }
@@ -133,7 +137,7 @@ int main(int argc, char *argv[])
 
         // --- B-PISO loop
 
-        for (int Bcorr=0; Bcorr<nBcorr; Bcorr++)
+        while (bpiso.correct())
         {
             fvVectorMatrix BEqn
             (
@@ -151,13 +155,20 @@ int main(int argc, char *argv[])
             phiB = (fvc::interpolate(B) & mesh.Sf())
                 + rABf*fvc::ddtCorr(B, phiB);
 
-            fvScalarMatrix pBEqn
-            (
-                fvm::laplacian(rABf, pB) == fvc::div(phiB)
-            );
-            pBEqn.solve();
+            while (bpiso.correctNonOrthogonal())
+            {
+                fvScalarMatrix pBEqn
+                (
+                    fvm::laplacian(rABf, pB) == fvc::div(phiB)
+                );
 
-            phiB -= pBEqn.flux();
+                pBEqn.solve();
+
+                if (bpiso.finalNonOrthogonalIter())
+                {
+                    phiB -= pBEqn.flux();
+                }
+            }
 
             #include "magneticFieldErr.H"
         }

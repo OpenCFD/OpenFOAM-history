@@ -13,6 +13,11 @@ runApplication blockMesh
 # Generate the snappy mesh
 runApplication snappyHexMesh -overwrite
 
+cp -r 0.org 0
+
+# Initialise with potentialFoam solution
+runApplication potentialFoam
+
 # Run the solver
 runApplication `getApplication`
 

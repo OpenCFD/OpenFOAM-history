@@ -345,7 +345,8 @@ template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 (
     const IOobject& io,
-    const Mesh& mesh
+    const Mesh& mesh,
+    const bool readOldTime
 )
 :
     DimensionedField<Type, GeoMesh>(io, mesh, dimless, false),
@@ -370,7 +371,10 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
             << exit(FatalIOError);
     }
 
-    readOldTimeIfPresent();
+    if (readOldTime)
+    {
+        readOldTimeIfPresent();
+    }
 
     if (debug)
     {
@@ -409,8 +413,6 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
             << " number of mesh elements = " << GeoMesh::size(this->mesh())
             << exit(FatalIOError);
     }
-
-    readOldTimeIfPresent();
 
     if (debug)
     {
