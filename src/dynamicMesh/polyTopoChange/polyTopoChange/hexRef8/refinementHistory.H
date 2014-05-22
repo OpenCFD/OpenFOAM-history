@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,7 +28,7 @@ Description
     All refinement history. Used in unrefinement.
 
     - visibleCells: valid for the current mesh and contains per cell -1
-    (cell unrefined) or an index into splitCells_.
+      (cell unrefined) or an index into splitCells_.
     - splitCells: for every split contains the parent (also index into
       splitCells) and optionally a subsplit as 8 indices into splitCells.
       Note that the numbers in splitCells are not cell labels, they are purely
@@ -71,12 +71,14 @@ SourceFiles
 #ifndef refinementHistory_H
 #define refinementHistory_H
 
+#include "UPtrList.H"
 #include "DynamicList.H"
 #include "labelList.H"
 #include "FixedList.H"
-#include "SLList.H"
 #include "autoPtr.H"
 #include "regIOobject.H"
+#include "boolList.H"
+#include "labelPair.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -93,7 +95,8 @@ class mapDistributePolyMesh;
 
 class refinementHistory
 :
-    public regIOobject
+    public regIOobject,
+    public refCount
 {
 public:
 
@@ -226,6 +229,15 @@ private:
             labelList& splitCellNum
         ) const;
 
+        // For distribution:
+
+            //- Mark index and all its descendants
+            void mark(const label, const label, labelList&) const;
+
+            //- Mark cells according to top parent. Return number of clusters
+            //  (set of cells originating from same parent)
+            label markCommonCells(labelList& cellToCluster) const;
+
 public:
 
     // Declare name of the class and its debug switch
@@ -237,7 +249,7 @@ public:
         //- Construct (read) given an IOobject
         refinementHistory(const IOobject&);
 
-        //- Construct (read) or construct null
+        //- Construct (read) or construct from components
         refinementHistory
         (
             const IOobject&,
@@ -251,6 +263,14 @@ public:
 
         //- Construct as copy
         refinementHistory(const IOobject&, const refinementHistory&);
+
+        //- Construct from multiple refinement histories
+        refinementHistory
+        (
+            const IOobject&,
+            const UPtrList<const labelList>& cellMaps,
+            const UPtrList<const refinementHistory>&
+        );
 
         //- Construct from Istream
         refinementHistory(const IOobject&, Istream&);
@@ -314,6 +334,23 @@ public:
             const labelList& combinedCells
         );
 
+        //- Low level clone
+        autoPtr<refinementHistory> clone
+        (
+            const IOobject& io,
+            const labelList& decomposition,
+            const labelList& splitCellProc,
+            const labelList& splitCellNum,
+            const label procI,
+            labelList& oldToNewSplit
+        ) const;
+
+        //- Create clone from subset
+        autoPtr<refinementHistory> clone
+        (
+            const IOobject& io,
+            const labelList& cellMap
+        ) const;
 
         //- Update numbering for mesh changes
         void updateMesh(const mapPolyMesh&);
@@ -325,6 +362,7 @@ public:
             const labelList& faceMap,
             const labelList& cellMap
         );
+
 
         //- Update local numbering for mesh redistribution.
         //  Can only distribute clusters sent across in one go; cannot
@@ -348,6 +386,27 @@ public:
 
         //- WriteData function required for regIOobject write operation
         virtual bool writeData(Ostream&) const;
+
+        // Helpers for decompositionConstraint
+
+            //- Add my decomposition constraints
+            void add
+            (
+                boolList& blockedFace,
+                PtrList<labelList>& specifiedProcessorFaces,
+                labelList& specifiedProcessor,
+                List<labelPair>& explicitConnections
+            ) const;
+
+            //- Apply any additional post-decomposition constraints
+            void apply
+            (
+                const boolList& blockedFace,
+                const PtrList<labelList>& specifiedProcessorFaces,
+                const labelList& specifiedProcessor,
+                const List<labelPair>& explicitConnections,
+                labelList& decomposition
+            ) const;
 
 
     // Friend Functions

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,98 +22,82 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::sigFpe
+    Foam::refinementHistoryConstraint
 
 Description
-    Set up trapping for floating point exceptions (signal FPE).
-
-    Controlled by two env vars:
-    \param FOAM_SIGFPE \n
-        exception trapping
-    \param FOAM_SETNAN \n
-        initialization of all malloced memory to NaN. If FOAM_SIGFPE
-        also set, this will cause usage of uninitialized scalars to trigger
-        an abort.
 
 SourceFiles
-    sigFpe.C
+    refinementHistoryConstraint.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef sigFpe_H
-#define sigFpe_H
+#ifndef refinementHistoryConstraint_H
+#define refinementHistoryConstraint_H
 
-#include <signal.h>
-
-#if defined(linux) || defined(linuxAMD64) || defined(linuxIA64)
-#    define LINUX
-#endif
-
-#if defined(LINUX) && defined(__GNUC__)
-#    define LINUX_GNUC
-#endif
-
-#include "UList.H"
+#include "decompositionConstraint.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+
 /*---------------------------------------------------------------------------*\
-                           Class sigFpe Declaration
+                Class refinementHistoryConstraint Declaration
 \*---------------------------------------------------------------------------*/
 
-class sigFpe
+class refinementHistoryConstraint
+:
+    public decompositionConstraint
 {
     // Private data
 
-        //- Saved old signal trapping setting
-        static struct sigaction oldAction_;
-
-#       ifdef LINUX
-
-            //- Saved old malloc
-            static void *(*oldMallocHook_)(size_t, const void *);
-
-            //- NaN malloc function. From malloc_hook manpage.
-            static void* nanMallocHook_(size_t size, const void *caller);
-
-#       endif
-
-
-    // Static data members
-
-#   ifdef LINUX_GNUC
-
-        //- Handler for caught signals
-        static void sigHandler(int, siginfo_t* info, void*);
-
-#   endif
-
-
 public:
+
+    //- Runtime type information
+    TypeName("refinementHistory");
 
 
     // Constructors
 
-        //- Construct null
-        sigFpe();
+        //- Construct with generic dictionary with optional entry for type
+        refinementHistoryConstraint
+        (
+            const dictionary& constraintsDict,
+            const word& type
+        );
+
+        //- Construct from components
+        refinementHistoryConstraint();
 
 
     //- Destructor
-    ~sigFpe();
+    virtual ~refinementHistoryConstraint()
+    {}
 
 
-    // Member functions
+    // Member Functions
 
-        //- Activate SIGFPE signal handler when FOAM_SIGFPE is %set
-        //  Fill memory with NaN when FOAM_SETNAN is %set
-        void set(const bool verbose);
+        //- Add my constraints to list of constraints
+        virtual void add
+        (
+            const polyMesh& mesh,
+            boolList& blockedFace,
+            PtrList<labelList>& specifiedProcessorFaces,
+            labelList& specifiedProcessor,
+            List<labelPair>& explicitConnections
+        ) const;
 
-        //- Helper: fill block of data with NaN
-        static void fillSignallingNan(UList<scalar>&);
-
+        //- Apply any additional post-decomposition constraints
+        virtual void apply
+        (
+            const polyMesh& mesh,
+            const boolList& blockedFace,
+            const PtrList<labelList>& specifiedProcessorFaces,
+            const labelList& specifiedProcessor,
+            const List<labelPair>& explicitConnections,
+            labelList& decomposition
+        ) const;
 };
 
 

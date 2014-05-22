@@ -23,12 +23,11 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "DynamicList.H"
 #include "refinementHistory.H"
-#include "ListOps.H"
 #include "mapPolyMesh.H"
 #include "mapDistributePolyMesh.H"
 #include "polyMesh.H"
+#include "syncTools.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -38,73 +37,6 @@ namespace Foam
 defineTypeNameAndDebug(refinementHistory, 0);
 
 }
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-void Foam::refinementHistory::writeEntry
-(
-    const List<splitCell8>& splitCells,
-    const splitCell8& split
-)
-{
-    // Write me:
-    if (split.addedCellsPtr_.valid())
-    {
-        Pout<< "parent:" << split.parent_
-            << " subCells:" << split.addedCellsPtr_()
-            << endl;
-    }
-    else
-    {
-        Pout<< "parent:" << split.parent_
-            << " no subcells"
-            << endl;
-    }
-
-    if (split.parent_ >= 0)
-    {
-        Pout<< "parent data:" << endl;
-        // Write my parent
-        string oldPrefix = Pout.prefix();
-        Pout.prefix() = "  " + oldPrefix;
-        writeEntry(splitCells, splitCells[split.parent_]);
-        Pout.prefix() = oldPrefix;
-    }
-}
-
-
-void Foam::refinementHistory::writeDebug
-(
-    const labelList& visibleCells,
-    const List<splitCell8>& splitCells
-)
-{
-    string oldPrefix = Pout.prefix();
-    Pout.prefix() = "";
-
-    forAll(visibleCells, cellI)
-    {
-        label index = visibleCells[cellI];
-
-        if (index >= 0)
-        {
-            Pout<< "Cell from refinement:" << cellI << " index:" << index
-                << endl;
-
-            string oldPrefix = Pout.prefix();
-            Pout.prefix() = "  " + oldPrefix;
-            writeEntry(splitCells, splitCells[index]);
-            Pout.prefix() = oldPrefix;
-        }
-        else
-        {
-            Pout<< "Unrefined cell:" << cellI << " index:" << index << endl;
-        }
-    }
-    Pout.prefix() = oldPrefix;
-}
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -186,6 +118,72 @@ Foam::Ostream& Foam::operator<<
     {
         return os << sc.parent_ << token::SPACE << labelList(0);
     }
+}
+
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::refinementHistory::writeEntry
+(
+    const List<splitCell8>& splitCells,
+    const splitCell8& split
+)
+{
+    // Write me:
+    if (split.addedCellsPtr_.valid())
+    {
+        Pout<< "parent:" << split.parent_
+            << " subCells:" << split.addedCellsPtr_()
+            << endl;
+    }
+    else
+    {
+        Pout<< "parent:" << split.parent_
+            << " no subcells"
+            << endl;
+    }
+
+    if (split.parent_ >= 0)
+    {
+        Pout<< "parent data:" << endl;
+        // Write my parent
+        string oldPrefix = Pout.prefix();
+        Pout.prefix() = "  " + oldPrefix;
+        writeEntry(splitCells, splitCells[split.parent_]);
+        Pout.prefix() = oldPrefix;
+    }
+}
+
+
+void Foam::refinementHistory::writeDebug
+(
+    const labelList& visibleCells,
+    const List<splitCell8>& splitCells
+)
+{
+    string oldPrefix = Pout.prefix();
+    Pout.prefix() = "";
+
+    forAll(visibleCells, cellI)
+    {
+        label index = visibleCells[cellI];
+
+        if (index >= 0)
+        {
+            Pout<< "Cell from refinement:" << cellI << " index:" << index
+                << endl;
+
+            string oldPrefix = Pout.prefix();
+            Pout.prefix() = "  " + oldPrefix;
+            writeEntry(splitCells, splitCells[index]);
+            Pout.prefix() = oldPrefix;
+        }
+        else
+        {
+            Pout<< "Unrefined cell:" << cellI << " index:" << index << endl;
+        }
+    }
+    Pout.prefix() = oldPrefix;
 }
 
 
@@ -325,11 +323,192 @@ void Foam::refinementHistory::markSplit
 }
 
 
+// Mark index and all its descendants
+void Foam::refinementHistory::mark
+(
+    const label val,
+    const label index,
+    labelList& splitToVal
+) const
+{
+    splitToVal[index] = val;
+
+    const splitCell8& split = splitCells_[index];
+
+    if (split.addedCellsPtr_.valid())
+    {
+        const FixedList<label, 8>& splits = split.addedCellsPtr_();
+
+        forAll(splits, i)
+        {
+            if (splits[i] >= 0)
+            {
+                mark(val, splits[i], splitToVal);
+            }
+        }
+    }
+}
+
+
+Foam::label Foam::refinementHistory::markCommonCells
+(
+    labelList& cellToCluster
+) const
+{
+    label clusterI = 0;
+
+    labelList splitToCluster(splitCells_.size(), -1);
+
+    // Pass1: find top of all clusters
+    forAll(visibleCells_, cellI)
+    {
+        label index = visibleCells_[cellI];
+
+        if (index >= 0)
+        {
+            // Find highest ancestor
+            while (splitCells_[index].parent_ != -1)
+            {
+                index = splitCells_[index].parent_;
+            }
+
+            // Mark tree with clusterI
+            if (splitToCluster[index] == -1)
+            {
+                mark(clusterI, index, splitToCluster);
+                clusterI++;
+            }
+        }
+    }
+
+    // Pass2: mark all cells with cluster
+    cellToCluster.setSize(visibleCells_.size(), -1);
+
+    forAll(visibleCells_, cellI)
+    {
+        label index = visibleCells_[cellI];
+
+        if (index >= 0)
+        {
+            cellToCluster[cellI] = splitToCluster[index];
+        }
+    }
+
+    return clusterI;
+}
+
+
+void Foam::refinementHistory::add
+(
+    boolList& blockedFace,
+    PtrList<labelList>& specifiedProcessorFaces,
+    labelList& specifiedProcessor,
+    List<labelPair>& explicitConnections
+) const
+{
+    const polyMesh& mesh = dynamic_cast<const polyMesh&>(db());
+
+    blockedFace.setSize(mesh.nFaces(), true);
+
+    // Find common parent for all cells
+    labelList cellToCluster;
+    markCommonCells(cellToCluster);
+
+
+    // Unblock all faces inbetween same cluster
+
+    label nUnblocked = 0;
+
+    forAll(mesh.faceNeighbour(), faceI)
+    {
+        label ownCluster = cellToCluster[mesh.faceOwner()[faceI]];
+        label neiCluster = cellToCluster[mesh.faceNeighbour()[faceI]];
+
+        if (ownCluster != -1 && ownCluster == neiCluster)
+        {
+            if (blockedFace[faceI])
+            {
+                blockedFace[faceI] = false;
+                nUnblocked++;
+            }
+        }
+    }
+
+    if (refinementHistory::debug)
+    {
+        reduce(nUnblocked, sumOp<label>());
+        Info<< type() << " : unblocked " << nUnblocked << " faces" << endl;
+    }
+
+    syncTools::syncFaceList(mesh, blockedFace, andEqOp<bool>());
+}
+
+
+void Foam::refinementHistory::apply
+(
+    const boolList& blockedFace,
+    const PtrList<labelList>& specifiedProcessorFaces,
+    const labelList& specifiedProcessor,
+    const List<labelPair>& explicitConnections,
+    labelList& decomposition
+) const
+{
+    const polyMesh& mesh = dynamic_cast<const polyMesh&>(db());
+
+    // Find common parent for all cells
+    labelList cellToCluster;
+    label nClusters = markCommonCells(cellToCluster);
+
+    // Unblock all faces inbetween same cluster
+
+
+    labelList clusterToProc(nClusters, -1);
+
+    label nChanged = 0;
+
+    forAll(mesh.faceNeighbour(), faceI)
+    {
+        label own = mesh.faceOwner()[faceI];
+        label nei = mesh.faceNeighbour()[faceI];
+
+        label ownCluster = cellToCluster[own];
+        label neiCluster = cellToCluster[nei];
+
+        if (ownCluster != -1 && ownCluster == neiCluster)
+        {
+            if (clusterToProc[ownCluster] == -1)
+            {
+                clusterToProc[ownCluster] = decomposition[own];
+            }
+
+            if (decomposition[own] != clusterToProc[ownCluster])
+            {
+                decomposition[own] = clusterToProc[ownCluster];
+                nChanged++;
+            }
+            if (decomposition[nei] != clusterToProc[ownCluster])
+            {
+                decomposition[nei] = clusterToProc[ownCluster];
+                nChanged++;
+            }
+        }
+    }
+
+    if (refinementHistory::debug)
+    {
+        reduce(nChanged, sumOp<label>());
+        Info<< type() << " : changed decomposition on " << nChanged
+            << " cells" << endl;
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::refinementHistory::refinementHistory(const IOobject& io)
 :
-    regIOobject(io)
+    regIOobject(io),
+    refCount()
 {
     // Warn for MUST_READ_IF_MODIFIED
     warnNoRereading<refinementHistory>();
@@ -365,6 +544,7 @@ Foam::refinementHistory::refinementHistory
 )
 :
     regIOobject(io),
+    refCount(),
     splitCells_(splitCells),
     freeSplitCells_(0),
     visibleCells_(visibleCells)
@@ -405,6 +585,7 @@ Foam::refinementHistory::refinementHistory
 )
 :
     regIOobject(io),
+    refCount(),
     freeSplitCells_(0)
 {
     // Warn for MUST_READ_IF_MODIFIED
@@ -454,6 +635,7 @@ Foam::refinementHistory::refinementHistory
 )
 :
     regIOobject(io),
+    refCount(),
     splitCells_(rh.splitCells()),
     freeSplitCells_(rh.freeSplitCells()),
     visibleCells_(rh.visibleCells())
@@ -466,10 +648,118 @@ Foam::refinementHistory::refinementHistory
 }
 
 
+// Construct from multiple
+Foam::refinementHistory::refinementHistory
+(
+    const IOobject& io,
+    const UPtrList<const labelList>& cellMaps,
+    const UPtrList<const refinementHistory>& refs
+)
+:
+    regIOobject(io),
+    refCount()
+{
+    if
+    (
+        io.readOpt() == IOobject::MUST_READ
+     || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
+     || (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
+    )
+    {
+        WarningIn
+        (
+            "refinementHistory::refinementHistory(const IOobject&"
+            ", const labelListList&, const PtrList<refinementHistory>&)"
+        )   << "read option IOobject::MUST_READ, READ_IF_PRESENT or "
+            << "MUST_READ_IF_MODIFIED"
+            << " suggests that a read constructor would be more appropriate."
+            << endl;
+    }
+
+    const polyMesh& mesh = dynamic_cast<const polyMesh&>(db());
+
+
+    // Determine offsets into splitCells
+    labelList offsets(refs.size()+1);
+    offsets[0] = 0;
+    forAll(refs, refI)
+    {
+        const DynamicList<splitCell8>& subSplits = refs[refI].splitCells();
+        offsets[refI+1] = offsets[refI]+subSplits.size();
+    }
+
+    // Construct merged splitCells
+    splitCells_.setSize(offsets.last());
+    forAll(refs, refI)
+    {
+        const DynamicList<splitCell8>& subSplits = refs[refI].splitCells();
+        forAll(subSplits, i)
+        {
+            splitCell8& newSplit = splitCells_[offsets[refI]+i];
+
+            // Copy
+            newSplit = subSplits[i];
+
+            // Offset indices
+            if (newSplit.parent_ >= 0)
+            {
+                newSplit.parent_ += offsets[refI];
+            }
+
+            if (newSplit.addedCellsPtr_.valid())
+            {
+                FixedList<label, 8>& splits = newSplit.addedCellsPtr_();
+
+                forAll(splits, i)
+                {
+                    if (splits[i] >= 0)
+                    {
+                        splits[i] += offsets[refI];
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Construct merged visibleCells
+    visibleCells_.setSize(mesh.nCells(), -1);
+    forAll(refs, refI)
+    {
+        const labelList& cellMap = cellMaps[refI];
+        const labelList& subVis = refs[refI].visibleCells();
+
+        forAll(subVis, i)
+        {
+            label& newVis = visibleCells_[cellMap[i]];
+
+            newVis = subVis[i];
+            if (newVis >= 0)
+            {
+                newVis += offsets[refI];
+            }
+        }
+    }
+
+    // Check indices.
+    checkIndices();
+
+    if (debug)
+    {
+        Pout<< "refinementHistory::refinementHistory :"
+            << " constructed history from multiple refinementHistories :"
+            << " splitCells:" << splitCells_.size()
+            << " visibleCells:" << visibleCells_.size()
+            << endl;
+    }
+}
+
+
 // Construct from Istream
 Foam::refinementHistory::refinementHistory(const IOobject& io, Istream& is)
 :
     regIOobject(io),
+    refCount(),
     splitCells_(is),
     freeSplitCells_(0),
     visibleCells_(is)
@@ -489,6 +779,174 @@ Foam::refinementHistory::refinementHistory(const IOobject& io, Istream& is)
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::autoPtr<Foam::refinementHistory> Foam::refinementHistory::clone
+(
+    const IOobject& io,
+    // Per visible cell the processor it is going ti
+    const labelList& decomposition,
+    // Per splitCell entry the processor it moves to
+    const labelList& splitCellProc,
+    // Per splitCell entry the number of live cells that move to that processor
+    const labelList& splitCellNum,
+
+    const label procI,
+
+    // From old to new splitCells
+    labelList& oldToNewSplit
+) const
+{
+    oldToNewSplit.setSize(splitCells_.size());
+    oldToNewSplit = -1;
+
+    // Compacted splitCells
+    DynamicList<splitCell8> newSplitCells(splitCells_.size());
+
+    // Loop over all entries. Note: could recurse like countProc so only
+    // visit used entries but is probably not worth it.
+
+    forAll(splitCells_, index)
+    {
+        if (splitCellProc[index] == procI && splitCellNum[index] == 8)
+        {
+            // Entry moves in its whole to procI
+            oldToNewSplit[index] = newSplitCells.size();
+            newSplitCells.append(splitCells_[index]);
+        }
+    }
+
+    // Add live cells that are subsetted.
+    forAll(visibleCells_, cellI)
+    {
+        label index = visibleCells_[cellI];
+
+        if (index >= 0 && decomposition[cellI] == procI)
+        {
+            label parent = splitCells_[index].parent_;
+
+            // Create new splitCell with parent
+            oldToNewSplit[index] = newSplitCells.size();
+            newSplitCells.append(splitCell8(parent));
+        }
+    }
+
+    //forAll(oldToNewSplit, index)
+    //{
+    //    Pout<< "old:" << index << " new:" << oldToNewSplit[index]
+    //        << endl;
+    //}
+
+    newSplitCells.shrink();
+
+    // Renumber contents of newSplitCells
+    forAll(newSplitCells, index)
+    {
+        splitCell8& split = newSplitCells[index];
+
+        if (split.parent_ >= 0)
+        {
+            split.parent_ = oldToNewSplit[split.parent_];
+        }
+        if (split.addedCellsPtr_.valid())
+        {
+            FixedList<label, 8>& splits = split.addedCellsPtr_();
+
+            forAll(splits, i)
+            {
+                if (splits[i] >= 0)
+                {
+                    splits[i] = oldToNewSplit[splits[i]];
+                }
+            }
+        }
+    }
+
+
+    // Count number of cells
+    label nSub = 0;
+    forAll(decomposition, cellI)
+    {
+        if (decomposition[cellI] == procI)
+        {
+            nSub++;
+        }
+    }
+
+    labelList newVisibleCells(nSub);
+    nSub = 0;
+
+    forAll(visibleCells_, cellI)
+    {
+        if (decomposition[cellI] == procI)
+        {
+            label index = visibleCells_[cellI];
+            if (index >= 0)
+            {
+                index = oldToNewSplit[index];
+            }
+            newVisibleCells[nSub++] = index;
+        }
+    }
+
+    return autoPtr<refinementHistory>
+    (
+        new refinementHistory
+        (
+            io,
+            newSplitCells,
+            newVisibleCells
+        )
+    );
+}
+
+
+Foam::autoPtr<Foam::refinementHistory> Foam::refinementHistory::clone
+(
+    const IOobject& io,
+    const labelList& cellMap
+) const
+{
+    // Mark selected cells with '1'
+    labelList decomposition(visibleCells_.size(), 0);
+    forAll(cellMap, i)
+    {
+        decomposition[cellMap[i]] = 1;
+    }
+
+
+    // Per splitCell entry the processor it moves to
+    labelList splitCellProc(splitCells_.size(), -1);
+    // Per splitCell entry the number of live cells that move to that processor
+    labelList splitCellNum(splitCells_.size(), 0);
+
+    forAll(visibleCells_, cellI)
+    {
+        label index = visibleCells_[cellI];
+
+        if (index >= 0)
+        {
+            countProc
+            (
+                splitCells_[index].parent_,
+                decomposition[cellI],
+                splitCellProc,
+                splitCellNum
+            );
+        }
+    }
+
+    labelList oldToNewSplit;
+    return clone
+    (
+        io,
+        decomposition,
+        splitCellProc,
+        splitCellNum,
+        1,      //procI,
+        oldToNewSplit
+    );
+}
+
 
 void Foam::refinementHistory::resize(const label size)
 {
@@ -694,9 +1152,6 @@ void Foam::refinementHistory::distribute(const mapDistributePolyMesh& map)
         }
     }
 
-//Pout<< "refinementHistory::distribute :"
-//    << " destination:" << destination << endl;
-
     // Per splitCell entry the processor it moves to
     labelList splitCellProc(splitCells_.size(), -1);
     // Per splitCell entry the number of live cells that move to that processor
@@ -742,21 +1197,11 @@ void Foam::refinementHistory::distribute(const mapDistributePolyMesh& map)
 
         forAll(splitCells_, index)
         {
-//            Pout<< "oldCell:" << index
-//                << " proc:" << splitCellProc[index]
-//                << " nCells:" << splitCellNum[index]
-//                << endl;
-
             if (splitCellProc[index] == procI && splitCellNum[index] == 8)
             {
                 // Entry moves in its whole to procI
                 oldToNew[index] = newSplitCells.size();
                 newSplitCells.append(splitCells_[index]);
-
-                //Pout<< "Added oldCell " << index
-                //    << " info " << newSplitCells.last()
-                //    << " at position " << newSplitCells.size()-1
-                //    << endl;
             }
         }
 
@@ -768,10 +1213,6 @@ void Foam::refinementHistory::distribute(const mapDistributePolyMesh& map)
             if (index >= 0 && destination[cellI] == procI)
             {
                 label parent = splitCells_[index].parent_;
-
-                //Pout<< "Adding refined cell " << cellI
-                //    << " since moves to "
-                //    << procI << " old parent:" << parent << endl;
 
                 // Create new splitCell with parent
                 oldToNew[index] = newSplitCells.size();
