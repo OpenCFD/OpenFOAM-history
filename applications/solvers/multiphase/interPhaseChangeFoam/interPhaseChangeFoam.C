@@ -60,15 +60,14 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
+
+    pimpleControl pimple(mesh);
+
     #include "readGravitationalAcceleration.H"
     #include "initContinuityErrs.H"
     #include "createFields.H"
     #include "readTimeControls.H"
-
-    pimpleControl pimple(mesh);
-
     #include "createPrghCorrTypes.H"
-    #include "../interFoam/correctPhi.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
