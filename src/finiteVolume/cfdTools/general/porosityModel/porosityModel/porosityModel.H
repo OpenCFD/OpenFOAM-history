@@ -279,11 +279,11 @@ public:
 };
 
 
-//- Template specialisation for obtaining filePath
+//- Template function for obtaining global status
 template<>
-inline fileName typeFilePath<porosityModel>(const IOobject& io)
+inline bool typeGlobal<porosityModel>()
 {
-    return io.globalFilePath();
+    return true;
 }
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,6 +43,7 @@ namespace Foam
 
 bool Foam::polyLineSet::trackToBoundary
 (
+    passiveParticleCloud& particleCloud,
     passiveParticle& singleParticle,
     label& sampleI,
     DynamicList<point>& samplingPts,
@@ -51,7 +52,6 @@ bool Foam::polyLineSet::trackToBoundary
     DynamicList<scalar>& samplingCurveDist
 ) const
 {
-    passiveParticleCloud particleCloud(mesh());
     particle::TrackingData<passiveParticleCloud> trackData(particleCloud);
 
     // Alias
@@ -159,6 +159,7 @@ void Foam::polyLineSet::calcSamples
 
     // Force calculation of minimum-tet decomposition.
     (void) mesh().tetBasePtIs();
+    passiveParticleCloud particleCloud(mesh());
 
     // current segment number
     label segmentI = 0;
@@ -267,6 +268,7 @@ void Foam::polyLineSet::calcSamples
 
         bool bReached = trackToBoundary
         (
+            particleCloud,
             singleParticle,
             sampleI,
             samplingPts,

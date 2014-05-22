@@ -51,41 +51,31 @@ typedef UniformDimensionedField<sphericalTensor>
 typedef UniformDimensionedField<symmTensor> uniformDimensionedSymmTensorField;
 typedef UniformDimensionedField<tensor> uniformDimensionedTensorField;
 
-//- Template specialisation for obtaining filePath
-template<> inline fileName typeFilePath<uniformDimensionedScalarField>
-(
-    const IOobject& io
-)
+//- Template function for obtaining global status
+template<>
+inline bool typeGlobal<uniformDimensionedScalarField>()
 {
-    return io.globalFilePath();
+    return true;
 }
-template<> inline fileName typeFilePath<uniformDimensionedVectorField>
-(
-    const IOobject& io
-)
+template<>
+inline bool typeGlobal<uniformDimensionedVectorField>()
 {
-    return io.globalFilePath();
+    return true;
 }
-template<> inline fileName typeFilePath<uniformDimensionedSphericalTensorField>
-(
-    const IOobject& io
-)
+template<>
+inline bool typeGlobal<uniformDimensionedSphericalTensorField>()
 {
-    return io.globalFilePath();
+    return true;
 }
-template<> inline fileName typeFilePath<uniformDimensionedSymmTensorField>
-(
-    const IOobject& io
-)
+template<>
+inline bool typeGlobal<uniformDimensionedSymmTensorField>()
 {
-    return io.globalFilePath();
+    return true;
 }
-template<> inline fileName typeFilePath<uniformDimensionedTensorField>
-(
-    const IOobject& io
-)
+template<>
+inline bool typeGlobal<uniformDimensionedTensorField>()
 {
-    return io.globalFilePath();
+    return true;
 }
 
 
