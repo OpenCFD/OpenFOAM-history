@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
                     phi = mesh.Sf() & Uf;
 
                     #define divUCorr -divU
-                    #include "../interFoam/interDyMFoam/correctPhi.H"
+                    #include "correctPhi.H"
 
                     // Make the flux relative to the mesh motion
                     fvc::makeRelative(phi, U);
