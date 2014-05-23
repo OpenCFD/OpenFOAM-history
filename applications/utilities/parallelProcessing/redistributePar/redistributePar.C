@@ -2155,6 +2155,18 @@ int main(int argc, char *argv[])
     bool writeCellDist = args.optionFound("cellDist");
 
 
+
+    if (env("FOAM_SIGFPE"))
+    {
+        WarningIn(args.executable())
+            << "Detected floating point exception trapping (FOAM_SIGFPE)."
+            << " This might give" << nl
+            << "    problems when mapping fields. Switch it off in case"
+            << " of problems." << endl;
+    }
+
+
+
     const HashSet<word> selectedFields(0);
     const HashSet<word> selectedLagrangianFields(0);
 
