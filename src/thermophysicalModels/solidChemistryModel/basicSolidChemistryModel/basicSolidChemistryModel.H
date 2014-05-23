@@ -88,19 +88,23 @@ public:
         autoPtr,
         basicSolidChemistryModel,
         fvMesh,
-        (const fvMesh& mesh),
-        (mesh)
+        (const fvMesh& mesh, const word& phaseName),
+        (mesh, phaseName)
     );
 
 
     // Constructors
 
         //- Construct from mesh
-        basicSolidChemistryModel(const fvMesh& mesh);
+        basicSolidChemistryModel(const fvMesh& mesh, const word& phaseName);
 
 
     //- Selector
-    static autoPtr<basicSolidChemistryModel> New(const fvMesh& mesh);
+    static autoPtr<basicSolidChemistryModel> New
+    (
+        const fvMesh& mesh,
+        const word& phaseName=word::null
+    );
 
 
     //- Destructor

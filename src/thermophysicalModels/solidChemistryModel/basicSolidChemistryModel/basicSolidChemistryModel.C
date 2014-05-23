@@ -39,11 +39,12 @@ namespace Foam
 
 Foam::basicSolidChemistryModel::basicSolidChemistryModel
 (
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
-    basicChemistryModel(mesh),
-    solidThermo_(solidReactionThermo::New(mesh))
+    basicChemistryModel(mesh, phaseName),
+    solidThermo_(solidReactionThermo::New(mesh, phaseName))
 {}
 
 
