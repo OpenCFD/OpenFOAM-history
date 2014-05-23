@@ -13,3 +13,5 @@ rm -rf 0 > /dev/null 2>&1
 cleanCase
 
 \rm -f constant/polyMesh/boundary
+
+#\cp system/controlDict_run system/controlDict

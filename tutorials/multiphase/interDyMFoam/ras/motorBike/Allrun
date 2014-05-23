@@ -8,8 +8,14 @@ cd ${0%/*} || exit 1    # run from this directory
 
 #runApplication `getApplication`
 runParallel `getApplication` 5
-runApplication reconstructParMesh -latestTime
-runApplication reconstructPar -latestTime
+
+unset FOAM_SIGFPE
+runParallel -l log.reconstruct redistributePar 5 -reconstruct
+
+## A bit more testing of decomposing
+#\cp system/controlDict_nextWrite system/controlDict
+#runParallel -l log.decompose redistributePar 5 -decompose -latestTime
+#runParallel -l log.interDyMFoam_restart `getApplication` 5
 
 
 # ----------------------------------------------------------------- end-of-file
