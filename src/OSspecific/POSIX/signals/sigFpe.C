@@ -89,48 +89,6 @@ void* Foam::sigFpe::nanMallocHook_(size_t size, const void *caller)
 
 void Foam::sigFpe::sigHandler(int, siginfo_t* info, void*)
 {
-  unsigned int excepts = fetestexcept (FE_ALL_EXCEPT);
-
-Perr<< "si_code:" << info->si_code << endl;
-Perr<< "si_errno:" << info->si_errno << endl;
-//Perr<< "si_trapno:" << info->si_trapno << endl;
-Perr<< "invalid flag:" << (excepts & FE_INVALID) << endl;
-Perr<< "divByZero flag:" << (excepts & FE_DIVBYZERO) << endl;
-
-
-    Perr<< "Trapped SIGFPE from ";
-    switch (info->si_code)
-    {
-        case FPE_INTDIV:
-             Perr<< "integer divide by zero";
-        break;
-        case FPE_INTOVF:
-            Perr<< "integer overflow";
-        break;
-        case FPE_FLTDIV:
-            Perr<< "floating-point divide by zero";
-        break;
-        case FPE_FLTOVF:
-            Perr<< "floating-point overflow";
-        break;
-        case FPE_FLTUND:
-            Perr<< "floating-point underflow";
-        break;
-        case FPE_FLTRES:
-            Perr<< "floating-point inexact result";
-        break;
-        case FPE_FLTINV:
-            Perr<< "floating-point invalid operation";
-        break;
-        case FPE_FLTSUB:
-            Perr<< "subscript out of range";
-        break;
-        default:
-            Perr<< "unknown fault";
-    }
-    Perr<< endl;
-
-
     // Reset old handling
     if (sigaction(SIGFPE, &oldAction_, NULL) < 0)
     {
