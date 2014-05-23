@@ -43,11 +43,6 @@ wmake $makeType lagrangian/basic
 wmake $makeType lagrangian/distributionModels
 wmake $makeType genericPatchFields
 
-# Build the proper scotchDecomp, metisDecomp etc.
-parallel/Allwmake $*
-
-renumber/Allwmake $*
-
 wmake $makeType conversion
 
 wmake $makeType sampling
@@ -57,6 +52,9 @@ wmake $makeType mesh/extrudeModel
 wmake $makeType dynamicMesh
 wmake $makeType dynamicFvMesh
 wmake $makeType topoChangerFvMesh
+
+# Build the proper scotchDecomp, metisDecomp etc.
+parallel/Allwmake $*
 
 wmake $makeType ODE
 wmake $makeType randomProcesses
@@ -69,6 +67,8 @@ wmake $makeType combustionModels
 regionModels/Allwmake $*
 lagrangian/Allwmake $*
 mesh/Allwmake $*
+
+renumber/Allwmake $*
 
 fvAgglomerationMethods/Allwmake $*
 
