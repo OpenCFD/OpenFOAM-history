@@ -64,15 +64,18 @@ Description
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
 #include "turbulenceModel.H"
+#include "pimpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
-
     #include "createTime.H"
     #include "createMesh.H"
+
+    pimpleControl piso(mesh, "PISO");
+
     #include "createFields.H"
     #include "initContinuityErrs.H"
 
@@ -84,7 +87,6 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "readPISOControls.H"
         #include "CourantNo.H"
 
         // Pressure-velocity PISO corrector
@@ -100,14 +102,14 @@ int main(int argc, char *argv[])
 
             UEqn.relax();
 
-            if (momentumPredictor)
+            if (piso.momentumPredictor())
             {
                 solve(UEqn == -fvc::grad(p));
             }
 
             // --- PISO loop
 
-            for (int corr=0; corr<nCorr; corr++)
+            while (piso.correct())
             {
                 volScalarField rAU(1.0/UEqn.A());
 
@@ -123,7 +125,7 @@ int main(int argc, char *argv[])
                 adjustPhi(phiHbyA, U, p);
 
                 // Non-orthogonal pressure corrector loop
-                for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+                while (piso.correctNonOrthogonal())
                 {
                     // Pressure corrector
 
@@ -134,20 +136,9 @@ int main(int argc, char *argv[])
 
                     pEqn.setReference(pRefCell, pRefValue);
 
-                    if
-                    (
-                        corr == nCorr-1
-                     && nonOrth == nNonOrthCorr
-                    )
-                    {
-                        pEqn.solve(mesh.solver("pFinal"));
-                    }
-                    else
-                    {
-                        pEqn.solve();
-                    }
+                    pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
 
-                    if (nonOrth == nNonOrthCorr)
+                    if (piso.finalNonOrthogonalIter())
                     {
                         phi = phiHbyA - pEqn.flux();
                     }

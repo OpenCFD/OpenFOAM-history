@@ -1,0 +1,51 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+application=`getApplication`
+
+# create mesh
+runApplication blockMesh
+
+# copy 0.org to 0
+cp -r 0.org 0
+
+# create sets
+runApplication topoSet
+
+# create baffles and fields
+runApplication createBaffles -overwrite
+
+#runApplication $application
+#
+#- redistributePar to do decomposition
+runParallel redistributePar 3 -decompose -cellDist
+
+
+# Move to separate directories (could be on separate disks/machines)
+mkdir -p diskB/filter_distributed
+mv processor1 diskB/filter_distributed
+# Reactions are straight files
+mkdir -p diskB/filter_distributed/constant
+cp constant/reactions diskB/filter_distributed/constant
+cp constant/thermo.incompressiblePoly diskB/filter_distributed/constant
+
+mkdir -p diskC/filter_distributed
+mv processor2 diskC/filter_distributed
+# Reactions are straight files
+mkdir -p diskC/filter_distributed/constant
+cp constant/reactions diskC/filter_distributed/constant
+cp constant/thermo.incompressiblePoly diskC/filter_distributed/constant
+
+
+runParallel checkMesh 3 -roots '("diskB" "diskC")'
+
+runParallel $application 3 -roots '("diskB" "diskC")'
+
+#- Reconstruct all times
+runParallel -l log.redistributePar-1 redistributePar 3 -reconstruct -roots '("diskB" "diskC")'
+
+
+# ----------------------------------------------------------------- end-of-file

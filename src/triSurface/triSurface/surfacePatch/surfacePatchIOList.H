@@ -114,11 +114,11 @@ public:
 };
 
 
-//- Template specialisation for obtaining filePath
+//- Template function for obtaining global status
 template<>
-inline fileName typeFilePath<surfacePatchIOList>(const IOobject& io)
+inline bool typeGlobal<surfacePatchIOList>()
 {
-    return io.globalFilePath();
+    return true;
 }
 
 

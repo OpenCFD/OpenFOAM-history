@@ -1,40 +1,12 @@
 {
-    #include "continuityErrs.H"
-
-    volScalarField pcorr
+    incompressibleCorrectPhi
     (
-        IOobject
-        (
-            "pcorr",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh,
-        dimensionedScalar("pcorr", p_rgh.dimensions(), 0.0),
-        pcorrTypes
+        phi,
+        U,
+        p_rgh,
+        dimensionedScalar("rAUf", dimTime/rho.dimensions(), 1.0),
+        geometricZeroField(),
+        pimple
     );
-
-    dimensionedScalar rAUf("rAUf", dimTime/rho.dimensions(), 1.0);
-
-    adjustPhi(phi, U, pcorr);
-
-    while (pimple.correctNonOrthogonal())
-    {
-        fvScalarMatrix pcorrEqn
-        (
-            fvm::laplacian(rAUf, pcorr) == fvc::div(phi)
-        );
-
-        pcorrEqn.setReference(pRefCell, pRefValue);
-        pcorrEqn.solve();
-
-        if (pimple.finalNonOrthogonalIter())
-        {
-            phi -= pcorrEqn.flux();
-        }
-    }
-
     #include "continuityErrs.H"
 }

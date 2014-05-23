@@ -60,16 +60,14 @@
     (
         "rhoMax",
         dimDensity,
-        mesh.solutionDict().subDict("PIMPLE")
-       .lookupOrDefault<scalar>("rhoMax", GREAT)
+        pimple.dict().lookupOrDefault<scalar>("rhoMax", GREAT)
     );
 
     dimensionedScalar rhoMin
     (
         "rhoMin",
         dimDensity,
-        mesh.solutionDict().subDict("PIMPLE")
-       .lookupOrDefault<scalar>("rhoMin", -GREAT)
+        pimple.dict().lookupOrDefault<scalar>("rhoMin", -GREAT)
     );
 
     Info<< "Creating turbulence model\n" << endl;

@@ -30,6 +30,7 @@ License
 #include "perfectGas.H"
 #include "PengRobinsonGas.H"
 #include "rhoConst.H"
+#include "Boussinesq.H"
 #include "hConstThermo.H"
 #include "eConstThermo.H"
 #include "janafThermo.H"
@@ -140,6 +141,56 @@ makeThermo
 );
 
 
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleEnthalpy,
+    janafThermo,
+    PengRobinsonGas,
+    specie
+);
+
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    constTransport,
+    sensibleEnthalpy,
+    hConstThermo,
+    Boussinesq,
+    specie
+);
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleEnthalpy,
+    hConstThermo,
+    Boussinesq,
+    specie
+);
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleEnthalpy,
+    janafThermo,
+    Boussinesq,
+    specie
+);
+
+
 /* * * * * * * * * * * * * * Internal-energy-based * * * * * * * * * * * * * */
 
 makeThermo
@@ -202,6 +253,53 @@ makeThermo
     specie
 );
 
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleInternalEnergy,
+    janafThermo,
+    PengRobinsonGas,
+    specie
+);
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    constTransport,
+    sensibleInternalEnergy,
+    hConstThermo,
+    Boussinesq,
+    specie
+);
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleInternalEnergy,
+    hConstThermo,
+    Boussinesq,
+    specie
+);
+
+makeThermo
+(
+    psiThermo,
+    hePsiThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleInternalEnergy,
+    janafThermo,
+    Boussinesq,
+    specie
+);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

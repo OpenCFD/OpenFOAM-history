@@ -47,39 +47,36 @@ namespace Foam
     typedef GlobalIOField<symmTensor> symmTensorGlobalIOField;
     typedef GlobalIOField<tensor> tensorGlobalIOField;
 
-    //- Template specialisation for obtaining filePath
+    //- Template function for obtaining global status
     template<>
-    inline fileName typeFilePath<labelGlobalIOField>(const IOobject& io)
+    inline bool typeGlobal<labelGlobalIOField>()
     {
-        return io.globalFilePath();
+        return true;
     }
     template<>
-    inline fileName typeFilePath<scalarGlobalIOField>(const IOobject& io)
+    inline bool typeGlobal<scalarGlobalIOField>()
     {
-        return io.globalFilePath();
+        return true;
     }
     template<>
-    inline fileName typeFilePath<vectorGlobalIOField>(const IOobject& io)
+    inline bool typeGlobal<vectorGlobalIOField>()
     {
-        return io.globalFilePath();
+        return true;
     }
     template<>
-    inline fileName typeFilePath<sphericalTensorGlobalIOField>
-    (
-        const IOobject& io
-    )
+    inline bool typeGlobal<sphericalTensorGlobalIOField>()
     {
-        return io.globalFilePath();
+        return true;
     }
     template<>
-    inline fileName typeFilePath<symmTensorGlobalIOField>(const IOobject& io)
+    inline bool typeGlobal<symmTensorGlobalIOField>()
     {
-        return io.globalFilePath();
+        return true;
     }
     template<>
-    inline fileName typeFilePath<tensorGlobalIOField>(const IOobject& io)
+    inline bool typeGlobal<tensorGlobalIOField>()
     {
-        return io.globalFilePath();
+        return true;
     }
 
 }

@@ -188,6 +188,9 @@ $(IOdictionary)/localIOdictionary.C
 
 db/IOobjects/IOMap/IOMapName.C
 
+db/IOobjects/GlobalIOList/globalIOLists.C
+
+
 IOobject = db/IOobject
 $(IOobject)/IOobject.C
 $(IOobject)/IOobjectIO.C
@@ -623,6 +626,8 @@ $(derivedPointPatchFields)/timeVaryingUniformFixedValue/timeVaryingUniformFixedV
 $(derivedPointPatchFields)/codedFixedValue/codedFixedValuePointPatchFields.C
 
 fields/GeometricFields/pointFields/pointFields.C
+
+fields/ReadFields/ReadFields.C
 
 meshes/bandCompression/bandCompression.C
 meshes/preservePatchTypes/preservePatchTypes.C
