@@ -41,7 +41,12 @@ Foam::hexRef8Data::hexRef8Data(const IOobject& io)
     {
         IOobject rio(io);
         rio.rename("cellLevel");
-        if (rio.typeHeaderOk<labelIOList>(true))
+        bool haveFile = returnReduce
+        (
+            rio.typeHeaderOk<labelIOList>(true),
+            orOp<bool>()
+        );
+        if (haveFile)
         {
             Info<< "Reading hexRef8 data : " << rio.name() << endl;
             cellLevelPtr_.reset(new labelIOList(rio));
@@ -50,7 +55,12 @@ Foam::hexRef8Data::hexRef8Data(const IOobject& io)
     {
         IOobject rio(io);
         rio.rename("pointLevel");
-        if (rio.typeHeaderOk<labelIOList>(true))
+        bool haveFile = returnReduce
+        (
+            rio.typeHeaderOk<labelIOList>(true),
+            orOp<bool>()
+        );
+        if (haveFile)
         {
             Info<< "Reading hexRef8 data : " << rio.name() << endl;
             pointLevelPtr_.reset(new labelIOList(rio));
@@ -59,7 +69,12 @@ Foam::hexRef8Data::hexRef8Data(const IOobject& io)
     {
         IOobject rio(io);
         rio.rename("level0Edge");
-        if (rio.typeHeaderOk<uniformDimensionedScalarField>(true))
+        bool haveFile = returnReduce
+        (
+            rio.typeHeaderOk<uniformDimensionedScalarField>(true),
+            orOp<bool>()
+        );
+        if (haveFile)
         {
             Info<< "Reading hexRef8 data : " << rio.name() << endl;
             level0EdgePtr_.reset(new uniformDimensionedScalarField(rio));
@@ -68,7 +83,12 @@ Foam::hexRef8Data::hexRef8Data(const IOobject& io)
     {
         IOobject rio(io);
         rio.rename("refinementHistory");
-        if (rio.typeHeaderOk<refinementHistory>(true))
+        bool haveFile = returnReduce
+        (
+            rio.typeHeaderOk<refinementHistory>(true),
+            orOp<bool>()
+        );
+        if (haveFile)
         {
             Info<< "Reading hexRef8 data : " << rio.name() << endl;
             refHistoryPtr_.reset(new refinementHistory(rio));
@@ -240,6 +260,7 @@ void Foam::hexRef8Data::sync(const IOobject& io)
     {
         IOobject rio(io);
         rio.rename("cellLevel");
+        rio.readOpt() = IOobject::NO_READ;
         cellLevelPtr_.reset(new labelIOList(rio, labelList(mesh.nCells(), 0)));
     }
 
@@ -248,6 +269,7 @@ void Foam::hexRef8Data::sync(const IOobject& io)
     {
         IOobject rio(io);
         rio.rename("pointLevel");
+        rio.readOpt() = IOobject::NO_READ;
         pointLevelPtr_.reset
         (
             new labelIOList(rio, labelList(mesh.nPoints(), 0))
@@ -264,6 +286,7 @@ void Foam::hexRef8Data::sync(const IOobject& io)
         {
             IOobject rio(io);
             rio.rename("level0Edge");
+            rio.readOpt() = IOobject::NO_READ;
             level0EdgePtr_.reset
             (
                 new uniformDimensionedScalarField
@@ -280,7 +303,8 @@ void Foam::hexRef8Data::sync(const IOobject& io)
     {
         IOobject rio(io);
         rio.rename("refinementHistory");
-        refHistoryPtr_.reset(new refinementHistory(rio, mesh.nCells()));
+        rio.readOpt() = IOobject::NO_READ;
+        refHistoryPtr_.reset(new refinementHistory(rio, mesh.nCells(), true));
     }
 }
 

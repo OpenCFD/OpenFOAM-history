@@ -179,6 +179,9 @@ private:
 
     // Private data
 
+        //- Is active?
+        bool active_;
+
         //- Storage for splitCells
         DynamicList<splitCell8> splitCells_;
 
@@ -246,7 +249,8 @@ public:
 
     // Constructors
 
-        //- Construct (read) given an IOobject
+        //- Construct (read) given an IOobject. If global number of visible
+        //  cells > 0 becomes active
         refinementHistory(const IOobject&);
 
         //- Construct (read) or construct from components
@@ -254,17 +258,29 @@ public:
         (
             const IOobject&,
             const List<splitCell8>& splitCells,
-            const labelList& visibleCells
+            const labelList& visibleCells,
+            const bool active
         );
 
         //- Construct (read) or construct from initial number of cells
-        //  (all visible)
+        //  (all visible). If global number of visible
+        //  cells > 0 becomes active
         refinementHistory(const IOobject&, const label nCells);
+
+        //- Construct (read) or construct from initial number of cells
+        //  (all visible) and active flag
+        refinementHistory
+        (
+            const IOobject&,
+            const label nCells,
+            const bool active
+        );
 
         //- Construct as copy
         refinementHistory(const IOobject&, const refinementHistory&);
 
-        //- Construct from multiple refinement histories
+        //- Construct from multiple refinement histories. If global number of
+        //  visible cells > 0 becomes active
         refinementHistory
         (
             const IOobject&,
@@ -272,7 +288,8 @@ public:
             const UPtrList<const refinementHistory>&
         );
 
-        //- Construct from Istream
+        //- Construct from Istream. If global number of
+        //  visible cells > 0 becomes active
         refinementHistory(const IOobject&, Istream&);
 
 
@@ -298,12 +315,16 @@ public:
             return freeSplitCells_;
         }
 
-        //- Is there unrefinement history. Note that this will fall over if
-        //  there are 0 cells in the mesh. But this gives problems with
-        //  lots of other programs anyway.
+        //- Is there unrefinement history?
         bool active() const
         {
-            return visibleCells_.size() > 0;
+            return active_;
+        }
+
+        //- Is there unrefinement history?
+        bool& active()
+        {
+            return active_;
         }
 
         //- Get parent of cell
@@ -363,12 +384,10 @@ public:
             const labelList& cellMap
         );
 
-
         //- Update local numbering for mesh redistribution.
         //  Can only distribute clusters sent across in one go; cannot
         //  handle parts recombined in multiple passes.
         void distribute(const mapDistributePolyMesh&);
-
 
         //- Compact splitCells_. Removes all freeSplitCells_ elements.
         void compact();
@@ -381,7 +400,11 @@ public:
         void writeDebug() const;
 
 
-        //- ReadData function required for regIOobject read operation
+        //- Read object. If global number of visible cells > 0 becomes active
+        virtual bool read();
+
+        //- ReadData function required for regIOobject read operation. Note:
+        //  does not do a reduction - does not set active_ flag
         virtual bool readData(Istream&);
 
         //- WriteData function required for regIOobject write operation
@@ -409,13 +432,12 @@ public:
             ) const;
 
 
-    // Friend Functions
-
-    // Friend Operators
-
     // IOstream Operators
 
+        //- Istream operator. Note: does not do a reduction - does not set
+        //  active_ flag
         friend Istream& operator>>(Istream&, refinementHistory&);
+
         friend Ostream& operator<<(Ostream&, const refinementHistory&);
 };
 

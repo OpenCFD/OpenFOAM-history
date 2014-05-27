@@ -84,7 +84,8 @@ public:
 
     // Constructors
 
-        //- Construct read
+        //- Construct read. Has special provision for only some processors
+        //  having the files so can be used in redistribution.
         hexRef8Data(const IOobject& io);
 
         //- Construct as subset
@@ -113,7 +114,7 @@ public:
     // Member Functions
 
         //- Parallel synchronise. This enforces valid objects on all processors
-        //  (even if they don't have a mesh)
+        //  (even if they don't have a mesh). Used by redistributePar.
         void sync(const IOobject& io);
 
         //- In-place distribute

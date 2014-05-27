@@ -83,30 +83,25 @@ void Foam::refinementHistoryConstraint::add
     List<labelPair>& explicitConnections
 ) const
 {
-    tmp<refinementHistory> historyPtr;
+    autoPtr<const refinementHistory> storagePtr;
+    refinementHistory const* refPtr = NULL;
+
     if (mesh.foundObject<refinementHistory>("refinementHistory"))
     {
         if (decompositionConstraint::debug)
         {
             Info<< type() << " : found refinementHistory" << endl;
         }
-        historyPtr = tmp<refinementHistory>
-        (
-            const_cast<refinementHistory&>
-            (
-                mesh.lookupObject<refinementHistory>("refinementHistory")
-            )
-        );
+        refPtr = &mesh.lookupObject<refinementHistory>("refinementHistory");
     }
     else
     {
-        // Load refinementHistory
         if (decompositionConstraint::debug)
         {
             Info<< type() << " : reading refinementHistory from time "
                 << mesh.facesInstance() << endl;
         }
-        historyPtr = tmp<refinementHistory>
+        storagePtr.reset
         (
             new refinementHistory
             (
@@ -116,22 +111,32 @@ void Foam::refinementHistoryConstraint::add
                     mesh.facesInstance(),
                     polyMesh::meshSubDir,
                     mesh,
-                    IOobject::MUST_READ,
+                    IOobject::READ_IF_PRESENT,
                     IOobject::NO_WRITE
-                )
+                ),
+                mesh.nCells()
             )
         );
     }
-    const refinementHistory& history = historyPtr();
 
-    // refinementHistory itself implements decompositionConstraint
-    history.add
+    const refinementHistory& history =
     (
-        blockedFace,
-        specifiedProcessorFaces,
-        specifiedProcessor,
-        explicitConnections
+        storagePtr.valid()
+      ? storagePtr()
+      : *refPtr
     );
+
+    if (history.active())
+    {
+        // refinementHistory itself implements decompositionConstraint
+        history.add
+        (
+            blockedFace,
+            specifiedProcessorFaces,
+            specifiedProcessor,
+            explicitConnections
+        );
+    }
 }
 
 
@@ -145,30 +150,25 @@ void Foam::refinementHistoryConstraint::apply
     labelList& decomposition
 ) const
 {
-    tmp<refinementHistory> historyPtr;
+    autoPtr<const refinementHistory> storagePtr;
+    refinementHistory const* refPtr = NULL;
+
     if (mesh.foundObject<refinementHistory>("refinementHistory"))
     {
-        if (decompositionConstraint::debug)
-        {
-            Info<< type() << " : found refinementHistory" << endl;
-        }
-        historyPtr = tmp<refinementHistory>
-        (
-            const_cast<refinementHistory&>
-            (
-                mesh.lookupObject<refinementHistory>("refinementHistory")
-            )
-        );
+        //if (decompositionConstraint::debug)
+        //{
+        //    Info<< type() << " : found refinementHistory" << endl;
+        //}
+        refPtr = &mesh.lookupObject<refinementHistory>("refinementHistory");
     }
     else
     {
-        // Load refinementHistory
-        if (decompositionConstraint::debug)
-        {
-            Info<< type() << " : reading refinementHistory from time "
-                << mesh.facesInstance() << endl;
-        }
-        historyPtr = tmp<refinementHistory>
+        //if (decompositionConstraint::debug)
+        //{
+        //    Info<< type() << " : reading refinementHistory from time "
+        //        << mesh.facesInstance() << endl;
+        //}
+        storagePtr.reset
         (
             new refinementHistory
             (
@@ -178,23 +178,33 @@ void Foam::refinementHistoryConstraint::apply
                     mesh.facesInstance(),
                     polyMesh::meshSubDir,
                     mesh,
-                    IOobject::MUST_READ,
+                    IOobject::READ_IF_PRESENT,
                     IOobject::NO_WRITE
-                )
+                ),
+                mesh.nCells()
             )
         );
     }
-    const refinementHistory& history = historyPtr();
 
-    // refinementHistory itself implements decompositionConstraint
-    history.apply
+    const refinementHistory& history =
     (
-        blockedFace,
-        specifiedProcessorFaces,
-        specifiedProcessor,
-        explicitConnections,
-        decomposition
+        storagePtr.valid()
+      ? storagePtr()
+      : *refPtr
     );
+
+    if (history.active())
+    {
+        // refinementHistory itself implements decompositionConstraint
+        history.apply
+        (
+            blockedFace,
+            specifiedProcessorFaces,
+            specifiedProcessor,
+            explicitConnections,
+            decomposition
+        );
+    }
 }
 
 
