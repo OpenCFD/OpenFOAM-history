@@ -14,4 +14,4 @@ cleanCase
 
 \rm -f constant/polyMesh/boundary
 
-#\cp system/controlDict_run system/controlDict
+\cp system/controlDict_run system/controlDict
