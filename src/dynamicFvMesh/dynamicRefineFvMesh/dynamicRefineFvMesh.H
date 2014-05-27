@@ -137,8 +137,8 @@ protected:
             //- Get per cell max of connected point
             scalarField maxPointField(const scalarField&) const;
 
-            //- Get point min of connected cell
-            scalarField minCellField(const volScalarField&) const;
+            //- Get point max of connected cell
+            scalarField maxCellField(const volScalarField&) const;
 
             scalarField cellToPoint(const scalarField& vFld) const;
 
