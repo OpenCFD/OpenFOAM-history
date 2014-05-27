@@ -1189,7 +1189,8 @@ autoPtr<mapDistributePolyMesh> redistributeAndWrite
         {
             runTime.TimePaths::caseName() = proc0CaseName;
         }
-        // Make sure all processors have a valid autoPtr
+        // Make sure all processors have valid data (since only some will
+        // read)
         refData.sync(io);
 
 
