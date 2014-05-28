@@ -90,11 +90,11 @@ public:
 };
 
 
-//- Template specialisation for obtaining filePath
+//- Template function for obtaining global status
 template<>
-inline fileName typeFilePath<IOdictionary>(const IOobject& io)
+inline bool typeGlobal<IOdictionary>()
 {
-    return io.globalFilePath();
+    return true;
 }
 
 

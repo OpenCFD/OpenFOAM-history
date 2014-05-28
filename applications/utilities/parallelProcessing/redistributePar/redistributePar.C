@@ -52,13 +52,12 @@ Usage
 
 \*---------------------------------------------------------------------------*/
 
-#include "fvMeshTools.H"
-#include "fvMeshDistribute.H"
 #include "argList.H"
 #include "Time.H"
 #include "fvMesh.H"
+#include "fvMeshTools.H"
+#include "fvMeshDistribute.H"
 #include "decompositionMethod.H"
-#include "zeroGradientFvPatchFields.H"
 #include "timeSelector.H"
 #include "PstreamReduceOps.H"
 #include "volFields.H"
@@ -68,13 +67,12 @@ Usage
 #include "globalIndex.H"
 #include "loadOrCreateMesh.H"
 #include "processorFvPatchField.H"
-
-#include "distributedUnallocatedDirectFieldMapper.H"
+#include "zeroGradientFvPatchFields.H"
 
 #include "parFvFieldReconstructor.H"
 #include "parLagrangianRedistributor.H"
-
 #include "unmappedPassiveParticleCloud.H"
+#include "hexRef8Data.H"
 
 using namespace Foam;
 
@@ -287,8 +285,6 @@ void determineDecomposition
 )
 {
     // Read decomposeParDict (on all processors)
-    //bool oldParRun = Pstream::parRun();
-    //Pstream::parRun() = false;
     IOdictionary decompositionDict
     (
         IOobject
@@ -300,7 +296,6 @@ void determineDecomposition
             IOobject::NO_WRITE
         )
     );
-    //Pstream::parRun() = oldParRun;
 
 
     // Create decompositionMethod and new decomposition
@@ -325,6 +320,14 @@ void determineDecomposition
             << endl;
     }
 
+    if (Pstream::master() && decompose)
+    {
+        Info<< "Setting caseName to " << baseRunTime.caseName()
+            << " to read decomposeParDict" << endl;
+        const_cast<Time&>(mesh.time()).TimePaths::caseName() =
+            baseRunTime.caseName();
+    }
+
     scalarField cellWeights;
     if (decompositionDict.found("weightField"))
     {
@@ -347,6 +350,13 @@ void determineDecomposition
 
     nDestProcs = decomposer().nDomains();
     decomp = decomposer().decompose(mesh, cellWeights);
+
+    if (Pstream::master() && decompose)
+    {
+        Info<< "Restoring caseName to " << proc0CaseName << endl;
+        const_cast<Time&>(mesh.time()).TimePaths::caseName() =
+            proc0CaseName;
+    }
 
     // Dump decomposition to volScalarField
     if (writeCellDist)
@@ -1152,6 +1162,60 @@ autoPtr<mapDistributePolyMesh> redistributeAndWrite
     if (decompose || nDestProcs == 1)
     {
         writeProcAddressing(decompose, meshSubDir, mesh, map);
+    }
+
+
+    // Refinement data
+    {
+
+        // Read refinement data
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = baseRunTime.caseName();
+        }
+        IOobject io
+        (
+            "dummy",
+            mesh.facesInstance(),
+            polyMesh::meshSubDir,
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::NO_WRITE,
+            false
+        );
+
+        hexRef8Data refData(io);
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = proc0CaseName;
+        }
+        // Make sure all processors have valid data (since only some will
+        // read)
+        refData.sync(io);
+
+
+        // Distribute
+        refData.distribute(map);
+
+        if (nDestProcs == 1)
+        {
+            if (Pstream::master())
+            {
+                Info<< "Setting caseName to " << baseRunTime.caseName()
+                    << " to write reconstructed refinement data." << endl;
+                runTime.TimePaths::caseName() = baseRunTime.caseName();
+
+                refData.write();
+
+                // Now we've written all. Reset caseName on master
+                Info<< "Restoring caseName to " << proc0CaseName << endl;
+                runTime.TimePaths::caseName() = proc0CaseName;
+            }
+        }
+        else
+        {
+            refData.write();
+        }
     }
 
 
@@ -2092,6 +2156,18 @@ int main(int argc, char *argv[])
     bool writeCellDist = args.optionFound("cellDist");
 
 
+
+    if (env("FOAM_SIGFPE"))
+    {
+        WarningIn(args.executable())
+            << "Detected floating point exception trapping (FOAM_SIGFPE)."
+            << " This might give" << nl
+            << "    problems when mapping fields. Switch it off in case"
+            << " of problems." << endl;
+    }
+
+
+
     const HashSet<word> selectedFields(0);
     const HashSet<word> selectedLagrangianFields(0);
 
@@ -2139,6 +2215,20 @@ int main(int argc, char *argv[])
             << exit(FatalError);
     }
 
+    // Detect if running data-distributed (multiple roots)
+    bool nfs = true;
+    {
+        List<fileName> roots(1, args.rootPath());
+        combineReduce(roots, ListUniqueEqOp<fileName>());
+        nfs = (roots.size() == 1);
+    }
+
+    if (!nfs)
+    {
+        Info<< "Detected multiple roots i.e. non-nfs running"
+            << nl << endl;
+    }
+
     if (isDir(args.path()))
     {
         if (decompose)
@@ -2160,22 +2250,32 @@ int main(int argc, char *argv[])
 
 
 
+
+    // If running distributed we have problem of new processors not finding
+    // a system/controlDict. However if we switch on the master-only reading
+    // the problem becomes that the time directories are differing sizes and
+    // e.g. latestTime will pick up a different time (which causes createTime.H
+    // to abort). So for now make sure to have master times on all
+    // processors
+    {
+        Info<< "Creating time directories on all processors" << nl << endl;
+        instantList timeDirs;
+        if (Pstream::master())
+        {
+            timeDirs = Time::findTimes(args.path(), "constant");
+        }
+        Pstream::scatter(timeDirs);
+        forAll(timeDirs, i)
+        {
+            mkDir(args.path()/timeDirs[i].name());
+        }
+    }
+
+
     // Construct time
     // ~~~~~~~~~~~~~~
 
-    // Switch off master-only reading. The system/controlDict
-    // itself is ok but the uniform/time directory is not ok
-    regIOobject::fileModificationChecking = regIOobject::timeStamp;
-
-    // Switch off any reductions since if there are some processors without
-    // time directories they will read the undecomposed one and if you've
-    // selected latestTime you will have different times on different processors
-    // (Note: time set later on)
-    const bool oldParRun = Pstream::parRun();
-    Pstream::parRun() = false;
-
 #   include "createTime.H"
-    Pstream::parRun() = oldParRun;
     runTime.functionObjects().off();
 
 
@@ -2186,7 +2286,28 @@ int main(int argc, char *argv[])
     // Construct undecomposed Time
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // This will read the same controlDict but might have a different
-    // set of times so e.g. latestTime will work
+    // set of times so enforce same times
+
+    if (!nfs)
+    {
+        Info<< "Creating time directories for undecomposed Time"
+            << " on all processors" << nl << endl;
+        instantList timeDirs;
+
+        const fileName basePath(args.rootPath()/args.globalCaseName());
+
+        if (Pstream::master())
+        {
+            timeDirs = Time::findTimes(basePath, "constant");
+        }
+        Pstream::scatter(timeDirs);
+        forAll(timeDirs, i)
+        {
+            mkDir(basePath/timeDirs[i].name());
+        }
+    }
+
+
     Info<< "Create undecomposed database"<< nl << endl;
     Time baseRunTime
     (
@@ -2342,7 +2463,7 @@ int main(int argc, char *argv[])
                     haveMesh,
                     meshSubDir,
                     false,      // do not read fields
-                    false,      // decompose, i.e. read from undecomposed case
+                    false,      // do not read undecomposed case on processor0
                     overwrite,
                     proc0CaseName,
                     nDestProcs,

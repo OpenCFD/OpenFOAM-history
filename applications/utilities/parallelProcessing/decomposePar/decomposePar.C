@@ -1119,7 +1119,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    Info<< "\nEnd.\n" << endl;
+    Info<< "\nEnd\n" << endl;
 
     return 0;
 }

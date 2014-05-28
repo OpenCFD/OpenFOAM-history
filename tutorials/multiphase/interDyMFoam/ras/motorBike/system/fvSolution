@@ -51,7 +51,7 @@ solvers
         tolerance       0.001;
     }
 
-    U
+    "U.*"
     {
         solver          smoothSolver;
         smoother        GaussSeidel;
@@ -60,7 +60,7 @@ solvers
         nSweeps         1;
     }
 
-    "(k|B|nuTilda)"
+    "(k|omega|nuTilda).*"
     {
         solver          smoothSolver;
         smoother        symGaussSeidel;
@@ -71,12 +71,24 @@ solvers
 
 PIMPLE
 {
-    momentumPredictor no;
+    momentumPredictor yes;
     nCorrectors     3;
     nNonOrthogonalCorrectors 0;
 
     pRefPoint      (0.51 0.51 0.51);
     pRefValue      0;
+}
+
+
+relaxationFactors
+{
+    fields
+    {
+    }
+    equations
+    {
+        ".*" 1;
+    }
 }
 
 

@@ -36,8 +36,12 @@ void Foam::primitiveMesh::calcCellCentresAndVols() const
     if (debug)
     {
         Pout<< "primitiveMesh::calcCellCentresAndVols() : "
-            << "Calculating cell centres and cell volumes"
-            << endl;
+            << "Calculating cell centres and cell volumes";
+        if (debug&2)
+        {
+            Pout<< " (according to 2.2.2 rules)";
+        }
+        Pout<< endl;
     }
 
     // It is an error to attempt to recalculate cellCentres
@@ -113,6 +117,11 @@ void Foam::primitiveMesh::makeCellCentresAndVols
         scalar pyr3Vol =
             fAreas[facei] & (fCtrs[facei] - cEst[own[facei]]);
 
+        if (debug&2)
+        {
+            pyr3Vol = max(pyr3Vol, VSMALL);
+        }
+
         // Calculate face-pyramid centre
         vector pc = (3.0/4.0)*fCtrs[facei] + (1.0/4.0)*cEst[own[facei]];
 
@@ -128,6 +137,11 @@ void Foam::primitiveMesh::makeCellCentresAndVols
         // Calculate 3*face-pyramid volume
         scalar pyr3Vol =
             fAreas[facei] & (cEst[nei[facei]] - fCtrs[facei]);
+
+        if (debug&2)
+        {
+            pyr3Vol = max(pyr3Vol, VSMALL);
+        }
 
         // Calculate face-pyramid centre
         vector pc = (3.0/4.0)*fCtrs[facei] + (1.0/4.0)*cEst[nei[facei]];

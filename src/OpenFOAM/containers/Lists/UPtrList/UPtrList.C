@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -41,6 +41,30 @@ Foam::UPtrList<T>::UPtrList(const label s)
 :
     ptrs_(s, reinterpret_cast<T*>(0))
 {}
+
+
+template<class T>
+Foam::UPtrList<T>::UPtrList(UList<T>& lst)
+:
+    ptrs_(lst.size())
+{
+    forAll(lst, i)
+    {
+        ptrs_[i] = &lst[i];
+    }
+}
+
+
+template<class T>
+Foam::UPtrList<T>::UPtrList(PtrList<T>& lst)
+:
+    ptrs_(lst.size())
+{
+    forAll(lst, i)
+    {
+        ptrs_[i] = &lst[i];
+    }
+}
 
 
 template<class T>

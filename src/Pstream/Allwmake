@@ -36,10 +36,6 @@ case "$WM_MPLIB" in
     echo
     wmakeMpiLib mpi
     ;;
-
-#GAMMA)
-#    wmake $makeType gamma
-#    ;;
 esac
 
 

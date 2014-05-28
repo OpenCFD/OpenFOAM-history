@@ -17,7 +17,7 @@ runApplication blockMesh
 #cp -rf 0.org 0
 #runApplication setFields
 
-runApplication decomposePar -force -cellDist
+runApplication decomposePar -force
 runParallel snappyHexMesh 5 -overwrite
 ls -d processor* | xargs -i rm -f ./{}/constant/polyMesh/refinementHistory
 

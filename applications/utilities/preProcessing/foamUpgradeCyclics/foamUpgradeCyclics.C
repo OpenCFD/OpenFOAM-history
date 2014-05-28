@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
     {
         runTime.setTime(timeDirs[timeI], timeI);
 
-        Info<< "Time: " << runTime.timeName() << endl;
+        Info<< "Time = " << runTime.timeName() << endl;
 
         // See if mesh in time directory
         IOobject io
@@ -639,7 +639,11 @@ int main(int argc, char *argv[])
         );
 
         entry::disableFunctionEntries = oldFlag;
+
+        Info<< endl;
     }
+
+    Info<< "End\n" << endl;
 
     return 0;
 }

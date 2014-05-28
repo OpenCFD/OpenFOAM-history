@@ -88,15 +88,6 @@ public:
 };
 
 
-//- Template specialisation for obtaining filePath
-template<>
-inline fileName typeFilePath<localIOdictionary>(const IOobject& io)
-{
-    // Use default (local only) search strategy
-    return io.localFilePath();
-}
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam

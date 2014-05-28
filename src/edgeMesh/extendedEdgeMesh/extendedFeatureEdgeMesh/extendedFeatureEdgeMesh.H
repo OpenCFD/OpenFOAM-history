@@ -151,11 +151,11 @@ public:
 };
 
 
-//- Template specialisation for obtaining filePath
+//- Template function for obtaining global status
 template<>
-inline fileName typeFilePath<extendedFeatureEdgeMesh>(const IOobject& io)
+inline bool typeGlobal<extendedFeatureEdgeMesh>()
 {
-    return io.globalFilePath();
+    return true;
 }
 
 

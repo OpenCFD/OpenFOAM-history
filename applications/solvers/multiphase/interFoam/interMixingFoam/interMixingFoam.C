@@ -41,6 +41,7 @@ Description
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
+#include "incompressibleCorrectPhi.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -108,9 +109,9 @@ int main(int argc, char *argv[])
             << nl << endl;
     }
 
-    Info<< "\n end \n";
+    Info<< "End\n" << endl;
 
-    return(0);
+    return 0;
 }
 
 

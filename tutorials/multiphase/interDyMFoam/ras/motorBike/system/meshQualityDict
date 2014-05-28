@@ -17,8 +17,7 @@ FoamFile
 // Include defaults parameters from master dictionary
 #include "$WM_PROJECT_DIR/etc/caseDicts/meshQualityDict"
 
-//- minFaceWeight (0 -> 0.5)
-minFaceWeight 0.02;
-
+////- minFaceWeight (0 -> 0.5)
+//minFaceWeight 0.02;
 
 // ************************************************************************* //

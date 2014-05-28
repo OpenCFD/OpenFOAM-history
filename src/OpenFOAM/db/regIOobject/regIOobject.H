@@ -41,7 +41,6 @@ SourceFiles
 #include "IOobject.H"
 #include "typeInfo.H"
 #include "OSspecific.H"
-#include "NamedEnum.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -62,20 +61,6 @@ class regIOobject
 :
     public IOobject
 {
-
-public:
-
-    //- Types of communications
-    enum fileCheckTypes
-    {
-        timeStamp,
-        timeStampMaster,
-        inotify,
-        inotifyMaster
-    };
-
-    static const NamedEnum<fileCheckTypes, 4> fileCheckTypesNames;
-
 
 protected:
 
@@ -144,8 +129,6 @@ public:
         TypeName("regIOobject");
 
         static int fileModificationSkew;
-
-        static fileCheckTypes fileModificationChecking;
 
 
     // Constructors
