@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
         wallShearStress.write();
     }
 
-    Info<< "End" << endl;
+    Info<< "End\n" << endl;
 
     return 0;
 }

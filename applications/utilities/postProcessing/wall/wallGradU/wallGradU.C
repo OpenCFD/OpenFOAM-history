@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    Info<< "End" << endl;
+    Info<< "End\n" << endl;
 
     return 0;
 }
