@@ -667,11 +667,11 @@ Foam::dynamicRefineFvMesh::maxPointField(const scalarField& pFld) const
 }
 
 
-// Get min of connected cell
+// Get max of connected cell
 Foam::scalarField
-Foam::dynamicRefineFvMesh::minCellField(const volScalarField& vFld) const
+Foam::dynamicRefineFvMesh::maxCellField(const volScalarField& vFld) const
 {
-    scalarField pFld(nPoints(), GREAT);
+    scalarField pFld(nPoints(), -GREAT);
 
     forAll(pointCells(), pointI)
     {
@@ -679,7 +679,7 @@ Foam::dynamicRefineFvMesh::minCellField(const volScalarField& vFld) const
 
         forAll(pCells, i)
         {
-            pFld[pointI] = min(pFld[pointI], vFld[pCells[i]]);
+            pFld[pointI] = max(pFld[pointI], vFld[pCells[i]]);
         }
     }
     return pFld;
@@ -1176,7 +1176,7 @@ Foam::dynamicRefineFvMesh::dynamicRefineFvMesh(const IOobject& io)
         }
 
         Info<< "Detected " << returnReduce(nProtected, sumOp<label>())
-            << " cells that are projected from refinement."
+            << " cells that are protected from refinement."
             << " Writing these to cellSet "
             << protectedCells.name()
             << "." << endl;
@@ -1364,7 +1364,7 @@ bool Foam::dynamicRefineFvMesh::update()
                 (
                     unrefineLevel,
                     refineCell,
-                    minCellField(vFld)
+                    maxCellField(vFld)
                 )
             );
 

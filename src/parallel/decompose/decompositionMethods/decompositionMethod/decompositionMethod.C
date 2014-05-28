@@ -34,6 +34,11 @@ InClass
 #include "regionSplit.H"
 #include "localPointRegion.H"
 
+#include "preserveBafflesConstraint.H"
+#include "preservePatchesConstraint.H"
+#include "preserveFaceZonesConstraint.H"
+#include "singleProcessorFaceSetsConstraint.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -41,6 +46,130 @@ namespace Foam
     defineTypeNameAndDebug(decompositionMethod, 0);
     defineRunTimeSelectionTable(decompositionMethod, dictionary);
 }
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::decompositionMethod::decompositionMethod
+(
+    const dictionary& decompositionDict
+)
+:
+    decompositionDict_(decompositionDict),
+    nProcessors_
+    (
+        readLabel(decompositionDict.lookup("numberOfSubdomains"))
+    )
+{
+    // Read any constraints
+    wordList constraintTypes_;
+    if (decompositionDict_.found("constraints"))
+    {
+        //PtrList<dictionary> constraintsList
+        //(
+        //    decompositionDict_.lookup("constraints")
+        //);
+        //forAll(constraintsList, i)
+        //{
+        //    const dictionary& dict = constraintsList[i];
+        const dictionary& constraintsList = decompositionDict_.subDict
+        (
+            "constraints"
+        );
+        forAllConstIter(dictionary, constraintsList, iter)
+        {
+            const dictionary& dict = iter().dict();
+
+            constraintTypes_.append(dict.lookup("type"));
+
+            constraints_.append
+            (
+                decompositionConstraint::New
+                (
+                    dict,
+                    constraintTypes_.last()
+                )
+            );
+        }
+    }
+
+    // Backwards compatibility
+    if
+    (
+        decompositionDict_.found("preserveBaffles")
+     && findIndex
+        (
+            constraintTypes_,
+            decompositionConstraints::preserveBafflesConstraint::typeName
+        ) == -1
+    )
+    {
+        constraints_.append
+        (
+            new decompositionConstraints::preserveBafflesConstraint()
+        );
+    }
+
+    if
+    (
+        decompositionDict_.found("preservePatches")
+     && findIndex
+        (
+            constraintTypes_,
+            decompositionConstraints::preservePatchesConstraint::typeName
+        ) == -1
+    )
+    {
+        const wordReList pNames(decompositionDict_.lookup("preservePatches"));
+
+        constraints_.append
+        (
+            new decompositionConstraints::preservePatchesConstraint(pNames)
+        );
+    }
+
+    if
+    (
+        decompositionDict_.found("preserveFaceZones")
+     && findIndex
+        (
+            constraintTypes_,
+            decompositionConstraints::preserveFaceZonesConstraint::typeName
+        ) == -1
+    )
+    {
+        const wordReList zNames(decompositionDict_.lookup("preserveFaceZones"));
+
+        constraints_.append
+        (
+            new decompositionConstraints::preserveFaceZonesConstraint(zNames)
+        );
+    }
+
+    if
+    (
+        decompositionDict_.found("singleProcessorFaceSets")
+     && findIndex
+        (
+            constraintTypes_,
+            decompositionConstraints::preserveFaceZonesConstraint::typeName
+        ) == -1
+    )
+    {
+        const List<Tuple2<word, label> > zNameAndProcs
+        (
+            decompositionDict_.lookup("singleProcessorFaceSets")
+        );
+
+        constraints_.append
+        (
+            new decompositionConstraints::singleProcessorFaceSetsConstraint
+            (
+                zNameAndProcs
+            )
+        );
+    }
+}
+
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -1215,172 +1344,45 @@ void Foam::decompositionMethod::setConstraints
 {
     blockedFace.setSize(mesh.nFaces());
     blockedFace = true;
-    //label nUnblocked = 0;
 
     specifiedProcessorFaces.clear();
     explicitConnections.clear();
 
-
-    if (decompositionDict_.found("preservePatches"))
+    forAll(constraints_, constraintI)
     {
-        wordList pNames(decompositionDict_.lookup("preservePatches"));
-
-        Info<< nl
-            << "Keeping owner of faces in patches " << pNames
-            << " on same processor. This only makes sense for cyclics." << endl;
-
-        const polyBoundaryMesh& patches = mesh.boundaryMesh();
-
-        forAll(pNames, i)
-        {
-            const label patchI = patches.findPatchID(pNames[i]);
-
-            if (patchI == -1)
-            {
-                FatalErrorIn("decompositionMethod::decompose(const polyMesh&)")
-                    << "Unknown preservePatch " << pNames[i]
-                    << endl << "Valid patches are " << patches.names()
-                    << exit(FatalError);
-            }
-
-            const polyPatch& pp = patches[patchI];
-
-            forAll(pp, i)
-            {
-                if (blockedFace[pp.start() + i])
-                {
-                    blockedFace[pp.start() + i] = false;
-                    //nUnblocked++;
-                }
-            }
-        }
-    }
-    if (decompositionDict_.found("preserveFaceZones"))
-    {
-        wordList zNames(decompositionDict_.lookup("preserveFaceZones"));
-
-        Info<< nl
-            << "Keeping owner and neighbour of faces in zones " << zNames
-            << " on same processor" << endl;
-
-        const faceZoneMesh& fZones = mesh.faceZones();
-
-        forAll(zNames, i)
-        {
-            label zoneI = fZones.findZoneID(zNames[i]);
-
-            if (zoneI == -1)
-            {
-                FatalErrorIn("decompositionMethod::decompose(const polyMesh&)")
-                    << "Unknown preserveFaceZone " << zNames[i]
-                    << endl << "Valid faceZones are " << fZones.names()
-                    << exit(FatalError);
-            }
-
-            const faceZone& fz = fZones[zoneI];
-
-            forAll(fz, i)
-            {
-                if (blockedFace[fz[i]])
-                {
-                    blockedFace[fz[i]] = false;
-                    //nUnblocked++;
-                }
-            }
-        }
-    }
-
-    bool preserveBaffles = decompositionDict_.lookupOrDefault
-    (
-        "preserveBaffles",
-        false
-    );
-    if (preserveBaffles)
-    {
-        Info<< nl
-            << "Keeping owner of faces in baffles "
-            << " on same processor." << endl;
-
-        explicitConnections = localPointRegion::findDuplicateFacePairs(mesh);
-        forAll(explicitConnections, i)
-        {
-            blockedFace[explicitConnections[i].first()] = false;
-            blockedFace[explicitConnections[i].second()] = false;
-        }
-    }
-
-    if
-    (
-        decompositionDict_.found("preservePatches")
-     || decompositionDict_.found("preserveFaceZones")
-     || preserveBaffles
-    )
-    {
-        syncTools::syncFaceList(mesh, blockedFace, andEqOp<bool>());
-        //reduce(nUnblocked, sumOp<label>());
-    }
-
-
-
-    // Specified processor for group of cells connected to faces
-
-    label nProcSets = 0;
-    if (decompositionDict_.found("singleProcessorFaceSets"))
-    {
-        List<Tuple2<word, label> > zNameAndProcs
+        constraints_[constraintI].add
         (
-            decompositionDict_.lookup("singleProcessorFaceSets")
+            mesh,
+            blockedFace,
+            specifiedProcessorFaces,
+            specifiedProcessor,
+            explicitConnections
         );
-
-        specifiedProcessorFaces.setSize(zNameAndProcs.size());
-        specifiedProcessor.setSize(zNameAndProcs.size());
-
-        forAll(zNameAndProcs, setI)
-        {
-            Info<< "Keeping all cells connected to faceSet "
-                << zNameAndProcs[setI].first()
-                << " on processor " << zNameAndProcs[setI].second() << endl;
-
-            // Read faceSet
-            faceSet fz(mesh, zNameAndProcs[setI].first());
-
-            specifiedProcessorFaces.set(setI, new labelList(fz.sortedToc()));
-            specifiedProcessor[setI] = zNameAndProcs[setI].second();
-            nProcSets += fz.size();
-        }
-        reduce(nProcSets, sumOp<label>());
+    }
+}
 
 
-        // Unblock all point connected faces
-        // 1. Mark all points on specifiedProcessorFaces
-        boolList procFacePoint(mesh.nPoints(), false);
-        forAll(specifiedProcessorFaces, setI)
-        {
-            const labelList& set = specifiedProcessorFaces[setI];
-            forAll(set, fI)
-            {
-                const face& f = mesh.faces()[set[fI]];
-                forAll(f, fp)
-                {
-                    procFacePoint[f[fp]] = true;
-                }
-            }
-        }
-        syncTools::syncPointList(mesh, procFacePoint, orEqOp<bool>(), false);
-
-        // 2. Unblock all faces on procFacePoint
-        forAll(procFacePoint, pointI)
-        {
-            if (procFacePoint[pointI])
-            {
-                const labelList& pFaces = mesh.pointFaces()[pointI];
-                forAll(pFaces, i)
-                {
-                    blockedFace[pFaces[i]] = false;
-                }
-            }
-        }
-        syncTools::syncFaceList(mesh, blockedFace, andEqOp<bool>());
+void Foam::decompositionMethod::applyConstraints
+(
+    const polyMesh& mesh,
+    const boolList& blockedFace,
+    const PtrList<labelList>& specifiedProcessorFaces,
+    const labelList& specifiedProcessor,
+    const List<labelPair>& explicitConnections,
+    labelList& decomposition
+)
+{
+    forAll(constraints_, constraintI)
+    {
+        constraints_[constraintI].apply
+        (
+            mesh,
+            blockedFace,
+            specifiedProcessorFaces,
+            specifiedProcessor,
+            explicitConnections,
+            decomposition
+        );
     }
 }
 
@@ -1391,6 +1393,8 @@ Foam::labelList Foam::decompositionMethod::decompose
     const scalarField& cellWeights
 )
 {
+    // Collect all constraints
+
     boolList blockedFace;
     PtrList<labelList> specifiedProcessorFaces;
     labelList specifiedProcessor;
@@ -1416,6 +1420,19 @@ Foam::labelList Foam::decompositionMethod::decompose
         specifiedProcessorFaces,// any whole cluster of cells to be kept
         specifiedProcessor,
         explicitConnections     // baffles
+    );
+
+
+    // Give any constraint the option of modifying the decomposition
+
+    applyConstraints
+    (
+        mesh,
+        blockedFace,
+        specifiedProcessorFaces,
+        specifiedProcessor,
+        explicitConnections,
+        finalDecomp
     );
 
     return finalDecomp;

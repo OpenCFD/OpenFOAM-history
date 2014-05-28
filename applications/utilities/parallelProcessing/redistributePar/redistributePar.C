@@ -52,13 +52,12 @@ Usage
 
 \*---------------------------------------------------------------------------*/
 
-#include "fvMeshTools.H"
-#include "fvMeshDistribute.H"
 #include "argList.H"
 #include "Time.H"
 #include "fvMesh.H"
+#include "fvMeshTools.H"
+#include "fvMeshDistribute.H"
 #include "decompositionMethod.H"
-#include "zeroGradientFvPatchFields.H"
 #include "timeSelector.H"
 #include "PstreamReduceOps.H"
 #include "volFields.H"
@@ -68,13 +67,12 @@ Usage
 #include "globalIndex.H"
 #include "loadOrCreateMesh.H"
 #include "processorFvPatchField.H"
-
-#include "distributedUnallocatedDirectFieldMapper.H"
+#include "zeroGradientFvPatchFields.H"
 
 #include "parFvFieldReconstructor.H"
 #include "parLagrangianRedistributor.H"
-
 #include "unmappedPassiveParticleCloud.H"
+#include "hexRef8Data.H"
 
 using namespace Foam;
 
@@ -287,8 +285,6 @@ void determineDecomposition
 )
 {
     // Read decomposeParDict (on all processors)
-    //bool oldParRun = Pstream::parRun();
-    //Pstream::parRun() = false;
     IOdictionary decompositionDict
     (
         IOobject
@@ -300,7 +296,6 @@ void determineDecomposition
             IOobject::NO_WRITE
         )
     );
-    //Pstream::parRun() = oldParRun;
 
 
     // Create decompositionMethod and new decomposition
@@ -325,6 +320,14 @@ void determineDecomposition
             << endl;
     }
 
+    if (Pstream::master() && decompose)
+    {
+        Info<< "Setting caseName to " << baseRunTime.caseName()
+            << " to read decomposeParDict" << endl;
+        const_cast<Time&>(mesh.time()).TimePaths::caseName() =
+            baseRunTime.caseName();
+    }
+
     scalarField cellWeights;
     if (decompositionDict.found("weightField"))
     {
@@ -347,6 +350,13 @@ void determineDecomposition
 
     nDestProcs = decomposer().nDomains();
     decomp = decomposer().decompose(mesh, cellWeights);
+
+    if (Pstream::master() && decompose)
+    {
+        Info<< "Restoring caseName to " << proc0CaseName << endl;
+        const_cast<Time&>(mesh.time()).TimePaths::caseName() =
+            proc0CaseName;
+    }
 
     // Dump decomposition to volScalarField
     if (writeCellDist)
@@ -1152,6 +1162,60 @@ autoPtr<mapDistributePolyMesh> redistributeAndWrite
     if (decompose || nDestProcs == 1)
     {
         writeProcAddressing(decompose, meshSubDir, mesh, map);
+    }
+
+
+    // Refinement data
+    {
+
+        // Read refinement data
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = baseRunTime.caseName();
+        }
+        IOobject io
+        (
+            "dummy",
+            mesh.facesInstance(),
+            polyMesh::meshSubDir,
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::NO_WRITE,
+            false
+        );
+
+        hexRef8Data refData(io);
+        if (Pstream::master() && decompose)
+        {
+            runTime.TimePaths::caseName() = proc0CaseName;
+        }
+        // Make sure all processors have valid data (since only some will
+        // read)
+        refData.sync(io);
+
+
+        // Distribute
+        refData.distribute(map);
+
+        if (nDestProcs == 1)
+        {
+            if (Pstream::master())
+            {
+                Info<< "Setting caseName to " << baseRunTime.caseName()
+                    << " to write reconstructed refinement data." << endl;
+                runTime.TimePaths::caseName() = baseRunTime.caseName();
+
+                refData.write();
+
+                // Now we've written all. Reset caseName on master
+                Info<< "Restoring caseName to " << proc0CaseName << endl;
+                runTime.TimePaths::caseName() = proc0CaseName;
+            }
+        }
+        else
+        {
+            refData.write();
+        }
     }
 
 
@@ -2092,6 +2156,18 @@ int main(int argc, char *argv[])
     bool writeCellDist = args.optionFound("cellDist");
 
 
+
+    if (env("FOAM_SIGFPE"))
+    {
+        WarningIn(args.executable())
+            << "Detected floating point exception trapping (FOAM_SIGFPE)."
+            << " This might give" << nl
+            << "    problems when mapping fields. Switch it off in case"
+            << " of problems." << endl;
+    }
+
+
+
     const HashSet<word> selectedFields(0);
     const HashSet<word> selectedLagrangianFields(0);
 
@@ -2387,7 +2463,7 @@ int main(int argc, char *argv[])
                     haveMesh,
                     meshSubDir,
                     false,      // do not read fields
-                    false,      // decompose, i.e. read from undecomposed case
+                    false,      // do not read undecomposed case on processor0
                     overwrite,
                     proc0CaseName,
                     nDestProcs,

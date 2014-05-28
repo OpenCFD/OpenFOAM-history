@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
         #include "setDeltaT.H"
 
         runTime++;
-        Info<< "\n\nTime = " << runTime.timeName() << endl;
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "rhoEqn.H"
 
@@ -146,12 +146,12 @@ int main(int argc, char *argv[])
 
         runTime.write();
 
-        Info<< "\nExecutionTime = "
-             << runTime.elapsedCpuTime()
-             << " s\n" << endl;
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
     }
 
-    Info<< "\n end\n";
+    Info<< "End\n" << endl;
 
     return 0;
 }

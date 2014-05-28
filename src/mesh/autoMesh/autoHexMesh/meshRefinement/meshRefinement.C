@@ -29,7 +29,6 @@ License
 #include "surfaceMesh.H"
 #include "syncTools.H"
 #include "Time.H"
-#include "refinementHistory.H"
 #include "refinementSurfaces.H"
 #include "refinementFeatures.H"
 #include "decompositionMethod.H"

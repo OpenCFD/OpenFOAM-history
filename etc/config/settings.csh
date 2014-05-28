@@ -445,11 +445,6 @@ case HPMPI:
     endsw
     breaksw
 
-case GAMMA:
-    setenv FOAM_MPI gamma
-    setenv MPI_ARCH_PATH /usr
-    breaksw
-
 case MPI:
     setenv FOAM_MPI mpi
     setenv MPI_ARCH_PATH /opt/mpi
@@ -563,6 +558,7 @@ endif
 # cleanup environment:
 # ~~~~~~~~~~~~~~~~~~~~
 #- keep _foamAddPath _foamAddLib _foamAddMan
-unset foamCompiler minBufferSize
+unset minBufferSize
+unsetenv foamCompiler
 
 # ----------------------------------------------------------------- end-of-file

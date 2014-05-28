@@ -463,11 +463,6 @@ HPMPI)
     esac
     ;;
 
-GAMMA)
-    export FOAM_MPI=gamma
-    export MPI_ARCH_PATH=/usr
-    ;;
-
 MPI)
     export FOAM_MPI=mpi
     export MPI_ARCH_PATH=/opt/mpi

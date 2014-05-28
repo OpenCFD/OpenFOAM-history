@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,76 +21,83 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Namespace
-    Foam::PstreamGlobals
+Class
+    Foam::refinementHistoryConstraint
 
 Description
-    Global functions and variables for working with parallel streams,
-    but principally for gamma/mpi
 
 SourceFiles
-    PstreamGlobals.C
+    refinementHistoryConstraint.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef PstreamGlobals_H
-#define PstreamGlobals_H
+#ifndef refinementHistoryConstraint_H
+#define refinementHistoryConstraint_H
 
-#include "FixedList.H"
-#include "labelList.H"
-#include "DynamicList.H"
+#include "decompositionConstraint.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+
 /*---------------------------------------------------------------------------*\
-                           Class PstreamGlobals Declaration
+                Class refinementHistoryConstraint Declaration
 \*---------------------------------------------------------------------------*/
 
-namespace PstreamGlobals
+class refinementHistoryConstraint
+:
+    public decompositionConstraint
 {
+    // Private data
 
-//- Block wait for message on port procNo
-void gammaWait(const label procNo);
+public:
 
-//- Helper routine to copy out newly received data
-label copyReceive
-(
-    const label procNo,
-    char* buf,
-    const label bufSize
-);
+    //- Runtime type information
+    TypeName("refinementHistory");
 
 
-//- Receive buffers
-extern FixedList<List<List<char> >, 4> recvBuf;
+    // Constructors
 
-//- Length of receive buffers
-extern FixedList<labelList, 4> recvBufLen;
+        //- Construct with generic dictionary with optional entry for type
+        refinementHistoryConstraint
+        (
+            const dictionary& constraintsDict,
+            const word& type
+        );
 
-//- Currently active buffer in receiving
-extern labelList recvIndex;
-//- Receive buffer that has to be consumed
-extern labelList consumeIndex;
+        //- Construct from components
+        refinementHistoryConstraint();
 
 
-//- Special message to signal resizing
-const int resizeMessageLen = 6;
-extern uint64_t resizeMessage[];
-//- Initial buffer length. Should be able to contain the message comfortably.
-const int initialBufferLen = 2*resizeMessageLen*sizeof(uint64_t);
+    //- Destructor
+    virtual ~refinementHistoryConstraint()
+    {}
 
-//- Helper routine to check if a message is a resize message.
-//  Returns -1 if not or the new size.
-label getSizeFromHeader(const char* buf, const label len);
-//- Change the resize message to contain the new length
-void setResizeMessage(const label len);
 
-//- Get max size of all receive buffers to procNo
-label getMaxBufSize(const int procNo);
+    // Member Functions
 
+        //- Add my constraints to list of constraints
+        virtual void add
+        (
+            const polyMesh& mesh,
+            boolList& blockedFace,
+            PtrList<labelList>& specifiedProcessorFaces,
+            labelList& specifiedProcessor,
+            List<labelPair>& explicitConnections
+        ) const;
+
+        //- Apply any additional post-decomposition constraints
+        virtual void apply
+        (
+            const polyMesh& mesh,
+            const boolList& blockedFace,
+            const PtrList<labelList>& specifiedProcessorFaces,
+            const labelList& specifiedProcessor,
+            const List<labelPair>& explicitConnections,
+            labelList& decomposition
+        ) const;
 };
 
 
