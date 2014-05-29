@@ -1,0 +1,18 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# - meshing
+
+runApplication blockMesh
+
+# - generate face/cell sets and zones
+runApplication topoSet
+
+# - set the initial fields
+\rm -rf 0
+cp -rf 0.org 0
+
+runApplication subsetMesh c0 -patch obstacle -overwrite

@@ -1,0 +1,62 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+indicator
+{
+    // Load the library containing the 'coded' functionObject
+    functionObjectLibs ("libutilityFunctionObjects.so");
+    type coded;
+    // Name of on-the-fly generated functionObject
+    redirectType indicatorField;
+    codeTimeSet
+    #{
+        if (!mesh().foundObject<volScalarField>("magGradMach"))
+        {
+            // Lookup alpha
+            Info<< "Looking up field Mach\n" << endl;
+            const volScalarField& Mach =
+                mesh().lookupObject<volScalarField>("Mach");
+
+            Info<< "Creating and storing field magGradMach\n" << endl;
+            tmp<volScalarField> tmagGradMach(mag(fvc::grad(Mach)));
+            volScalarField& magGradMach = tmagGradMach();
+
+            magGradMach.rename("magGradMach");
+            magGradMach.writeOpt() = IOobject::AUTO_WRITE;
+            magGradMach.writeMinMax(Info);
+
+            tmagGradMach.ptr()->store();
+
+        }
+    #};
+    code
+    #{
+        Info<< "Looking up field magGradMach\n" << endl;
+        volScalarField& magGradMach = const_cast<volScalarField&>
+        (
+            mesh().lookupObject<volScalarField>("magGradMach")
+        );
+
+        Info<< "Looking up field Mach\n" << endl;
+        const volScalarField& Mach =
+            mesh().lookupObject<volScalarField>("Mach");
+
+        magGradMach = mag(fvc::grad(Mach));
+    #};
+}
+
+// ************************************************************************* //
