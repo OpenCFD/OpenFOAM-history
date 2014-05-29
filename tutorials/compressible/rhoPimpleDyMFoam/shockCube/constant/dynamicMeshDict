@@ -21,7 +21,7 @@ dynamicRefineFvMeshCoeffs
 {
     // How often to refine
     refineInterval  5;
-    // Field to be refinement on
+    // Field to base refinement on
     field           magGradRho;
 
     // Refine field inbetween lower..upper
