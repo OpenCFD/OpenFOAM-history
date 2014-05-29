@@ -413,7 +413,7 @@ actions
         name    c0;
         type    cellSet;
         action  new;
-        source labelToCell;
+        source  labelToCell;
         sourceInfo
         {
             value (12 13 56);

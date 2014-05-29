@@ -10,15 +10,12 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      meshQualityDict;
+    location    "constant";
+    object      turbulenceProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Include defaults parameters from master dictionary
-#include "$WM_PROJECT_DIR/etc/caseDicts/meshQualityDict"
-
-////- minFaceWeight (0 -> 0.5)
-//minFaceWeight 0.02;
+simulationType  laminar;
 
 
 // ************************************************************************* //

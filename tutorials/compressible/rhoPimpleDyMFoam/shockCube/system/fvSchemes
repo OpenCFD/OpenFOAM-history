@@ -10,15 +10,54 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      meshQualityDict;
+    location    "system";
+    object      fvSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Include defaults parameters from master dictionary
-#include "$WM_PROJECT_DIR/etc/caseDicts/meshQualityDict"
+ddtSchemes
+{
+    default         Euler;
+}
 
-////- minFaceWeight (0 -> 0.5)
-//minFaceWeight 0.02;
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+    div(phi,U)      Gauss vanLeerV;
+    div(phid,p)     Gauss vanLeer;
+    div(phi,K)      Gauss vanLeer;
+    div(phi,e)      Gauss vanLeer;
+
+    div(phiv,p)     Gauss linear;
+    div((muEff*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p               ;
+    pcorr           ;
+}
 
 
 // ************************************************************************* //

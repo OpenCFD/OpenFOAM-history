@@ -10,15 +10,31 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      meshQualityDict;
+    object      topoSetDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Include defaults parameters from master dictionary
-#include "$WM_PROJECT_DIR/etc/caseDicts/meshQualityDict"
+actions
+(
+    // Select cells to remove
+    {
+        name    c0;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        sourceInfo
+        {
+            box (0.6 0 0)(1.2 0.3 0.3);
+            //box (0.3 0 0)(1000 0.3 0.3);
+        }
+    }
 
-////- minFaceWeight (0 -> 0.5)
-//minFaceWeight 0.02;
-
+    // Determine inverse cellSet
+    {
+        name    c0;
+        type    cellSet;
+        action  invert;
+    }
+);
 
 // ************************************************************************* //
