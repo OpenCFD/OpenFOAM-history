@@ -31,7 +31,7 @@ License
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::nearWallDist::doAll()
+void Foam::nearWallDist::calculate()
 {
     cellDistFuncs wallUtils(mesh_);
 
@@ -101,7 +101,7 @@ Foam::nearWallDist::nearWallDist(const Foam::fvMesh& mesh)
     ),
     mesh_(mesh)
 {
-    doAll();
+    calculate();
 }
 
 
@@ -117,19 +117,26 @@ void Foam::nearWallDist::correct()
 {
     if (mesh_.topoChanging())
     {
-        // Update size of GeometricBoundaryField
-        volScalarField::GeometricBoundaryField::operator=
-        (
-            volScalarField::GeometricBoundaryField
+        const DimensionedField<scalar, volMesh>& V = mesh_.V();
+        const fvBoundaryMesh& bnd = mesh_.boundary();
+
+        this->setSize(bnd.size());
+        forAll(*this, patchI)
+        {
+            this->set
             (
-                mesh_.boundary(),
-                mesh_.V(),           // Dummy internal field,
-                calculatedFvPatchScalarField::typeName
-            )
-        );
+                patchI,
+                fvPatchField<scalar>::New
+                (
+                    calculatedFvPatchScalarField::typeName,
+                    bnd[patchI],
+                    V
+                )
+            );
+        }
     }
 
-    doAll();
+    calculate();
 }
 
 
