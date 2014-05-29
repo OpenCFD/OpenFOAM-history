@@ -31,9 +31,7 @@ boundaryField
     }
     outlet
     {
-        type            inletOutlet;
-        inletValue      $internalField;
-        value           $internalField;
+        type            zeroGradient;
     }
     groupWalls
     {
