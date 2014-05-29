@@ -83,7 +83,11 @@ int main(int argc, char *argv[])
             volVectorField rhoU("rhoU", rho*U);
 
             // Store divrhoU from the previous time-step/mesh for the correctPhi
-            volScalarField divrhoU(fvc::div(fvc::absolute(phi, rho, U)));
+            volScalarField divrhoU
+            (
+                "divrhoU",
+                fvc::div(fvc::absolute(phi, rho, U))
+            );
 
             // Do any mesh changes
             mesh.update();
