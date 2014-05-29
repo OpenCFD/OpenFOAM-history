@@ -1,11 +1,14 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
-makeType=${1:-libso}
+
+# Parse arguments for library compilation
+targetType=libso
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
 set -x
 
 decompose/Allwmake $*
 reconstruct/Allwmake $*
-wmake $makeType distributed
+wmake $targetType distributed
 
 
 # ----------------------------------------------------------------- end-of-file

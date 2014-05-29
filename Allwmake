@@ -1,6 +1,11 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
 
+# Parse arguments
+genDoc=0
+targetType=libso
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
+
 wmakeCheckPwd "$WM_PROJECT_DIR" || {
     echo "Error: Current directory is not \$WM_PROJECT_DIR"
     echo "    The environment variables are inconsistent with the installation."
@@ -15,9 +20,9 @@ wmakeCheckPwd "$WM_PROJECT_DIR" || {
 }
 
 # wmake is required for subsequent targets
-( cd wmake/src && make )
+(cd wmake/src && make)
 
-# build ThirdParty sources
+# Build ThirdParty sources
 if [ -d "$WM_THIRD_PARTY_DIR" ]
 then
     $WM_THIRD_PARTY_DIR/Allwmake
@@ -25,18 +30,13 @@ else
     echo "no ThirdParty sources found - skipping"
 fi
 
-buildDoc=""
-if [ "$1" = doc ]
-then
-    buildDoc="build"
-    shift
-fi
-
-# build OpenFOAM libraries and applications
+# Build OpenFOAM libraries and applications
 src/Allwmake $*
+
+# Build OpenFOAM libraries and applications
 applications/Allwmake $*
 
-[ "$buildDoc" ] && doc/Allwmake
-
+# Optionally build OpenFOAM Doxygen documentation
+[ $genDoc -eq 1 ] && doc/Allwmake
 
 # ----------------------------------------------------------------- end-of-file
