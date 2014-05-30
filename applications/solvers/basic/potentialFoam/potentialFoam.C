@@ -31,12 +31,11 @@ Description
     Potential flow solver.
 
     \heading Solver details
-    The potential flow solution is typically employed to generate initial
-    fields for full Navier-Stokes codes.  The flow is evolved using the
-    equation:
+    The potential flow solution is typically employed to generate initial fields
+    for full Navier-Stokes codes.  The flow is evolved using the equation:
 
     \f[
-        \laplacian \Phi = \div \vec{U}
+        \laplacian \Phi = \div(\vec{U})
     \f]
 
     Where:
@@ -45,10 +44,24 @@ Description
         U       | Velocity [m/s]
     \endvartable
 
+    The corresponding pressure field may be calculated from the divergence
+    of the Euler equation:
+
+    \f[
+        \laplacian p + \div(\div(\vec{U}\otimes\vec{U}))
+    \f]
+
+    and written if required.
+
     \heading Required fields
     \plaintable
-        Phi     | Velocity potential [m2/s]
         U       | Velocity [m/s]
+    \endplaintable
+
+    \heading Optional fields
+    \plaintable
+        Phi     | Velocity potential [m2/s]
+                | Generated from p (if present) or U if not present
     \endplaintable
 
 \*---------------------------------------------------------------------------*/
@@ -60,7 +73,25 @@ Description
 
 int main(int argc, char *argv[])
 {
-    argList::addBoolOption("writePhi", "write the final pressure field");
+    argList::addOption
+    (
+        "pName",
+        "pName",
+        "Name of the pressure field"
+    );
+
+    argList::addBoolOption
+    (
+        "writePhi",
+        "write the final velocity potential field"
+    );
+
+    argList::addBoolOption
+    (
+        "writep",
+        "calculate and write the Euler pressure field"
+    );
+
     argList::addBoolOption
     (
         "initialiseUBCs",
@@ -118,13 +149,33 @@ int main(int argc, char *argv[])
           /sum(mesh.magSf())).value()
         << endl;
 
-    // Force the write
+    // Write U and phi
     U.write();
     phi.write();
 
     if (args.optionFound("writePhi"))
     {
         Phi.write();
+    }
+
+    // Calculate the pressure field from the Euler equation
+    if (args.optionFound("writep"))
+    {
+        Info<< nl << "Calculating Euler pressure field" << endl;
+
+        for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+        {
+            fvScalarMatrix pEqn
+            (
+                fvm::laplacian(p)
+              + fvc::div(fvc::div(phi, U), "div(div(phi,U))")
+            );
+
+            pEqn.setReference(pRefCell, pRefValue);
+            pEqn.solve();
+        }
+
+        p.write();
     }
 
     runTime.functionObjects().end();
