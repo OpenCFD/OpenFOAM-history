@@ -177,6 +177,8 @@ void Foam::displacementMotionSolver::updateMesh(const mapPolyMesh& mpm)
         }
     }
 
+    twoDCorrectPoints(newPoints0);
+
     points0_.transfer(newPoints0);
 }
 
