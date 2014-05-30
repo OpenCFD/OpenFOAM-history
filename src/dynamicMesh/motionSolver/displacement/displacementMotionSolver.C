@@ -63,7 +63,7 @@ Foam::displacementMotionSolver::displacementMotionSolver
             IOobject
             (
                 "points",
-                mesh.time().constant(),
+                time().findInstance(mesh.meshDir(), "points"),
                 polyMesh::meshSubDir,
                 mesh,
                 IOobject::MUST_READ,
@@ -81,24 +81,23 @@ Foam::displacementMotionSolver::displacementMotionSolver
             "displacementMotionSolver\n"
             "(\n"
             "    const polyMesh&,\n"
-            "    const IOdictionary&\n"
+            "    const IOdictionary&,\n"
+            "    const word&\n"
             ")"
         )   << "Number of points in mesh " << mesh.nPoints()
             << " differs from number of points " << points0_.size()
             << " read from file "
-            <<  typeFilePath<pointIOField>
+            <<
+                IOobject
                 (
-                    IOobject
-                    (
-                        "points",
-                        mesh.time().constant(),
-                        polyMesh::meshSubDir,
-                        mesh,
-                        IOobject::MUST_READ,
-                        IOobject::NO_WRITE,
-                        false
-                    )
-                )
+                    "points",
+                    mesh.time().constant(),
+                    polyMesh::meshSubDir,
+                    mesh,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE,
+                    false
+                ).filePath()
             << exit(FatalError);
     }
 }
@@ -120,7 +119,7 @@ void Foam::displacementMotionSolver::movePoints(const pointField&)
 
 void Foam::displacementMotionSolver::updateMesh(const mapPolyMesh& mpm)
 {
-    // pointMesh already updates pointFields.
+    // pointMesh already updates pointFields
 
     motionSolver::updateMesh(mpm);
 
@@ -138,7 +137,7 @@ void Foam::displacementMotionSolver::updateMesh(const mapPolyMesh& mpm)
 
     // Note: boundBox does reduce
     const vector span0 = boundBox(points0_).span();
-    const vector span  = boundBox(points).span();
+    const vector span = boundBox(points).span();
 
     vector scaleFactors(cmptDivide(span0, span));
 
@@ -158,11 +157,11 @@ void Foam::displacementMotionSolver::updateMesh(const mapPolyMesh& mpm)
             }
             else
             {
-                // New point. Assume motion is scaling.
+                // New point - assume motion is scaling
                 newPoints0[pointI] = points0_[oldPointI] + cmptMultiply
                 (
                     scaleFactors,
-                    points[pointI]-points[masterPointI]
+                    points[pointI] - points[masterPointI]
                 );
             }
         }
@@ -172,11 +171,12 @@ void Foam::displacementMotionSolver::updateMesh(const mapPolyMesh& mpm)
             (
                 "displacementMotionSolver::updateMesh"
                 "(const mapPolyMesh&)"
-            )   << "Cannot work out coordinates of introduced vertices."
-                << " New vertex " << pointI << " at coordinate "
+            )   << "Cannot determine co-ordinates of introduced vertices."
+                << " New vertex " << pointI << " at co-ordinate "
                 << points[pointI] << exit(FatalError);
         }
     }
+
     points0_.transfer(newPoints0);
 }
 
