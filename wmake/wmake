@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #-------------------------------------------------------------------------------
 # License
@@ -142,7 +142,7 @@ fi
 # Check arguments and change to the directory in which to run wmake
 #------------------------------------------------------------------------------
 
-unset dir makeType
+unset dir targetType
 MakeDir=Make
 
 if [ $# -ge 1 ]
@@ -151,7 +151,7 @@ then
     then
         dir=$1
     else
-        makeType=$1
+        targetType=$1
     fi
 
     # specified directory name:
@@ -174,7 +174,7 @@ fi
 # Recurse the application directories tree
 #------------------------------------------------------------------------------
 
-if [ "$makeType" = all ]
+if [ "$targetType" = all ]
 then
     if [ -e Allwmake ]
     then
@@ -185,7 +185,7 @@ then
         # FOAM_APPS=$(find . -maxdepth 1 \( -type d -a ! -name "." -a ! -name Optional -a ! -name Make \)  -printf "%f ")
         # avoid 'find' with '-printf' ... not entirely portable
         FOAM_APPS=$(for d in *; do [ -d "$d" -a "$d" != Optional -a "$d" != Make ] && echo "$d"; done | xargs)
-        $make -k -f $WM_DIR/MakefileApps FOAM_APPS="$FOAM_APPS"
+        $make ${WM_CONTINUE_ON_ERROR:+-k} -f $WM_DIR/MakefileApps FOAM_APPS="$FOAM_APPS"
         exit $?
     fi
 fi
@@ -229,7 +229,7 @@ then
     echo "    Searching up directories tree for Make directory"
 
     find_target .
-    makeType=
+    targetType=
 
     if [ "$dir" ]
     then
@@ -253,12 +253,12 @@ fi
 
 # transform "all" or no option to "libso" if that looks appropriate or remove it
 # so that the call to make builds the application
-if [ "$makeType" = all -o "$makeType" = "" ]
+if [ "$targetType" = all -o "$targetType" = "" ]
 then
-    unset makeType
+    unset targetType
     if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
     then
-        makeType=libso
+        targetType=libso
     fi
 fi
 
@@ -295,7 +295,7 @@ OBJECTS_DIR=$MakeDir/$WM_OPTIONS
 
 touch $OBJECTS_DIR/dontIncludeDeps
 
-case "$makeType" in
+case "$targetType" in
 lib | libo | libso | dep )
     $make -s -f $WM_DIR/Makefile MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/dontIncludeDeps lnInclude/uptodate
     ;;
@@ -311,9 +311,9 @@ rc=$?
 # Make the object files and link
 #------------------------------------------------------------------------------
 
-if [ "$makeType" != dep ]
+if [ "$targetType" != dep ]
 then
-    cmd="$make -f $WM_DIR/Makefile MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/includeDeps $makeType"
+    cmd="$make -f $WM_DIR/Makefile MAKE_DIR=$MakeDir INCLUDE_DEPS=$OBJECTS_DIR/includeDeps $targetType"
     # echo "cmd=$cmd"
     exec $cmd
 fi

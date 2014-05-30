@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #-------------------------------------------------------------------------------
 # License
@@ -81,7 +81,7 @@ done
 # check arguments and change to the directory in which to run wclean
 #------------------------------------------------------------------------------
 
-unset dir makeType
+unset dir targetType
 MakeDir=Make
 
 if [ $# -ge 1 ]
@@ -91,7 +91,7 @@ then
     then
         dir=$1
     else
-        makeType=$1
+        targetType=$1
     fi
 
     # specified directory name:
@@ -116,7 +116,7 @@ fi
 # Recurse the directories tree
 #------------------------------------------------------------------------------
 
-if [ "$makeType" = all ]
+if [ "$targetType" = all ]
 then
     if [ -e Allwclean ]       # consistent with Allwmake
     then
@@ -136,8 +136,8 @@ then
     fi
 fi
 
-# makeType is not needed beyond this point
-unset makeType
+# targetType is not needed beyond this point
+unset targetType
 
 
 #------------------------------------------------------------------------------

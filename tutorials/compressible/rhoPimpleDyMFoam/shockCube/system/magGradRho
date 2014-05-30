@@ -1,0 +1,62 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+indicator
+{
+    // Load the library containing the 'coded' functionObject
+    functionObjectLibs ("libutilityFunctionObjects.so");
+    type coded;
+    // Name of on-the-fly generated functionObject
+    redirectType indicatorField;
+    codeTimeSet
+    #{
+        if (!mesh().foundObject<volScalarField>("magGradRho"))
+        {
+            // Lookup alpha
+            Info<< "Looking up field rho\n" << endl;
+            const volScalarField& rho =
+                mesh().lookupObject<volScalarField>("rho");
+
+            Info<< "Creating and storing field magGradRho\n" << endl;
+            tmp<volScalarField> tmagGradRho(mag(fvc::grad(rho)));
+            volScalarField& magGradRho = tmagGradRho();
+
+            magGradRho.rename("magGradRho");
+            magGradRho.writeOpt() = IOobject::AUTO_WRITE;
+            magGradRho.writeMinMax(Info);
+
+            tmagGradRho.ptr()->store();
+
+        }
+    #};
+    code
+    #{
+        Info<< "Looking up field magGradRho\n" << endl;
+        volScalarField& magGradRho = const_cast<volScalarField&>
+        (
+            mesh().lookupObject<volScalarField>("magGradRho")
+        );
+
+        Info<< "Looking up field rho\n" << endl;
+        const volScalarField& rho =
+            mesh().lookupObject<volScalarField>("rho");
+
+        magGradRho = mag(fvc::grad(rho));
+    #};
+}
+
+// ************************************************************************* //

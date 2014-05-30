@@ -1,11 +1,14 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
-makeType=${1:-libso}
+
+# Parse arguments for library compilation
+targetType=libso
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
 set -x
 
 LES/Allwmake $*
 incompressible/Allwmake $*
 compressible/Allwmake $*
-wmake $makeType derivedFvPatchFields
+wmake $targetType derivedFvPatchFields
 
 # ----------------------------------------------------------------- end-of-file
