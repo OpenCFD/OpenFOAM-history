@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -99,7 +99,7 @@ Foam::scalar Foam::liquidMixtureProperties::Tc(const scalarField& x) const
         vTc += x1*properties_[i].Tc();
     }
 
-    return vTc/vc;
+    return vTc/(vc + ROOTVSMALL);
 }
 
 
@@ -187,7 +187,7 @@ Foam::scalar Foam::liquidMixtureProperties::Ppc(const scalarField& x) const
         Zc += x[i]*properties_[i].Zc();
     }
 
-    return specie::RR*Zc*Tpc(x)/Vc;
+    return specie::RR*Zc*Tpc(x)/(Vc + ROOTVSMALL);
 }
 
 
@@ -259,7 +259,7 @@ Foam::scalarField Foam::liquidMixtureProperties::X(const scalarField& Y) const
         X[i] = Y[i]/properties_[i].W();
     }
 
-    tmp<scalarField> tfld = X/Winv;
+    tmp<scalarField> tfld = X/(Winv + ROOTVSMALL);
     return tfld();
 }
 
@@ -283,7 +283,7 @@ Foam::scalar Foam::liquidMixtureProperties::rho
         }
     }
 
-    return W(x)/v;
+    return W(x)/(v + ROOTVSMALL);
 }
 
 
@@ -305,7 +305,7 @@ Foam::scalar Foam::liquidMixtureProperties::pv
         }
     }
 
-    return pv/W(x);
+    return pv/(W(x) + ROOTVSMALL);
 }
 
 
@@ -327,7 +327,7 @@ Foam::scalar Foam::liquidMixtureProperties::hl
         }
     }
 
-    return hl/W(x);
+    return hl/(W(x) + ROOTVSMALL);
 }
 
 
@@ -349,7 +349,7 @@ Foam::scalar Foam::liquidMixtureProperties::Cp
         }
     }
 
-    return Cp/W(x);
+    return Cp/(W(x) + ROOTVSMALL);
 }
 
 
@@ -477,7 +477,7 @@ Foam::scalar Foam::liquidMixtureProperties::D
         }
     }
 
-    return 1.0/Dinv;
+    return 1.0/(Dinv + ROOTVSMALL);
 }
 
 
