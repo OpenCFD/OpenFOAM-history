@@ -48,7 +48,7 @@ Description
     of the Euler equation:
 
     \f[
-        \laplacian p + \div(\div(\vec{U}\otimes\vec{U}))
+        \laplacian p + \div(\div(\vec{U}\otimes\vec{U})) = 0
     \f]
 
     but this generates excessive pressure variation in regions of large
@@ -57,7 +57,7 @@ Description
     stream-lines:
 
     \f[
-        \laplacian p + \div(\vec{F}\dot\div(\vec{U}\otimes\vec{U}))
+        \laplacian p + \div(\vec{F}\cdot\div(\vec{U}\otimes\vec{U})) = 0
     \f]
     where the flow direction tensor \f$\vec{F}\f$ is obtained from
     \f[
