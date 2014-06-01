@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -425,10 +425,13 @@ void Foam::Time::readDict()
     controlDict_.readIfPresent("graphFormat", graphFormat_);
     controlDict_.readIfPresent("runTimeModifiable", runTimeModifiable_);
 
-    if (!runTimeModifiable_ && controlDict_.watchIndex() != -1)
+    if (!runTimeModifiable_ && controlDict_.watchIndices().size())
     {
-        removeWatch(controlDict_.watchIndex());
-        controlDict_.watchIndex() = -1;
+        forAllReverse(controlDict_.watchIndices(), i)
+        {
+            removeWatch(controlDict_.watchIndices()[i]);
+        }
+        controlDict_.watchIndices().clear();
     }
 }
 
@@ -437,7 +440,20 @@ bool Foam::Time::read()
 {
     if (controlDict_.regIOobject::read())
     {
+        // Read contents
         readDict();
+
+        if (runTimeModifiable_)
+        {
+            // Monitor all files that controlDict depends on
+            forAll(controlDict_.files(), i)
+            {
+                const fileName& f = controlDict_.files()[i];
+                controlDict_.watchIndices().append(addTimeWatch(f));
+            }
+        }
+        controlDict_.files().clear();
+
         return true;
     }
     else

@@ -56,7 +56,7 @@ Foam::regIOobject::regIOobject(const IOobject& io, const bool isTime)
     IOobject(io),
     registered_(false),
     ownedByRegistry_(false),
-    watchIndex_(-1),
+    watchIndices_(),
     eventNo_                // Do not get event for top level Time database
     (
         isTime
@@ -79,7 +79,7 @@ Foam::regIOobject::regIOobject(const regIOobject& rio)
     IOobject(rio),
     registered_(false),
     ownedByRegistry_(false),
-    watchIndex_(rio.watchIndex_),
+    watchIndices_(rio.watchIndices_),
     eventNo_(db().getEvent()),
     isPtr_(NULL)
 {
@@ -94,7 +94,7 @@ Foam::regIOobject::regIOobject(const regIOobject& rio, bool registerCopy)
     IOobject(rio),
     registered_(false),
     ownedByRegistry_(false),
-    watchIndex_(-1),
+    watchIndices_(),
     eventNo_(db().getEvent()),
     isPtr_(NULL)
 {
@@ -178,15 +178,45 @@ bool Foam::regIOobject::checkOut()
     {
         registered_ = false;
 
-        if (watchIndex_ != -1)
+        forAllReverse(watchIndices_, i)
         {
-            time().removeWatch(watchIndex_);
-            watchIndex_ = -1;
+            time().removeWatch(watchIndices_[i]);
         }
+        watchIndices_.clear();
         return db().checkOut(*this);
     }
 
     return false;
+}
+
+
+Foam::label Foam::regIOobject::addWatch(const fileName& f)
+{
+    label index = -1;
+
+    if
+    (
+        registered_
+     && readOpt() == MUST_READ_IF_MODIFIED
+     && time().runTimeModifiable()
+    )
+    {
+        forAll(watchIndices_, i)
+        {
+            if (time().getFile(watchIndices_[i]) == f)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1)
+        {
+            index = watchIndices_.size();
+            watchIndices_.append(time().addTimeWatch(f));
+        }
+    }
+    return index;
 }
 
 
@@ -199,14 +229,6 @@ void Foam::regIOobject::addWatch()
      && time().runTimeModifiable()
     )
     {
-        if (watchIndex_ != -1)
-        {
-            FatalErrorIn("regIOobject::addWatch()")
-                << "Object " << objectPath() << " of type " << type()
-                << " already watched with index " << watchIndex_
-                << abort(FatalError);
-        }
-
         fileName f = filePath();
         if (!f.size())
         {
@@ -214,7 +236,19 @@ void Foam::regIOobject::addWatch()
             // Possibly if master-only reading mode.
             f = objectPath();
         }
-        watchIndex_ = time().addWatch(f);
+
+        forAll(watchIndices_, i)
+        {
+            if (time().getFile(watchIndices_[i]) == f)
+            {
+                FatalErrorIn("regIOobject::addWatch()")
+                    << "Object " << objectPath() << " of type " << type()
+                    << " already watched with index " << watchIndices_[i]
+                    << abort(FatalError);
+            }
+        }
+
+        addWatch(f);
     }
 }
 

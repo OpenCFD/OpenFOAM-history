@@ -371,7 +371,7 @@ Foam::Time::Time
             f = controlDict_.objectPath();
         }
 
-        controlDict_.watchIndex() = addWatch(f);
+        controlDict_.watchIndices().append(addTimeWatch(f));
     }
 }
 
@@ -455,18 +455,31 @@ Foam::Time::Time
             )
         );
 
-        // File might not exist yet.
-        fileName f(controlDict_.filePath());
+//        // File might not exist yet.
+//        fileName f(controlDict_.filePath());
+//
+//        if (!f.size())
+//        {
+//            // We don't have this file but would like to re-read it.
+//            // Possibly if in master-only reading mode. Use a non-existing
+//            // file to keep fileMonitor synced.
+//            f = controlDict_.objectPath();
+//        }
+//
+//Debug(f);
+//        controlDict_.watchIndices().append(addTimeWatch(f));
 
-        if (!f.size())
+        // Monitor all files that controlDict depends on
+        forAll(controlDict_.files(), i)
         {
-            // We don't have this file but would like to re-read it.
-            // Possibly if in master-only reading mode. Use a non-existing
-            // file to keep fileMonitor synced.
-            f = controlDict_.objectPath();
+            const fileName& f = controlDict_.files()[i];
+            controlDict_.watchIndices().append(addTimeWatch(f));
         }
-
-        controlDict_.watchIndex() = addWatch(f);
+    }
+    else
+    {
+        // Optionar: clear dependent files since not needed
+        controlDict_.files().clear();
     }
 }
 
@@ -555,18 +568,18 @@ Foam::Time::Time
             )
         );
 
-        // File might not exist yet.
-        fileName f(controlDict_.filePath());
-
-        if (!f.size())
+        // Monitor all files that controlDict depends on
+        forAll(controlDict_.files(), i)
         {
-            // We don't have this file but would like to re-read it.
-            // Possibly if in master-only reading mode. Use a non-existing
-            // file to keep fileMonitor synced.
-            f = controlDict_.objectPath();
+            const fileName& f = controlDict_.files()[i];
+            controlDict_.watchIndices().append(addTimeWatch(f));
         }
-
-        controlDict_.watchIndex() = addWatch(f);
+        controlDict_.files().clear();
+    }
+    else
+    {
+        // Optionar: clear dependent files since not needed
+        controlDict_.files().clear();
     }
 }
 
@@ -635,9 +648,9 @@ Foam::Time::Time
 
 Foam::Time::~Time()
 {
-    if (controlDict_.watchIndex() != -1)
+    forAllReverse(controlDict_.watchIndices(), i)
     {
-        removeWatch(controlDict_.watchIndex());
+        removeWatch(controlDict_.watchIndices()[i]);
     }
 
     // destroy function objects first
@@ -647,7 +660,7 @@ Foam::Time::~Time()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::label Foam::Time::addWatch(const fileName& fName) const
+Foam::label Foam::Time::addTimeWatch(const fileName& fName) const
 {
     return monitorPtr_().addWatch(fName);
 }

@@ -209,10 +209,12 @@ Foam::Istream& Foam::regIOobject::readStream()
     if (!isPtr_)
     {
         fileName objPath;
-        if (watchIndex_ != -1)
+        if (watchIndices_.size())
         {
             // File is being watched. Read exact file that is being watched.
-            objPath = time().getFile(watchIndex_);
+            objPath = time().getFile(watchIndices_.last());
+            Pout<< "objPath:" << objPath << endl;
+            //watchIndices_.setSize(1);
         }
         else
         {
@@ -263,9 +265,9 @@ Foam::Istream& Foam::regIOobject::readStream()
     }
 
     // Mark as uptodate if read successfully
-    if (watchIndex_ != -1)
+    forAll(watchIndices_, i)
     {
-        time().setUnmodified(watchIndex_);
+        time().setUnmodified(watchIndices_[i]);
     }
 
     return *isPtr_;
@@ -351,33 +353,52 @@ bool Foam::regIOobject::read()
 
 bool Foam::regIOobject::modified() const
 {
-    if (watchIndex_ != -1)
+    forAllReverse(watchIndices_, i)
     {
-        return time().getState(watchIndex_) != fileMonitor::UNMODIFIED;
+        if (time().getState(watchIndices_[i]) != fileMonitor::UNMODIFIED)
+        {
+            return true;
+        }
     }
-    else
-    {
-        return false;
-    }
+
+    return false;
 }
 
 
 bool Foam::regIOobject::readIfModified()
 {
-    if (watchIndex_ != -1)
+    // Get index of modified file so we can give nice message. Could instead
+    // just call above modified()
+    label modifiedIndex = -1;
+    forAllReverse(watchIndices_, i)
     {
-        if (modified())
+        if (time().getState(watchIndices_[i]) != fileMonitor::UNMODIFIED)
         {
-            const fileName& fName = time().getFile(watchIndex_);
-            Pout<< "regIOobject::readIfModified() : " << nl
+            modifiedIndex = watchIndices_[i];
+            break;
+        }
+    }
+
+    if (modifiedIndex != -1)
+    {
+        const fileName& fName = time().getFile(watchIndices_.last());
+
+        if (modifiedIndex == watchIndices_.last())
+        {
+            Info<< "regIOobject::readIfModified() : " << nl
                 << "    Re-reading object " << name()
                 << " from file " << fName << endl;
-            return read();
         }
         else
         {
-            return false;
+            Info<< "regIOobject::readIfModified() : " << nl
+                << "    Re-reading object " << name()
+                << " from file " << fName
+                << " because of modified file " << time().getFile(modifiedIndex)
+                << endl;
         }
+
+        return read();
     }
     else
     {
