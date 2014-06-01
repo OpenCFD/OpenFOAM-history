@@ -44,14 +44,25 @@ Description
         U       | Velocity [m/s]
     \endvartable
 
-    The corresponding pressure field may be calculated from the divergence
+    The corresponding pressure field could be calculated from the divergence
     of the Euler equation:
 
     \f[
         \laplacian p + \div(\div(\vec{U}\otimes\vec{U}))
     \f]
 
-    and written if required.
+    but this generates excessive pressure variation in regions of large
+    velocity gradient normal to the flow direction.  A better option is to
+    calculate the pressure field corresponding to velocity variation along the
+    stream-lines:
+
+    \f[
+        \laplacian p + \div(\vec{F}\dot\div(\vec{U}\otimes\vec{U}))
+    \f]
+    where the flow direction tensor \f$\vec{F}\f$ is obtained from
+    \f[
+        \vec{F} = \hat{\vec{U}}\otimes\hat{\vec{U}}
+    \f]
 
     \heading Required fields
     \plaintable
@@ -163,13 +174,24 @@ int main(int argc, char *argv[])
     {
         Info<< nl << "Calculating Euler pressure field" << endl;
 
+        volScalarField magSqrU(magSqr(U));
+
+        volScalarField divDivUU
+        (
+            // Euler equation form
+            // fvc::div(fvc::div(phi, U), "div(div(phi,U))")
+
+            // Euler equation filtered by the flow-direction
+            fvc::div
+            (
+                (sqr(U)/(magSqrU + 1e-6*average(magSqrU))) & fvc::div(phi, U),
+                "div(div(phi,U))"
+            )
+        );
+
         for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
         {
-            fvScalarMatrix pEqn
-            (
-                fvm::laplacian(p)
-              + fvc::div(fvc::div(phi, U), "div(div(phi,U))")
-            );
+            fvScalarMatrix pEqn(fvm::laplacian(p) + divDivUU);
 
             pEqn.setReference(pRefCell, pRefValue);
             pEqn.solve();
