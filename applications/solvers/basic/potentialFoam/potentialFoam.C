@@ -66,8 +66,14 @@ Description
 
     \heading Required fields
     \plaintable
-        Phi       | Velocity potential [m2/s]
         U         | Velocity [m/s]
+    \endplaintable
+
+    \heading Optional fields
+    \plaintable
+        p         | Kinematic pressure [m2/s2]
+        Phi       | Velocity potential [m2/s]
+                  | Generated from p (if present) or U if not present
     \endplaintable
 
     \heading Options
@@ -75,12 +81,6 @@ Description
         -writep   | write the Euler pressure
         -writePhi | Write the final velocity potential
         -initialiseUBCs | Update the velocity boundaries before solving for Phi
-    \endplaintable
-
-    \heading Optional fields
-    \plaintable
-        Phi     | Velocity potential [m2/s]
-                | Generated from p (if present) or U if not present
     \endplaintable
 
 \*---------------------------------------------------------------------------*/
