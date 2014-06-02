@@ -40,8 +40,8 @@ Description
 
     Where:
     \vartable
-        \Phi    | Velocity potential [m2/s]
-        U       | Velocity [m/s]
+        \Phi      | Velocity potential [m2/s]
+        \vec{U}   | Velocity [m/s]
     \endvartable
 
     The corresponding pressure field could be calculated from the divergence
@@ -66,13 +66,21 @@ Description
 
     \heading Required fields
     \plaintable
-        U       | Velocity [m/s]
+        U         | Velocity [m/s]
     \endplaintable
 
     \heading Optional fields
     \plaintable
-        Phi     | Velocity potential [m2/s]
-                | Generated from p (if present) or U if not present
+        p         | Kinematic pressure [m2/s2]
+        Phi       | Velocity potential [m2/s]
+                  | Generated from p (if present) or U if not present
+    \endplaintable
+
+    \heading Options
+    \plaintable
+        -writep   | write the Euler pressure
+        -writePhi | Write the final velocity potential
+        -initialiseUBCs | Update the velocity boundaries before solving for Phi
     \endplaintable
 
 \*---------------------------------------------------------------------------*/
