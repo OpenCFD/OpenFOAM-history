@@ -10,40 +10,31 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      thermophysicalProperties;
+    object      topoSetDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-thermoType
-{
-    type            hePsiThermo;
-    mixture         pureMixture;
-    transport       const;
-    thermo          hConst;
-    equationOfState perfectGas;
-    specie          specie;
-    energy          sensibleInternalEnergy;
-}
+actions
+(
+    // Select cells to remove
+    {
+        name    c0;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        sourceInfo
+        {
+            box (0.6 0 0)(1.2 0.3 0.3);
+            //box (0.3 0 0)(1000 0.3 0.3);
+        }
+    }
 
-mixture
-{
-    specie
+    // Determine inverse cellSet
     {
-        nMoles      1;
-        molWeight   28.9;
+        name    c0;
+        type    cellSet;
+        action  invert;
     }
-    thermodynamics
-    {
-        Cp          1007;
-        Hf          2.544e+06;
-    }
-    transport
-    {
-        mu          1e-3;
-        Pr          0.7;
-    }
-}
-
+);
 
 // ************************************************************************* //

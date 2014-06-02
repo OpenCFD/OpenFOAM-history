@@ -9,39 +9,39 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      thermophysicalProperties;
+    class       volVectorField;
+    location    "0";
+    object      U;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-thermoType
-{
-    type            hePsiThermo;
-    mixture         pureMixture;
-    transport       const;
-    thermo          hConst;
-    equationOfState perfectGas;
-    specie          specie;
-    energy          sensibleInternalEnergy;
-}
+dimensions      [0 1 -1 0 0 0 0];
 
-mixture
+internalField   uniform (0 0 0);
+
+boundaryField
 {
-    specie
+    //- Set patchGroups for constraint patches
+    #include "${WM_PROJECT_DIR}/etc/caseDicts/setConstraintTypes"
+
+    inlet
     {
-        nMoles      1;
-        molWeight   28.9;
+        type            uniformFixedValue;
+        uniformValue    table
+2
+(
+(0 (800 0 0))
+(1 (800 0 0))
+)
+;
     }
-    thermodynamics
+    outlet
     {
-        Cp          1007;
-        Hf          2.544e+06;
+        type            zeroGradient;
     }
-    transport
+    groupWalls
     {
-        mu          1e-3;
-        Pr          0.7;
+        type            slip;
     }
 }
 

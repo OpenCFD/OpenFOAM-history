@@ -10,40 +10,55 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      thermophysicalProperties;
+    location    "system";
+    object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-thermoType
-{
-    type            hePsiThermo;
-    mixture         pureMixture;
-    transport       const;
-    thermo          hConst;
-    equationOfState perfectGas;
-    specie          specie;
-    energy          sensibleInternalEnergy;
-}
+application     sonicDyMFoam;
 
-mixture
-{
-    specie
-    {
-        nMoles      1;
-        molWeight   28.9;
-    }
-    thermodynamics
-    {
-        Cp          1007;
-        Hf          2.544e+06;
-    }
-    transport
-    {
-        mu          1e-3;
-        Pr          0.7;
-    }
-}
+startFrom       startTime;
 
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.02;
+
+deltaT          0.0001;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.0005;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           2;
+
+maxDeltaT       1;
+
+functions
+{
+    // Print stats
+    #include "minMax"
+    // Calculate and store Mach number
+    #include "Mach"
+    // Calculate and store mag(grad(rho)) for refinement
+    #include "magGradRho"
+}
 
 // ************************************************************************* //
