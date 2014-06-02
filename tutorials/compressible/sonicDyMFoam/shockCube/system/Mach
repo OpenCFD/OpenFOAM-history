@@ -1,0 +1,91 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+doMach
+{
+    // Load the library containing the 'coded' functionObject
+    functionObjectLibs ("libutilityFunctionObjects.so");
+    type coded;
+    // Name of on-the-fly generated functionObject
+    redirectType Mach;
+    codeInclude
+    #{
+        #include "fluidThermo.H"
+    #};
+    codeOptions
+    #{
+        -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+        -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude
+    #};
+    codeTimeSet
+    #{
+        if (!mesh().foundObject<volScalarField>("Mach"))
+        {
+            Info<< "Looking up field U\n" << endl;
+            const volVectorField& U =
+                mesh().lookupObject<volVectorField>("U");
+
+            const fluidThermo& thermo = mesh().lookupObject<fluidThermo>
+            (
+                "thermophysicalProperties"
+            );
+
+            volScalarField Cp(thermo.Cp());
+            volScalarField Cv(thermo.Cv());
+
+            Info<< "Creating and storing field Mach\n" << endl;
+
+            tmp<volScalarField> tMach
+            (
+                mag(U)/(sqrt((Cp/Cv)*(Cp - Cv)*thermo.T()))
+            );
+            volScalarField& Mach = tMach();
+
+            Mach.rename("Mach");
+            Mach.writeOpt() = IOobject::AUTO_WRITE;
+            Mach.writeMinMax(Info);
+
+            tMach.ptr()->store();
+        }
+    #};
+    code
+    #{
+        Info<< "Looking up field Mach\n" << endl;
+        volScalarField& Mach = const_cast<volScalarField&>
+        (
+            mesh().lookupObject<volScalarField>("Mach")
+        );
+
+        Info<< "Looking up field U\n" << endl;
+        const volVectorField& U =
+            mesh().lookupObject<volVectorField>("U");
+
+        const fluidThermo& thermo = mesh().lookupObject<fluidThermo>
+        (
+            "thermophysicalProperties"
+        );
+
+        volScalarField Cp(thermo.Cp());
+        volScalarField Cv(thermo.Cv());
+
+        Mach = mag(U)/(sqrt((Cp/Cv)*(Cp - Cv)*thermo.T()));
+
+        Mach.writeMinMax(Info);
+    #};
+}
+
+// ************************************************************************* //

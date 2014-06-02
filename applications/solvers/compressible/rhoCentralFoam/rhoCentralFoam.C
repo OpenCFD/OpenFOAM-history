@@ -56,6 +56,9 @@ int main(int argc, char *argv[])
 
     dimensionedScalar v_zero("v_zero", dimVolume/dimTime, 0.0);
 
+    scalar CoNum = 0.0;
+    scalar meanCoNum = 0.0;
+
     Info<< "\nStarting time loop\n" << endl;
 
     while (runTime.run())

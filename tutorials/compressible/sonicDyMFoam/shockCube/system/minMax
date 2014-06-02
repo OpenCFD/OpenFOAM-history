@@ -10,40 +10,33 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      thermophysicalProperties;
+    location    "system";
+    object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-thermoType
+minMax
 {
-    type            hePsiThermo;
-    mixture         pureMixture;
-    transport       const;
-    thermo          hConst;
-    equationOfState perfectGas;
-    specie          specie;
-    energy          sensibleInternalEnergy;
-}
+    // Type of functionObject
+    type            fieldMinMax;
 
-mixture
-{
-    specie
-    {
-        nMoles      1;
-        molWeight   28.9;
-    }
-    thermodynamics
-    {
-        Cp          1007;
-        Hf          2.544e+06;
-    }
-    transport
-    {
-        mu          1e-3;
-        Pr          0.7;
-    }
-}
+    // Where to load it from (if not already in solver)
+    functionObjectLibs ("libfieldFunctionObjects.so");
 
+    // Log to output (default: false)
+    log             true;
+
+    // Write information to file (default: true)
+    write           false;
+
+    // Fields to be monitored - runTime modifiable
+    fields
+    (
+        U
+        p
+        T
+        rho
+    );
+}
 
 // ************************************************************************* //
