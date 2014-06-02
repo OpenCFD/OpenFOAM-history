@@ -446,10 +446,16 @@ bool Foam::Time::read()
         if (runTimeModifiable_)
         {
             // Monitor all files that controlDict depends on
+            labelList& watchIndices = controlDict_.watchIndices();
+
             forAll(controlDict_.files(), i)
             {
                 const fileName& f = controlDict_.files()[i];
-                controlDict_.watchIndices().append(addTimeWatch(f));
+
+                if (findWatch(watchIndices, f) == -1)
+                {
+                    watchIndices.append(addTimeWatch(f));
+                }
             }
         }
         controlDict_.files().clear();
@@ -487,6 +493,24 @@ void Foam::Time::readModifiedObjects()
         {
             readDict();
             functionObjects_.read();
+
+            if (runTimeModifiable_)
+            {
+                // Monitor all files that controlDict depends on
+                labelList& watchIndices = controlDict_.watchIndices();
+
+                forAll(controlDict_.files(), i)
+                {
+                    const fileName& f = controlDict_.files()[i];
+
+                    if (findWatch(watchIndices, f) == -1)
+                    {
+                        watchIndices.append(addTimeWatch(f));
+                    }
+                }
+            }
+            controlDict_.files().clear();
+
         }
 
         bool registryModified = objectRegistry::modified();

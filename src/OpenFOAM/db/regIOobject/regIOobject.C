@@ -201,14 +201,7 @@ Foam::label Foam::regIOobject::addWatch(const fileName& f)
      && time().runTimeModifiable()
     )
     {
-        forAll(watchIndices_, i)
-        {
-            if (time().getFile(watchIndices_[i]) == f)
-            {
-                index = i;
-                break;
-            }
-        }
+        index = time().findWatch(watchIndices_, f);
 
         if (index == -1)
         {
@@ -237,15 +230,13 @@ void Foam::regIOobject::addWatch()
             f = objectPath();
         }
 
-        forAll(watchIndices_, i)
+        label index = time().findWatch(watchIndices_, f);
+        if (index != -1)
         {
-            if (time().getFile(watchIndices_[i]) == f)
-            {
-                FatalErrorIn("regIOobject::addWatch()")
-                    << "Object " << objectPath() << " of type " << type()
-                    << " already watched with index " << watchIndices_[i]
-                    << abort(FatalError);
-            }
+            FatalErrorIn("regIOobject::addWatch()")
+                << "Object " << objectPath() << " of type " << type()
+                << " already watched with index " << watchIndices_[index]
+                << abort(FatalError);
         }
 
         addWatch(f);

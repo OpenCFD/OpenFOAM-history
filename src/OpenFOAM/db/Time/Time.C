@@ -360,18 +360,19 @@ Foam::Time::Time
             )
         );
 
-        // File might not exist yet.
-        fileName f(controlDict_.filePath());
-
-        if (!f.size())
+        // Monitor all files that controlDict depends on
+        forAll(controlDict_.files(), i)
         {
-            // We don't have this file but would like to re-read it.
-            // Possibly if in master-only reading mode. Use a non-existing
-            // file to keep fileMonitor synced.
-            f = controlDict_.objectPath();
+            const fileName& f = controlDict_.files()[i];
+            controlDict_.watchIndices().append(addTimeWatch(f));
         }
-
-        controlDict_.watchIndices().append(addTimeWatch(f));
+        // Optional: clear dependent files since not needed
+        controlDict_.files().clear();
+    }
+    else
+    {
+        // Optional: clear dependent files since not needed
+        controlDict_.files().clear();
     }
 }
 
@@ -455,30 +456,18 @@ Foam::Time::Time
             )
         );
 
-//        // File might not exist yet.
-//        fileName f(controlDict_.filePath());
-//
-//        if (!f.size())
-//        {
-//            // We don't have this file but would like to re-read it.
-//            // Possibly if in master-only reading mode. Use a non-existing
-//            // file to keep fileMonitor synced.
-//            f = controlDict_.objectPath();
-//        }
-//
-//Debug(f);
-//        controlDict_.watchIndices().append(addTimeWatch(f));
-
         // Monitor all files that controlDict depends on
         forAll(controlDict_.files(), i)
         {
             const fileName& f = controlDict_.files()[i];
             controlDict_.watchIndices().append(addTimeWatch(f));
         }
+        // Optional: clear dependent files since not needed
+        controlDict_.files().clear();
     }
     else
     {
-        // Optionar: clear dependent files since not needed
+        // Optional: clear dependent files since not needed
         controlDict_.files().clear();
     }
 }
@@ -659,6 +648,23 @@ Foam::Time::~Time()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::label Foam::Time::findWatch
+(
+    const labelList& watchIndices,
+    const fileName& fName
+) const
+{
+    forAll(watchIndices, i)
+    {
+        if (getFile(watchIndices[i]) == fName)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 
 Foam::label Foam::Time::addTimeWatch(const fileName& fName) const
 {
