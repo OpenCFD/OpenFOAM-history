@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -644,8 +644,23 @@ bool Foam::sampledTriSurfaceMesh::update()
         return false;
     }
 
+    // Calculate surface and mesh overlap bounding box
+    treeBoundBox bb
+    (
+        surface_.triSurface::points(),
+        surface_.triSurface::meshPoints()
+    );
+    bb.min() = max(bb.min(), mesh().bounds().min());
+    bb.max() = min(bb.max(), mesh().bounds().max());
+
+    // Extend a bit
+    const vector span(bb.span());
+
+    bb.min() -= 0.5*span;
+    bb.max() += 0.5*span;
+
     // Mesh search engine, no triangulation of faces.
-    meshSearch meshSearcher(mesh(), polyMesh::FACEPLANES);
+    meshSearch meshSearcher(mesh(), bb, polyMesh::FACEPLANES);
 
     return update(meshSearcher);
 }

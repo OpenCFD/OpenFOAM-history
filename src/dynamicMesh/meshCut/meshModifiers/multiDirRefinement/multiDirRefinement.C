@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,17 +25,14 @@ License
 
 #include "multiDirRefinement.H"
 #include "polyMesh.H"
-#include "polyTopoChanger.H"
 #include "Time.H"
 #include "undoableMeshCutter.H"
 #include "hexCellLooper.H"
 #include "geomCellLooper.H"
-#include "topoSet.H"
 #include "directions.H"
 #include "hexRef8.H"
 #include "mapPolyMesh.H"
 #include "polyTopoChange.H"
-#include "ListOps.H"
 #include "cellModeller.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -265,7 +262,8 @@ void Foam::multiDirRefinement::refineHex8
                 false
             ),
             List<refinementHistory::splitCell8>(0),
-            labelList(0)
+            labelList(0),
+            false
         )                                   // refinement history
     );
 

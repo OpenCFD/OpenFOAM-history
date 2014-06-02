@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
         runTime++;
 
-        Info<< "\n\nTime = " << runTime.timeName() << endl;
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
         {
             // Make the fluxes absolute
@@ -196,12 +196,12 @@ int main(int argc, char *argv[])
 
         runTime.write();
 
-        Info<< "\nExecutionTime = "
-             << runTime.elapsedCpuTime()
-             << " s\n" << endl;
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
     }
 
-    Info<< "\n end\n";
+    Info<< "End\n" << endl;
 
     return 0;
 }

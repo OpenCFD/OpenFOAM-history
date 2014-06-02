@@ -76,6 +76,7 @@ SourceFiles
 #include "typeInfo.H"
 #include "autoPtr.H"
 #include "InfoProxy.H"
+#include "NamedEnum.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -119,6 +120,16 @@ public:
             NO_WRITE = 1
         };
 
+        //- Enumeration defining the file checking options
+        enum fileCheckTypes
+        {
+            timeStamp,
+            timeStampMaster,
+            inotify,
+            inotifyMaster
+        };
+
+        static const NamedEnum<fileCheckTypes, 4> fileCheckTypesNames;
 
 private:
 
@@ -189,6 +200,9 @@ public:
 
         template<class Name>
         static inline word groupName(Name name, const word& group);
+
+        //- Type of file modification checking
+        static fileCheckTypes fileModificationChecking;
 
 
     // Constructors
@@ -448,11 +462,18 @@ template<>
 Ostream& operator<<(Ostream& os, const InfoProxy<IOobject>& ip);
 
 
+//- Template function for obtaining global status
+template<class T>
+inline bool typeGlobal()
+{
+    return false;
+}
+
 //- Template function for obtaining filePath
 template<class T>
 inline fileName typeFilePath(const IOobject& io)
 {
-    return io.localFilePath();
+    return (typeGlobal<T>() ? io.globalFilePath() : io.localFilePath());
 }
 
 

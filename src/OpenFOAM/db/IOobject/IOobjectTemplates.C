@@ -27,6 +27,7 @@ License
 #include "Istream.H"
 
 #include "IOstreams.H"
+#include "Pstream.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -35,49 +36,68 @@ bool Foam::IOobject::typeHeaderOk(const bool checkType)
 {
     bool ok = true;
 
-    Istream* isPtr = objectStream(typeFilePath<Type>(*this));
+    // Everyone check or just master
+    bool masterOnly =
+        typeGlobal<Type>()
+     && (
+            IOobject::fileModificationChecking == timeStampMaster
+         || IOobject::fileModificationChecking == inotifyMaster
+        );
 
-    // If the stream has failed return
-    if (!isPtr)
+
+    // Determine local status
+    if (!masterOnly || Pstream::master())
     {
-        if (IOobject::debug)
-        {
-            Info
-                << "IOobject::typeHeaderOk() : "
-                << "file " << objectPath() << " could not be opened"
-                << endl;
-        }
+        Istream* isPtr = objectStream(typeFilePath<Type>(*this));
 
-        ok = false;
-    }
-    else
-    {
-        // Try reading header
-        if (readHeader(*isPtr))
-        {
-            if (checkType && headerClassName_ != Type::typeName)
-            {
-                IOWarningIn("IOobject::typeHeaderOk()", (*isPtr))
-                    << "unexpected class name " << headerClassName_
-                    << " expected " << Type::typeName << endl;
-
-                ok = false;
-            }
-        }
-        else
+        // If the stream has failed return
+        if (!isPtr)
         {
             if (IOobject::debug)
             {
-                IOWarningIn("IOobject::typeHeaderOk()", (*isPtr))
-                    << "failed to read header of file " << objectPath()
+                Info
+                    << "IOobject::typeHeaderOk() : "
+                    << "file " << objectPath() << " could not be opened"
                     << endl;
             }
 
             ok = false;
         }
+        else
+        {
+            // Try reading header
+            if (readHeader(*isPtr))
+            {
+                if (checkType && headerClassName_ != Type::typeName)
+                {
+                    IOWarningIn("IOobject::typeHeaderOk()", (*isPtr))
+                        << "unexpected class name " << headerClassName_
+                        << " expected " << Type::typeName << endl;
+
+                    ok = false;
+                }
+            }
+            else
+            {
+                if (IOobject::debug)
+                {
+                    IOWarningIn("IOobject::typeHeaderOk()", (*isPtr))
+                        << "failed to read header of file " << objectPath()
+                        << endl;
+                }
+
+                ok = false;
+            }
+        }
+
+        delete isPtr;
     }
 
-    delete isPtr;
+    // If masterOnly make sure all processors know about it
+    if (masterOnly)
+    {
+        Pstream::scatter(ok);
+    }
 
     return ok;
 }

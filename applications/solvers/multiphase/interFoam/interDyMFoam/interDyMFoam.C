@@ -44,6 +44,7 @@ Description
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
+#include "incompressibleCorrectPhi.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

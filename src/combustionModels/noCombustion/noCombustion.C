@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,10 +32,11 @@ template<class CombThermoType>
 Foam::combustionModels::noCombustion<CombThermoType>::noCombustion
 (
     const word& modelType,
-    const fvMesh& mesh
+    const fvMesh& mesh,
+    const word& phaseName
 )
 :
-    CombThermoType(modelType, mesh)
+    CombThermoType(modelType, mesh, phaseName)
 {}
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -87,7 +87,7 @@ void* Foam::sigFpe::nanMallocHook_(size_t size, const void *caller)
 
 #ifdef LINUX_GNUC
 
-void Foam::sigFpe::sigHandler(int)
+void Foam::sigFpe::sigHandler(int, siginfo_t* info, void*)
 {
     // Reset old handling
     if (sigaction(SIGFPE, &oldAction_, NULL) < 0)
@@ -183,7 +183,9 @@ void Foam::sigFpe::set(const bool verbose)
         );
 
         struct sigaction newAction;
-        newAction.sa_handler = sigHandler;
+        //newAction.sa_handler = sigHandler;
+        newAction.sa_sigaction = sigHandler;
+
         newAction.sa_flags = SA_NODEFER;
         sigemptyset(&newAction.sa_mask);
         if (sigaction(SIGFPE, &newAction, &oldAction_) < 0)

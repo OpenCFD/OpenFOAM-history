@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,7 @@ struct sigaction Foam::sigSegv::oldAction_;
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::sigSegv::sigHandler(int)
+void Foam::sigSegv::sigHandler(int, siginfo_t* info, void*)
 {
     // Reset old handling
     if (sigaction(SIGSEGV, &oldAction_, NULL) < 0)
@@ -95,7 +95,8 @@ void Foam::sigSegv::set(const bool)
     }
 
     struct sigaction newAction;
-    newAction.sa_handler = sigHandler;
+    //newAction.sa_handler = sigHandler;
+    newAction.sa_sigaction = sigHandler;
     newAction.sa_flags = SA_NODEFER;
     sigemptyset(&newAction.sa_mask);
     if (sigaction(SIGSEGV, &newAction, &oldAction_) < 0)

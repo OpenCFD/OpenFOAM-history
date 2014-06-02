@@ -233,7 +233,7 @@ case ThirdParty:
         breaksw
     case Gcc48:
     case Gcc48++0x:
-        set gcc_version=gcc-4.8.2
+        set gcc_version=gcc-4.8.1
         set gmp_version=gmp-5.1.2
         set mpfr_version=mpfr-3.1.2
         set mpc_version=mpc-1.0.1
@@ -445,11 +445,6 @@ case HPMPI:
     endsw
     breaksw
 
-case GAMMA:
-    setenv FOAM_MPI gamma
-    setenv MPI_ARCH_PATH /usr
-    breaksw
-
 case MPI:
     setenv FOAM_MPI mpi
     setenv MPI_ARCH_PATH /opt/mpi
@@ -563,6 +558,7 @@ endif
 # cleanup environment:
 # ~~~~~~~~~~~~~~~~~~~~
 #- keep _foamAddPath _foamAddLib _foamAddMan
-unset foamCompiler minBufferSize
+unset minBufferSize
+unsetenv foamCompiler
 
 # ----------------------------------------------------------------- end-of-file

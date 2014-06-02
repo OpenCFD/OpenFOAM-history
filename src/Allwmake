@@ -1,6 +1,9 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
-makeType=${1:-libso}
+
+# Parse arguments for library compilation
+targetType=libso
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
 
 wmakeCheckPwd "$WM_PROJECT_DIR/src" || {
     echo "Error: Current directory is not \$WM_PROJECT_DIR/src"
@@ -25,62 +28,62 @@ wmakeLnInclude OSspecific/${WM_OSTYPE:-POSIX}
 Pstream/Allwmake $*
 
 OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
-wmake $makeType OpenFOAM
+wmake $targetType OpenFOAM
 
-wmake $makeType fileFormats
-wmake $makeType surfMesh
-wmake $makeType triSurface
-wmake $makeType meshTools
-wmake $makeType edgeMesh
+wmake $targetType fileFormats
+wmake $targetType surfMesh
+wmake $targetType triSurface
+wmake $targetType meshTools
+wmake $targetType edgeMesh
 
 # Decomposition methods needed by dummyThirdParty
 parallel/decompose/AllwmakeLnInclude
 # dummyThirdParty (dummy metisDecomp, scotchDecomp etc) needed by e.g. meshTools
 dummyThirdParty/Allwmake $*
 
-wmake $makeType finiteVolume
-wmake $makeType lagrangian/basic
-wmake $makeType lagrangian/distributionModels
-wmake $makeType genericPatchFields
+wmake $targetType finiteVolume
+wmake $targetType lagrangian/basic
+wmake $targetType lagrangian/distributionModels
+wmake $targetType genericPatchFields
+
+wmake $targetType conversion
+
+wmake $targetType sampling
+
+wmake $targetType mesh/extrudeModel
+
+wmake $targetType dynamicMesh
+wmake $targetType dynamicFvMesh
+wmake $targetType topoChangerFvMesh
 
 # Build the proper scotchDecomp, metisDecomp etc.
 parallel/Allwmake $*
 
-renumber/Allwmake $*
-
-wmake $makeType conversion
-
-wmake $makeType sampling
-
-wmake $makeType mesh/extrudeModel
-
-wmake $makeType dynamicMesh
-wmake $makeType dynamicFvMesh
-wmake $makeType topoChangerFvMesh
-
-wmake $makeType ODE
-wmake $makeType randomProcesses
+wmake $targetType ODE
+wmake $targetType randomProcesses
 
 transportModels/Allwmake $*
 thermophysicalModels/Allwmake $*
 turbulenceModels/Allwmake $*
 TurbulenceModels/Allwmake $*
-wmake $makeType combustionModels
+wmake $targetType combustionModels
 regionModels/Allwmake $*
 lagrangian/Allwmake $*
 mesh/Allwmake $*
 
+renumber/Allwmake $*
+
 fvAgglomerationMethods/Allwmake $*
 
-wmake $makeType fvMotionSolver
-wmake $makeType engine
+wmake $targetType fvMotionSolver
+wmake $targetType engine
 
-wmake $makeType fvOptions
+wmake $targetType fvOptions
 
-wmake $makeType regionCoupled
+wmake $targetType regionCoupled
 
 postProcessing/Allwmake $*
 
-wmake $makeType sixDoFRigidBodyMotion
+wmake $targetType sixDoFRigidBodyMotion
 
 # ----------------------------------------------------------------- end-of-file

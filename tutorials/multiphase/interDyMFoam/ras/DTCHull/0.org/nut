@@ -24,20 +24,10 @@ boundaryField
     //- Set patchGroups for constraint patches
     #include "${WM_PROJECT_DIR}/etc/caseDicts/setConstraintTypes"
 
-    inlet
+    "inlet|outlet|atmosphere"
     {
-        type            fixedValue;
+        type            calculated;
         value           $internalField;
-    }
-
-    outlet
-    {
-        type            zeroGradient;
-    }
-
-    atmosphere
-    {
-        type            zeroGradient;
     }
 
     hull

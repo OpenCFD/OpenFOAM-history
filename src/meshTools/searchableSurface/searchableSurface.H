@@ -384,11 +384,11 @@ public:
 };
 
 
-//- Template specialisation for obtaining filePath
+//- Template function for obtaining global status
 template<>
-inline fileName typeFilePath<searchableSurface>(const IOobject& io)
+inline bool typeGlobal<searchableSurface>()
 {
-    return io.globalFilePath();
+    return true;
 }
 
 

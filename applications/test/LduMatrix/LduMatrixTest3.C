@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,6 +30,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "pimpleControl.H"
 #include "LduMatrix.H"
 #include "diagTensorField.H"
 
@@ -41,9 +42,11 @@ typedef LduMatrix<vector, scalar, scalar> lduVectorMatrix;
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
-
     #include "createTime.H"
     #include "createMesh.H"
+
+    pimpleControl piso(mesh, "PISO");
+
     #include "createFields.H"
     #include "initContinuityErrs.H"
 
@@ -55,7 +58,6 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "readPISOControls.H"
         #include "CourantNo.H"
 
         fvVectorMatrix UEqn
@@ -99,7 +101,7 @@ int main(int argc, char *argv[])
 
         // --- PISO loop
 
-        for (int corr=0; corr<nCorr; corr++)
+        while (piso.correct())
         {
             volScalarField rAU = 1.0/UEqn.A();
 
@@ -109,7 +111,8 @@ int main(int argc, char *argv[])
 
             adjustPhi(phi, U, p);
 
-            for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+            // Non-orthogonal pressure corrector loop
+            while (piso.correctNonOrthogonal())
             {
                 fvScalarMatrix pEqn
                 (
@@ -117,9 +120,9 @@ int main(int argc, char *argv[])
                 );
 
                 pEqn.setReference(pRefCell, pRefValue);
-                pEqn.solve();
+                 pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
 
-                if (nonOrth == nNonOrthCorr)
+                if (piso.finalNonOrthogonalIter())
                 {
                     phi -= pEqn.flux();
                 }
