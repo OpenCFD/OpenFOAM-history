@@ -29,9 +29,6 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-scalar CoNum = 0.0;
-scalar meanCoNum = 0.0;
-
 if (mesh.nInternalFaces())
 {
     surfaceScalarField amaxSfbyDelta
