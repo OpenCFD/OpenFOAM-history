@@ -40,28 +40,47 @@ Description
 
     Where:
     \vartable
-        \Phi    | Velocity potential [m2/s]
-        U       | Velocity [m/s]
+        \Phi      | Velocity potential [m2/s]
+        \vec{U}   | Velocity [m/s]
     \endvartable
 
-    The corresponding pressure field may be calculated from the divergence
+    The corresponding pressure field could be calculated from the divergence
     of the Euler equation:
 
     \f[
-        \laplacian p + \div(\div(\vec{U}\otimes\vec{U}))
+        \laplacian p + \div(\div(\vec{U}\otimes\vec{U})) = 0
     \f]
 
-    and written if required.
+    but this generates excessive pressure variation in regions of large
+    velocity gradient normal to the flow direction.  A better option is to
+    calculate the pressure field corresponding to velocity variation along the
+    stream-lines:
+
+    \f[
+        \laplacian p + \div(\vec{F}\cdot\div(\vec{U}\otimes\vec{U})) = 0
+    \f]
+    where the flow direction tensor \f$\vec{F}\f$ is obtained from
+    \f[
+        \vec{F} = \hat{\vec{U}}\otimes\hat{\vec{U}}
+    \f]
 
     \heading Required fields
     \plaintable
-        U       | Velocity [m/s]
+        U         | Velocity [m/s]
     \endplaintable
 
     \heading Optional fields
     \plaintable
-        Phi     | Velocity potential [m2/s]
-                | Generated from p (if present) or U if not present
+        p         | Kinematic pressure [m2/s2]
+        Phi       | Velocity potential [m2/s]
+                  | Generated from p (if present) or U if not present
+    \endplaintable
+
+    \heading Options
+    \plaintable
+        -writep   | write the Euler pressure
+        -writePhi | Write the final velocity potential
+        -initialiseUBCs | Update the velocity boundaries before solving for Phi
     \endplaintable
 
 \*---------------------------------------------------------------------------*/
@@ -163,13 +182,24 @@ int main(int argc, char *argv[])
     {
         Info<< nl << "Calculating Euler pressure field" << endl;
 
+        volScalarField magSqrU(magSqr(U));
+
+        volScalarField divDivUU
+        (
+            // Euler equation form
+            // fvc::div(fvc::div(phi, U), "div(div(phi,U))")
+
+            // Euler equation filtered by the flow-direction
+            fvc::div
+            (
+                (sqr(U)/(magSqrU + 1e-6*average(magSqrU))) & fvc::div(phi, U),
+                "div(div(phi,U))"
+            )
+        );
+
         for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
         {
-            fvScalarMatrix pEqn
-            (
-                fvm::laplacian(p)
-              + fvc::div(fvc::div(phi, U), "div(div(phi,U))")
-            );
+            fvScalarMatrix pEqn(fvm::laplacian(p) + divDivUU);
 
             pEqn.setReference(pRefCell, pRefValue);
             pEqn.solve();

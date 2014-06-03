@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,9 +28,6 @@ Description
     Calculates the mean and maximum wave speed based Courant Numbers.
 
 \*---------------------------------------------------------------------------*/
-
-scalar CoNum = 0.0;
-scalar meanCoNum = 0.0;
 
 if (mesh.nInternalFaces())
 {
