@@ -70,7 +70,7 @@ protected:
 
     // Protected Member Functions
 
-        //- Return IO ovject for points0
+        //- Return IO object for points0
         IOobject points0IO(const polyMesh& mesh) const;
 
 private:
