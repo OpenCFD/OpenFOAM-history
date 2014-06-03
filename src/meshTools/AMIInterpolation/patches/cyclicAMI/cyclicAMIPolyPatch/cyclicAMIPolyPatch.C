@@ -388,6 +388,7 @@ void Foam::cyclicAMIPolyPatch::resetAMI
                 nbrPatch0,
                 surfPtr(),
                 faceAreaIntersect::tmMesh,
+                AMIRequireMatch_,
                 AMIMethod,
                 AMILowWeightCorrection_,
                 AMIReverse_
@@ -461,8 +462,8 @@ void Foam::cyclicAMIPolyPatch::movePoints
 
 void Foam::cyclicAMIPolyPatch::initUpdateMesh(PstreamBuffers& pBufs)
 {
-    polyPatch::initUpdateMesh(pBufs);
     AMIPtr_.clear();
+    polyPatch::initUpdateMesh(pBufs);
 }
 
 
@@ -502,6 +503,7 @@ Foam::cyclicAMIPolyPatch::cyclicAMIPolyPatch
     separationVector_(vector::zero),
     AMIPtr_(NULL),
     AMIReverse_(false),
+    AMIRequireMatch_(true),
     AMILowWeightCorrection_(-1.0),
     surfPtr_(NULL),
     surfDict_(fileName("surface"))
@@ -531,6 +533,7 @@ Foam::cyclicAMIPolyPatch::cyclicAMIPolyPatch
     separationVector_(vector::zero),
     AMIPtr_(NULL),
     AMIReverse_(dict.lookupOrDefault<bool>("flipNormals", false)),
+    AMIRequireMatch_(true),
     AMILowWeightCorrection_(dict.lookupOrDefault("lowWeightCorrection", -1.0)),
     surfPtr_(NULL),
     surfDict_(dict.subOrEmptyDict("surface"))
@@ -640,6 +643,7 @@ Foam::cyclicAMIPolyPatch::cyclicAMIPolyPatch
     separationVector_(pp.separationVector_),
     AMIPtr_(NULL),
     AMIReverse_(pp.AMIReverse_),
+    AMIRequireMatch_(pp.AMIRequireMatch_),
     AMILowWeightCorrection_(pp.AMILowWeightCorrection_),
     surfPtr_(NULL),
     surfDict_(pp.surfDict_)
@@ -670,6 +674,7 @@ Foam::cyclicAMIPolyPatch::cyclicAMIPolyPatch
     separationVector_(pp.separationVector_),
     AMIPtr_(NULL),
     AMIReverse_(pp.AMIReverse_),
+    AMIRequireMatch_(pp.AMIRequireMatch_),
     AMILowWeightCorrection_(pp.AMILowWeightCorrection_),
     surfPtr_(NULL),
     surfDict_(pp.surfDict_)
@@ -714,6 +719,7 @@ Foam::cyclicAMIPolyPatch::cyclicAMIPolyPatch
     separationVector_(pp.separationVector_),
     AMIPtr_(NULL),
     AMIReverse_(pp.AMIReverse_),
+    AMIRequireMatch_(pp.AMIRequireMatch_),
     AMILowWeightCorrection_(pp.AMILowWeightCorrection_),
     surfPtr_(NULL),
     surfDict_(pp.surfDict_)
