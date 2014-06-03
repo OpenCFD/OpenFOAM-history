@@ -34,6 +34,76 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * * * Protected Data Members * * * * * * * * * * * * * //
+
+Foam::IOobject Foam::displacementMotionSolver::points0IO
+(
+    const polyMesh& mesh
+) const
+{
+    const word instance =
+        time().findInstance
+        (
+            mesh.meshDir(),
+            "points0",
+            IOobject::READ_IF_PRESENT
+        );
+
+    if (instance != time().constant())
+    {
+        // points0 written to a time folder
+
+        return
+            IOobject
+            (
+                "points0",
+                instance,
+                polyMesh::meshSubDir,
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE,
+                false
+            );
+    }
+    else
+    {
+        // check that points0 are actually in constant directory
+
+        IOobject io
+        (
+            "points0",
+            instance,
+            polyMesh::meshSubDir,
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE,
+            false
+        );
+
+        if (io.typeHeaderOk<pointIOField>())
+        {
+            return io;
+        }
+        else
+        {
+            // copy of original mesh points
+
+            return
+                IOobject
+                (
+                    "points",
+                    instance,
+                    polyMesh::meshSubDir,
+                    mesh,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE,
+                    false
+                );
+        }
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::displacementMotionSolver::displacementMotionSolver
@@ -49,29 +119,14 @@ Foam::displacementMotionSolver::displacementMotionSolver
         IOobject
         (
             "pointDisplacement",
-            mesh.time().timeName(),
+            time().timeName(),
             mesh,
             IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         ),
         pointMesh::New(mesh)
     ),
-    points0_
-    (
-        pointIOField
-        (
-            IOobject
-            (
-                "points",
-                time().findInstance(mesh.meshDir(), "points"),
-                polyMesh::meshSubDir,
-                mesh,
-                IOobject::MUST_READ,
-                IOobject::NO_WRITE,
-                false
-            )
-        )
-    )
+    points0_(pointIOField(points0IO(mesh)))
 {
     if (points0_.size() != mesh.nPoints())
     {
@@ -92,7 +147,7 @@ Foam::displacementMotionSolver::displacementMotionSolver
                     IOobject
                     (
                         "points",
-                        mesh.time().constant(),
+                        time().constant(),
                         polyMesh::meshSubDir,
                         mesh,
                         IOobject::MUST_READ,
@@ -182,6 +237,12 @@ void Foam::displacementMotionSolver::updateMesh(const mapPolyMesh& mpm)
     twoDCorrectPoints(newPoints0);
 
     points0_.transfer(newPoints0);
+
+    // points0 changed - set to write and check-in to database
+    points0_.rename("points0");
+    points0_.writeOpt() = IOobject::AUTO_WRITE;
+    points0_.instance() = time().timeName();
+    points0_.checkIn();
 }
 
 
