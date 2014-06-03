@@ -147,8 +147,8 @@ bool Foam::functionEntries::includeEntry::execute
             (
                 dynamic_cast<const regIOobject&>(top)
             );
-            Info<< rio.name() << " : adding depenency on included file "
-                << fName << endl;
+            //Info<< rio.name() << " : adding depenency on included file "
+            //    << fName << endl;
 
             rio.addWatch(fName);
         }
@@ -205,8 +205,8 @@ bool Foam::functionEntries::includeEntry::execute
             (
                 dynamic_cast<const regIOobject&>(top)
             );
-            Info<< rio.name() << " : adding depenency on included file "
-                << fName << endl;
+            //Info<< rio.name() << " : adding depenency on included file "
+            //    << fName << endl;
 
             rio.addWatch(fName);
         }

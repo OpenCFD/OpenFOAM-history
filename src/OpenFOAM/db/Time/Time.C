@@ -366,12 +366,12 @@ Foam::Time::Time
             const fileName& f = controlDict_.files()[i];
             controlDict_.watchIndices().append(addTimeWatch(f));
         }
-        // Optional: clear dependent files since not needed
+        // Clear dependent files
         controlDict_.files().clear();
     }
     else
     {
-        // Optional: clear dependent files since not needed
+        // Clear dependent files
         controlDict_.files().clear();
     }
 }
@@ -462,12 +462,12 @@ Foam::Time::Time
             const fileName& f = controlDict_.files()[i];
             controlDict_.watchIndices().append(addTimeWatch(f));
         }
-        // Optional: clear dependent files since not needed
+        // Clear dependent files since not needed
         controlDict_.files().clear();
     }
     else
     {
-        // Optional: clear dependent files since not needed
+        // Clear dependent files since not needed
         controlDict_.files().clear();
     }
 }
@@ -563,11 +563,12 @@ Foam::Time::Time
             const fileName& f = controlDict_.files()[i];
             controlDict_.watchIndices().append(addTimeWatch(f));
         }
+        // Clear dependent files since not needed
         controlDict_.files().clear();
     }
     else
     {
-        // Optionar: clear dependent files since not needed
+        // Clear dependent files since not needed
         controlDict_.files().clear();
     }
 }

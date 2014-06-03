@@ -27,6 +27,7 @@ License
 #include "IFstream.H"
 #include "Time.H"
 #include "Pstream.H"
+#include "HashSet.H"
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
@@ -213,8 +214,6 @@ Foam::Istream& Foam::regIOobject::readStream()
         {
             // File is being watched. Read exact file that is being watched.
             objPath = time().getFile(watchIndices_.last());
-            Pout<< "objPath:" << objPath << endl;
-            //watchIndices_.setSize(1);
         }
         else
         {
@@ -262,12 +261,6 @@ Foam::Istream& Foam::regIOobject::readStream()
                 << "problem while reading header for object " << name()
                 << exit(FatalIOError);
         }
-    }
-
-    // Mark as uptodate if read successfully
-    forAll(watchIndices_, i)
-    {
-        time().setUnmodified(watchIndices_[i]);
     }
 
     return *isPtr_;
@@ -340,6 +333,26 @@ bool Foam::regIOobject::read()
     // Note: cannot do anything in readStream itself since this is used by
     // e.g. GeometricField.
 
+
+    // Save old watchIndices and clear (so the list of included files can
+    // change)
+    fileNameList oldWatchFiles;
+    if (watchIndices_.size())
+    {
+        oldWatchFiles.setSize(watchIndices_.size());
+        forAll(watchIndices_, i)
+        {
+            oldWatchFiles[i] = time().getFile(watchIndices_[i]);
+        }
+        forAllReverse(watchIndices_, i)
+        {
+            time().removeWatch(watchIndices_[i]);
+        }
+        watchIndices_.clear();
+    }
+
+
+    // Read
     bool masterOnly =
         global()
      && (
@@ -347,7 +360,15 @@ bool Foam::regIOobject::read()
          || regIOobject::fileModificationChecking == inotifyMaster
         );
 
-    return read(masterOnly, IOstream::BINARY, type());
+    bool ok = read(masterOnly, IOstream::BINARY, type());
+
+    if (oldWatchFiles.size())
+    {
+        // Re-watch master file
+        addWatch();
+    }
+
+    return ok;
 }
 
 
@@ -369,21 +390,21 @@ bool Foam::regIOobject::readIfModified()
 {
     // Get index of modified file so we can give nice message. Could instead
     // just call above modified()
-    label modifiedIndex = -1;
+    label modified = -1;
     forAllReverse(watchIndices_, i)
     {
         if (time().getState(watchIndices_[i]) != fileMonitor::UNMODIFIED)
         {
-            modifiedIndex = watchIndices_[i];
+            modified = watchIndices_[i];
             break;
         }
     }
 
-    if (modifiedIndex != -1)
+    if (modified != -1)
     {
         const fileName& fName = time().getFile(watchIndices_.last());
 
-        if (modifiedIndex == watchIndices_.last())
+        if (modified == watchIndices_.last())
         {
             Info<< "regIOobject::readIfModified() : " << nl
                 << "    Re-reading object " << name()
@@ -394,7 +415,7 @@ bool Foam::regIOobject::readIfModified()
             Info<< "regIOobject::readIfModified() : " << nl
                 << "    Re-reading object " << name()
                 << " from file " << fName
-                << " because of modified file " << time().getFile(modifiedIndex)
+                << " because of modified file " << time().getFile(modified)
                 << endl;
         }
 

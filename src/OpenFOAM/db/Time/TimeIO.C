@@ -27,6 +27,7 @@ License
 #include "Pstream.H"
 #include "simpleObjectRegistry.H"
 #include "dimensionedConstants.H"
+#include "HashSet.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -442,21 +443,45 @@ bool Foam::Time::read()
     {
         // Read contents
         readDict();
+        functionObjects_.read();
 
         if (runTimeModifiable_)
         {
+            // For IOdictionary the call to regIOobject::read() would have
+            // already updated all the watchIndices via the addWatch but
+            // controlDict_ is an unregisteredIOdictionary so will only have
+            // stored the dependencies as files.
+
             // Monitor all files that controlDict depends on
-            labelList& watchIndices = controlDict_.watchIndices();
+            const labelList& watchIndices = controlDict_.watchIndices();
+
+            DynamicList<label> newWatchIndices;
+            labelHashSet removedWatches(watchIndices);
 
             forAll(controlDict_.files(), i)
             {
                 const fileName& f = controlDict_.files()[i];
+                label index = findWatch(watchIndices, f);
 
-                if (findWatch(watchIndices, f) == -1)
+                if (index == -1)
                 {
-                    watchIndices.append(addTimeWatch(f));
+                    newWatchIndices.append(addTimeWatch(f));
+                }
+                else
+                {
+                    // Existing watch
+                    newWatchIndices.append(watchIndices[index]);
+                    removedWatches.erase(index);
                 }
             }
+
+            // Remove any unused watches
+            forAllConstIter(labelHashSet, removedWatches, iter)
+            {
+                removeWatch(watchIndices[iter.key()]);
+            }
+
+            controlDict_.watchIndices() = newWatchIndices;
         }
         controlDict_.files().clear();
 
@@ -496,21 +521,43 @@ void Foam::Time::readModifiedObjects()
 
             if (runTimeModifiable_)
             {
+                // For IOdictionary the call to regIOobject::read() would have
+                // already updated all the watchIndices via the addWatch but
+                // controlDict_ is an unregisteredIOdictionary so will only have
+                // stored the dependencies as files.
+
                 // Monitor all files that controlDict depends on
-                labelList& watchIndices = controlDict_.watchIndices();
+                const labelList& watchIndices = controlDict_.watchIndices();
+
+                DynamicList<label> newWatchIndices;
+                labelHashSet removedWatches(watchIndices);
 
                 forAll(controlDict_.files(), i)
                 {
                     const fileName& f = controlDict_.files()[i];
+                    label index = findWatch(watchIndices, f);
 
-                    if (findWatch(watchIndices, f) == -1)
+                    if (index == -1)
                     {
-                        watchIndices.append(addTimeWatch(f));
+                        newWatchIndices.append(addTimeWatch(f));
+                    }
+                    else
+                    {
+                        // Existing watch
+                        newWatchIndices.append(watchIndices[index]);
+                        removedWatches.erase(index);
                     }
                 }
+
+                // Remove any unused watches
+                forAllConstIter(labelHashSet, removedWatches, iter)
+                {
+                    removeWatch(watchIndices[iter.key()]);
+                }
+
+                controlDict_.watchIndices() = newWatchIndices;
             }
             controlDict_.files().clear();
-
         }
 
         bool registryModified = objectRegistry::modified();
