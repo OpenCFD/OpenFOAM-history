@@ -406,6 +406,9 @@ public:
         //- Construct from Istream
         mapDistribute(Istream&);
 
+        //- Clone
+        autoPtr<mapDistribute> clone() const;
+
 
     // Member Functions
 
