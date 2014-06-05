@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -216,9 +216,7 @@ Foam::autoPtr<Foam::dictionary> Foam::dictionary::clone() const
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 Foam::dictionary::~dictionary()
-{
-    // cerr<< "~dictionary() " << name() << " " << long(this) << std::endl;
-}
+{}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -233,7 +231,7 @@ const Foam::dictionary& Foam::dictionary::topDict() const
     }
     else
     {
-        return p;
+        return *this;
     }
 }
 

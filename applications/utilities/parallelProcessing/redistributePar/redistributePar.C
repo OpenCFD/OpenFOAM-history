@@ -2633,6 +2633,9 @@ int main(int argc, char *argv[])
     }
     else
     {
+        // Allow override of time
+        instantList times = timeSelector::selectIfPresent(runTime, args);
+
         // Time coming from processor0 (or undecomposed if no processor0)
         scalar masterTime = runTime.value();
         if (decompose)
