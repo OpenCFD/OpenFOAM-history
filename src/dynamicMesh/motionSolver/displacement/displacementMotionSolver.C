@@ -58,7 +58,7 @@ Foam::IOobject Foam::displacementMotionSolver::points0IO
             (
                 "points0",
                 instance,
-                polyMesh::meshSubDir,
+                mesh.meshDir(),
                 mesh,
                 IOobject::MUST_READ,
                 IOobject::NO_WRITE,
@@ -73,7 +73,7 @@ Foam::IOobject Foam::displacementMotionSolver::points0IO
         (
             "points0",
             instance,
-            polyMesh::meshSubDir,
+            mesh.meshDir(),
             mesh,
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
@@ -93,7 +93,7 @@ Foam::IOobject Foam::displacementMotionSolver::points0IO
                 (
                     "points",
                     instance,
-                    polyMesh::meshSubDir,
+                    mesh.meshDir(),
                     mesh,
                     IOobject::MUST_READ,
                     IOobject::NO_WRITE,
@@ -148,7 +148,7 @@ Foam::displacementMotionSolver::displacementMotionSolver
                     (
                         "points",
                         time().constant(),
-                        polyMesh::meshSubDir,
+                        mesh.meshDir(),
                         mesh,
                         IOobject::MUST_READ,
                         IOobject::NO_WRITE,
