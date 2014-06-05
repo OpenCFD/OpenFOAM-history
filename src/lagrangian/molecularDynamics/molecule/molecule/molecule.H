@@ -179,6 +179,12 @@ public:
 
 private:
 
+    // Private static data members
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofFields_;
+
+
     // Private data
 
         tensor Q_;

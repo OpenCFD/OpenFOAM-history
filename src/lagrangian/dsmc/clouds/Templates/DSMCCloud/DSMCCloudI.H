@@ -31,14 +31,14 @@ using namespace Foam::constant::mathematical;
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class ParcelType>
-inline const Foam::word& Foam::DsmcCloud<ParcelType>::cloudName() const
+inline const Foam::word& Foam::DSMCCloud<ParcelType>::cloudName() const
 {
     return cloudName_;
 }
 
 
 template<class ParcelType>
-inline const Foam::fvMesh& Foam::DsmcCloud<ParcelType>::mesh() const
+inline const Foam::fvMesh& Foam::DSMCCloud<ParcelType>::mesh() const
 {
     return mesh_;
 }
@@ -46,7 +46,7 @@ inline const Foam::fvMesh& Foam::DsmcCloud<ParcelType>::mesh() const
 
 template<class ParcelType>
 inline const Foam::IOdictionary&
-Foam::DsmcCloud<ParcelType>::particleProperties() const
+Foam::DSMCCloud<ParcelType>::particleProperties() const
 {
     return particleProperties_;
 }
@@ -54,14 +54,14 @@ Foam::DsmcCloud<ParcelType>::particleProperties() const
 
 template<class ParcelType>
 inline const Foam::List<Foam::word>&
-Foam::DsmcCloud<ParcelType>::typeIdList() const
+Foam::DSMCCloud<ParcelType>::typeIdList() const
 {
     return typeIdList_;
 }
 
 
 template<class ParcelType>
-inline Foam::scalar Foam::DsmcCloud<ParcelType>::nParticle() const
+inline Foam::scalar Foam::DSMCCloud<ParcelType>::nParticle() const
 {
     return nParticle_;
 }
@@ -69,14 +69,14 @@ inline Foam::scalar Foam::DsmcCloud<ParcelType>::nParticle() const
 
 template<class ParcelType>
 inline const Foam::List<Foam::DynamicList<ParcelType*> >&
-Foam::DsmcCloud<ParcelType>::cellOccupancy() const
+Foam::DSMCCloud<ParcelType>::cellOccupancy() const
 {
     return cellOccupancy_;
 }
 
 
 template<class ParcelType>
-inline Foam::volScalarField& Foam::DsmcCloud<ParcelType>::sigmaTcRMax()
+inline Foam::volScalarField& Foam::DSMCCloud<ParcelType>::sigmaTcRMax()
 {
     return sigmaTcRMax_;
 }
@@ -84,7 +84,7 @@ inline Foam::volScalarField& Foam::DsmcCloud<ParcelType>::sigmaTcRMax()
 
 template<class ParcelType>
 inline Foam::scalarField&
-Foam::DsmcCloud<ParcelType>::collisionSelectionRemainder()
+Foam::DSMCCloud<ParcelType>::collisionSelectionRemainder()
 {
     return collisionSelectionRemainder_;
 }
@@ -92,7 +92,7 @@ Foam::DsmcCloud<ParcelType>::collisionSelectionRemainder()
 
 template<class ParcelType>
 inline const Foam::List<typename ParcelType::constantProperties>&
-Foam::DsmcCloud<ParcelType>::constProps() const
+Foam::DSMCCloud<ParcelType>::constProps() const
 {
     return constProps_;
 }
@@ -100,14 +100,14 @@ Foam::DsmcCloud<ParcelType>::constProps() const
 
 template<class ParcelType>
 inline const typename ParcelType::constantProperties&
-Foam::DsmcCloud<ParcelType>::constProps
+Foam::DSMCCloud<ParcelType>::constProps
 (
     label typeId
 ) const
 {
     if (typeId < 0 || typeId >= constProps_.size())
     {
-        FatalErrorIn("Foam::DsmcCloud<ParcelType>::constProps(label typeId)")
+        FatalErrorIn("Foam::DSMCCloud<ParcelType>::constProps(label typeId)")
             << "constantProperties for requested typeId index "
             << typeId << " do not exist" << nl
             << abort(FatalError);
@@ -118,7 +118,7 @@ Foam::DsmcCloud<ParcelType>::constProps
 
 
 template<class ParcelType>
-inline Foam::Random& Foam::DsmcCloud<ParcelType>::rndGen()
+inline Foam::Random& Foam::DSMCCloud<ParcelType>::rndGen()
 {
     return rndGen_;
 }
@@ -126,7 +126,7 @@ inline Foam::Random& Foam::DsmcCloud<ParcelType>::rndGen()
 
 template<class ParcelType>
 inline Foam::volScalarField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::qBF()
+Foam::DSMCCloud<ParcelType>::qBF()
 {
     return q_.boundaryField();
 }
@@ -134,7 +134,7 @@ Foam::DsmcCloud<ParcelType>::qBF()
 
 template<class ParcelType>
 inline Foam::volVectorField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::fDBF()
+Foam::DSMCCloud<ParcelType>::fDBF()
 {
     return fD_.boundaryField();
 }
@@ -142,7 +142,7 @@ Foam::DsmcCloud<ParcelType>::fDBF()
 
 template<class ParcelType>
 inline Foam::volScalarField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::rhoNBF()
+Foam::DSMCCloud<ParcelType>::rhoNBF()
 {
     return rhoN_.boundaryField();
 }
@@ -150,7 +150,7 @@ Foam::DsmcCloud<ParcelType>::rhoNBF()
 
 template<class ParcelType>
 inline Foam::volScalarField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::rhoMBF()
+Foam::DSMCCloud<ParcelType>::rhoMBF()
 {
     return rhoM_.boundaryField();
 }
@@ -158,7 +158,7 @@ Foam::DsmcCloud<ParcelType>::rhoMBF()
 
 template<class ParcelType>
 inline Foam::volScalarField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::linearKEBF()
+Foam::DSMCCloud<ParcelType>::linearKEBF()
 {
     return linearKE_.boundaryField();
 }
@@ -166,7 +166,7 @@ Foam::DsmcCloud<ParcelType>::linearKEBF()
 
 template<class ParcelType>
 inline Foam::volScalarField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::internalEBF()
+Foam::DSMCCloud<ParcelType>::internalEBF()
 {
     return internalE_.boundaryField();
 }
@@ -174,7 +174,7 @@ Foam::DsmcCloud<ParcelType>::internalEBF()
 
 template<class ParcelType>
 inline Foam::volScalarField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::iDofBF()
+Foam::DSMCCloud<ParcelType>::iDofBF()
 {
     return iDof_.boundaryField();
 }
@@ -182,7 +182,7 @@ Foam::DsmcCloud<ParcelType>::iDofBF()
 
 template<class ParcelType>
 inline Foam::volVectorField::GeometricBoundaryField&
-Foam::DsmcCloud<ParcelType>::momentumBF()
+Foam::DSMCCloud<ParcelType>::momentumBF()
 {
     return momentum_.boundaryField();
 }
@@ -190,7 +190,7 @@ Foam::DsmcCloud<ParcelType>::momentumBF()
 
 template<class ParcelType>
 inline const Foam::volScalarField&
-Foam::DsmcCloud<ParcelType>::boundaryT() const
+Foam::DSMCCloud<ParcelType>::boundaryT() const
 {
     return boundaryT_;
 }
@@ -198,66 +198,66 @@ Foam::DsmcCloud<ParcelType>::boundaryT() const
 
 template<class ParcelType>
 inline const Foam::volVectorField&
-Foam::DsmcCloud<ParcelType>::boundaryU() const
+Foam::DSMCCloud<ParcelType>::boundaryU() const
 {
     return boundaryU_;
 }
 
 
 template<class ParcelType>
-inline const Foam::BinaryCollisionModel<Foam::DsmcCloud<ParcelType> >&
-Foam::DsmcCloud<ParcelType>::binaryCollision() const
+inline const Foam::BinaryCollisionModel<Foam::DSMCCloud<ParcelType> >&
+Foam::DSMCCloud<ParcelType>::binaryCollision() const
 {
     return binaryCollisionModel_;
 }
 
 
 template<class ParcelType>
-inline Foam::BinaryCollisionModel<Foam::DsmcCloud<ParcelType> >&
-Foam::DsmcCloud<ParcelType>::binaryCollision()
+inline Foam::BinaryCollisionModel<Foam::DSMCCloud<ParcelType> >&
+Foam::DSMCCloud<ParcelType>::binaryCollision()
 {
     return binaryCollisionModel_();
 }
 
 
 template<class ParcelType>
-inline const Foam::WallInteractionModel<Foam::DsmcCloud<ParcelType> >&
-Foam::DsmcCloud<ParcelType>::wallInteraction() const
+inline const Foam::WallInteractionModel<Foam::DSMCCloud<ParcelType> >&
+Foam::DSMCCloud<ParcelType>::wallInteraction() const
 {
     return wallInteractionModel_;
 }
 
 
 template<class ParcelType>
-inline Foam::WallInteractionModel<Foam::DsmcCloud<ParcelType> >&
-Foam::DsmcCloud<ParcelType>::wallInteraction()
+inline Foam::WallInteractionModel<Foam::DSMCCloud<ParcelType> >&
+Foam::DSMCCloud<ParcelType>::wallInteraction()
 {
     return wallInteractionModel_();
 }
 
 
 template<class ParcelType>
-inline const Foam::InflowBoundaryModel<Foam::DsmcCloud<ParcelType> >&
-Foam::DsmcCloud<ParcelType>::inflowBoundary() const
+inline const Foam::InflowBoundaryModel<Foam::DSMCCloud<ParcelType> >&
+Foam::DSMCCloud<ParcelType>::inflowBoundary() const
 {
     return inflowBoundaryModel_;
 }
 
 
 template<class ParcelType>
-inline Foam::InflowBoundaryModel<Foam::DsmcCloud<ParcelType> >&
-Foam::DsmcCloud<ParcelType>::inflowBoundary()
+inline Foam::InflowBoundaryModel<Foam::DSMCCloud<ParcelType> >&
+Foam::DSMCCloud<ParcelType>::inflowBoundary()
 {
     return inflowBoundaryModel_();
 }
 
 
 template<class ParcelType>
-inline Foam::scalar Foam::DsmcCloud<ParcelType>::massInSystem() const
+inline Foam::scalar Foam::DSMCCloud<ParcelType>::massInSystem() const
 {
     scalar sysMass = 0.0;
 
-    forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
+    forAllConstIter(typename DSMCCloud<ParcelType>, *this, iter)
     {
         const ParcelType& p = iter();
 
@@ -274,11 +274,11 @@ inline Foam::scalar Foam::DsmcCloud<ParcelType>::massInSystem() const
 
 
 template<class ParcelType>
-inline Foam::vector Foam::DsmcCloud<ParcelType>::linearMomentumOfSystem() const
+inline Foam::vector Foam::DSMCCloud<ParcelType>::linearMomentumOfSystem() const
 {
     vector linearMomentum(vector::zero);
 
-    forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
+    forAllConstIter(typename DSMCCloud<ParcelType>, *this, iter)
     {
         const ParcelType& p = iter();
 
@@ -296,11 +296,11 @@ inline Foam::vector Foam::DsmcCloud<ParcelType>::linearMomentumOfSystem() const
 
 template<class ParcelType>
 inline Foam::scalar
-Foam::DsmcCloud<ParcelType>::linearKineticEnergyOfSystem() const
+Foam::DSMCCloud<ParcelType>::linearKineticEnergyOfSystem() const
 {
     scalar linearKineticEnergy = 0.0;
 
-    forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
+    forAllConstIter(typename DSMCCloud<ParcelType>, *this, iter)
     {
         const ParcelType& p = iter();
 
@@ -318,11 +318,11 @@ Foam::DsmcCloud<ParcelType>::linearKineticEnergyOfSystem() const
 
 template<class ParcelType>
 inline Foam::scalar
-Foam::DsmcCloud<ParcelType>::internalEnergyOfSystem() const
+Foam::DSMCCloud<ParcelType>::internalEnergyOfSystem() const
 {
     scalar internalEnergy = 0.0;
 
-    forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
+    forAllConstIter(typename DSMCCloud<ParcelType>, *this, iter)
     {
         const ParcelType& p = iter();
 
@@ -334,7 +334,7 @@ Foam::DsmcCloud<ParcelType>::internalEnergyOfSystem() const
 
 
 template<class ParcelType>
-inline Foam::scalar Foam::DsmcCloud<ParcelType>::maxwellianAverageSpeed
+inline Foam::scalar Foam::DSMCCloud<ParcelType>::maxwellianAverageSpeed
 (
     scalar temperature,
     scalar mass
@@ -346,7 +346,7 @@ inline Foam::scalar Foam::DsmcCloud<ParcelType>::maxwellianAverageSpeed
 
 
 template<class ParcelType>
-inline Foam::scalarField Foam::DsmcCloud<ParcelType>::maxwellianAverageSpeed
+inline Foam::scalarField Foam::DSMCCloud<ParcelType>::maxwellianAverageSpeed
 (
     scalarField temperature,
     scalar mass
@@ -359,7 +359,7 @@ inline Foam::scalarField Foam::DsmcCloud<ParcelType>::maxwellianAverageSpeed
 
 
 template<class ParcelType>
-inline Foam::scalar Foam::DsmcCloud<ParcelType>::maxwellianRMSSpeed
+inline Foam::scalar Foam::DSMCCloud<ParcelType>::maxwellianRMSSpeed
 (
     scalar temperature,
     scalar mass
@@ -370,7 +370,7 @@ inline Foam::scalar Foam::DsmcCloud<ParcelType>::maxwellianRMSSpeed
 
 
 template<class ParcelType>
-inline Foam::scalarField Foam::DsmcCloud<ParcelType>::maxwellianRMSSpeed
+inline Foam::scalarField Foam::DSMCCloud<ParcelType>::maxwellianRMSSpeed
 (
     scalarField temperature,
     scalar mass
@@ -384,7 +384,7 @@ inline Foam::scalarField Foam::DsmcCloud<ParcelType>::maxwellianRMSSpeed
 
 template<class ParcelType>
 inline Foam::scalar
-Foam::DsmcCloud<ParcelType>::maxwellianMostProbableSpeed
+Foam::DSMCCloud<ParcelType>::maxwellianMostProbableSpeed
 (
     scalar temperature,
     scalar mass
@@ -396,7 +396,7 @@ Foam::DsmcCloud<ParcelType>::maxwellianMostProbableSpeed
 
 template<class ParcelType>
 inline Foam::scalarField
-Foam::DsmcCloud<ParcelType>::maxwellianMostProbableSpeed
+Foam::DSMCCloud<ParcelType>::maxwellianMostProbableSpeed
 (
     scalarField temperature,
     scalar mass
@@ -409,14 +409,14 @@ Foam::DsmcCloud<ParcelType>::maxwellianMostProbableSpeed
 
 
 template<class ParcelType>
-inline const Foam::volScalarField& Foam::DsmcCloud<ParcelType>::q() const
+inline const Foam::volScalarField& Foam::DSMCCloud<ParcelType>::q() const
 {
     return q_;
 }
 
 
 template<class ParcelType>
-inline const Foam::volVectorField& Foam::DsmcCloud<ParcelType>::fD() const
+inline const Foam::volVectorField& Foam::DSMCCloud<ParcelType>::fD() const
 {
     return fD_;
 }
@@ -424,14 +424,14 @@ inline const Foam::volVectorField& Foam::DsmcCloud<ParcelType>::fD() const
 
 template<class ParcelType>
 inline const Foam::volScalarField&
-Foam::DsmcCloud<ParcelType>::rhoN() const
+Foam::DSMCCloud<ParcelType>::rhoN() const
 {
     return rhoN_;
 }
 
 
 template<class ParcelType>
-inline const Foam::volScalarField& Foam::DsmcCloud<ParcelType>::rhoM() const
+inline const Foam::volScalarField& Foam::DSMCCloud<ParcelType>::rhoM() const
 {
     return rhoM_;
 }
@@ -439,7 +439,7 @@ inline const Foam::volScalarField& Foam::DsmcCloud<ParcelType>::rhoM() const
 
 template<class ParcelType>
 inline const Foam::volScalarField&
-Foam::DsmcCloud<ParcelType>::dsmcRhoN() const
+Foam::DSMCCloud<ParcelType>::dsmcRhoN() const
 {
     return dsmcRhoN_;
 }
@@ -447,7 +447,7 @@ Foam::DsmcCloud<ParcelType>::dsmcRhoN() const
 
 template<class ParcelType>
 inline const Foam::volScalarField&
-Foam::DsmcCloud<ParcelType>::linearKE() const
+Foam::DSMCCloud<ParcelType>::linearKE() const
 {
     return linearKE_;
 }
@@ -455,7 +455,7 @@ Foam::DsmcCloud<ParcelType>::linearKE() const
 
 template<class ParcelType>
 inline const Foam::volScalarField&
-Foam::DsmcCloud<ParcelType>::internalE() const
+Foam::DSMCCloud<ParcelType>::internalE() const
 {
     return internalE_;
 }
@@ -463,21 +463,21 @@ Foam::DsmcCloud<ParcelType>::internalE() const
 
 template<class ParcelType>
 inline const Foam::volScalarField&
-Foam::DsmcCloud<ParcelType>::iDof() const
+Foam::DSMCCloud<ParcelType>::iDof() const
 {
     return iDof_;
 }
 
 
 template<class ParcelType>
-inline const Foam::volVectorField& Foam::DsmcCloud<ParcelType>::momentum() const
+inline const Foam::volVectorField& Foam::DSMCCloud<ParcelType>::momentum() const
 {
     return momentum_;
 }
 
 
 template<class ParcelType>
-inline void Foam::DsmcCloud<ParcelType>::clear()
+inline void Foam::DSMCCloud<ParcelType>::clear()
 {
     return IDLList<ParcelType>::clear();
 }

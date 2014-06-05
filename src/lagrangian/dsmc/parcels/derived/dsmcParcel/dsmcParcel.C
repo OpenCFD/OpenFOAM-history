@@ -48,7 +48,7 @@ Foam::dsmcParcel::dsmcParcel
     const label typeId
 )
 :
-    DsmcParcel<dsmcParcel>
+    DSMCParcel<dsmcParcel>
     (
         owner,
         position,
@@ -69,7 +69,7 @@ Foam::dsmcParcel::dsmcParcel
     bool readFields
 )
 :
-    DsmcParcel<dsmcParcel>(cloud, is, readFields)
+    DSMCParcel<dsmcParcel>(cloud, is, readFields)
 {}
 
 

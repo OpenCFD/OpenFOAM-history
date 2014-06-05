@@ -22,18 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::DsmcBaseCloud
+    Foam::DSMCBaseCloud
 
 Description
-    Virtual abstract base class for templated DsmcCloud
+    Virtual abstract base class for templated DSMCCloud
 
 SourceFiles
-    DsmcBaseCloud.C
+    DSMCBaseCloud.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef DsmcBaseCloud_H
-#define DsmcBaseCloud_H
+#ifndef DSMCBaseCloud_H
+#define DSMCBaseCloud_H
 
 #include "volFields.H"
 
@@ -43,32 +43,32 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class DsmcBaseCloud Declaration
+                       Class DSMCBaseCloud Declaration
 \*---------------------------------------------------------------------------*/
 
-class DsmcBaseCloud
+class DSMCBaseCloud
 {
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
-        DsmcBaseCloud(const DsmcBaseCloud&);
+        DSMCBaseCloud(const DSMCBaseCloud&);
 
         //- Disallow default bitwise assignment
-        void operator=(const DsmcBaseCloud&);
+        void operator=(const DSMCBaseCloud&);
 
 
 public:
 
     //- Runtime type information
-    TypeName("DsmcBaseCloud");
+    TypeName("DSMCBaseCloud");
 
     // Constructors
 
         //- Null constructor
-        DsmcBaseCloud();
+        DSMCBaseCloud();
 
     //- Destructor
-    virtual ~DsmcBaseCloud();
+    virtual ~DSMCBaseCloud();
 };
 
 

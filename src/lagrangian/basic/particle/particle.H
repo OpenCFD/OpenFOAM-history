@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -119,6 +119,17 @@ public:
                 return cloud_;
             }
     };
+
+
+private:
+
+    // Private static data members
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofPosition_;
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofFields_;
 
 
 protected:
@@ -334,7 +345,7 @@ public:
         );
 
         //- Construct from components, tetFaceI_ and tetPtI_ are not
-        //  supplied so they will be deduced by a search
+        //  supplied and are obtained by a search
         particle
         (
             const polyMesh& mesh,
@@ -556,8 +567,8 @@ public:
         template<class CloudType>
         static void writeFields(const CloudType& c);
 
-        //- Write the particle data
-        void write(Ostream& os, bool writeFields) const;
+        //- Write the particle position and cell
+        void writePosition(Ostream&) const;
 
 
     // Friend Operators

@@ -22,27 +22,27 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::DsmcParcel
+    Foam::DSMCParcel
 
 Description
     DSMC parcel class
 
 SourceFiles
-    DsmcParcelI.H
-    DsmcParcel.C
-    DsmcParcelIO.C
+    DSMCParcelI.H
+    DSMCParcel.C
+    DSMCParcelIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef DsmcParcel_H
-#define DsmcParcel_H
+#ifndef DSMCParcel_H
+#define DSMCParcel_H
 
 #include "particle.H"
 #include "IOstream.H"
 #include "autoPtr.H"
 #include "contiguous.H"
 
-#include "DsmcCloud.H"
+#include "DSMCCloud.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,7 +50,7 @@ namespace Foam
 {
 
 template<class ParcelType>
-class DsmcParcel;
+class DSMCParcel;
 
 // Forward declaration of friend functions
 
@@ -58,15 +58,15 @@ template<class ParcelType>
 Ostream& operator<<
 (
     Ostream&,
-    const DsmcParcel<ParcelType>&
+    const DSMCParcel<ParcelType>&
 );
 
 /*---------------------------------------------------------------------------*\
-                         Class DsmcParcel Declaration
+                         Class DSMCParcel Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class ParcelType>
-class DsmcParcel
+class DSMCParcel
 :
     public ParcelType
 {
@@ -125,21 +125,29 @@ public:
     //- Class used to pass kinematic tracking data to the trackToFace function
     class trackingData
     :
-        public particle::TrackingData<DsmcCloud<DsmcParcel<ParcelType> > >
+        public particle::TrackingData<DSMCCloud<DSMCParcel<ParcelType> > >
     {
     public:
 
         // Constructors
 
             //- Construct from components
-            trackingData(DsmcCloud<DsmcParcel<ParcelType> >& cloud)
+            trackingData(DSMCCloud<DSMCParcel<ParcelType> >& cloud)
             :
-                particle::TrackingData<DsmcCloud<DsmcParcel<ParcelType> > >
+                particle::TrackingData<DSMCCloud<DSMCParcel<ParcelType> > >
                 (
                     cloud
                 )
             {}
     };
+
+
+private:
+
+    // Private static data members
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofFields_;
 
 
 protected:
@@ -152,7 +160,7 @@ protected:
             vector U_;
 
             //- Internal energy of the Parcel, covering all non-translational
-            // degrees of freedom [J]
+            //  degrees of freedom [J]
             scalar Ei_;
 
             //- Parcel type id
@@ -162,7 +170,7 @@ protected:
 public:
 
     //- Runtime type information
-    TypeName("DsmcParcel");
+    TypeName("DSMCParcel");
 
     friend class Cloud<ParcelType>;
 
@@ -170,7 +178,7 @@ public:
     // Constructors
 
         //- Construct from components
-        inline DsmcParcel
+        inline DSMCParcel
         (
             const polyMesh& mesh,
             const vector& position,
@@ -183,7 +191,7 @@ public:
         );
 
         //- Construct from Istream
-        DsmcParcel
+        DSMCParcel
         (
             const polyMesh& mesh,
             Istream& is,
@@ -193,7 +201,7 @@ public:
         //- Construct and return a clone
         virtual autoPtr<particle> clone() const
         {
-            return autoPtr<particle>(new DsmcParcel<ParcelType>(*this));
+            return autoPtr<particle>(new DSMCParcel<ParcelType>(*this));
         }
 
 
@@ -210,11 +218,11 @@ public:
                 mesh_(mesh)
             {}
 
-            autoPtr<DsmcParcel<ParcelType> > operator()(Istream& is) const
+            autoPtr<DSMCParcel<ParcelType> > operator()(Istream& is) const
             {
-                return autoPtr<DsmcParcel<ParcelType> >
+                return autoPtr<DSMCParcel<ParcelType> >
                 (
-                    new DsmcParcel<ParcelType>(mesh_, is, true)
+                    new DSMCParcel<ParcelType>(mesh_, is, true)
                 );
             }
         };
@@ -302,9 +310,9 @@ public:
 
         // I-O
 
-            static void readFields(Cloud<DsmcParcel<ParcelType> >& c);
+            static void readFields(Cloud<DSMCParcel<ParcelType> >& c);
 
-            static void writeFields(const Cloud<DsmcParcel<ParcelType> >& c);
+            static void writeFields(const Cloud<DSMCParcel<ParcelType> >& c);
 
 
     // Ostream Operator
@@ -312,7 +320,7 @@ public:
         friend Ostream& operator<< <ParcelType>
         (
             Ostream&,
-            const DsmcParcel<ParcelType>&
+            const DSMCParcel<ParcelType>&
         );
 };
 
@@ -323,12 +331,12 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "DsmcParcelI.H"
+#include "DSMCParcelI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "DsmcParcel.C"
+    #include "DSMCParcel.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

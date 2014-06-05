@@ -23,23 +23,26 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "dsmcParcel.H"
-#include "DsmcCloud.H"
-#include "FreeStream.H"
-#include "NoInflow.H"
+#include "DSMCBaseCloud.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef DsmcCloud<dsmcParcel> CloudType;
-
-    makeInflowBoundaryModel(CloudType);
-
-    // Add instances of inflow boundary model to the table
-    makeInflowBoundaryModelType(FreeStream, CloudType);
-    makeInflowBoundaryModelType(NoInflow, CloudType);
+    defineTypeNameAndDebug(DSMCBaseCloud, 0);
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::DSMCBaseCloud::DSMCBaseCloud()
+{}
+
+
+// * * * * * * * * * * * * * * * *  Destructors  * * * * * * * * * * * * * * //
+
+Foam::DSMCBaseCloud::~DSMCBaseCloud()
+{}
 
 
 // ************************************************************************* //

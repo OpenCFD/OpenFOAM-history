@@ -2,12 +2,12 @@
 parcels/derived/dsmcParcel/dsmcParcel.C
 
 /* Cloud base classes */
-clouds/baseClasses/DsmcBaseCloud/DsmcBaseCloud.C
+clouds/baseClasses/DSMCBaseCloud/DSMCBaseCloud.C
 
 /* submodels */
-parcels/derived/dsmcParcel/defineDsmcParcel.C
-parcels/derived/dsmcParcel/makeDsmcParcelBinaryCollisionModels.C
-parcels/derived/dsmcParcel/makeDsmcParcelWallInteractionModels.C
-parcels/derived/dsmcParcel/makeDsmcParcelInflowBoundaryModels.C
+parcels/derived/dsmcParcel/defineDSMCParcel.C
+parcels/derived/dsmcParcel/makeDSMCParcelBinaryCollisionModels.C
+parcels/derived/dsmcParcel/makeDSMCParcelWallInteractionModels.C
+parcels/derived/dsmcParcel/makeDSMCParcelInflowBoundaryModels.C
 
 LIB = $(FOAM_LIBBIN)/libdsmc

@@ -22,22 +22,22 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::DsmcCloud
+    Foam::DSMCCloud
 
 Description
     Templated base class for dsmc cloud
 
 SourceFiles
-    DsmcCloudI.H
-    DsmcCloud.C
+    DSMCCloudI.H
+    DSMCCloud.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef DsmcCloud_H
-#define DsmcCloud_H
+#ifndef DSMCCloud_H
+#define DSMCCloud_H
 
 #include "Cloud.H"
-#include "DsmcBaseCloud.H"
+#include "DSMCBaseCloud.H"
 #include "IOdictionary.H"
 #include "autoPtr.H"
 #include "Random.H"
@@ -62,14 +62,14 @@ template<class CloudType>
 class InflowBoundaryModel;
 
 /*---------------------------------------------------------------------------*\
-                         Class DsmcCloud Declaration
+                         Class DSMCCloud Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class ParcelType>
-class DsmcCloud
+class DSMCCloud
 :
     public Cloud<ParcelType>,
-    public DsmcBaseCloud
+    public DSMCBaseCloud
 {
     // Private data
 
@@ -149,15 +149,15 @@ class DsmcCloud
         // References to the cloud sub-models
 
             //- Binary collision model
-            autoPtr<BinaryCollisionModel<DsmcCloud<ParcelType> > >
+            autoPtr<BinaryCollisionModel<DSMCCloud<ParcelType> > >
                 binaryCollisionModel_;
 
             //- Wall interaction model
-            autoPtr<WallInteractionModel<DsmcCloud<ParcelType> > >
+            autoPtr<WallInteractionModel<DSMCCloud<ParcelType> > >
                 wallInteractionModel_;
 
             //- Inflow boundary model
-            autoPtr<InflowBoundaryModel<DsmcCloud<ParcelType> > >
+            autoPtr<InflowBoundaryModel<DSMCCloud<ParcelType> > >
                 inflowBoundaryModel_;
 
 
@@ -182,10 +182,10 @@ class DsmcCloud
         void calculateFields();
 
         //- Disallow default bitwise copy construct
-        DsmcCloud(const DsmcCloud&);
+        DSMCCloud(const DSMCCloud&);
 
         //- Disallow default bitwise assignment
-        void operator=(const DsmcCloud&);
+        void operator=(const DSMCCloud&);
 
 
 public:
@@ -194,7 +194,7 @@ public:
 
         //- Construct given name and mesh, will read Parcels and fields from
         //  file
-        DsmcCloud
+        DSMCCloud
         (
             const word& cloudName,
             const fvMesh& mesh,
@@ -202,7 +202,7 @@ public:
         );
 
         //- Construct given name, mesh and initialisation dictionary.
-        DsmcCloud
+        DSMCCloud
         (
             const word& cloudName,
             const fvMesh& mesh,
@@ -211,7 +211,7 @@ public:
 
 
     //- Destructor
-    virtual ~DsmcCloud();
+    virtual ~DSMCCloud();
 
 
     //- Type of parcel the cloud was instantiated for
@@ -398,27 +398,27 @@ public:
             // Sub-models
 
                 //- Return reference to binary elastic collision model
-                inline const BinaryCollisionModel<DsmcCloud<ParcelType> >&
+                inline const BinaryCollisionModel<DSMCCloud<ParcelType> >&
                     binaryCollision() const;
 
                 //- Return non-const reference to binary elastic collision model
-                inline BinaryCollisionModel<DsmcCloud<ParcelType> >&
+                inline BinaryCollisionModel<DSMCCloud<ParcelType> >&
                     binaryCollision();
 
                 //- Return reference to wall interaction model
-                inline const WallInteractionModel<DsmcCloud<ParcelType> >&
+                inline const WallInteractionModel<DSMCCloud<ParcelType> >&
                     wallInteraction() const;
 
                 //- Return non-const reference to wall interaction model
-                inline WallInteractionModel<DsmcCloud<ParcelType> >&
+                inline WallInteractionModel<DSMCCloud<ParcelType> >&
                     wallInteraction();
 
                 //- Return reference to wall interaction model
-                inline const InflowBoundaryModel<DsmcCloud<ParcelType> >&
+                inline const InflowBoundaryModel<DSMCCloud<ParcelType> >&
                     inflowBoundary() const;
 
                 //- Return non-const reference to wall interaction model
-                inline InflowBoundaryModel<DsmcCloud<ParcelType> >&
+                inline InflowBoundaryModel<DSMCCloud<ParcelType> >&
                     inflowBoundary();
 
 
@@ -473,12 +473,12 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "DsmcCloudI.H"
+#include "DSMCCloudI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#   include "DsmcCloud.C"
+#   include "DSMCCloud.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

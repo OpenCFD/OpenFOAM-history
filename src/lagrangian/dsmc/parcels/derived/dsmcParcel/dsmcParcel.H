@@ -36,21 +36,21 @@ SourceFiles
 #define dsmcParcel_H
 
 #include "particle.H"
-#include "DsmcParcel.H"
+#include "DSMCParcel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-    typedef DsmcParcel<particle> dsmcParcel;
+    typedef DSMCParcel<particle> dsmcParcel;
 /*---------------------------------------------------------------------------*\
                          Class dsmcParcel Declaration
 \*---------------------------------------------------------------------------*/
 /*
 class dsmcParcel
 :
-    public DsmcParcel<dsmcParcel>
+    public DSMCParcel<dsmcParcel>
 {
 
 public:
@@ -64,7 +64,7 @@ public:
         //- Construct from components
         dsmcParcel
         (
-            DsmcCloud<dsmcParcel>& owner,
+            DSMCCloud<dsmcParcel>& owner,
             const vector& position,
             const vector& U,
             const scalar Ei,

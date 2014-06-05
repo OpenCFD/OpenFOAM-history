@@ -24,23 +24,13 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "dsmcParcel.H"
-#include "DsmcCloud.H"
-#include "MaxwellianThermal.H"
-#include "SpecularReflection.H"
-#include "MixedDiffuseSpecular.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "DSMCParcel.H"
+#include "DSMCCloud.H"
 
 namespace Foam
 {
-    typedef DsmcCloud<dsmcParcel> CloudType;
-
-    makeWallInteractionModel(CloudType);
-
-    // Add instances of wall interaction model to the table
-    makeWallInteractionModelType(MaxwellianThermal, CloudType);
-    makeWallInteractionModelType(SpecularReflection, CloudType);
-    makeWallInteractionModelType(MixedDiffuseSpecular, CloudType);
+    defineTemplateTypeNameAndDebug(DSMCParcel<particle>, 0);
+    defineTemplateTypeNameAndDebug(Cloud<dsmcParcel>, 0);
 }
 
 

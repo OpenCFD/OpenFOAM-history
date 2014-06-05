@@ -24,23 +24,23 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "dsmcParcel.H"
-#include "DsmcCloud.H"
-#include "NoBinaryCollision.H"
-#include "VariableHardSphere.H"
-#include "LarsenBorgnakkeVariableHardSphere.H"
+#include "DSMCCloud.H"
+#include "MaxwellianThermal.H"
+#include "SpecularReflection.H"
+#include "MixedDiffuseSpecular.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef DsmcCloud<dsmcParcel> CloudType;
+    typedef DSMCCloud<dsmcParcel> CloudType;
 
-    makeBinaryCollisionModel(DsmcCloud<dsmcParcel>);
+    makeWallInteractionModel(CloudType);
 
-    // Add instances of collision model to the table
-    makeBinaryCollisionModelType(NoBinaryCollision, CloudType);
-    makeBinaryCollisionModelType(VariableHardSphere, CloudType);
-    makeBinaryCollisionModelType(LarsenBorgnakkeVariableHardSphere, CloudType);
+    // Add instances of wall interaction model to the table
+    makeWallInteractionModelType(MaxwellianThermal, CloudType);
+    makeWallInteractionModelType(SpecularReflection, CloudType);
+    makeWallInteractionModelType(MixedDiffuseSpecular, CloudType);
 }
 
 

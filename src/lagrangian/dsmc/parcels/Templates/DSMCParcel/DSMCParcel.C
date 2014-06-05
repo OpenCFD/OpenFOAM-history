@@ -23,14 +23,14 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "DsmcParcel.H"
+#include "DSMCParcel.H"
 #include "meshTools.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class ParcelType>
 template<class TrackData>
-bool Foam::DsmcParcel<ParcelType>::move(TrackData& td, const scalar trackTime)
+bool Foam::DSMCParcel<ParcelType>::move(TrackData& td, const scalar trackTime)
 {
     typename TrackData::cloudType::parcelType& p =
         static_cast<typename TrackData::cloudType::parcelType&>(*this);
@@ -85,7 +85,7 @@ bool Foam::DsmcParcel<ParcelType>::move(TrackData& td, const scalar trackTime)
 
 template<class ParcelType>
 template<class TrackData>
-bool Foam::DsmcParcel<ParcelType>::hitPatch
+bool Foam::DSMCParcel<ParcelType>::hitPatch
 (
     const polyPatch&,
     TrackData& td,
@@ -100,7 +100,7 @@ bool Foam::DsmcParcel<ParcelType>::hitPatch
 
 template<class ParcelType>
 template<class TrackData>
-void Foam::DsmcParcel<ParcelType>::hitProcessorPatch
+void Foam::DSMCParcel<ParcelType>::hitProcessorPatch
 (
     const processorPolyPatch&,
     TrackData& td
@@ -112,7 +112,7 @@ void Foam::DsmcParcel<ParcelType>::hitProcessorPatch
 
 template<class ParcelType>
 template<class TrackData>
-void Foam::DsmcParcel<ParcelType>::hitWallPatch
+void Foam::DSMCParcel<ParcelType>::hitWallPatch
 (
     const wallPolyPatch& wpp,
     TrackData& td,
@@ -162,7 +162,7 @@ void Foam::DsmcParcel<ParcelType>::hitWallPatch
 
     td.cloud().wallInteraction().correct
     (
-        static_cast<DsmcParcel<ParcelType> &>(*this),
+        static_cast<DSMCParcel<ParcelType> &>(*this),
         wpp
     );
 
@@ -205,14 +205,14 @@ void Foam::DsmcParcel<ParcelType>::hitWallPatch
 
 template<class ParcelType>
 template<class TrackData>
-void Foam::DsmcParcel<ParcelType>::hitPatch(const polyPatch&, TrackData& td)
+void Foam::DSMCParcel<ParcelType>::hitPatch(const polyPatch&, TrackData& td)
 {
     td.keepParticle = false;
 }
 
 
 template<class ParcelType>
-void Foam::DsmcParcel<ParcelType>::transformProperties(const tensor& T)
+void Foam::DSMCParcel<ParcelType>::transformProperties(const tensor& T)
 {
     ParcelType::transformProperties(T);
     U_ = transform(T, U_);
@@ -220,7 +220,7 @@ void Foam::DsmcParcel<ParcelType>::transformProperties(const tensor& T)
 
 
 template<class ParcelType>
-void Foam::DsmcParcel<ParcelType>::transformProperties
+void Foam::DSMCParcel<ParcelType>::transformProperties
 (
     const vector& separation
 )
@@ -231,6 +231,6 @@ void Foam::DsmcParcel<ParcelType>::transformProperties
 
 // * * * * * * * * * * * * * * * *  IOStream operators * * * * * * * * * * * //
 
-#include "DsmcParcelIO.C"
+#include "DSMCParcelIO.C"
 
 // ************************************************************************* //
