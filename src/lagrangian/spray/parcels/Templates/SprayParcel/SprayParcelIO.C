@@ -45,6 +45,12 @@ Foam::string Foam::SprayParcel<ParcelType>::propHeader =
   + " tMom"
   + " user";
 
+template<class ParcelType>
+const std::size_t Foam::SprayParcel<ParcelType>::sizeofFields_
+(
+    sizeof(SprayParcel<ParcelType>) - sizeof(ParcelType)
+);
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -73,7 +79,6 @@ Foam::SprayParcel<ParcelType>::SprayParcel
 {
     if (readFields)
     {
-
         if (is.format() == IOstream::ASCII)
         {
             d0_ = readScalar(is);
@@ -92,9 +97,7 @@ Foam::SprayParcel<ParcelType>::SprayParcel
         }
         else
         {
-            label size = long(&user_) - long(&d0_) + sizeof(user_);
-
-            is.read(reinterpret_cast<char*>(&d0_), size);
+            is.read(reinterpret_cast<char*>(&d0_), sizeofFields_);
         }
     }
 
@@ -317,9 +320,11 @@ Foam::Ostream& Foam::operator<<
     else
     {
         os  << static_cast<const ParcelType&>(p);
-
-        label size = long(&p.user_) - long(&p.d0_) + sizeof(p.user_);
-        os.write(reinterpret_cast<const char*>(&p.d0_), size);
+        os.write
+        (
+            reinterpret_cast<const char*>(&p.d0_),
+            SprayParcel<ParcelType>::sizeofFields_
+        );
     }
 
     // Check state of Ostream

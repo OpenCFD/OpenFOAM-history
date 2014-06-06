@@ -216,37 +216,31 @@ case OpenFOAM:
 case ThirdParty:
     switch ("$WM_COMPILER")
     case Gcc:
-    case Gcc++0x:
     case Gcc46:
-    case Gcc46++0x:
         set gcc_version=gcc-4.6.1
         set gmp_version=gmp-5.0.4
         set mpfr_version=mpfr-3.1.0
         set mpc_version=mpc-0.9
         breaksw
     case Gcc49:
-    case Gcc49++0x:
         set gcc_version=gcc-4.9.0
         set gmp_version=gmp-5.1.2
         set mpfr_version=mpfr-3.1.2
         set mpc_version=mpc-1.0.1
         breaksw
     case Gcc48:
-    case Gcc48++0x:
         set gcc_version=gcc-4.8.3
         set gmp_version=gmp-5.1.2
         set mpfr_version=mpfr-3.1.2
         set mpc_version=mpc-1.0.1
         breaksw
     case Gcc47:
-    case Gcc47++0x:
         set gcc_version=gcc-4.7.2
         set gmp_version=gmp-5.0.4
         set mpfr_version=mpfr-3.1.0
         set mpc_version=mpc-0.9
         breaksw
     case Gcc45:
-    case Gcc45++0x:
         set gcc_version=gcc-4.5.2
         set gmp_version=gmp-5.0.1
         set mpfr_version=mpfr-2.4.2
@@ -339,19 +333,6 @@ default:
     echo "   treating as 'system' instead"
     breaksw
 endsw
-
-
-#
-# add c++0x flags for external programs
-#
-if ( $?WM_CXXFLAGS ) then
-    switch ("$WM_COMPILER")
-    case Gcc*++0x:
-        setenv WM_CXXFLAGS "$WM_CXXFLAGS -std=c++0x"
-        breaksw
-    endsw
-endif
-
 
 
 # Communications library

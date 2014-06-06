@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,25 +23,26 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "dsmcParcel.H"
-#include "DsmcCloud.H"
-#include "MaxwellianThermal.H"
-#include "SpecularReflection.H"
-#include "MixedDiffuseSpecular.H"
+#include "DSMCBaseCloud.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef DsmcCloud<dsmcParcel> CloudType;
-
-    makeWallInteractionModel(CloudType);
-
-    // Add instances of wall interaction model to the table
-    makeWallInteractionModelType(MaxwellianThermal, CloudType);
-    makeWallInteractionModelType(SpecularReflection, CloudType);
-    makeWallInteractionModelType(MixedDiffuseSpecular, CloudType);
+    defineTypeNameAndDebug(DSMCBaseCloud, 0);
 }
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::DSMCBaseCloud::DSMCBaseCloud()
+{}
+
+
+// * * * * * * * * * * * * * * * *  Destructors  * * * * * * * * * * * * * * //
+
+Foam::DSMCBaseCloud::~DSMCBaseCloud()
+{}
 
 
 // ************************************************************************* //

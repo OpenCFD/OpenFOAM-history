@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,7 +28,7 @@ License
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class ParcelType>
-inline Foam::DsmcParcel<ParcelType>::constantProperties::constantProperties()
+inline Foam::DSMCParcel<ParcelType>::constantProperties::constantProperties()
 :
     mass_(0),
     d_(0)
@@ -36,7 +36,7 @@ inline Foam::DsmcParcel<ParcelType>::constantProperties::constantProperties()
 
 
 template<class ParcelType>
-inline Foam::DsmcParcel<ParcelType>::constantProperties::constantProperties
+inline Foam::DSMCParcel<ParcelType>::constantProperties::constantProperties
 (
     const dictionary& dict
 )
@@ -52,7 +52,7 @@ inline Foam::DsmcParcel<ParcelType>::constantProperties::constantProperties
 
 
 template<class ParcelType>
-inline Foam::DsmcParcel<ParcelType>::DsmcParcel
+inline Foam::DSMCParcel<ParcelType>::DSMCParcel
 (
     const polyMesh& mesh,
     const vector& position,
@@ -75,14 +75,14 @@ inline Foam::DsmcParcel<ParcelType>::DsmcParcel
 
 template<class ParcelType>
 inline Foam::scalar
-Foam::DsmcParcel<ParcelType>::constantProperties::mass() const
+Foam::DSMCParcel<ParcelType>::constantProperties::mass() const
 {
     return mass_;
 }
 
 
 template<class ParcelType>
-inline Foam::scalar Foam::DsmcParcel<ParcelType>::constantProperties::d() const
+inline Foam::scalar Foam::DSMCParcel<ParcelType>::constantProperties::d() const
 {
     return d_;
 }
@@ -90,7 +90,7 @@ inline Foam::scalar Foam::DsmcParcel<ParcelType>::constantProperties::d() const
 
 template<class ParcelType>
 inline Foam::scalar
-Foam::DsmcParcel<ParcelType>::constantProperties::sigmaT() const
+Foam::DSMCParcel<ParcelType>::constantProperties::sigmaT() const
 {
     return constant::mathematical::pi*d_*d_;
 }
@@ -98,7 +98,7 @@ Foam::DsmcParcel<ParcelType>::constantProperties::sigmaT() const
 
 template<class ParcelType>
 inline Foam::scalar
-Foam::DsmcParcel<ParcelType>::constantProperties::internalDegreesOfFreedom()
+Foam::DSMCParcel<ParcelType>::constantProperties::internalDegreesOfFreedom()
 const
 {
     return internalDegreesOfFreedom_;
@@ -107,44 +107,44 @@ const
 
 template<class ParcelType>
 inline Foam::scalar
-Foam::DsmcParcel<ParcelType>::constantProperties::omega() const
+Foam::DSMCParcel<ParcelType>::constantProperties::omega() const
 {
     return omega_;
 }
 
 
-// * * * * * * * * * * DsmcParcel Member Functions  * * * * * * * * * * //
+// * * * * * * * * * * DSMCParcel Member Functions  * * * * * * * * * * //
 
 template<class ParcelType>
-inline Foam::label Foam::DsmcParcel<ParcelType>::typeId() const
+inline Foam::label Foam::DSMCParcel<ParcelType>::typeId() const
 {
     return typeId_;
 }
 
 
 template<class ParcelType>
-inline const Foam::vector& Foam::DsmcParcel<ParcelType>::U() const
+inline const Foam::vector& Foam::DSMCParcel<ParcelType>::U() const
 {
     return U_;
 }
 
 
 template<class ParcelType>
-inline Foam::scalar Foam::DsmcParcel<ParcelType>::Ei() const
+inline Foam::scalar Foam::DSMCParcel<ParcelType>::Ei() const
 {
     return Ei_;
 }
 
 
 template<class ParcelType>
-inline Foam::vector& Foam::DsmcParcel<ParcelType>::U()
+inline Foam::vector& Foam::DSMCParcel<ParcelType>::U()
 {
     return U_;
 }
 
 
 template<class ParcelType>
-inline Foam::scalar& Foam::DsmcParcel<ParcelType>::Ei()
+inline Foam::scalar& Foam::DSMCParcel<ParcelType>::Ei()
 {
     return Ei_;
 }

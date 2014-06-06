@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "DsmcCloud.H"
+#include "DSMCCloud.H"
 #include "BinaryCollisionModel.H"
 #include "WallInteractionModel.H"
 #include "InflowBoundaryModel.H"
@@ -37,7 +37,7 @@ using namespace Foam::constant;
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::buildConstProps()
+void Foam::DSMCCloud<ParcelType>::buildConstProps()
 {
     Info<< nl << "Constructing constant properties for" << endl;
     constProps_.setSize(typeIdList_.size());
@@ -62,14 +62,14 @@ void Foam::DsmcCloud<ParcelType>::buildConstProps()
 
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::buildCellOccupancy()
+void Foam::DSMCCloud<ParcelType>::buildCellOccupancy()
 {
     forAll(cellOccupancy_, cO)
     {
         cellOccupancy_[cO].clear();
     }
 
-    forAllIter(typename DsmcCloud<ParcelType>, *this, iter)
+    forAllIter(typename DSMCCloud<ParcelType>, *this, iter)
     {
         cellOccupancy_[iter().cell()].append(&iter());
     }
@@ -77,7 +77,7 @@ void Foam::DsmcCloud<ParcelType>::buildCellOccupancy()
 
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::initialise
+void Foam::DSMCCloud<ParcelType>::initialise
 (
     const IOdictionary& dsmcInitialiseDict
 )
@@ -134,7 +134,7 @@ void Foam::DsmcCloud<ParcelType>::initialise
 
                 if (typeId == -1)
                 {
-                    FatalErrorIn("Foam::DsmcCloud<ParcelType>::initialise")
+                    FatalErrorIn("Foam::DSMCCloud<ParcelType>::initialise")
                         << "typeId " << moleculeName << "not defined." << nl
                         << abort(FatalError);
                 }
@@ -216,7 +216,7 @@ void Foam::DsmcCloud<ParcelType>::initialise
 
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::collisions()
+void Foam::DSMCCloud<ParcelType>::collisions()
 {
     if (!binaryCollision().active())
     {
@@ -395,7 +395,7 @@ void Foam::DsmcCloud<ParcelType>::collisions()
 
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::resetFields()
+void Foam::DSMCCloud<ParcelType>::resetFields()
 {
     q_ = dimensionedScalar("zero",  dimensionSet(1, 0, -3, 0, 0), 0.0);
 
@@ -428,7 +428,7 @@ void Foam::DsmcCloud<ParcelType>::resetFields()
 
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::calculateFields()
+void Foam::DSMCCloud<ParcelType>::calculateFields()
 {
     scalarField& rhoN = rhoN_.internalField();
 
@@ -444,7 +444,7 @@ void Foam::DsmcCloud<ParcelType>::calculateFields()
 
     vectorField& momentum = momentum_.internalField();
 
-    forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
+    forAllConstIter(typename DSMCCloud<ParcelType>, *this, iter)
     {
         const ParcelType& p = iter();
         const label cellI = p.cell();
@@ -489,7 +489,7 @@ void Foam::DsmcCloud<ParcelType>::calculateFields()
 // * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * * //
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::addNewParcel
+void Foam::DSMCCloud<ParcelType>::addNewParcel
 (
     const vector& position,
     const vector& U,
@@ -519,7 +519,7 @@ void Foam::DsmcCloud<ParcelType>::addNewParcel
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class ParcelType>
-Foam::DsmcCloud<ParcelType>::DsmcCloud
+Foam::DSMCCloud<ParcelType>::DSMCCloud
 (
     const word& cloudName,
     const fvMesh& mesh,
@@ -527,7 +527,7 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
 )
 :
     Cloud<ParcelType>(mesh, cloudName, false),
-    DsmcBaseCloud(),
+    DSMCBaseCloud(),
     cloudName_(cloudName),
     mesh_(mesh),
     particleProperties_
@@ -699,7 +699,7 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
     ),
     binaryCollisionModel_
     (
-        BinaryCollisionModel<DsmcCloud<ParcelType> >::New
+        BinaryCollisionModel<DSMCCloud<ParcelType> >::New
         (
             particleProperties_,
             *this
@@ -707,7 +707,7 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
     ),
     wallInteractionModel_
     (
-        WallInteractionModel<DsmcCloud<ParcelType> >::New
+        WallInteractionModel<DSMCCloud<ParcelType> >::New
         (
             particleProperties_,
             *this
@@ -715,7 +715,7 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
     ),
     inflowBoundaryModel_
     (
-        InflowBoundaryModel<DsmcCloud<ParcelType> >::New
+        InflowBoundaryModel<DSMCCloud<ParcelType> >::New
         (
             particleProperties_,
             *this
@@ -741,7 +741,7 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
 
 
 template<class ParcelType>
-Foam::DsmcCloud<ParcelType>::DsmcCloud
+Foam::DSMCCloud<ParcelType>::DSMCCloud
 (
     const word& cloudName,
     const fvMesh& mesh,
@@ -749,7 +749,7 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
 )
     :
     Cloud<ParcelType>(mesh, cloudName, false),
-    DsmcBaseCloud(),
+    DSMCBaseCloud(),
     cloudName_(cloudName),
     mesh_(mesh),
     particleProperties_
@@ -962,14 +962,14 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class ParcelType>
-Foam::DsmcCloud<ParcelType>::~DsmcCloud()
+Foam::DSMCCloud<ParcelType>::~DSMCCloud()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::evolve()
+void Foam::DSMCCloud<ParcelType>::evolve()
 {
     typename ParcelType::trackingData td(*this);
 
@@ -999,12 +999,12 @@ void Foam::DsmcCloud<ParcelType>::evolve()
 
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::info() const
+void Foam::DSMCCloud<ParcelType>::info() const
 {
-    label nDsmcParticles = this->size();
-    reduce(nDsmcParticles, sumOp<label>());
+    label nDSMCParticles = this->size();
+    reduce(nDSMCParticles, sumOp<label>());
 
-    scalar nMol = nDsmcParticles*nParticle_;
+    scalar nMol = nDSMCParticles*nParticle_;
 
     vector linearMomentum = linearMomentumOfSystem();
     reduce(linearMomentum, sumOp<vector>());
@@ -1017,10 +1017,10 @@ void Foam::DsmcCloud<ParcelType>::info() const
 
     Info<< "Cloud name: " << this->name() << nl
         << "    Number of dsmc particles        = "
-        << nDsmcParticles
+        << nDSMCParticles
         << endl;
 
-    if (nDsmcParticles)
+    if (nDSMCParticles)
     {
         Info<< "    Number of molecules             = "
             << nMol << nl
@@ -1042,7 +1042,7 @@ void Foam::DsmcCloud<ParcelType>::info() const
 
 
 template<class ParcelType>
-Foam::vector Foam::DsmcCloud<ParcelType>::equipartitionLinearVelocity
+Foam::vector Foam::DSMCCloud<ParcelType>::equipartitionLinearVelocity
 (
     scalar temperature,
     scalar mass
@@ -1060,7 +1060,7 @@ Foam::vector Foam::DsmcCloud<ParcelType>::equipartitionLinearVelocity
 
 
 template<class ParcelType>
-Foam::scalar Foam::DsmcCloud<ParcelType>::equipartitionInternalEnergy
+Foam::scalar Foam::DSMCCloud<ParcelType>::equipartitionInternalEnergy
 (
     scalar temperature,
     scalar iDof
@@ -1101,7 +1101,7 @@ Foam::scalar Foam::DsmcCloud<ParcelType>::equipartitionInternalEnergy
 
 
 template<class ParcelType>
-void Foam::DsmcCloud<ParcelType>::dumpParticlePositions() const
+void Foam::DSMCCloud<ParcelType>::dumpParticlePositions() const
 {
     OFstream pObj
     (
@@ -1110,7 +1110,7 @@ void Foam::DsmcCloud<ParcelType>::dumpParticlePositions() const
       + this->db().time().timeName() + ".obj"
     );
 
-    forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
+    forAllConstIter(typename DSMCCloud<ParcelType>, *this, iter)
     {
         const ParcelType& p = iter();
 

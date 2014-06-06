@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -148,6 +148,14 @@ public:
             //- Non const access to the tracking part label
             inline trackPart& part();
     };
+
+
+private:
+
+    // Private static data members
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofFields_;
 
 
 protected:
