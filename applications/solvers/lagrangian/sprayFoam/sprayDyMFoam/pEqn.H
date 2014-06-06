@@ -13,10 +13,8 @@ if (pimple.transonic())
         "phid",
         fvc::interpolate(psi)
        *(
-            (
-                (fvc::interpolate(rho*HbyA) & mesh.Sf())
-              + rhorAUf*fvc::ddtCorr(rho, U, rhoUf)
-            )/fvc::interpolate(rho)
+            (fvc::interpolate(HbyA) & mesh.Sf())
+          + rhorAUf*fvc::ddtCorr(rho, U, rhoUf)/fvc::interpolate(rho)
         )
     );
 
@@ -49,7 +47,7 @@ else
     (
         "phiHbyA",
         (
-            (fvc::interpolate(HbyA) & mesh.Sf())
+            (fvc::interpolate(rho*HbyA) & mesh.Sf())
           + rhorAUf*fvc::ddtCorr(rho, U, rhoUf)
         )
     );
@@ -94,5 +92,10 @@ K = 0.5*magSqr(U);
 
 if (thermo.dpdt())
 {
-    dpdt = fvc::ddt(p) - fvc::div(fvc::meshPhi(rho, U), p);
+    dpdt = fvc::ddt(p);
+
+    if (mesh.moving())
+    {
+        dpdt -= fvc::div(fvc::meshPhi(rho, U), p);
+    }
 }
