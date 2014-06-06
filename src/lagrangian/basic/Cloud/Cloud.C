@@ -418,6 +418,12 @@ void Foam::Cloud<ParticleType>::autoMap
 //    polyMesh_.clearCellTree();
     cellWallFacesPtr_.clear();
 
+    // Ask for the tetBasePtIs to trigger all processors to build
+    // them, otherwise, if some processors have no particles then
+    // there is a comms mismatch.
+    polyMesh_.tetBasePtIs();
+
+
     forAllIter(typename Cloud<ParticleType>, *this, pIter)
     {
         ParticleType& p = pIter();

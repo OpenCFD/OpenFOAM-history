@@ -59,10 +59,13 @@ Foam::AveragingMethods::Dual<Type>::Dual
     tetVertices_(3),
     tetCoordinates_(4)
 {
+    // Work storage for tetIndices
+    DynamicList<tetIndices> cellTets;
+
     forAll(this->mesh_.C(), cellI)
     {
-        List<tetIndices> cellTets =
-            polyMeshTetDecomposition::cellTetIndices(this->mesh_, cellI);
+        polyMeshTetDecomposition::cellTetIndices(this->mesh_, cellI, cellTets);
+
         forAll(cellTets, tetI)
         {
             const tetIndices& tetIs = cellTets[tetI];

@@ -204,11 +204,14 @@ bool Foam::AveragingMethod<Type>::write() const
         dimensioned<TypeGrad>("zero", dimless, pTraits<TypeGrad>::zero)
     );
 
+
+    // Work storage for tetIndices
+    DynamicList<tetIndices> cellTets;
+
     // tet-volume weighted sums
     forAll(mesh_.C(), cellI)
     {
-        const List<tetIndices> cellTets =
-            polyMeshTetDecomposition::cellTetIndices(mesh_, cellI);
+        polyMeshTetDecomposition::cellTetIndices(mesh_, cellI, cellTets);
 
         forAll(cellTets, tetI)
         {
