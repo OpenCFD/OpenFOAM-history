@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -120,6 +120,14 @@ public:
             //- Return const access to the initial dynamic viscosity
             inline scalar mu0() const;
     };
+
+
+private:
+
+    // Private static data members
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofFields_;
 
 
 protected:

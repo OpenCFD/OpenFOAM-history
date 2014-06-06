@@ -741,6 +741,9 @@ void Foam::particle::hitWallFaces
 
     const polyBoundaryMesh& patches = mesh_.boundaryMesh();
 
+    // Storage for tetIndices
+    DynamicList<tetIndices> faceTetIs;
+
     forAll(thisCell, cFI)
     {
         label fI = thisCell[cFI];
@@ -756,8 +759,13 @@ void Foam::particle::hitWallFaces
         {
             // Get the decomposition of this wall face
 
-            const List<tetIndices> faceTetIs =
-                polyMeshTetDecomposition::faceTetIndices(mesh_, fI, cellI_);
+            polyMeshTetDecomposition::faceTetIndices
+            (
+                mesh_,
+                fI,
+                cellI_,
+                faceTetIs
+            );
 
             const Foam::face& f = pFaces[fI];
 

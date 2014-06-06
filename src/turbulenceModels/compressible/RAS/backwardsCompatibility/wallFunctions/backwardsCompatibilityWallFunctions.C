@@ -65,7 +65,7 @@ tmp<volScalarField> autoCreateAlphat
     }
     else
     {
-        Info<< "--> Creating " << fieldName
+        Info<< "Creating " << fieldName
             << " to employ run-time selectable wall functions" << endl;
 
         const fvBoundaryMesh& bm = mesh.boundary();
@@ -135,7 +135,7 @@ tmp<volScalarField> autoCreateMut
     }
     else
     {
-        Info<< "--> Creating " << fieldName
+        Info<< "Creating " << fieldName
             << " to employ run-time selectable wall functions" << endl;
 
         const fvBoundaryMesh& bm = mesh.boundary();
@@ -205,7 +205,7 @@ tmp<volScalarField> autoCreateLowReMut
     }
     else
     {
-        Info<< "--> Creating " << fieldName
+        Info<< "Creating " << fieldName
             << " to employ run-time selectable wall functions" << endl;
 
         const fvBoundaryMesh& bm = mesh.boundary();
@@ -354,4 +354,3 @@ tmp<volSymmTensorField> autoCreateR
 } // End namespace Foam
 
 // ************************************************************************* //
-

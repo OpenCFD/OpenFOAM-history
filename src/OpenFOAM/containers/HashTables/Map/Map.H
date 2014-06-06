@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -90,6 +90,12 @@ public:
         :
             HashTable<T, label, Hash<label> >(map)
         {}
+
+        //- Clone
+        autoPtr<Map<T> > clone() const
+        {
+            return autoPtr<Map<T> >(new Map<T>(*this));
+        }
 
 };
 

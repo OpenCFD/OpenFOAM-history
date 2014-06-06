@@ -4,6 +4,7 @@ set -x
 
 wmake
 
+wmake sprayDyMFoam
 wmake sprayEngineFoam
 
 # ----------------------------------------------------------------- end-of-file
