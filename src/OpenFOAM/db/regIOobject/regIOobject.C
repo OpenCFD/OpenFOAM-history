@@ -239,6 +239,45 @@ void Foam::regIOobject::addWatch()
                 << abort(FatalError);
         }
 
+        // If master-only reading only the master will have all dependencies
+        // so scatter these to slaves
+        bool masterOnly =
+            global()
+         && (
+                regIOobject::fileModificationChecking == timeStampMaster
+             || regIOobject::fileModificationChecking == inotifyMaster
+            );
+
+        if (masterOnly && Pstream::parRun())
+        {
+            // Get master watched files
+            fileNameList watchFiles;
+            if (Pstream::master())
+            {
+                watchFiles.setSize(watchIndices_.size());
+                forAll(watchIndices_, i)
+                {
+                    watchFiles[i] = time().getFile(watchIndices_[i]);
+                }
+            }
+            Pstream::scatter(watchFiles);
+
+            if (!Pstream::master())
+            {
+                // unregister current ones
+                forAllReverse(watchIndices_, i)
+                {
+                    time().removeWatch(watchIndices_[i]);
+                }
+
+                watchIndices_.clear();
+                forAll(watchFiles, i)
+                {
+                    watchIndices_.append(time().addTimeWatch(watchFiles[i]));
+                }
+            }
+        }
+
         addWatch(f);
     }
 }

@@ -27,7 +27,6 @@ License
 #include "Pstream.H"
 #include "simpleObjectRegistry.H"
 #include "dimensionedConstants.H"
-#include "HashSet.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -451,37 +450,7 @@ bool Foam::Time::read()
             // already updated all the watchIndices via the addWatch but
             // controlDict_ is an unregisteredIOdictionary so will only have
             // stored the dependencies as files.
-
-            // Monitor all files that controlDict depends on
-            const labelList& watchIndices = controlDict_.watchIndices();
-
-            DynamicList<label> newWatchIndices;
-            labelHashSet removedWatches(watchIndices);
-
-            forAll(controlDict_.files(), i)
-            {
-                const fileName& f = controlDict_.files()[i];
-                label index = findWatch(watchIndices, f);
-
-                if (index == -1)
-                {
-                    newWatchIndices.append(addTimeWatch(f));
-                }
-                else
-                {
-                    // Existing watch
-                    newWatchIndices.append(watchIndices[index]);
-                    removedWatches.erase(index);
-                }
-            }
-
-            // Remove any unused watches
-            forAllConstIter(labelHashSet, removedWatches, iter)
-            {
-                removeWatch(watchIndices[iter.key()]);
-            }
-
-            controlDict_.watchIndices() = newWatchIndices;
+             addWatches(controlDict_, controlDict_.files());
         }
         controlDict_.files().clear();
 
@@ -510,7 +479,6 @@ void Foam::Time::readModifiedObjects()
             ),
             Pstream::parRun()
         );
-
         // Time handling is special since controlDict_ is the one dictionary
         // that is not registered to any database.
 
@@ -526,36 +494,7 @@ void Foam::Time::readModifiedObjects()
                 // controlDict_ is an unregisteredIOdictionary so will only have
                 // stored the dependencies as files.
 
-                // Monitor all files that controlDict depends on
-                const labelList& watchIndices = controlDict_.watchIndices();
-
-                DynamicList<label> newWatchIndices;
-                labelHashSet removedWatches(watchIndices);
-
-                forAll(controlDict_.files(), i)
-                {
-                    const fileName& f = controlDict_.files()[i];
-                    label index = findWatch(watchIndices, f);
-
-                    if (index == -1)
-                    {
-                        newWatchIndices.append(addTimeWatch(f));
-                    }
-                    else
-                    {
-                        // Existing watch
-                        newWatchIndices.append(watchIndices[index]);
-                        removedWatches.erase(index);
-                    }
-                }
-
-                // Remove any unused watches
-                forAllConstIter(labelHashSet, removedWatches, iter)
-                {
-                    removeWatch(watchIndices[iter.key()]);
-                }
-
-                controlDict_.watchIndices() = newWatchIndices;
+                addWatches(controlDict_, controlDict_.files());
             }
             controlDict_.files().clear();
         }

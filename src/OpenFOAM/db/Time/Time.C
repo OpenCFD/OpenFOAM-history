@@ -26,6 +26,7 @@ License
 #include "Time.H"
 #include "PstreamReduceOps.H"
 #include "argList.H"
+#include "HashSet.H"
 
 #include <sstream>
 
@@ -361,19 +362,11 @@ Foam::Time::Time
         );
 
         // Monitor all files that controlDict depends on
-        forAll(controlDict_.files(), i)
-        {
-            const fileName& f = controlDict_.files()[i];
-            controlDict_.watchIndices().append(addTimeWatch(f));
-        }
-        // Clear dependent files
-        controlDict_.files().clear();
+        addWatches(controlDict_, controlDict_.files());
     }
-    else
-    {
-        // Clear dependent files
-        controlDict_.files().clear();
-    }
+
+    // Clear dependent files
+    controlDict_.files().clear();
 }
 
 
@@ -457,19 +450,11 @@ Foam::Time::Time
         );
 
         // Monitor all files that controlDict depends on
-        forAll(controlDict_.files(), i)
-        {
-            const fileName& f = controlDict_.files()[i];
-            controlDict_.watchIndices().append(addTimeWatch(f));
-        }
-        // Clear dependent files since not needed
-        controlDict_.files().clear();
+        addWatches(controlDict_, controlDict_.files());
     }
-    else
-    {
-        // Clear dependent files since not needed
-        controlDict_.files().clear();
-    }
+
+    // Clear dependent files since not needed
+    controlDict_.files().clear();
 }
 
 
@@ -558,19 +543,11 @@ Foam::Time::Time
         );
 
         // Monitor all files that controlDict depends on
-        forAll(controlDict_.files(), i)
-        {
-            const fileName& f = controlDict_.files()[i];
-            controlDict_.watchIndices().append(addTimeWatch(f));
-        }
-        // Clear dependent files since not needed
-        controlDict_.files().clear();
+        addWatches(controlDict_, controlDict_.files());
     }
-    else
-    {
-        // Clear dependent files since not needed
-        controlDict_.files().clear();
-    }
+
+    // Clear dependent files since not needed
+    controlDict_.files().clear();
 }
 
 
@@ -649,6 +626,40 @@ Foam::Time::~Time()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::Time::addWatches(regIOobject& rio, const fileNameList& files) const
+{
+    const labelList& watchIndices = rio.watchIndices();
+
+    DynamicList<label> newWatchIndices;
+    labelHashSet removedWatches(watchIndices);
+
+    forAll(files, i)
+    {
+        const fileName& f = files[i];
+        label index = findWatch(watchIndices, f);
+
+        if (index == -1)
+        {
+            newWatchIndices.append(addTimeWatch(f));
+        }
+        else
+        {
+            // Existing watch
+            newWatchIndices.append(watchIndices[index]);
+            removedWatches.erase(index);
+        }
+    }
+
+    // Remove any unused watches
+    forAllConstIter(labelHashSet, removedWatches, iter)
+    {
+        removeWatch(watchIndices[iter.key()]);
+    }
+
+    rio.watchIndices() = newWatchIndices;
+}
+
 
 Foam::label Foam::Time::findWatch
 (

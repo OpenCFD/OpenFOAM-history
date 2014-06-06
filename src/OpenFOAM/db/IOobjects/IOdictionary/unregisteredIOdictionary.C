@@ -124,6 +124,20 @@ void Foam::unregisteredIOdictionary::addWatch()
                 << " already watched" << abort(FatalError);
         }
 
+        // If master-only reading only the master will have all dependencies
+        // so scatter these to slaves
+        bool masterOnly =
+            global()
+         && (
+                regIOobject::fileModificationChecking == timeStampMaster
+             || regIOobject::fileModificationChecking == inotifyMaster
+            );
+
+        if (masterOnly && Pstream::parRun())
+        {
+            Pstream::scatter(files_);
+        }
+
         addWatch(f);
     }
 }

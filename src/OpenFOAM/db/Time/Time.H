@@ -335,6 +335,9 @@ public:
                 //- Read the objects that have been modified
                 void readModifiedObjects();
 
+                //- Helper: add watches for list of files
+                void addWatches(regIOobject&, const fileNameList&) const;
+
                 //- Find index (or -1) of file in list of handles
                 label findWatch
                 (
