@@ -40,6 +40,7 @@ SourceFiles
 
 #include "motionSolver.H"
 #include "pointFields.H"
+#include "pointIOField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,8 +65,13 @@ protected:
         mutable pointVectorField pointDisplacement_;
 
         //- Starting points
-        pointField points0_;
+        pointIOField points0_;
 
+
+    // Protected Member Functions
+
+        //- Return IO ovject for points0
+        IOobject points0IO(const polyMesh& mesh) const;
 
 private:
 

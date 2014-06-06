@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -87,6 +87,19 @@ Foam::HashTable<T, Key, Hash>::HashTable
     table_(NULL)
 {
     transfer(ht());
+}
+
+
+template<class T, class Key, class Hash>
+Foam::autoPtr
+<
+    Foam::HashTable<T, Key, Hash>
+> Foam::HashTable<T, Key, Hash>::clone() const
+{
+    return autoPtr< HashTable<T, Key, Hash> >
+    (
+        new HashTable<T, Key, Hash>(*this)
+    );
 }
 
 

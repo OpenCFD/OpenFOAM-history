@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -107,6 +107,12 @@ public:
         //  the type of values held is arbitrary.
         template<class AnyType, class AnyHash>
         HashSet(const HashTable<AnyType, Key, AnyHash>&);
+
+        //- Clone
+        autoPtr<HashSet<Key, Hash> > clone() const
+        {
+            return autoPtr<HashSet<Key, Hash> >(new HashSet<Key, Hash>(*this));
+        }
 
 
     // Member Functions

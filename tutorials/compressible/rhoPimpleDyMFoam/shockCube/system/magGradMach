@@ -22,7 +22,7 @@ indicator
     type coded;
     // Name of on-the-fly generated functionObject
     redirectType indicatorField;
-    codeTimeSet
+    code
     #{
         if (!mesh().foundObject<volScalarField>("magGradMach"))
         {
@@ -42,9 +42,7 @@ indicator
             tmagGradMach.ptr()->store();
 
         }
-    #};
-    code
-    #{
+
         Info<< "Looking up field magGradMach\n" << endl;
         volScalarField& magGradMach = const_cast<volScalarField&>
         (

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,25 +21,63 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::DSMCBaseCloud
+
+Description
+    Virtual abstract base class for templated DSMCCloud
+
+SourceFiles
+    DSMCBaseCloud.C
+
 \*---------------------------------------------------------------------------*/
 
-#include "dsmcParcel.H"
-#include "DsmcCloud.H"
-#include "FreeStream.H"
-#include "NoInflow.H"
+#ifndef DSMCBaseCloud_H
+#define DSMCBaseCloud_H
+
+#include "volFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef DsmcCloud<dsmcParcel> CloudType;
 
-    makeInflowBoundaryModel(CloudType);
+/*---------------------------------------------------------------------------*\
+                       Class DSMCBaseCloud Declaration
+\*---------------------------------------------------------------------------*/
 
-    // Add instances of inflow boundary model to the table
-    makeInflowBoundaryModelType(FreeStream, CloudType);
-    makeInflowBoundaryModelType(NoInflow, CloudType);
-}
+class DSMCBaseCloud
+{
+    // Private Member Functions
 
+        //- Disallow default bitwise copy construct
+        DSMCBaseCloud(const DSMCBaseCloud&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const DSMCBaseCloud&);
+
+
+public:
+
+    //- Runtime type information
+    TypeName("DSMCBaseCloud");
+
+    // Constructors
+
+        //- Null constructor
+        DSMCBaseCloud();
+
+    //- Destructor
+    virtual ~DSMCBaseCloud();
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,15 +23,24 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "DsmcParcel.H"
+#include "DSMCParcel.H"
 #include "IOstreams.H"
 #include "IOField.H"
 #include "Cloud.H"
 
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+template<class ParcelType>
+const std::size_t Foam::DSMCParcel<ParcelType>::sizeofFields_
+(
+    sizeof(DSMCParcel<ParcelType>) - sizeof(ParcelType)
+);
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class ParcelType>
-Foam::DsmcParcel<ParcelType>::DsmcParcel
+Foam::DSMCParcel<ParcelType>::DSMCParcel
 (
     const polyMesh& mesh,
     Istream& is,
@@ -53,27 +62,21 @@ Foam::DsmcParcel<ParcelType>::DsmcParcel
         }
         else
         {
-            is.read
-            (
-                reinterpret_cast<char*>(&U_),
-                sizeof(U_)
-              + sizeof(Ei_)
-              + sizeof(typeId_)
-            );
+            is.read(reinterpret_cast<char*>(&U_), sizeofFields_);
         }
     }
 
     // Check state of Istream
     is.check
     (
-        "DsmcParcel<ParcelType>::DsmcParcel"
+        "DSMCParcel<ParcelType>::DSMCParcel"
         "(const Cloud<ParcelType>&, Istream&, bool)"
     );
 }
 
 
 template<class ParcelType>
-void Foam::DsmcParcel<ParcelType>::readFields(Cloud<DsmcParcel<ParcelType> >& c)
+void Foam::DSMCParcel<ParcelType>::readFields(Cloud<DSMCParcel<ParcelType> >& c)
 {
     if (!c.size())
     {
@@ -92,9 +95,9 @@ void Foam::DsmcParcel<ParcelType>::readFields(Cloud<DsmcParcel<ParcelType> >& c)
     c.checkFieldIOobject(c, typeId);
 
     label i = 0;
-    forAllIter(typename Cloud<DsmcParcel<ParcelType> >, c, iter)
+    forAllIter(typename Cloud<DSMCParcel<ParcelType> >, c, iter)
     {
-        DsmcParcel<ParcelType>& p = iter();
+        DSMCParcel<ParcelType>& p = iter();
 
         p.U_ = U[i];
         p.Ei_ = Ei[i];
@@ -105,9 +108,9 @@ void Foam::DsmcParcel<ParcelType>::readFields(Cloud<DsmcParcel<ParcelType> >& c)
 
 
 template<class ParcelType>
-void Foam::DsmcParcel<ParcelType>::writeFields
+void Foam::DSMCParcel<ParcelType>::writeFields
 (
-    const Cloud<DsmcParcel<ParcelType> >& c
+    const Cloud<DSMCParcel<ParcelType> >& c
 )
 {
     ParcelType::writeFields(c);
@@ -119,9 +122,9 @@ void Foam::DsmcParcel<ParcelType>::writeFields
     IOField<label> typeId(c.fieldIOobject("typeId", IOobject::NO_READ), np);
 
     label i = 0;
-    forAllConstIter(typename Cloud<DsmcParcel<ParcelType> >, c, iter)
+    forAllConstIter(typename Cloud<DSMCParcel<ParcelType> >, c, iter)
     {
-        const DsmcParcel<ParcelType>& p = iter();
+        const DSMCParcel<ParcelType>& p = iter();
 
         U[i] = p.U();
         Ei[i] = p.Ei();
@@ -141,7 +144,7 @@ template<class ParcelType>
 Foam::Ostream& Foam::operator<<
 (
     Ostream& os,
-    const DsmcParcel<ParcelType>& p
+    const DSMCParcel<ParcelType>& p
 )
 {
     if (os.format() == IOstream::ASCII)
@@ -157,16 +160,14 @@ Foam::Ostream& Foam::operator<<
         os.write
         (
             reinterpret_cast<const char*>(&p.U_),
-            sizeof(p.U())
-          + sizeof(p.Ei())
-          + sizeof(p.typeId())
+            DSMCParcel<ParcelType>::sizeofFields_
         );
     }
 
     // Check state of Ostream
     os.check
     (
-        "Ostream& operator<<(Ostream&, const DsmcParcel<ParcelType>&)"
+        "Ostream& operator<<(Ostream&, const DSMCParcel<ParcelType>&)"
     );
 
     return os;

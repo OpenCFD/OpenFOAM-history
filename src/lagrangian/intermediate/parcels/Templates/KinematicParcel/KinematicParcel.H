@@ -218,8 +218,16 @@ public:
     };
 
 
-    //- Number of particle tracking attempts before we assume that it stalls
-    static label maxTrackAttempts;
+private:
+
+    // Private static data members
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofFields_;
+
+
+        //- Number of particle tracking attempts before we assume that it stalls
+        static label maxTrackAttempts;
 
 
 protected:

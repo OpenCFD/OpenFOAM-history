@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,11 +68,7 @@ bool Foam::IOPosition<CloudType>::writeData(Ostream& os) const
 
     forAllConstIter(typename CloudType, cloud_, iter)
     {
-        const typename CloudType::particleType& p = iter();
-
-        // Prevent writing additional fields
-        p.write(os, false);
-
+        iter().writePosition(os);
         os  << nl;
     }
 

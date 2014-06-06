@@ -76,7 +76,58 @@ Foam::refinementHistory::splitCell8::splitCell8(const splitCell8& sc)
 {}
 
 
-// * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
+
+//- Copy operator since autoPtr otherwise 'steals' storage.
+void Foam::refinementHistory::splitCell8::operator=(const splitCell8& s)
+{
+    // Check for assignment to self
+    if (this == &s)
+    {
+        FatalErrorIn("splitCell8::operator=(const Foam::splitCell8&)")
+            << "Attempted assignment to self"
+            << abort(FatalError);
+    }
+
+    parent_ = s.parent_;
+
+    addedCellsPtr_.reset
+    (
+        s.addedCellsPtr_.valid()
+      ? new FixedList<label, 8>(s.addedCellsPtr_())
+      : NULL
+    );
+}
+
+
+bool Foam::refinementHistory::splitCell8::operator==(const splitCell8& s) const
+{
+    if (addedCellsPtr_.valid() != s.addedCellsPtr_.valid())
+    {
+        return false;
+    }
+    else if (parent_ != s.parent_)
+    {
+        return false;
+    }
+    else if (addedCellsPtr_.valid())
+    {
+        return addedCellsPtr_() == s.addedCellsPtr_();
+    }
+    else
+    {
+        return true;
+    }
+}
+
+
+bool Foam::refinementHistory::splitCell8::operator!=(const splitCell8& s) const
+{
+    return !operator==(s);
+}
+
+
+// * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * * //
 
 Foam::Istream& Foam::operator>>(Istream& is, refinementHistory::splitCell8& sc)
 {

@@ -31,7 +31,7 @@ doMach
         -I$(LIB_SRC)/transportModels/compressible/lnInclude \
         -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude
     #};
-    codeTimeSet
+    code
     #{
         if (!mesh().foundObject<volScalarField>("Mach"))
         {
@@ -61,9 +61,7 @@ doMach
 
             tMach.ptr()->store();
         }
-    #};
-    code
-    #{
+
         Info<< "Looking up field Mach\n" << endl;
         volScalarField& Mach = const_cast<volScalarField&>
         (

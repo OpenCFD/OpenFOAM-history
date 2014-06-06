@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,63 +21,27 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::DsmcBaseCloud
-
-Description
-    Virtual abstract base class for templated DsmcCloud
-
-SourceFiles
-    DsmcBaseCloud.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef DsmcBaseCloud_H
-#define DsmcBaseCloud_H
-
-#include "volFields.H"
+#include "dsmcParcel.H"
+#include "DSMCCloud.H"
+#include "MaxwellianThermal.H"
+#include "SpecularReflection.H"
+#include "MixedDiffuseSpecular.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+    typedef DSMCCloud<dsmcParcel> CloudType;
 
-/*---------------------------------------------------------------------------*\
-                       Class DsmcBaseCloud Declaration
-\*---------------------------------------------------------------------------*/
+    makeWallInteractionModel(CloudType);
 
-class DsmcBaseCloud
-{
-    // Private Member Functions
+    // Add instances of wall interaction model to the table
+    makeWallInteractionModelType(MaxwellianThermal, CloudType);
+    makeWallInteractionModelType(SpecularReflection, CloudType);
+    makeWallInteractionModelType(MixedDiffuseSpecular, CloudType);
+}
 
-        //- Disallow default bitwise copy construct
-        DsmcBaseCloud(const DsmcBaseCloud&);
-
-        //- Disallow default bitwise assignment
-        void operator=(const DsmcBaseCloud&);
-
-
-public:
-
-    //- Runtime type information
-    TypeName("DsmcBaseCloud");
-
-    // Constructors
-
-        //- Null constructor
-        DsmcBaseCloud();
-
-    //- Destructor
-    virtual ~DsmcBaseCloud();
-};
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

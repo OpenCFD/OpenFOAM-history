@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,6 +35,12 @@ Foam::globalIndex::globalIndex(const Xfer<labelList>& offsets)
 :
     offsets_(offsets)
 {}
+
+
+Foam::autoPtr<Foam::globalIndex> Foam::globalIndex::clone() const
+{
+    return autoPtr<globalIndex>(new globalIndex(offsets_));
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
