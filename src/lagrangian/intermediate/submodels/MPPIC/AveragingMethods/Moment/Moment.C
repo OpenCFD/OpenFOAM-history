@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -60,10 +60,13 @@ Foam::AveragingMethods::Moment<Type>::Moment
     xQ[2] = vector(c, c, b);
     xQ[3] = vector(c, c, c);
 
+
+    // Work storage for tetIndices
+    DynamicList<tetIndices> cellTets;
+
     forAll(mesh.C(), cellI)
     {
-        const List<tetIndices> cellTets =
-            polyMeshTetDecomposition::cellTetIndices(mesh, cellI);
+        polyMeshTetDecomposition::cellTetIndices(mesh, cellI, cellTets);
 
         symmTensor A(symmTensor::zero);
 

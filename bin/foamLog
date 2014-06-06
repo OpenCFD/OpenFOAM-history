@@ -96,6 +96,8 @@ The database ($Script.db) will taken from these locations:
 
 Option -q suppresses the default information and only prints the extracted
 variables.
+Note: any variables printed before the separator (e.g. Courant number, deltaT)
+are off by one iteration.
 -----------------------------------------------------------------------------
 HELP
 
@@ -295,6 +297,7 @@ cat << AWK_CONTENTS > $AWKFILE
 # header
 BEGIN {
     Iteration=0
+    Time=0
     resetCounters()
 }
 
@@ -331,6 +334,16 @@ function extract(inLine,columnSel,outVar,a,b)
 AWK_CONTENTS
 # ----------
 
+#
+# Code for lines to ignore
+#
+getQueries $DBFILE 'Ignore'
+cat << AWK_CONTENTS >> $AWKFILE
+/$LINEQ/ {
+    next;
+}
+
+AWK_CONTENTS
 #
 # Code for iteration separator (increments 'Iteration')
 #
