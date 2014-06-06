@@ -77,7 +77,7 @@ autoCreateWallFunctionField
     }
     else
     {
-        Info<< "--> Upgrading " << fieldName
+        Info<< "Upgrading " << fieldName
             << " to employ run-time selectable wall functions" << endl;
 
         // Read existing field

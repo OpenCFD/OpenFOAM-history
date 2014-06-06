@@ -2,9 +2,9 @@
 cd ${0%/*} || exit 1    # run from this directory
 set -x
 
-wmake
+wclean
 
-wmake sprayDyMFoam
-wmake sprayEngineFoam
+wclean sprayDyMFoam
+wclean sprayEngineFoam
 
 # ----------------------------------------------------------------- end-of-file
