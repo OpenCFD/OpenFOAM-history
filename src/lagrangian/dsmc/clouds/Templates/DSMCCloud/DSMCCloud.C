@@ -1124,4 +1124,17 @@ void Foam::DSMCCloud<ParcelType>::dumpParticlePositions() const
 }
 
 
+template<class ParcelType>
+void Foam::DSMCCloud<ParcelType>::autoMap(const mapPolyMesh& mapper)
+{
+    typedef typename  ParcelType::trackingData tdType;
+
+    tdType td(*this);
+
+    Cloud<ParcelType>::template autoMap<tdType>(td, mapper);
+
+    this->updateMesh();
+}
+
+
 // ************************************************************************* //
