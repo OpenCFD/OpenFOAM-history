@@ -5,7 +5,7 @@
 #+DATE:                     11th January 2013
 #+LINK:                  http://www.openfoam.org
 #+OPTIONS: author:nil ^:{}
-# Copyright (c) 2013 OpenFOAM Foundation.
+# Copyright (c) 2013-2014 OpenFOAM Foundation.
 
 * About OpenFOAM
   OpenFOAM is a free, open source computational fluid dynamics (CFD) software
