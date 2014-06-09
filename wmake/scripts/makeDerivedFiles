@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #-------------------------------------------------------------------------------
 # License
@@ -76,8 +76,7 @@ rm tmpSourceFile
 
 # make objectFiles
 # ~~~~~~~~~~~~~~~~
-sed -e 's%.*/%%'               \
-    -e 's%^%$(OBJECTS_DIR)/%'  \
+sed -e 's%^%$(OBJECTS_DIR)/%'  \
     -e 's%\.[a-zA-Z]*$%\.o%'   \
     files.$$ > tmpObjectFiles
 
@@ -91,26 +90,11 @@ sed -e 's/$/\\/'    \
 rm tmpObjectFiles tmpObjectFiles2
 
 
-# make localObjectFiles
-# ~~~~~~~~~~~~~~~~~~~~~
-sed -e 's%.*/%%'               \
-    -e 's%\.[a-zA-Z]*$%\.o%'   \
-    files.$$ > tmpLocalObjectFiles
-
-echo "LOCAL_OBJECTS = " > tmpLocalObjectFiles2
-cat tmpLocalObjectFiles >> tmpLocalObjectFiles2
-
-sed -e 's/$/\\/'    \
-    -e '$s/\\//'    \
-    tmpLocalObjectFiles2 > localObjectFiles
-
-rm tmpLocalObjectFiles tmpLocalObjectFiles2
-
-
 # make dependencyFiles
 # ~~~~~~~~~~~~~~~~~~~~
-sed 's/\.[a-zA-Z]*$/\.dep/' \
-     files.$$ > tmpDependencyFiles
+sed -e 's%^%$(OBJECTS_DIR)/%'  \
+    -e 's%$%\.dep%'   \
+    files.$$ > tmpDependencyFiles
 
 echo "DEPENDENCIES = " > tmpDependencyFiles2
 cat tmpDependencyFiles >> tmpDependencyFiles2
@@ -124,10 +108,11 @@ rm tmpDependencyFiles tmpDependencyFiles2
 
 # make includeDeps
 # ~~~~~~~~~~~~~~~~
-sed -e 's/\.[a-zA-Z]*$/.dep/'   \
-    -e 's/^/include /'          \
+sed -e 's%^%include $(OBJECTS_DIR)/%'  \
+    -e 's%$%\.dep%'   \
     files.$$ > includeDeps
 
 rm files.$$
+
 
 #------------------------------------------------------------------------------

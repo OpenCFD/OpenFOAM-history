@@ -152,9 +152,7 @@ unset targetType
 
 # -----------------------------------------------------------------------------
 
-rm -rf $MakeDir/$WM_OPTIONS $MakeDir/classes 2>/dev/null
-
-find . -name "*.dep" -exec rm {} \;
+rm -rf $MakeDir/$WM_OPTIONS 2>/dev/null
 
 # Always safe to remove lnInclude
 rm -rf lnInclude 2>/dev/null

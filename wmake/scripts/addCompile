@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -28,23 +28,29 @@
 # Description
 #     Cleans up the dependency list and add the compilation statement.
 #
-#     Usage: wmkdep <fileName> | addCompile <fileName>
+#     Usage: wmkdep <fileName> | addCompile <source fileName> <dep fileName>
 #
 #------------------------------------------------------------------------------
 
+# Source file name manipulation
 sourceName=${1##*/}
-objectName=${sourceName%.*}.o
-className=${sourceName%.*}.class
-sub=${1##*.}
-depName=${1%.*}.dep
-
 sourceDir=${1%/*}
+objectName=${1%.*}.o
+sub=${1##*.}
 
 if [ "$sourceDir" = "$sourceName" ]
 then
     sourceDir=.
 fi
 
+# Dependency file name
+depName=$2
+
+# Make the directory for the dependency and object files
+objectDir=${2%/*}
+mkdir -p $objectDir
+
+# Replace the 'WM_PROJECT_DIR' path with the '$(WM_PROJECT_DIR)' variable
 if [ "$WM_PROJECT_DIR" ]
 then
     sed -e s%$WM_PROJECT_DIR%'$(WM_PROJECT_DIR)'% > $depName
@@ -52,13 +58,20 @@ else
     cat > $depName
 fi
 
+# Add the '$(OBJECTS_DIR)' path component to the object file
 sed -e s%".*.o.*:"%'$(OBJECTS_DIR)/'"$objectName\:"%  \
     -e s%$WM_PROJECT_DIR%'$(WM_PROJECT_DIR)'%         \
     >> $depName
 
+# Complete the dependencies
 echo '$(OBJECTS_DIR)/'$objectName': $(EXE_DEP)' >> $depName
 echo '$(OBJECTS_DIR)/'$objectName':' >> $depName
+
+# Add the definition of the 'SOURCE_DIR' variable
 echo '	@SOURCE_DIR='$sourceDir >> $depName
+
+# Add the compilation statement
 echo '	SOURCE='$1' ; $('$sub'too)' >> $depName
+
 
 #------------------------------------------------------------------------------

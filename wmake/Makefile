@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -58,17 +58,14 @@ WM_SCRIPTS   = $(WM_DIR)/scripts
 LIB_SRC            = $(WM_PROJECT_DIR)/src
 LIB_PLATFORMS      = $(WM_PROJECT_DIR)/platforms/$(WM_OPTIONS)/lib
 OBJECTS_DIR        = $(MAKE_DIR)/$(WM_OPTIONS)
-CLASSES_DIR        = $(MAKE_DIR)/classes
 
 SYS_INC            =
 SYS_LIBS           =
 
-PROJECT_INC        = -I$(LIB_SRC)/$(WM_PROJECT)/lnInclude -I$(LIB_SRC)/OSspecific/$(WM_OSTYPE)/lnInclude
+PROJECT_INC        = -I$(LIB_SRC)/$(WM_PROJECT)/lnInclude \
+		     -I$(LIB_SRC)/OSspecific/$(WM_OSTYPE)/lnInclude
+
 PROJECT_LIBS       = -l$(WM_PROJECT)
-##
-## unused:
-## PROJECT_VERSION    = $(shell printf -- "-DPROJECT_VERSION=%d%03d%03d" $$(echo $(WM_PROJECT_VERSION) | sed -e 's/\./ /g'))
-##
 
 EXE_INC            =
 EXE_LIBS           =
@@ -112,7 +109,7 @@ include $(GENERAL_RULES)/general
 include $(RULES)/general
 include $(RULES)/$(WM_LINK_LANGUAGE)
 
-MAKE_DEP   = @$(MKDEP) $< | $(WM_SCRIPTS)/addCompile $<
+MAKE_DEP   = @$(MKDEP) $< | $(WM_SCRIPTS)/addCompile $< $@
 
 
 #------------------------------------------------------------------------------
@@ -125,7 +122,6 @@ include $(OBJECTS_DIR)/options
 include $(OBJECTS_DIR)/filesMacros
 include $(OBJECTS_DIR)/sourceFiles
 include $(OBJECTS_DIR)/objectFiles
-include $(OBJECTS_DIR)/localObjectFiles
 include $(OBJECTS_DIR)/dependencyFiles
 
 #------------------------------------------------------------------------------
@@ -145,65 +141,59 @@ LIB_HEADER_DIRS = \
 # define link statements for executables
 #------------------------------------------------------------------------------
 
-$(EXE):  $(OBJECTS)
-	     @$(WM_SCRIPTS)/makeTargetDir $(EXE)
-	     $(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
-	     $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(EXE)
+$(EXE): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
+	$(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
+	    $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
+	    $(LINK_LIBS) $(GLIBS) -o $(EXE)
 
-exe:     $(SEXE)
-	     @echo \'$(SEXE)\' is up to date.
+exe:    $(SEXE)
+	@echo \'$(SEXE)\' is up to date.
 
-$(SEXE): $(OBJECTS)
-	     @$(WM_SCRIPTS)/makeTargetDir $(SEXE)
-	     $(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
-         $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
+$(SEXE):$(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(SEXE)
+	$(LINKEXE) $(OBJECTS) $(EXE_LIBS) \
+	    $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)
 
 
 #------------------------------------------------------------------------------
 # define link statements for libraries
 #------------------------------------------------------------------------------
 
-objects: $(OBJECTS)
+objects:$(OBJECTS)
 
-libso:   $(LIB).$(SO)
-	     @echo \'$(LIB).$(SO)\' is up to date.
+libso:  $(LIB).$(SO)
+	@echo \'$(LIB).$(SO)\' is up to date.
 
 $(LIB).$(SO): $(OBJECTS)
-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
-	     @rm -f so_locations
-	     @cd $(OBJECTS_DIR) ; \
-	     $(LINKLIBSO) $(LOCAL_OBJECTS) -L$(LIB_PLATFORMS) $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	$(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
+	    $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
 
-lib:     $(LIB).a
-	     @echo \'$(LIB).a\' is up to date.
+lib:    $(LIB).a
+	@echo \'$(LIB).a\' is up to date.
 
 $(LIB).a: $(OBJECTS)
-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
-	     @rm -f $(LIB).a
-	     $(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
-	     $(RANLIB) $(LIB).a
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	@rm -f $(LIB).a
+	$(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
+	$(RANLIB) $(LIB).a
 
-libo:    $(LIB).o
-	     @echo \'$(LIB).o\' is up to date.
+libo:   $(LIB).o
+	@echo \'$(LIB).o\' is up to date.
 
 $(LIB).o: $(OBJECTS)
-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
-	     @rm -f $(LIB).o
-	     $(LD) -r -o $(LIB).o $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	@rm -f $(LIB).o
+	$(LD) -r -o $(LIB).o $(OBJECTS)
 
-jar:     $(LIB).jar
-	     @echo \'$(LIB).jar\' is up to date.
-
-$(LIB).jar: $(OBJECTS)
-	     @$(WM_SCRIPTS)/makeTargetDir $(LIB)
-	     jar cfm $(LIB).jar $(LIB_LIBS) -C $(CLASSES_DIR) .
 
 #------------------------------------------------------------------------------
 # Set rule to create the include directory for libraries
 #------------------------------------------------------------------------------
 
 lnInclude/uptodate: $(MAKE_DIR)/files $(MAKE_DIR)/options
-	     @rm -rf lnInclude ; wmakeLnInclude . ; touch lnInclude/uptodate
+	@rm -rf lnInclude ; wmakeLnInclude . ; touch lnInclude/uptodate
 
 
 #------------------------------------------------------------------------------

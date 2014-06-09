@@ -2,5 +2,5 @@
 
 Ltoo = flex -+ -o$*.C -f $$SOURCE ; $(CC) $(c++FLAGS) -c $*.C -o $@
 
-.L.dep:
+$(OBJECTS_DIR)/%.L.dep : %.L
 	$(MAKE_DEP)

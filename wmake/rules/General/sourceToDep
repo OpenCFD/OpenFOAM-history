@@ -2,23 +2,23 @@
 
 MKDEP       = $(WMAKE_BIN)/wmkdep -I$(*D) $(LIB_HEADER_DIRS)
 
-.c.dep:
+$(OBJECTS_DIR)/%.c.dep : %.c
 	$(MAKE_DEP)
 
-.cc.dep:
+$(OBJECTS_DIR)/%.cc.dep : %.cc
 	$(MAKE_DEP)
 
-.cxx.dep:
+$(OBJECTS_DIR)/%.cxx.dep : %.cxx
 	$(MAKE_DEP)
 
-.cpp.dep:
+$(OBJECTS_DIR)/%.cpp.dep : %.cpp
 	$(MAKE_DEP)
 
-.C.dep:
+$(OBJECTS_DIR)/%.C.dep : %.C
 	$(MAKE_DEP)
 
-.F.dep:
+$(OBJECTS_DIR)/%.F.dep : %.F
 	$(MAKE_DEP)
 
-.f.dep:
+$(OBJECTS_DIR)/%.f.dep : %.f
 	$(MAKE_DEP)
