@@ -715,13 +715,19 @@ void Foam::polyMeshTetDecomposition::cellTetIndices
     }
 
     cellTets.clear();
-    cellTets.setSize(nTets);
+    cellTets.reserve(nTets);
+
+    DynamicList<tetIndices> faceTets;
 
     forAll(thisCell, cFI)
     {
         label fI = thisCell[cFI];
 
-        cellTets.append(faceTetIndices(mesh, fI, cI));
+        faceTetIndices(mesh, fI, cI, faceTets);
+        forAll(faceTets, i)
+        {
+            cellTets.append(faceTets[i]);
+        }
     }
 }
 
