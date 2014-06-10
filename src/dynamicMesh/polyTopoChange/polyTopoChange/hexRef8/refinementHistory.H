@@ -125,50 +125,11 @@ public:
         splitCell8(const splitCell8&);
 
         //- Copy operator since autoPtr otherwise 'steals' storage.
-        void operator=(const splitCell8& s)
-        {
-            // Check for assignment to self
-            if (this == &s)
-            {
-                FatalErrorIn("splitCell8::operator=(const Foam::splitCell8&)")
-                    << "Attempted assignment to self"
-                    << abort(FatalError);
-            }
+        void operator=(const splitCell8& s);
 
-            parent_ = s.parent_;
+        bool operator==(const splitCell8& s) const;
 
-            addedCellsPtr_.reset
-            (
-                s.addedCellsPtr_.valid()
-              ? new FixedList<label, 8>(s.addedCellsPtr_())
-              : NULL
-            );
-        }
-
-        bool operator==(const splitCell8& s) const
-        {
-            if (addedCellsPtr_.valid() != s.addedCellsPtr_.valid())
-            {
-                return false;
-            }
-            else if (parent_ != s.parent_)
-            {
-                return false;
-            }
-            else if (addedCellsPtr_.valid())
-            {
-                return addedCellsPtr_() == s.addedCellsPtr_();
-            }
-            else
-            {
-                return true;
-            }
-        }
-
-        bool operator!=(const splitCell8& s) const
-        {
-            return !operator==(s);
-        }
+        bool operator!=(const splitCell8& s) const;
 
         friend Istream& operator>>(Istream&, splitCell8&);
         friend Ostream& operator<<(Ostream&, const splitCell8&);

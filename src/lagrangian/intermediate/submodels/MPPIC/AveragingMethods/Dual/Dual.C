@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,7 +29,7 @@ License
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 template<class Type>
-Foam::autoPtr<labelList> Foam::AveragingMethods::Dual<Type>::size
+Foam::autoPtr<Foam::labelList> Foam::AveragingMethods::Dual<Type>::size
 (
     const fvMesh& mesh
 )
@@ -59,10 +59,13 @@ Foam::AveragingMethods::Dual<Type>::Dual
     tetVertices_(3),
     tetCoordinates_(4)
 {
+    // Work storage for tetIndices
+    DynamicList<tetIndices> cellTets;
+
     forAll(this->mesh_.C(), cellI)
     {
-        List<tetIndices> cellTets =
-            polyMeshTetDecomposition::cellTetIndices(this->mesh_, cellI);
+        polyMeshTetDecomposition::cellTetIndices(this->mesh_, cellI, cellTets);
+
         forAll(cellTets, tetI)
         {
             const tetIndices& tetIs = cellTets[tetI];

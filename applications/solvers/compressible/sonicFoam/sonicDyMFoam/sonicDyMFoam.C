@@ -34,9 +34,9 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "dynamicFvMesh.H"
 #include "psiThermo.H"
 #include "turbulenceModel.H"
-#include "motionSolver.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
 
@@ -46,30 +46,71 @@ int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
     #include "createTime.H"
-    #include "createMesh.H"
+    #include "createDynamicFvMesh.H"
+    #include "initContinuityErrs.H"
 
     pimpleControl pimple(mesh);
 
+    #include "readControls.H"
     #include "createFields.H"
     #include "createFvOptions.H"
+    #include "createPcorrTypes.H"
     #include "createRhoUf.H"
-    #include "initContinuityErrs.H"
+    #include "CourantNo.H"
+    #include "setInitialDeltaT.H"
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
 
-    autoPtr<motionSolver> motionPtr = motionSolver::New(mesh);
-
-    while (runTime.loop())
+    while (runTime.run())
     {
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
+        #include "readControls.H"
         #include "compressibleCourantNo.H"
 
-        mesh.movePoints(motionPtr->newPoints());
+        #include "setDeltaT.H"
 
-        #include "rhoEqn.H"
+        runTime++;
+
+        Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        {
+            // Store momentum to set rhoUf for introduced faces.
+            volVectorField rhoU("rhoU", rho*U);
+
+            // Store divrhoU from the previous time-step/mesh for the correctPhi
+            volScalarField divrhoU
+            (
+                "divrhoU",
+                fvc::div(fvc::absolute(phi, rho, U))
+            );
+
+            // Do any mesh changes
+            mesh.update();
+
+            if (mesh.changing() && correctPhi)
+            {
+                // Calculate absolute flux from the mapped surface velocity
+                phi = mesh.Sf() & rhoUf;
+
+                #include "correctPhi.H"
+
+                // Make the fluxes relative to the mesh-motion
+                fvc::makeRelative(phi, rho, U);
+            }
+        }
+
+        if (mesh.changing() && checkMeshCourantNo)
+        {
+            #include "meshCourantNo.H"
+        }
+
+        if (pimple.nCorrPIMPLE() <= 1)
+        {
+            #include "rhoEqn.H"
+            Info<< "rhoEqn max/min : " << max(rho).value()
+                << " " << min(rho).value() << endl;
+        }
 
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
@@ -88,8 +129,6 @@ int main(int argc, char *argv[])
                 turbulence->correct();
             }
         }
-
-        rho = thermo.rho();
 
         runTime.write();
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -85,6 +85,14 @@ public:
     };
 
 
+private:
+
+    // Private static data members
+
+        //- Size in bytes of all the fields transfered in binary
+        static const std::size_t sizeofFields_;
+
+
 protected:
 
     // Protected data
@@ -109,15 +117,6 @@ protected:
 
         //- Construct current edge
         edge currentEdge() const;
-
-        //- Check if inside current tet
-        //void checkInside() const;
-
-        //- Check if on current edge
-        //void checkOnEdge() const;
-
-        //- Check if point on triangle
-        //void checkOnTriangle(const point&) const;
 
         //- Cross mesh edge into different face on same cell
         void crossEdgeConnectedFace(const edge& meshEdge);
@@ -209,6 +208,7 @@ protected:
             const polyPatch&,
             TrackData& td
         );
+
 
 public:
 
@@ -316,9 +316,6 @@ public:
             //- Write
             template<class CloudType>
             static void writeFields(const CloudType&);
-
-            //- Write the particle data
-            void write(Ostream& os, bool writeFields) const;
 
 
     // Ostream Operator

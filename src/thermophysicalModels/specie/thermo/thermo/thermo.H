@@ -122,6 +122,10 @@ class thermo
 
 public:
 
+    //- The thermodynamics of the individual species'
+    typedef thermo<Thermo, Type> thermoType;
+
+
     // Constructors
 
         //- construct from components

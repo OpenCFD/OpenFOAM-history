@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,14 +35,14 @@ SourceFiles
 #ifndef dsmcCloud_H
 #define dsmcCloud_H
 
-#include "DsmcCloud.H"
+#include "DSMCCloud.H"
 #include "dsmcParcel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef DsmcCloud<dsmcParcel> dsmcCloud;
+    typedef DSMCCloud<dsmcParcel> dsmcCloud;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

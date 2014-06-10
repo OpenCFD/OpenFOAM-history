@@ -34,6 +34,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "dynamicFvMesh.H"
 #include "psiThermo.H"
 #include "turbulenceModel.H"
 #include "zeroGradientFvPatchFields.H"
@@ -45,9 +46,8 @@ Description
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
-
     #include "createTime.H"
-    #include "createMesh.H"
+    #include "createDynamicFvMesh.H"
     #include "createFields.H"
     #include "readTimeControls.H"
 
@@ -57,12 +57,23 @@ int main(int argc, char *argv[])
 
     dimensionedScalar v_zero("v_zero", dimVolume/dimTime, 0.0);
 
-    Info<< "\nStarting time loop\n" << endl;
+    scalar CoNum = 0.0;
+    scalar meanCoNum = 0.0;
 
-    autoPtr<Foam::motionSolver> motionPtr = motionSolver::New(mesh);
+    Info<< "\nStarting time loop\n" << endl;
 
     while (runTime.run())
     {
+        #include "readTimeControls.H"
+        #include "setDeltaT.H"
+
+        runTime++;
+
+        Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        // Do any mesh changes
+        mesh.update();
+
         // --- upwind interpolation of primitive fields on faces
 
         surfaceScalarField rho_pos
@@ -158,14 +169,6 @@ int main(int argc, char *argv[])
         amaxSf = max(mag(aphiv_pos), mag(aphiv_neg));
 
         #include "compressibleCourantNo.H"
-        #include "readTimeControls.H"
-        #include "setDeltaT.H"
-
-        runTime++;
-
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        mesh.movePoints(motionPtr->newPoints());
 
         phi = aphiv_pos*rho_pos + aphiv_neg*rho_neg;
 
@@ -179,9 +182,13 @@ int main(int argc, char *argv[])
         (
             aphiv_pos*(rho_pos*(e_pos + 0.5*magSqr(U_pos)) + p_pos)
           + aphiv_neg*(rho_neg*(e_neg + 0.5*magSqr(U_neg)) + p_neg)
-          + mesh.phi()*(a_pos*p_pos + a_neg*p_neg)
           + aSf*p_pos - aSf*p_neg
         );
+
+        if (mesh.moving())
+        {
+            phiEp += mesh.phi()*(a_pos*p_pos + a_neg*p_neg);
+        }
 
         volScalarField muEff(turbulence->muEff());
         volTensorField tauMC("tauMC", muEff*dev2(Foam::T(fvc::grad(U))));

@@ -1,21 +1,20 @@
     Info<< "\nReading transportProperties\n" << endl;
 
-    IOdictionary transportProperties
-    (
-        IOobject
-        (
-            "transportProperties",
-            runTime.constant(),
-            mesh,
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
-        )
-    );
-
     dimensionedScalar rhoInfValue
     (
-        transportProperties.lookup("rhoInf")
+        IOdictionary
+        (
+            IOobject
+            (
+                "transportProperties",
+                runTime.constant(),
+                mesh,
+                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::NO_WRITE
+            )
+        ).lookup("rhoInf")
     );
+
 
     volScalarField rhoInf
     (

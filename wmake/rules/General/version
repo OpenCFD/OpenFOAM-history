@@ -9,5 +9,5 @@ Cvertoo = \
         $$SOURCE > $*.C; \
     $(CC) $(c++FLAGS) -c $*.C -o $@
 
-.Cver.dep:
+$(OBJECTS_DIR)/%.Cver.dep : %.Cver
 	$(MAKE_DEP)

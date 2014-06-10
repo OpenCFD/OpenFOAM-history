@@ -2634,12 +2634,24 @@ int main(int argc, char *argv[])
     else
     {
         // Time coming from processor0 (or undecomposed if no processor0)
-        scalar masterTime = runTime.value();
+        scalar masterTime;
         if (decompose)
         {
-            // Copy base time. This is to handle e.g. startTime = latestTime
+            // Use base time. This is to handle e.g. startTime = latestTime
             // which will not do anything if there are no processor directories
-            masterTime = baseRunTime.value();
+            masterTime = timeSelector::selectIfPresent
+            (
+                baseRunTime,
+                args
+            )[0].value();
+        }
+        else
+        {
+            masterTime = timeSelector::selectIfPresent
+            (
+                runTime,
+                args
+            )[0].value();
         }
         Pstream::scatter(masterTime);
         Info<< "Setting time to that of master or undecomposed case : "
