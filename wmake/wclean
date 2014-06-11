@@ -147,7 +147,12 @@ unset targetType
 
 if [ -d $MakeDir ]
 then
-    rm -rf $MakeDir/$WM_OPTIONS 2>/dev/null
+    objectsDir=$MakeDir/$WM_OPTIONS
+    if echo $PWD | grep "$WM_PROJECT_DIR"
+    then
+        objectsDir=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
+    fi
+    rm -rf $objectsDir 2>/dev/null
 fi
 
 
