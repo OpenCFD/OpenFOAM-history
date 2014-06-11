@@ -42,68 +42,8 @@ SourceFiles
 
 namespace Foam
 {
-
     typedef DSMCParcel<particle> dsmcParcel;
-/*---------------------------------------------------------------------------*\
-                         Class dsmcParcel Declaration
-\*---------------------------------------------------------------------------*/
-/*
-class dsmcParcel
-:
-    public DSMCParcel<dsmcParcel>
-{
-
-public:
-
-    //- Run-time type information
-    TypeName("dsmcParcel");
-
-
-    // Constructors
-
-        //- Construct from components
-        dsmcParcel
-        (
-            DSMCCloud<dsmcParcel>& owner,
-            const vector& position,
-            const vector& U,
-            const scalar Ei,
-            const label cellI,
-            const label tetFaceI,
-            const label tetPtI,
-            const label typeId
-        );
-
-        //- Construct from Istream
-        dsmcParcel
-        (
-            const Cloud<dsmcParcel>& c,
-            Istream& is,
-            bool readFields = true
-        );
-
-        //- Construct and return a clone
-        autoPtr<Particle<dsmcParcel> > clone() const
-        {
-            return autoPtr<Particle<dsmcParcel> >(new dsmcParcel(*this));
-        }
-
-
-    //- Destructor
-    virtual ~dsmcParcel();
-};
-
-
-template<>
-inline bool contiguous<dsmcParcel>()
-{
-    return true;
 }
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-*/
-} // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

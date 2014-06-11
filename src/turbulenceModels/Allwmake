@@ -6,9 +6,9 @@ targetType=libso
 . $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
 set -x
 
-LES/Allwmake $*
-incompressible/Allwmake $*
-compressible/Allwmake $*
+LES/Allwmake $targetType $*
+incompressible/Allwmake $targetType $*
+compressible/Allwmake $targetType $*
 wmake $targetType derivedFvPatchFields
 
 # ----------------------------------------------------------------- end-of-file
