@@ -15,6 +15,6 @@ wmake $targetType spray
 wmake $targetType dsmc
 wmake $targetType coalCombustion
 
-molecularDynamics/Allwmake $*
+molecularDynamics/Allwmake $targetType $*
 
 # ----------------------------------------------------------------- end-of-file

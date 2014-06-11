@@ -6,8 +6,8 @@ targetType=libso
 . $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
 set -x
 
-decompose/Allwmake $*
-reconstruct/Allwmake $*
+decompose/Allwmake $targetType $*
+reconstruct/Allwmake $targetType $*
 wmake $targetType distributed
 
 
