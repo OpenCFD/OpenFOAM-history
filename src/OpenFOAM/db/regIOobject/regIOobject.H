@@ -72,12 +72,14 @@ protected:
             const word& typeName
         );
 
+public:
         //- Check readOpt flags and read if necessary. Uses above read
         bool readHeaderOk
         (
             const IOstream::streamFormat PstreamFormat,
             const word& typeName
         );
+protected:
 
         //- Construct and return an IFstream for the object.
         //  The results is NULL if the stream construction failed
@@ -97,8 +99,8 @@ private:
         //- Is this object owned by the registry
         bool ownedByRegistry_;
 
-        //- Modification watch index
-        mutable label watchIndex_;
+        //- List of modification watch indices
+        mutable labelList watchIndices_;
 
         //- eventNo of last update
         label eventNo_;
@@ -160,7 +162,7 @@ public:
             bool checkOut();
 
             //- Add file watch on object (if registered and READ_IF_MODIFIED)
-            void addWatch();
+            virtual void addWatch();
 
             //- Is this object owned by the registry?
             inline bool ownedByRegistry() const;
@@ -256,11 +258,15 @@ public:
             //- Read object
             virtual bool read();
 
-            //- Return file-monitoring handle
-            inline label watchIndex() const;
+            //- Add file watch for fileName on object if not yet watched. Return
+            //  index of watch
+            virtual label addWatch(const fileName&);
 
-            //- Return file-monitoring handle
-            inline label& watchIndex();
+            //- Return file-monitoring handles
+            inline const labelList& watchIndices() const;
+
+            //- Return file-monitoring handles
+            inline labelList& watchIndices();
 
             //- Return true if the object's file (or files for objectRegistry)
             //  have been modified. (modified state is cached by Time)

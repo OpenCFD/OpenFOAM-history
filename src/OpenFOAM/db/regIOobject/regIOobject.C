@@ -56,7 +56,7 @@ Foam::regIOobject::regIOobject(const IOobject& io, const bool isTime)
     IOobject(io),
     registered_(false),
     ownedByRegistry_(false),
-    watchIndex_(-1),
+    watchIndices_(),
     eventNo_                // Do not get event for top level Time database
     (
         isTime
@@ -79,7 +79,7 @@ Foam::regIOobject::regIOobject(const regIOobject& rio)
     IOobject(rio),
     registered_(false),
     ownedByRegistry_(false),
-    watchIndex_(rio.watchIndex_),
+    watchIndices_(rio.watchIndices_),
     eventNo_(db().getEvent()),
     isPtr_(NULL)
 {
@@ -94,7 +94,7 @@ Foam::regIOobject::regIOobject(const regIOobject& rio, bool registerCopy)
     IOobject(rio),
     registered_(false),
     ownedByRegistry_(false),
-    watchIndex_(-1),
+    watchIndices_(),
     eventNo_(db().getEvent()),
     isPtr_(NULL)
 {
@@ -178,15 +178,38 @@ bool Foam::regIOobject::checkOut()
     {
         registered_ = false;
 
-        if (watchIndex_ != -1)
+        forAllReverse(watchIndices_, i)
         {
-            time().removeWatch(watchIndex_);
-            watchIndex_ = -1;
+            time().removeWatch(watchIndices_[i]);
         }
+        watchIndices_.clear();
         return db().checkOut(*this);
     }
 
     return false;
+}
+
+
+Foam::label Foam::regIOobject::addWatch(const fileName& f)
+{
+    label index = -1;
+
+    if
+    (
+        registered_
+     && readOpt() == MUST_READ_IF_MODIFIED
+     && time().runTimeModifiable()
+    )
+    {
+        index = time().findWatch(watchIndices_, f);
+
+        if (index == -1)
+        {
+            index = watchIndices_.size();
+            watchIndices_.append(time().addTimeWatch(f));
+        }
+    }
+    return index;
 }
 
 
@@ -199,14 +222,6 @@ void Foam::regIOobject::addWatch()
      && time().runTimeModifiable()
     )
     {
-        if (watchIndex_ != -1)
-        {
-            FatalErrorIn("regIOobject::addWatch()")
-                << "Object " << objectPath() << " of type " << type()
-                << " already watched with index " << watchIndex_
-                << abort(FatalError);
-        }
-
         fileName f = filePath();
         if (!f.size())
         {
@@ -214,7 +229,56 @@ void Foam::regIOobject::addWatch()
             // Possibly if master-only reading mode.
             f = objectPath();
         }
-        watchIndex_ = time().addWatch(f);
+
+        label index = time().findWatch(watchIndices_, f);
+        if (index != -1)
+        {
+            FatalErrorIn("regIOobject::addWatch()")
+                << "Object " << objectPath() << " of type " << type()
+                << " already watched with index " << watchIndices_[index]
+                << abort(FatalError);
+        }
+
+        // If master-only reading only the master will have all dependencies
+        // so scatter these to slaves
+        bool masterOnly =
+            global()
+         && (
+                regIOobject::fileModificationChecking == timeStampMaster
+             || regIOobject::fileModificationChecking == inotifyMaster
+            );
+
+        if (masterOnly && Pstream::parRun())
+        {
+            // Get master watched files
+            fileNameList watchFiles;
+            if (Pstream::master())
+            {
+                watchFiles.setSize(watchIndices_.size());
+                forAll(watchIndices_, i)
+                {
+                    watchFiles[i] = time().getFile(watchIndices_[i]);
+                }
+            }
+            Pstream::scatter(watchFiles);
+
+            if (!Pstream::master())
+            {
+                // unregister current ones
+                forAllReverse(watchIndices_, i)
+                {
+                    time().removeWatch(watchIndices_[i]);
+                }
+
+                watchIndices_.clear();
+                forAll(watchFiles, i)
+                {
+                    watchIndices_.append(time().addTimeWatch(watchFiles[i]));
+                }
+            }
+        }
+
+        addWatch(f);
     }
 }
 

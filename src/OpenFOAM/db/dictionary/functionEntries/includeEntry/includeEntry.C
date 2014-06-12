@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,10 +24,10 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "includeEntry.H"
-#include "dictionary.H"
 #include "IFstream.H"
 #include "addToMemberFunctionSelectionTable.H"
 #include "stringOps.H"
+#include "Time.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -127,6 +127,9 @@ bool Foam::functionEntries::includeEntry::execute
     (
         includeFileName(is.name().path(), rawFName, parentDict)
     );
+
+
+    // Read contents of file into parentDict
     IFstream ifs(fName);
 
     if (ifs)
@@ -135,6 +138,21 @@ bool Foam::functionEntries::includeEntry::execute
         {
             Info<< fName << endl;
         }
+
+        // Add watch on included file
+        const dictionary& top = parentDict.topDict();
+        if (isA<regIOobject>(top))
+        {
+            regIOobject& rio = const_cast<regIOobject&>
+            (
+                dynamic_cast<const regIOobject&>(top)
+            );
+            //Info<< rio.name() << " : adding depenency on included file "
+            //    << fName << endl;
+
+            rio.addWatch(fName);
+        }
+
         parentDict.read(ifs);
         return true;
     }
@@ -167,6 +185,9 @@ bool Foam::functionEntries::includeEntry::execute
     (
         includeFileName(is.name().path(), rawFName, parentDict)
     );
+
+
+    // Read contents of file into parentDict
     IFstream ifs(fName);
 
     if (ifs)
@@ -175,6 +196,21 @@ bool Foam::functionEntries::includeEntry::execute
         {
             Info<< fName << endl;
         }
+
+        // Add watch on included file
+        const dictionary& top = parentDict.topDict();
+        if (isA<regIOobject>(top))
+        {
+            regIOobject& rio = const_cast<regIOobject&>
+            (
+                dynamic_cast<const regIOobject&>(top)
+            );
+            //Info<< rio.name() << " : adding depenency on included file "
+            //    << fName << endl;
+
+            rio.addWatch(fName);
+        }
+
         entry.read(parentDict, ifs);
         return true;
     }
