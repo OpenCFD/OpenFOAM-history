@@ -628,7 +628,7 @@ void humidityTemperatureCoupledMixedFvPatchScalarField::updateCoeffs()
                 liquidRho[faceI] = liquid_->rho(pf, Tf);
             }
 
-            mass_ = max(mass_, 0.0);
+            mass_ = max(mass_, scalar(0));
 
             Yp.gradient() = Yvp;
 
