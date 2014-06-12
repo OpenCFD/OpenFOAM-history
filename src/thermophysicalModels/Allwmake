@@ -9,7 +9,7 @@ set -x
 wmake $targetType specie
 wmake $targetType solidSpecie
 wmake $targetType thermophysicalFunctions
-./properties/Allwmake $*
+./properties/Allwmake $targetType $*
 
 wmake $targetType basic
 wmake $targetType reactionThermo

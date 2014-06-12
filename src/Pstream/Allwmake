@@ -18,7 +18,7 @@ wmakeMpiLib()
     do
     (
         WM_OPTIONS="$WM_OPTIONS$WM_MPLIB"
-        whichmpi="$libName/Make/$WM_OPTIONS/using:$FOAM_MPI"
+        whichmpi="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/src/Pstream/$libName/using:$FOAM_MPI"
         [ -e "$whichmpi" ] || wclean $libName
         echo "wmake $targetType $libName"
         wmake $targetType $libName

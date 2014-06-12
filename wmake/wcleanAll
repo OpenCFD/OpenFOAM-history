@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #-------------------------------------------------------------------------------
 # License
@@ -36,13 +36,13 @@ usage() {
     cat<<USAGE
 usage: ${0##*/}
 
-    Remove all object files and *.dep files
+    Remove all object and related files
 
 USAGE
     exit 1
 }
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -61,19 +61,16 @@ done
 echo "Removing platforms/ subdirectores"
 rm -rf platforms/*
 
-echo "Removing *.dep files"
-find . -name '*.dep' -exec rm {} \;
-
 echo "Cleaning Make subdirectories"
 find . -depth \( -name Make -o -name "Make.[A-Za-z]*" \) -type d -print | \
     xargs -i find '{}' -mindepth 1 -maxdepth 1 -type d -print | \
     xargs rm -rf
 
-echo "Removing lnInclude and intermediate directories"
-find . -depth -type d \( -name lnInclude -o -name ii_files -o -name Templates.DB \) -exec rm -rf {} \;
+echo "Removing lnInclude directories"
+find . -depth -type d \( -name lnInclude \) -exec rm -rf {} \;
 
 echo "Removing misc files"
-find . \( -name exe -o -name log -o -name so_locations \) -exec rm {} \;
+find . \( -name exe -o -name log \) -exec rm {} \;
 
 tutorials/Allclean
 
