@@ -25,7 +25,7 @@ wmakePrintBuild -check || /bin/rm -f OpenFOAM/Make/*/global.? 2>/dev/null
 
 wmakeLnInclude OpenFOAM
 wmakeLnInclude OSspecific/${WM_OSTYPE:-POSIX}
-Pstream/Allwmake $*
+Pstream/Allwmake $targetType $*
 
 OSspecific/${WM_OSTYPE:-POSIX}/Allwmake $*
 wmake $targetType OpenFOAM
@@ -39,7 +39,7 @@ wmake $targetType edgeMesh
 # Decomposition methods needed by dummyThirdParty
 parallel/decompose/AllwmakeLnInclude
 # dummyThirdParty (dummy metisDecomp, scotchDecomp etc) needed by e.g. meshTools
-dummyThirdParty/Allwmake $*
+dummyThirdParty/Allwmake $targetType $*
 
 wmake $targetType finiteVolume
 wmake $targetType lagrangian/basic
@@ -57,23 +57,23 @@ wmake $targetType dynamicFvMesh
 wmake $targetType topoChangerFvMesh
 
 # Build the proper scotchDecomp, metisDecomp etc.
-parallel/Allwmake $*
+parallel/Allwmake $targetType $*
 
 wmake $targetType ODE
 wmake $targetType randomProcesses
 
-transportModels/Allwmake $*
-thermophysicalModels/Allwmake $*
-turbulenceModels/Allwmake $*
-TurbulenceModels/Allwmake $*
+transportModels/Allwmake $targetType $*
+thermophysicalModels/Allwmake $targetType $*
+turbulenceModels/Allwmake $targetType $*
+TurbulenceModels/Allwmake $targetType $*
 wmake $targetType combustionModels
-regionModels/Allwmake $*
-lagrangian/Allwmake $*
-mesh/Allwmake $*
+regionModels/Allwmake $targetType $*
+lagrangian/Allwmake $targetType $*
+mesh/Allwmake $targetType $*
 
-renumber/Allwmake $*
+renumber/Allwmake $targetType $*
 
-fvAgglomerationMethods/Allwmake $*
+fvAgglomerationMethods/Allwmake $targetType $*
 
 wmake $targetType fvMotionSolver
 wmake $targetType engine
@@ -82,7 +82,7 @@ wmake $targetType fvOptions
 
 wmake $targetType regionCoupled
 
-postProcessing/Allwmake $*
+postProcessing/Allwmake $targetType $*
 
 wmake $targetType sixDoFRigidBodyMotion
 

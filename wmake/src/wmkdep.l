@@ -220,11 +220,14 @@ int main(int argc, char* argv[])
     char *objectFile = strdup(basePos);
     objectFile[(dotPos - basePos)/sizeof(char)] = 0;
 
-    printf("$(OBJECTS_DIR)/%s.o: %s\n", objectFile, depFile);
+    /* printf("$(OBJECTS_DIR)/%s.o: %s\n", objectFile, depFile); */
+    printf("%s: \\\n", depFile);
     free(objectFile);
 
     nextFile(sourceFile);
     yylex();
+
+    puts("\n");
 
     for (i = 0; i < nDirectories; i++)
     {
@@ -296,7 +299,7 @@ void nextFile(const char* fileName)
 
             if ((newyyin = fopen(pathName, "r")))
             {
-                printf("%s: %s\n", depFile, pathName);
+                printf("%s \\\n", pathName);
                 buffers[currentBuffer++] = YY_CURRENT_BUFFER;
                 yy_switch_to_buffer(yy_create_buffer(newyyin, YY_BUF_SIZE));
 
@@ -335,7 +338,7 @@ void nextFile(const char* fileName)
     }
     else
     {
-        printf("%s: %s\n", depFile, fileName);
+        printf("%s \\\n", fileName);
         fflush(stdout);
 
         buffers[currentBuffer++] = YY_CURRENT_BUFFER;

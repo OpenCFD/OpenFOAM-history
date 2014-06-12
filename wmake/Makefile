@@ -37,11 +37,10 @@ SHELL      = /bin/sh
 
 
 #------------------------------------------------------------------------------
-# Initialise suffices list
+# Unset suffices list (suffix rules are not used)
 #------------------------------------------------------------------------------
 
 .SUFFIXES:
-.SUFFIXES: .o
 
 
 #------------------------------------------------------------------------------
@@ -52,7 +51,7 @@ WM_SCRIPTS   = $(WM_DIR)/scripts
 
 
 #------------------------------------------------------------------------------
-# declare default paths
+# Declare default paths
 #------------------------------------------------------------------------------
 
 LIB_SRC            = $(WM_PROJECT_DIR)/src
@@ -74,14 +73,7 @@ LIB_LIBS           =
 
 
 #------------------------------------------------------------------------------
-# declare all .o files depend on $(OBJECTS_DIR)/options
-#------------------------------------------------------------------------------
-
-EXE_DEP         = $(OBJECTS_DIR)/options
-
-
-#------------------------------------------------------------------------------
-# declare default name of libraries and executables
+# Declare default name of libraries and executables
 #------------------------------------------------------------------------------
 
 # Library
@@ -98,7 +90,7 @@ SEXE            = a.out
 
 
 #------------------------------------------------------------------------------
-# set compilation and dependency building rules
+# Set compilation and dependency building rules
 #------------------------------------------------------------------------------
 
 GENERAL_RULES = $(WM_DIR)/rules/General
@@ -108,24 +100,25 @@ WMAKE_BIN     = $(WM_DIR)/platforms/$(WM_ARCH)$(WM_COMPILER)
 include $(GENERAL_RULES)/general
 include $(RULES)/general
 include $(RULES)/$(WM_LINK_LANGUAGE)
-
-MAKE_DEP   = @$(MKDEP) $< | $(WM_SCRIPTS)/addCompile $< $@
+include $(GENERAL_RULES)/transform
 
 
 #------------------------------------------------------------------------------
 # Include PROJECT directory tree file and
 # source, object and dependency list files.
-# These are constructed by scripts/makeDerivedFiles
+# These are constructed by MakefileFiles
 #------------------------------------------------------------------------------
 
 include $(OBJECTS_DIR)/options
-include $(OBJECTS_DIR)/filesMacros
+include $(OBJECTS_DIR)/variables
 include $(OBJECTS_DIR)/sourceFiles
-include $(OBJECTS_DIR)/objectFiles
-include $(OBJECTS_DIR)/dependencyFiles
+DEPENDENCIES=$(SOURCE:%=$(OBJECTS_DIR)/%.dep)
+BASENAMES=$(basename $(SOURCE))
+OBJECTS=$(BASENAMES:%=$(OBJECTS_DIR)/%.o)
+
 
 #------------------------------------------------------------------------------
-# set header file include paths
+# Set header file include paths
 #------------------------------------------------------------------------------
 
 LIB_HEADER_DIRS = \
@@ -138,7 +131,7 @@ LIB_HEADER_DIRS = \
 
 
 #------------------------------------------------------------------------------
-# define link statements for executables
+# Define link statements for executables
 #------------------------------------------------------------------------------
 
 $(EXE): $(OBJECTS)
@@ -157,10 +150,10 @@ $(SEXE):$(OBJECTS)
 
 
 #------------------------------------------------------------------------------
-# define link statements for libraries
+# Define link statements for libraries
 #------------------------------------------------------------------------------
 
-objects:$(OBJECTS)
+objects: $(OBJECTS)
 
 libso:  $(LIB).$(SO)
 	@echo \'$(LIB).$(SO)\' is up to date.
@@ -192,18 +185,28 @@ $(LIB).o: $(OBJECTS)
 # Set rule to create the include directory for libraries
 #------------------------------------------------------------------------------
 
-lnInclude/uptodate: $(MAKE_DIR)/files $(MAKE_DIR)/options
-	@rm -rf lnInclude ; wmakeLnInclude . ; touch lnInclude/uptodate
+lnInclude: $(MAKE_DIR)/files $(MAKE_DIR)/options
+	@rm -rf lnInclude ; wmakeLnInclude .
+
+
+#------------------------------------------------------------------------------
+# Declare all qbject files depend on $(OBJECTS_DIR)/options
+#------------------------------------------------------------------------------
+
+$(OBJECTS) : $(OBJECTS_DIR)/options
+$(foreach S,$(SOURCE),$(eval $(OBJECTS_DIR)/$(basename $S).o : $(OBJECTS_DIR)/$S.dep))
 
 
 #------------------------------------------------------------------------------
 # Set depedency rule and include dependency lists
 #------------------------------------------------------------------------------
 
-$(OBJECTS_DIR)/dependencies: $(DEPENDENCIES)
-	@echo dependencies up to date > $(OBJECTS_DIR)/dependencies
+.PHONY: dep
+dep: $(DEPENDENCIES)
 
-include $(INCLUDE_DEPS)
+ifeq ($(findstring lnInclude,$(MAKECMDGOALS)),)
+-include $(DEPENDENCIES)
+endif
 
 
 #------------------------------------------------------------------------------

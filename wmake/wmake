@@ -41,7 +41,8 @@ Usage: $Script [OPTION] [dir]
 
 options:
   -s | -silent      invoke make in 'silent' mode (do not echo commands)
-  -help             print the usage
+  -a | -all         invoke make in all subdirectories
+  -h | -help        print the usage
 
 
 A general, easy-to-use make system for multi-platform development
@@ -61,8 +62,10 @@ USAGE
     exit 1
 }
 
+
 # normally use "make"
 make="make"
+all=
 
 # parse options
 while [ "$#" -gt 0 ]
@@ -73,6 +76,10 @@ do
         ;;
     -s | -silent)
         make="$make -s"
+        shift
+        ;;
+    -a | -all | all)
+        all="all"
         shift
         ;;
     -*)
@@ -174,7 +181,7 @@ fi
 # Recurse the application directories tree
 #------------------------------------------------------------------------------
 
-if [ "$targetType" = all ]
+if [ "$all" = "all" ]
 then
     if [ -e Allwmake ]
     then
@@ -192,7 +199,8 @@ then
         then
             # Compile all applications in sub-directories
             $make ${WM_CONTINUE_ON_ERROR:+-k} \
-                  -f $WM_DIR/MakefileApps FOAM_APPS="$FOAM_APPS"
+                  -f $WM_DIR/MakefileApps \
+                  TARGET="$targetType" FOAM_APPS="$FOAM_APPS"
         fi
         # If the current directory contains a 'Make' directory continue
         # otherwise exit
@@ -266,9 +274,9 @@ fi
 # Transform options
 #------------------------------------------------------------------------------
 
-# transform "all" or no option to "libso" if that looks appropriate or remove it
+# Transform no option to "libso" if that looks appropriate or remove it
 # so that the call to make builds the application
-if [ "$targetType" = all -o "$targetType" = "" ]
+if [ "$targetType" = "" ]
 then
     unset targetType
     if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
@@ -283,23 +291,28 @@ fi
 # files and options being built in parallel
 #------------------------------------------------------------------------------
 
+objectsDir=$MakeDir/$WM_OPTIONS
+if echo $PWD | grep "$WM_PROJECT_DIR"
+then
+    objectsDir=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
+fi
+
 (
-    cd $MakeDir
     unset MAKEFLAGS
-    make -s -f $WM_DIR/MakefileOptions
-    make -s -f $WM_DIR/MakefileFiles allFiles
+    mkdir -p $objectsDir
+    # Pre-build the $WM_OPTIONS/options file which is included
+    # when building the $WM_OPTIONS/files file
+    $make -s -f $WM_DIR/MakefileFiles MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir $objectsDir/options
+    $make -s -f $WM_DIR/MakefileFiles MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir
 )
 
 
 #------------------------------------------------------------------------------
-# Check the $OBJECTS_DIR = $MakeDir/$WM_OPTIONS/objectFiles file
-# was created successfully
+# Check the $objectsDir/sourceFiles file was created successfully
 #------------------------------------------------------------------------------
 
-OBJECTS_DIR=$MakeDir/$WM_OPTIONS
-
-[ -r $OBJECTS_DIR/objectFiles ] || {
-    echo "$Script error: file '$OBJECTS_DIR/objectFiles'" \
+[ -r $objectsDir/sourceFiles ] || {
+    echo "$Script error: file '$objectsDir/sourceFiles'" \
          "could not be created in $PWD" 1>&2
     exit 1
 }
@@ -309,41 +322,23 @@ OBJECTS_DIR=$MakeDir/$WM_OPTIONS
 # Make the dependency files
 #------------------------------------------------------------------------------
 
-touch $OBJECTS_DIR/dontIncludeDeps
-
 # For libraries create lnInclude ...
 case "$targetType" in
     lib | libo | libso | dep )
         # ... but only if 'LIB' is declared in 'Make/files'
         if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
         then
-            $make -s -f $WM_DIR/Makefile \
-                  MAKE_DIR=$MakeDir \
-                  INCLUDE_DEPS=$OBJECTS_DIR/dontIncludeDeps \
-                  lnInclude/uptodate
+            $make -s -f $WM_DIR/Makefile MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir lnInclude
         fi
         ;;
 esac
 
-$make -s -f $WM_DIR/Makefile \
-      MAKE_DIR=$MakeDir \
-      INCLUDE_DEPS=$OBJECTS_DIR/dontIncludeDeps \
-      $OBJECTS_DIR/dependencies
-
-rc=$?
-[ $rc -eq 0 ] || exit $rc
-
 
 #------------------------------------------------------------------------------
-# Make the object files and link
+# Make the dependency files or object files and link
 #------------------------------------------------------------------------------
 
-if [ "$targetType" != dep ]
-then
-    cmd="$make -f $WM_DIR/Makefile MAKE_DIR=$MakeDir"
-    incArgs="INCLUDE_DEPS=$OBJECTS_DIR/includeDeps $targetType"
-    exec $cmd $incArgs
-fi
+exec $make -f $WM_DIR/Makefile MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir $targetType
 
 
 #------------------------------------------------------------------------------
