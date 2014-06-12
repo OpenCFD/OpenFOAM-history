@@ -63,11 +63,11 @@ USAGE
 }
 
 
-# normally use "make"
+# Normally use "make"
 make="make"
 all=
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -161,10 +161,10 @@ then
         targetType=$1
     fi
 
-    # specified directory name:
+    # Specified directory name:
     [ $# -ge 2 ] && dir=$2
 
-    # specified alternative name for the Make sub-directory:
+    # Specified alternative name for the Make sub-directory:
     [ $# -ge 3 ] && MakeDir=$3
 
     if [ "$dir" ]
@@ -237,7 +237,7 @@ find_target()
                    -o "$exPath" = "/" \
        ]
     then
-        echo "$Script error: could not find Make directory"
+        echo "$Script error: could not find Make directory" 1>&2
     elif [ -d "$1/Make" ]; then
         echo "    Found target directory " $1
         dir=$1
