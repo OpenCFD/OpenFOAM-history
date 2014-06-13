@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,7 +40,7 @@ if (&(df1).mesh() != &(df2).mesh())                                 \
     FatalErrorIn("checkField(df1, df2, op)")                        \
         << "different mesh for fields "                             \
         << (df1).name() << " and " << (df2).name()                  \
-        << " during operatrion " <<  op                             \
+        << " during operation " <<  op                              \
         << abort(FatalError);                                       \
 }
 
