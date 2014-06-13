@@ -1,0 +1,131 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     wdep <file>
+#
+# Description
+#     Find the dep-file corresponding to <file> and print the path.
+#
+#------------------------------------------------------------------------------
+Script=${0##*/}
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: $Script <file>
+
+Finds the dep-file corresponding to <file> and print the path.
+
+USAGE
+    exit 1
+}
+
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    -*)
+        usage "unknown option: '$*'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+
+
+#------------------------------------------------------------------------------
+# Check environment variables
+#------------------------------------------------------------------------------
+
+for check in WM_OPTIONS WM_DIR WM_PROJECT_DIR
+do
+    eval test "\$$check" || {
+        echo "$Script error: environment variable \$$check not set" 1>&2
+        exit 1
+    }
+done
+
+
+#------------------------------------------------------------------------------
+# Search up directories tree for the Make sub-directory
+#------------------------------------------------------------------------------
+
+expandpath()
+{
+    dir=`dirname $1`
+    cwd=$PWD
+    cd $dir
+    exPath=$PWD
+    cd $cwd
+}
+
+find_target()
+{
+    expandpath $1
+
+    if [ "$exPath" = "$WM_PROJECT_DIR" \
+                   -o "$exPath" = "$HOME" \
+                   -o "$exPath" = "/" \
+       ]
+    then
+        echo "$Script error: could not find Make directory" 1>&2
+        exit 1
+    elif [ -d "$1/Make" ]; then
+        dir=$1
+    else
+        find_target "$1/.."
+    fi
+}
+
+fileName=${1##*/}
+
+expandpath $1
+
+if echo $exPath | grep "$WM_PROJECT_DIR" > /dev/null
+then
+    objectsDir=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}$(echo $exPath | sed s%$WM_PROJECT_DIR%% )
+else
+    path=$exPath
+    dir=.
+    if [ ! -d Make ]
+    then
+        find_target .
+    fi
+    appDir=$dir
+    expandpath $appDir/.
+    objectsDir=$appDir/Make/${WM_OPTIONS}$(echo $path | sed s%$exPath%% )
+fi
+
+echo $objectsDir/$fileName.dep
+
+
+#------------------------------------------------------------------------------

@@ -154,9 +154,9 @@ bool Foam::regIOobject::writeObject
 
     // Only update the lastModified_ time if this object is re-readable,
     // i.e. lastModified_ is already set
-    if (watchIndex_ != -1)
+    if (watchIndices_.size())
     {
-        time().setUnmodified(watchIndex_);
+        time().setUnmodified(watchIndices_.last());
     }
 
     return osGood;
