@@ -186,6 +186,44 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
         tgtToSrcCellAddr[i].transfer(tgtToSrcAddr[i]);
         tgtToSrcCellWght[i].transfer(tgtToSrcWght[i]);
     }
+
+
+    if (debug%2)
+    {
+        // At this point the overlaps are still in volume so we could
+        // get out the relative error
+        forAll(srcToTgtCellAddr, cellI)
+        {
+            scalar srcVol = src_.cellVolumes()[cellI];
+            scalar tgtVol = sum(srcToTgtCellWght[cellI]);
+
+            if (mag(srcVol) > ROOTVSMALL && mag((tgtVol-srcVol)/srcVol) > 1e-6)
+            {
+                WarningIn("cellVolumeWeightMethod::calculateAddressing(..)")
+                    << "At cell " << cellI << " cc:"
+                    << src_.cellCentres()[cellI]
+                    << " vol:" << srcVol
+                    << " total overlap volume:" << tgtVol
+                    << endl;
+            }
+        }
+
+        forAll(tgtToSrcCellAddr, cellI)
+        {
+            scalar tgtVol = tgt_.cellVolumes()[cellI];
+            scalar srcVol = sum(tgtToSrcCellWght[cellI]);
+
+            if (mag(tgtVol) > ROOTVSMALL && mag((srcVol-tgtVol)/tgtVol) > 1e-6)
+            {
+                WarningIn("cellVolumeWeightMethod::calculateAddressing(..)")
+                    << "At cell " << cellI << " cc:"
+                    << tgt_.cellCentres()[cellI]
+                    << " vol:" << tgtVol
+                    << " total overlap volume:" << srcVol
+                    << endl;
+            }
+        }
+    }
 }
 
 
