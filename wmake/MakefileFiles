@@ -31,7 +31,7 @@
 
 GENERAL_RULES = $(WM_DIR)/rules/General
 RULES         = $(WM_DIR)/rules/$(WM_ARCH)$(WM_COMPILER)
-OBJECTS_DIR   = $(WM_OPTIONS)
+OBJECTS_DIR   = $(MAKE_DIR)/$(WM_OPTIONS)
 
 include $(GENERAL_RULES)/general
 include $(RULES)/general
@@ -54,11 +54,11 @@ SFILES  = $(OBJECTS_DIR)/sourceFiles
 
 all : $(OPTIONS) $(SFILES) $(VARS)
 
-$(OPTIONS) : options
-	@$(CPP) $(GFLAGS) options | sed -e 's@   *@ @g' > $(OPTIONS)
+$(OPTIONS) : $(MAKE_DIR)/options
+	@$(CPP) $(GFLAGS) $(MAKE_DIR)/options | sed -e 's@   *@ @g' > $(OPTIONS)
 
-$(SFILES): files
-	@$(CPP) $(GFLAGS) files | sed -e 's@   *@ @g' > $(FILES)
+$(SFILES): $(MAKE_DIR)/files
+	@$(CPP) $(GFLAGS) $(MAKE_DIR)/files | sed -e 's@   *@ @g' > $(FILES)
 	# Find all macro definitions in the files
 	@grep "=" $(FILES) > $(VARS)
 	echo "SOURCE = " > $(SFILES)

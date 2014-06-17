@@ -63,11 +63,11 @@ USAGE
 }
 
 
-# normally use "make"
+# Normally use "make"
 make="make"
 all=
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -161,10 +161,10 @@ then
         targetType=$1
     fi
 
-    # specified directory name:
+    # Specified directory name:
     [ $# -ge 2 ] && dir=$2
 
-    # specified alternative name for the Make sub-directory:
+    # Specified alternative name for the Make sub-directory:
     [ $# -ge 3 ] && MakeDir=$3
 
     if [ "$dir" ]
@@ -237,7 +237,7 @@ find_target()
                    -o "$exPath" = "/" \
        ]
     then
-        echo "$Script error: could not find Make directory"
+        echo "$Script error: could not find Make directory" 1>&2
     elif [ -d "$1/Make" ]; then
         echo "    Found target directory " $1
         dir=$1
@@ -291,26 +291,28 @@ fi
 # files and options being built in parallel
 #------------------------------------------------------------------------------
 
+objectsDir=$MakeDir/$WM_OPTIONS
+if echo $PWD | grep "$WM_PROJECT_DIR"
+then
+    objectsDir=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
+fi
+
 (
-    cd $MakeDir
     unset MAKEFLAGS
-    mkdir -p $WM_OPTIONS
+    mkdir -p $objectsDir
     # Pre-build the $WM_OPTIONS/options file which is included
     # when building the $WM_OPTIONS/files file
-    make -s -f $WM_DIR/MakefileFiles $WM_OPTIONS/options
-    make -s -f $WM_DIR/MakefileFiles
+    $make -s -f $WM_DIR/MakefileFiles MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir $objectsDir/options
+    $make -s -f $WM_DIR/MakefileFiles MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir
 )
 
 
 #------------------------------------------------------------------------------
-# Check the $OBJECTS_DIR = $MakeDir/$WM_OPTIONS/sourceFiles file
-# was created successfully
+# Check the $objectsDir/sourceFiles file was created successfully
 #------------------------------------------------------------------------------
 
-OBJECTS_DIR=$MakeDir/$WM_OPTIONS
-
-[ -r $OBJECTS_DIR/sourceFiles ] || {
-    echo "$Script error: file '$OBJECTS_DIR/sourceFiles'" \
+[ -r $objectsDir/sourceFiles ] || {
+    echo "$Script error: file '$objectsDir/sourceFiles'" \
          "could not be created in $PWD" 1>&2
     exit 1
 }
@@ -326,7 +328,7 @@ case "$targetType" in
         # ... but only if 'LIB' is declared in 'Make/files'
         if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
         then
-            $make -s -f $WM_DIR/Makefile MAKE_DIR=$MakeDir lnInclude
+            $make -s -f $WM_DIR/Makefile MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir lnInclude
         fi
         ;;
 esac
@@ -336,7 +338,7 @@ esac
 # Make the dependency files or object files and link
 #------------------------------------------------------------------------------
 
-exec $make -f $WM_DIR/Makefile MAKE_DIR=$MakeDir $targetType
+exec $make -f $WM_DIR/Makefile MAKE_DIR=$MakeDir OBJECTS_DIR=$objectsDir $targetType
 
 
 #------------------------------------------------------------------------------

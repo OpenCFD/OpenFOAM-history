@@ -80,7 +80,7 @@ do
         \( -type d -name "*$machType" -o -name "*$machType$WM_MPLIB" \) \
         -print | xargs rm -rf
 
-    rm -rf platforms/$machType
+    rm -rf platforms/${machType}*
 
 done
 

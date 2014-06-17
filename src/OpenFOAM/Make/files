@@ -185,6 +185,7 @@ $(IOdictionary)/baseIOdictionary.C
 $(IOdictionary)/baseIOdictionaryIO.C
 $(IOdictionary)/IOdictionary.C
 $(IOdictionary)/localIOdictionary.C
+$(IOdictionary)/unregisteredIOdictionary.C
 
 db/IOobjects/IOMap/IOMapName.C
 
