@@ -43,7 +43,7 @@ SourceFiles
 #define meshToMesh_H
 
 #include "polyMesh.H"
-#include "boundBox.H"
+#include "treeBoundBox.H"
 #include "mapDistribute.H"
 #include "volFieldsFwd.H"
 #include "NamedEnum.H"
@@ -173,7 +173,7 @@ private:
             //- Determine which processor bounding-boxes overlap
             label calcOverlappingProcs
             (
-                const List<boundBox>& procBb,
+                const List<treeBoundBoxList>& procBb,
                 const boundBox& bb,
                 boolList& overlaps
             ) const;
