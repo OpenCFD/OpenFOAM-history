@@ -82,23 +82,21 @@ class tetOverlapVolume
         public:
 
             const scalar threshold_;
-            scalar vol_;
+            tetPointRef::sumVolOp iop_;
             bool ok_;
 
             inline hasOverlapOp(const scalar threshold)
             :
                 threshold_(threshold),
-                vol_(0.0),
+                iop_(),
                 ok_(false)
             {}
 
             //- Overlap two tets
             inline bool operator()(const tetPoints& A, const tetPoints& B)
             {
-                tetPointRef::sumVolOp iop;
-                tetTetOverlap<tetPointRef::sumVolOp>(A, B, iop);
-                vol_ += iop.vol_;
-                ok_ = (vol_ > threshold_);
+                tetTetOverlap<tetPointRef::sumVolOp>(A, B, iop_);
+                ok_ = (iop_.vol_ > threshold_);
                 return ok_;
             }
         };
@@ -108,19 +106,17 @@ class tetOverlapVolume
         {
         public:
 
-            scalar vol_;
+            tetPointRef::sumVolOp iop_;
 
             inline sumOverlapOp()
             :
-                vol_(0.0)
+                iop_()
             {}
 
             //- Overlap two tets
             inline bool operator()(const tetPoints& A, const tetPoints& B)
             {
-                tetPointRef::sumVolOp iop;
-                tetTetOverlap<tetPointRef::sumVolOp>(A, B, iop);
-                vol_ += iop.vol_;
+                tetTetOverlap<tetPointRef::sumVolOp>(A, B, iop_);
                 return false;
             }
         };
@@ -130,20 +126,17 @@ class tetOverlapVolume
         {
         public:
 
-            Tuple2<scalar, point> vol_;
+            sumMomentOp iop_;
 
             inline sumOverlapMomentOp()
             :
-                vol_(0.0, vector::zero)
+                iop_()
             {}
 
             //- Overlap two tets
             inline bool operator()(const tetPoints& A, const tetPoints& B)
             {
-                sumMomentOp iop;
-                tetTetOverlap<sumMomentOp>(A, B, iop);
-                vol_.first() += iop.vol_.first();
-                vol_.second() += iop.vol_.second();
+                tetTetOverlap<sumMomentOp>(A, B, iop_);
                 return false;
             }
         };

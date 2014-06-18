@@ -114,7 +114,7 @@ Foam::scalar Foam::tetOverlapVolume::cellCellOverlapVolumeMinDecomp
         overlapSumOp
     );
 
-    return overlapSumOp.vol_;
+    return overlapSumOp.iop_.vol_;
 }
 
 
@@ -140,7 +140,7 @@ Foam::tetOverlapVolume::cellCellOverlapMomentMinDecomp
         overlapSumOp
     );
 
-    return overlapSumOp.vol_;
+    return overlapSumOp.iop_.vol_;
 }
 
 
