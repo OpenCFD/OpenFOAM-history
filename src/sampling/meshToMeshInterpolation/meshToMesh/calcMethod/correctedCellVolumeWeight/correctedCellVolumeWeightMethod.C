@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,79 +23,32 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "cellVolumeWeightMethod.H"
-#include "indexedOctree.H"
-#include "treeDataCell.H"
+#include "correctedCellVolumeWeightMethod.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(cellVolumeWeightMethod, 0);
+    defineTypeNameAndDebug(correctedCellVolumeWeightMethod, 0);
     addToRunTimeSelectionTable
     (
         meshToMeshMethod,
-        cellVolumeWeightMethod,
+        correctedCellVolumeWeightMethod,
         components
     );
 }
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-bool Foam::cellVolumeWeightMethod::findInitialSeeds
-(
-    const labelList& srcCellIDs,
-    const boolList& mapFlag,
-    const label startSeedI,
-    label& srcSeedI,
-    label& tgtSeedI
-) const
-{
-    const cellList& srcCells = src_.cells();
-    const faceList& srcFaces = src_.faces();
-    const pointField& srcPts = src_.points();
-
-    for (label i = startSeedI; i < srcCellIDs.size(); i++)
-    {
-        label srcI = srcCellIDs[i];
-
-        if (mapFlag[srcI])
-        {
-            const pointField
-                pts(srcCells[srcI].points(srcFaces, srcPts).xfer());
-
-            forAll(pts, ptI)
-            {
-                const point& pt = pts[ptI];
-                label tgtI = tgt_.cellTree().findInside(pt);
-
-                if (tgtI != -1 && intersect(srcI, tgtI))
-                {
-                    srcSeedI = srcI;
-                    tgtSeedI = tgtI;
-
-                    return true;
-                }
-            }
-        }
-    }
-
-    if (debug)
-    {
-        Pout<< "could not find starting seed" << endl;
-    }
-
-    return false;
-}
-
-
-void Foam::cellVolumeWeightMethod::calculateAddressing
+void Foam::correctedCellVolumeWeightMethod::calculateAddressing
 (
     labelListList& srcToTgtCellAddr,
     scalarListList& srcToTgtCellWght,
+    pointListList& srcToTgtCellVec,
     labelListList& tgtToSrcCellAddr,
     scalarListList& tgtToSrcCellWght,
+    pointListList& tgtToSrcCellVec,
     const label srcSeedI,
     const label tgtSeedI,
     const labelList& srcCellIDs,
@@ -108,9 +61,11 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
 
     List<DynamicList<label> > srcToTgtAddr(src_.nCells());
     List<DynamicList<scalar> > srcToTgtWght(src_.nCells());
+    List<DynamicList<point> > srcToTgtVec(src_.nCells());
 
     List<DynamicList<label> > tgtToSrcAddr(tgt_.nCells());
     List<DynamicList<scalar> > tgtToSrcWght(tgt_.nCells());
+    List<DynamicList<point> > tgtToSrcVec(tgt_.nCells());
 
     // list of tgt cell neighbour cells
     DynamicList<label> nbrTgtCells(10);
@@ -123,6 +78,8 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
     seedCells[srcCellI] = tgtCellI;
 
     const scalarField& srcVol = src_.cellVolumes();
+    const pointField& srcCc = src_.cellCentres();
+    const pointField& tgtCc = tgt_.cellCentres();
 
     do
     {
@@ -138,22 +95,28 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
             tgtCellI = nbrTgtCells.remove();
             visitedTgtCells.append(tgtCellI);
 
-            scalar vol = interVol(srcCellI, tgtCellI);
+            Tuple2<scalar, point> vol = interVolAndCentroid
+            (
+                srcCellI,
+                tgtCellI
+            );
 
             // accumulate addressing and weights for valid intersection
-            if (vol/srcVol[srcCellI] > tolerance_)
+            if (vol.first()/srcVol[srcCellI] > tolerance_)
             {
                 // store src/tgt cell pair
                 srcToTgtAddr[srcCellI].append(tgtCellI);
-                srcToTgtWght[srcCellI].append(vol);
+                srcToTgtWght[srcCellI].append(vol.first());
+                srcToTgtVec[srcCellI].append(vol.second()-tgtCc[tgtCellI]);
 
                 tgtToSrcAddr[tgtCellI].append(srcCellI);
-                tgtToSrcWght[tgtCellI].append(vol);
+                tgtToSrcWght[tgtCellI].append(vol.first());
+                tgtToSrcVec[tgtCellI].append(vol.second()-srcCc[srcCellI]);
 
                 appendNbrCells(tgtCellI, tgt_, visitedTgtCells, nbrTgtCells);
 
                 // accumulate intersection volume
-                V_ += vol;
+                V_ += vol.first();
             }
         }
         while (!nbrTgtCells.empty());
@@ -179,12 +142,14 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
     {
         srcToTgtCellAddr[i].transfer(srcToTgtAddr[i]);
         srcToTgtCellWght[i].transfer(srcToTgtWght[i]);
+        srcToTgtCellVec[i].transfer(srcToTgtVec[i]);
     }
 
     forAll(tgtToSrcCellAddr, i)
     {
         tgtToSrcCellAddr[i].transfer(tgtToSrcAddr[i]);
         tgtToSrcCellWght[i].transfer(tgtToSrcWght[i]);
+        tgtToSrcCellVec[i].transfer(tgtToSrcVec[i]);
     }
 
 
@@ -199,8 +164,10 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
 
             if (mag(srcVol) > ROOTVSMALL && mag((tgtVol-srcVol)/srcVol) > 1e-6)
             {
-                WarningIn("cellVolumeWeightMethod::calculateAddressing(..)")
-                    << "At cell " << cellI << " cc:"
+                WarningIn
+                (
+                    "correctedCellVolumeWeightMethod::calculateAddressing(..)"
+                )   << "At cell " << cellI << " cc:"
                     << src_.cellCentres()[cellI]
                     << " vol:" << srcVol
                     << " total overlap volume:" << tgtVol
@@ -215,8 +182,10 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
 
             if (mag(tgtVol) > ROOTVSMALL && mag((srcVol-tgtVol)/tgtVol) > 1e-6)
             {
-                WarningIn("cellVolumeWeightMethod::calculateAddressing(..)")
-                    << "At cell " << cellI << " cc:"
+                WarningIn
+                (
+                    "correctedCellVolumeWeightMethod::calculateAddressing(..)"
+                )   << "At cell " << cellI << " cc:"
                     << tgt_.cellCentres()[cellI]
                     << " vol:" << tgtVol
                     << " total overlap volume:" << srcVol
@@ -227,136 +196,35 @@ void Foam::cellVolumeWeightMethod::calculateAddressing
 }
 
 
-void Foam::cellVolumeWeightMethod::setNextCells
-(
-    label& startSeedI,
-    label& srcCellI,
-    label& tgtCellI,
-    const labelList& srcCellIDs,
-    const boolList& mapFlag,
-    const DynamicList<label>& visitedCells,
-    labelList& seedCells
-) const
-{
-    const labelList& srcNbrCells = src_.cellCells()[srcCellI];
-
-    // set possible seeds for later use by querying all src cell neighbours
-    // with all visited target cells
-    bool valuesSet = false;
-    forAll(srcNbrCells, i)
-    {
-        label cellS = srcNbrCells[i];
-
-        if (mapFlag[cellS] && seedCells[cellS] == -1)
-        {
-            forAll(visitedCells, j)
-            {
-                label cellT = visitedCells[j];
-
-                if (intersect(cellS, cellT))
-                {
-                    seedCells[cellS] = cellT;
-
-                    if (!valuesSet)
-                    {
-                        srcCellI = cellS;
-                        tgtCellI = cellT;
-                        valuesSet = true;
-                    }
-                }
-            }
-        }
-    }
-
-    // set next src and tgt cells if not set above
-    if (valuesSet)
-    {
-        return;
-    }
-    else
-    {
-        // try to use existing seed
-        bool foundNextSeed = false;
-        for (label i = startSeedI; i < srcCellIDs.size(); i++)
-        {
-            label cellS = srcCellIDs[i];
-
-            if (mapFlag[cellS])
-            {
-                if (!foundNextSeed)
-                {
-                    startSeedI = i;
-                    foundNextSeed = true;
-                }
-
-                if (seedCells[cellS] != -1)
-                {
-                    srcCellI = cellS;
-                    tgtCellI = seedCells[cellS];
-
-                    return;
-                }
-            }
-        }
-
-        // perform new search to find match
-        if (debug)
-        {
-            Pout<< "Advancing front stalled: searching for new "
-                << "target cell" << endl;
-        }
-
-        bool restart =
-            findInitialSeeds
-            (
-                srcCellIDs,
-                mapFlag,
-                startSeedI,
-                srcCellI,
-                tgtCellI
-            );
-
-        if (restart)
-        {
-            // successfully found new starting seed-pair
-            return;
-        }
-    }
-
-    // if we have got to here, there are no more src/tgt cell intersections
-    srcCellI = -1;
-    tgtCellI = -1;
-}
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::cellVolumeWeightMethod::cellVolumeWeightMethod
+Foam::correctedCellVolumeWeightMethod::correctedCellVolumeWeightMethod
 (
     const polyMesh& src,
     const polyMesh& tgt
 )
 :
-    meshToMeshMethod(src, tgt)
+    cellVolumeWeightMethod(src, tgt)
 {}
 
 
 // * * * * * * * * * * * * * * * * Destructor * * * * * * * * * * * * * * * //
 
-Foam::cellVolumeWeightMethod::~cellVolumeWeightMethod()
+Foam::correctedCellVolumeWeightMethod::~correctedCellVolumeWeightMethod()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::cellVolumeWeightMethod::calculate
+void Foam::correctedCellVolumeWeightMethod::calculate
 (
-    labelListList& srcToTgtAddr,
+    labelListList&  srcToTgtAddr,
     scalarListList& srcToTgtWght,
-    pointListList& srcToTgtVec,
-    labelListList& tgtToSrcAddr,
+    pointListList&  srcToTgtVec,
+
+    labelListList&  tgtToSrcAddr,
     scalarListList& tgtToSrcWght,
-    pointListList& tgtToSrcVec
+    pointListList&  tgtToSrcVec
 )
 {
     bool ok = initialise
@@ -371,6 +239,10 @@ void Foam::cellVolumeWeightMethod::calculate
     {
         return;
     }
+
+    srcToTgtVec.setSize(srcToTgtAddr.size());
+    tgtToSrcVec.setSize(tgtToSrcAddr.size());
+
 
     // (potentially) participating source mesh cells
     const labelList srcCellIDs(maskCells());
@@ -400,8 +272,10 @@ void Foam::cellVolumeWeightMethod::calculate
         (
             srcToTgtAddr,
             srcToTgtWght,
+            srcToTgtVec,
             tgtToSrcAddr,
             tgtToSrcWght,
+            tgtToSrcVec,
             srcSeedI,
             tgtSeedI,
             srcCellIDs,

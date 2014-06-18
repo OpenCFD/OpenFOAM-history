@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -42,6 +42,7 @@ SourceFiles
 #include "vectorList.H"
 #include "pointIndexHit.H"
 #include "surfaceZonesInfo.H"
+#include "pointList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -51,8 +52,6 @@ namespace Foam
 class searchableSurfaces;
 class shellSurfaces;
 class triSurfaceMesh;
-
-typedef List<point> pointList;
 
 /*---------------------------------------------------------------------------*\
                            Class refinementSurfaces Declaration

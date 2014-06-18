@@ -121,6 +121,42 @@ Foam::scalar Foam::meshToMeshMethod::interVol
 }
 
 
+Foam::Tuple2<Foam::scalar, Foam::point>
+Foam::meshToMeshMethod::interVolAndCentroid
+(
+    const label srcCellI,
+    const label tgtCellI
+)
+{
+    tetOverlapVolume overlapEngine;
+
+    treeBoundBox bbTgtCell(tgt_.points(), tgt_.cellPoints()[tgtCellI]);
+
+    Tuple2<scalar, point> volAndInertia =
+    overlapEngine.cellCellOverlapMomentMinDecomp
+    (
+        src_,
+        srcCellI,
+        tgt_,
+        tgtCellI,
+        bbTgtCell
+    );
+
+    // Convert from inertia to centroid
+    if (volAndInertia.first() <= ROOTVSMALL)
+    {
+        volAndInertia.first() = 0.0;
+        volAndInertia.second() = vector::zero;
+    }
+    else
+    {
+        volAndInertia.second() /= volAndInertia.first();
+    }
+
+    return volAndInertia;
+}
+
+
 void Foam::meshToMeshMethod::appendNbrCells
 (
     const label cellI,

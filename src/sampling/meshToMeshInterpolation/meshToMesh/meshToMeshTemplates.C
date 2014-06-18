@@ -27,6 +27,7 @@ License
 #include "volFields.H"
 #include "directFvPatchFieldMapper.H"
 #include "calculatedFvPatchField.H"
+#include "fvcGrad.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -144,6 +145,108 @@ void Foam::meshToMesh::mapSrcToTgt
                     label srcI = srcAddress[i];
                     scalar w = srcWeight[i];
                     cbop(result[cellI], cellI, srcField[srcI], w);
+                }
+            }
+        }
+    }
+}
+
+
+template<class Type, class CombineOp>
+void Foam::meshToMesh::mapSrcToTgt
+(
+    const UList<Type>& srcField,
+    const UList<typename outerProduct<vector, Type>::type>& srcGradField,
+    const CombineOp& cop,
+    List<Type>& result
+) const
+{
+    if (result.size() != tgtToSrcCellAddr_.size())
+    {
+        FatalErrorIn
+        (
+            "void Foam::meshToMesh::mapSrcToTgt"
+            "("
+                "const UList<Type>&, "
+                "const UList<typename outerProduct<vector, Type>::type>&, "
+                "const CombineOp&, "
+                "List<Type>&"
+            ") const"
+        )   << "Supplied field size is not equal to target mesh size" << nl
+            << "    source mesh    = " << srcToTgtCellAddr_.size() << nl
+            << "    target mesh    = " << tgtToSrcCellAddr_.size() << nl
+            << "    supplied field = " << result.size()
+            << abort(FatalError);
+    }
+
+    multiplyWeightedOp<Type, CombineOp> cbop(cop);
+
+    if (singleMeshProc_ == -1)
+    {
+        if (returnReduce(tgtToSrcCellVec_.size(), sumOp<label>()) == 0)
+        {
+            // No correction vectors calculated. Fall back to first order.
+            mapSrcToTgt(srcField, cop, result);
+            return;
+        }
+
+        const mapDistribute& map = srcMapPtr_();
+
+        List<Type> work(srcField);
+        map.distribute(work);
+
+        List<typename outerProduct<vector, Type>::type> workGrad
+        (
+            srcGradField
+        );
+        map.distribute(workGrad);
+
+        forAll(result, cellI)
+        {
+            const labelList& srcAddress = tgtToSrcCellAddr_[cellI];
+            const scalarList& srcWeight = tgtToSrcCellWght_[cellI];
+            const pointList& srcVec = tgtToSrcCellVec_[cellI];
+
+            if (srcAddress.size())
+            {
+                result[cellI] *= (1.0 - sum(srcWeight));
+                forAll(srcAddress, i)
+                {
+                    label srcI = srcAddress[i];
+                    scalar w = srcWeight[i];
+                    const vector& v = srcVec[i];
+                    const Type srcVal = work[srcI]+(workGrad[srcI]&v);
+                    cbop(result[cellI], cellI, srcVal, w);
+                }
+            }
+        }
+    }
+    else
+    {
+        if (tgtToSrcCellVec_.empty())
+        {
+            // No correction vectors calculated. Fall back to first order.
+            mapSrcToTgt(srcField, cop, result);
+            return;
+        }
+
+        forAll(result, cellI)
+        {
+            const labelList& srcAddress = tgtToSrcCellAddr_[cellI];
+            const scalarList& srcWeight = tgtToSrcCellWght_[cellI];
+            const pointList& srcVec = tgtToSrcCellVec_[cellI];
+
+            if (srcAddress.size())
+            {
+                // Do non-conservative interpolation
+                result[cellI] *= (1.0 - sum(srcWeight));
+                forAll(srcAddress, i)
+                {
+                    label srcI = srcAddress[i];
+                    scalar w = srcWeight[i];
+                    const vector& v = srcVec[i];
+                    const Type srcVal = srcField[srcI]+(srcGradField[srcI]&v);
+                    cbop(result[cellI], cellI, srcVal, w);
                 }
             }
         }
@@ -278,6 +381,100 @@ void Foam::meshToMesh::mapTgtToSrc
 
 
 template<class Type, class CombineOp>
+void Foam::meshToMesh::mapTgtToSrc
+(
+    const UList<Type>& tgtField,
+    const UList<typename outerProduct<vector, Type>::type>& tgtGradField,
+    const CombineOp& cop,
+    List<Type>& result
+) const
+{
+    if (result.size() != srcToTgtCellAddr_.size())
+    {
+        FatalErrorIn
+        (
+            "void Foam::meshToMesh::mapTgtToSrc"
+            "("
+                "const UList<Type>&, "
+                "const UList<typename outerProduct<vector, Type>::type>&, "
+                "const CombineOp&, "
+                "List<Type>&"
+            ") const"
+        )   << "Supplied field size is not equal to source mesh size" << nl
+            << "    source mesh    = " << srcToTgtCellAddr_.size() << nl
+            << "    target mesh    = " << tgtToSrcCellAddr_.size() << nl
+            << "    supplied field = " << result.size()
+            << abort(FatalError);
+    }
+
+    multiplyWeightedOp<Type, CombineOp> cbop(cop);
+
+    if (singleMeshProc_ == -1)
+    {
+        if (returnReduce(srcToTgtCellVec_.size(), sumOp<label>()) == 0)
+        {
+            // No correction vectors calculated. Fall back to first order.
+            mapTgtToSrc(tgtField, cop, result);
+            return;
+        }
+
+        const mapDistribute& map = tgtMapPtr_();
+
+        List<Type> work(tgtField);
+        map.distribute(work);
+
+        List<typename outerProduct<vector, Type>::type> workGrad
+        (
+            tgtGradField
+        );
+        map.distribute(workGrad);
+
+        forAll(result, cellI)
+        {
+            const labelList& tgtAddress = srcToTgtCellAddr_[cellI];
+            const scalarList& tgtWeight = srcToTgtCellWght_[cellI];
+            const pointList& tgtVec = srcToTgtCellVec_[cellI];
+
+            if (tgtAddress.size())
+            {
+                result[cellI] *= (1.0 - sum(tgtWeight));
+                forAll(tgtAddress, i)
+                {
+                    label tgtI = tgtAddress[i];
+                    scalar w = tgtWeight[i];
+                    const vector& v = tgtVec[i];
+                    const Type tgtVal = work[tgtI]+(workGrad[tgtI]&v);
+                    cbop(result[cellI], cellI, tgtVal, w);
+                }
+            }
+        }
+    }
+    else
+    {
+        forAll(result, cellI)
+        {
+            const labelList& tgtAddress = srcToTgtCellAddr_[cellI];
+            const scalarList& tgtWeight = srcToTgtCellWght_[cellI];
+            const pointList& tgtVec = srcToTgtCellVec_[cellI];
+
+            if (tgtAddress.size())
+            {
+                result[cellI] *= (1.0 - sum(tgtWeight));
+                forAll(tgtAddress, i)
+                {
+                    label tgtI = tgtAddress[i];
+                    scalar w = tgtWeight[i];
+                    const vector& v = tgtVec[i];
+                    const Type tgtVal = tgtField[tgtI]+(tgtGradField[tgtI]&v);
+                    cbop(result[cellI], cellI, tgtVal, w);
+                }
+            }
+        }
+    }
+}
+
+
+template<class Type, class CombineOp>
 Foam::tmp<Foam::Field<Type> > Foam::meshToMesh::mapTgtToSrc
 (
     const Field<Type>& tgtField,
@@ -335,10 +532,24 @@ void Foam::meshToMesh::mapSrcToTgt
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
     const CombineOp& cop,
-    GeometricField<Type, fvPatchField, volMesh>& result
+    GeometricField<Type, fvPatchField, volMesh>& result,
+    const bool secondOrder
 ) const
 {
-    mapSrcToTgt(field, cop, result.internalField());
+    if (returnReduce(tgtToSrcCellVec_.size(), sumOp<label>()) && secondOrder)
+    {
+        mapSrcToTgt
+        (
+            field,
+            fvc::grad(field)().internalField(),
+            cop,
+            result.internalField()
+        );
+    }
+    else
+    {
+        mapSrcToTgt(field, cop, result.internalField());
+    }
 
     const PtrList<AMIPatchToPatchInterpolation>& AMIList = patchAMIs();
 
@@ -375,7 +586,8 @@ Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapSrcToTgt
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
-    const CombineOp& cop
+    const CombineOp& cop,
+    const bool secondOrder
 ) const
 {
     typedef GeometricField<Type, fvPatchField, volMesh> fieldType;
@@ -454,7 +666,7 @@ Foam::meshToMesh::mapSrcToTgt
         )
     );
 
-    mapSrcToTgt(field, cop, tresult());
+    mapSrcToTgt(field, cop, tresult(), secondOrder);
 
     return tresult;
 }
@@ -465,10 +677,11 @@ Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapSrcToTgt
 (
     const tmp<GeometricField<Type, fvPatchField, volMesh> >& tfield,
-    const CombineOp& cop
+    const CombineOp& cop,
+    const bool secondOrder
 ) const
 {
-    return mapSrcToTgt(tfield(), cop);
+    return mapSrcToTgt(tfield(), cop, secondOrder);
 }
 
 
@@ -476,10 +689,11 @@ template<class Type>
 Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapSrcToTgt
 (
-    const GeometricField<Type, fvPatchField, volMesh>& field
+    const GeometricField<Type, fvPatchField, volMesh>& field,
+    const bool secondOrder
 ) const
 {
-    return mapSrcToTgt(field, plusEqOp<Type>());
+    return mapSrcToTgt(field, plusEqOp<Type>(), secondOrder);
 }
 
 
@@ -487,10 +701,11 @@ template<class Type>
 Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapSrcToTgt
 (
-    const tmp<GeometricField<Type, fvPatchField, volMesh> >& tfield
+    const tmp<GeometricField<Type, fvPatchField, volMesh> >& tfield,
+    const bool secondOrder
 ) const
 {
-    return mapSrcToTgt(tfield(), plusEqOp<Type>());
+    return mapSrcToTgt(tfield(), plusEqOp<Type>(), secondOrder);
 }
 
 
@@ -499,10 +714,24 @@ void Foam::meshToMesh::mapTgtToSrc
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
     const CombineOp& cop,
-    GeometricField<Type, fvPatchField, volMesh>& result
+    GeometricField<Type, fvPatchField, volMesh>& result,
+    const bool secondOrder
 ) const
 {
-    mapTgtToSrc(field, cop, result.internalField());
+    if (returnReduce(srcToTgtCellVec_.size(), sumOp<label>()) && secondOrder)
+    {
+        mapTgtToSrc
+        (
+            field,
+            fvc::grad(field)().internalField(),
+            cop,
+            result.internalField()
+        );
+    }
+    else
+    {
+        mapTgtToSrc(field, cop, result.internalField());
+    }
 
     const PtrList<AMIPatchToPatchInterpolation>& AMIList = patchAMIs();
 
@@ -538,7 +767,8 @@ Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapTgtToSrc
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
-    const CombineOp& cop
+    const CombineOp& cop,
+    const bool secondOrder
 ) const
 {
     typedef GeometricField<Type, fvPatchField, volMesh> fieldType;
@@ -617,7 +847,7 @@ Foam::meshToMesh::mapTgtToSrc
         )
     );
 
-    mapTgtToSrc(field, cop, tresult());
+    mapTgtToSrc(field, cop, tresult(), secondOrder);
 
     return tresult;
 }
@@ -628,10 +858,11 @@ Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapTgtToSrc
 (
     const tmp<GeometricField<Type, fvPatchField, volMesh> >& tfield,
-    const CombineOp& cop
+    const CombineOp& cop,
+    const bool secondOrder
 ) const
 {
-    return mapTgtToSrc(tfield(), cop);
+    return mapTgtToSrc(tfield(), cop, secondOrder);
 }
 
 
@@ -639,10 +870,11 @@ template<class Type>
 Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapTgtToSrc
 (
-    const GeometricField<Type, fvPatchField, volMesh>& field
+    const GeometricField<Type, fvPatchField, volMesh>& field,
+    const bool secondOrder
 ) const
 {
-    return mapTgtToSrc(field, plusEqOp<Type>());
+    return mapTgtToSrc(field, plusEqOp<Type>(), secondOrder);
 }
 
 
@@ -650,10 +882,11 @@ template<class Type>
 Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh> >
 Foam::meshToMesh::mapTgtToSrc
 (
-    const tmp<GeometricField<Type, fvPatchField, volMesh> >& tfield
+    const tmp<GeometricField<Type, fvPatchField, volMesh> >& tfield,
+    const bool secondOrder
 ) const
 {
-    return mapTgtToSrc(tfield(), plusEqOp<Type>());
+    return mapTgtToSrc(tfield(), plusEqOp<Type>(), secondOrder);
 }
 
 

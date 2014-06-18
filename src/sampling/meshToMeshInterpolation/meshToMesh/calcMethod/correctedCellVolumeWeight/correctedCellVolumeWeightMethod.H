@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,22 +22,22 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::mapNearestMethod
+    Foam::correctedCellVolumeWeightMethod
 
 Description
-    Map nearest mesh-to-mesh interpolation class
+    Cell-volume-weighted mesh-to-mesh interpolation class
 
-    Not volume conservative.
+    Volume conservative with calculated offset vectors
 
 SourceFiles
-    mapNearestMethod.C
+    correctedCellVolumeWeightMethod.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef mapNearestMethod_H
-#define mapNearestMethod_H
+#ifndef correctedCellVolumeWeightMethod_H
+#define correctedCellVolumeWeightMethod_H
 
-#include "meshToMeshMethod.H"
+#include "cellVolumeWeightMethod.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -45,35 +45,26 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                      Class mapNearestMethod Declaration
+                   Class correctedCellVolumeWeightMethod Declaration
 \*---------------------------------------------------------------------------*/
 
-class mapNearestMethod
+class correctedCellVolumeWeightMethod
 :
-    public meshToMeshMethod
+    public cellVolumeWeightMethod
 {
 protected:
 
     // Protected Member Functions
 
-        //- Find indices of overlapping cells in src and tgt meshes - returns
-        //  true if found a matching pair
-        virtual bool findInitialSeeds
-        (
-            const labelList& srcCellIDs,
-            const boolList& mapFlag,
-            const label startSeedI,
-            label& srcSeedI,
-            label& tgtSeedI
-        ) const;
-
         //- Calculate the mesh-to-mesh addressing and weights
-        virtual void calculateAddressing
+        void calculateAddressing
         (
             labelListList& srcToTgtCellAddr,
             scalarListList& srcToTgtCellWght,
+            pointListList& srcToTgtCellVec,
             labelListList& tgtToSrcCellAddr,
             scalarListList& tgtToSrcCellWght,
+            pointListList& tgtToSrcCellVec,
             const label srcSeedI,
             const label tgtSeedI,
             const labelList& srcCellIDs,
@@ -81,49 +72,23 @@ protected:
             label& startSeedI
         );
 
-        //- Find the nearest cell on mesh2 for cell1 on mesh1
-        virtual void findNearestCell
-        (
-            const polyMesh& mesh1,
-            const polyMesh& mesh2,
-            const label cell1,
-            label& cell2
-        ) const;
-
-        //- Set the next cells for the marching front algorithm
-        virtual void setNextNearestCells
-        (
-            label& startSeedI,
-            label& srcCellI,
-            label& tgtCellI,
-            boolList& mapFlag,
-            const labelList& srcCellIDs
-        ) const;
-
-        //- Find a source cell mapped to target cell tgtCellI
-        virtual label findMappedSrcCell
-        (
-            const label tgtCellI,
-            const List<DynamicList<label> >& tgtToSrc
-        ) const;
-
         //- Disallow default bitwise copy construct
-        mapNearestMethod(const mapNearestMethod&);
+        correctedCellVolumeWeightMethod(const correctedCellVolumeWeightMethod&);
 
         //- Disallow default bitwise assignment
-        void operator=(const mapNearestMethod&);
+        void operator=(const correctedCellVolumeWeightMethod&);
 
 
 public:
 
     //- Run-time type information
-    TypeName("mapNearest");
+    TypeName("correctedCellVolumeWeight");
 
     //- Construct from source and target meshes
-    mapNearestMethod(const polyMesh& src, const polyMesh& tgt);
+    correctedCellVolumeWeightMethod(const polyMesh& src, const polyMesh& tgt);
 
     //- Destructor
-    virtual ~mapNearestMethod();
+    virtual ~correctedCellVolumeWeightMethod();
 
 
     // Member Functions

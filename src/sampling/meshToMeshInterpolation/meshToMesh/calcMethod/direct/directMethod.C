@@ -259,8 +259,10 @@ void Foam::directMethod::calculate
 (
     labelListList& srcToTgtAddr,
     scalarListList& srcToTgtWght,
+    pointListList& srcToTgtVec,
     labelListList& tgtToSrcAddr,
-    scalarListList& tgtToSrcWght
+    scalarListList& tgtToSrcWght,
+    pointListList& tgtToSrcVec
 )
 {
     bool ok = initialise

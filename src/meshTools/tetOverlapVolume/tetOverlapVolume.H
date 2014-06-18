@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,6 +29,7 @@ Description
 
 SourceFiles
     tetOverlapVolume.C
+    tetOverlapVolumeTemplates.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -38,13 +39,14 @@ SourceFiles
 #include "FixedList.H"
 #include "labelList.H"
 #include "treeBoundBox.H"
+#include "Tuple2.H"
+#include "tetrahedron.H"
 
 namespace Foam
 {
 
 class primitiveMesh;
 class polyMesh;
-class tetPoints;
 
 /*---------------------------------------------------------------------------*\
                       Class tetOverlapVolume Declaration
@@ -52,22 +54,131 @@ class tetPoints;
 
 class tetOverlapVolume
 {
+    // Private classes
+
+        //- tetPoints handling : sum resulting volumes
+        class sumMomentOp
+        {
+        public:
+            Tuple2<scalar, point> vol_;
+
+            inline sumMomentOp()
+            :
+                vol_(0.0, vector::zero)
+            {}
+
+            inline void operator()(const tetPoints& tet)
+            {
+                const tetPointRef t(tet.tet());
+                scalar tetVol = t.mag();
+                vol_.first() += tetVol;
+                vol_.second() += (tetVol*t.centre());
+            }
+        };
+
+        //- tetPoints combining : check for overlap
+        class hasOverlapOp
+        {
+        public:
+
+            const scalar threshold_;
+            scalar vol_;
+            bool ok_;
+
+            inline hasOverlapOp(const scalar threshold)
+            :
+                threshold_(threshold),
+                vol_(0.0),
+                ok_(false)
+            {}
+
+            //- Overlap two tets
+            inline bool operator()(const tetPoints& A, const tetPoints& B)
+            {
+                tetPointRef::sumVolOp iop;
+                tetTetOverlap<tetPointRef::sumVolOp>(A, B, iop);
+                vol_ += iop.vol_;
+                ok_ = (vol_ > threshold_);
+                return ok_;
+            }
+        };
+
+        //- tetPoints combining : sum overlap volume
+        class sumOverlapOp
+        {
+        public:
+
+            scalar vol_;
+
+            inline sumOverlapOp()
+            :
+                vol_(0.0)
+            {}
+
+            //- Overlap two tets
+            inline bool operator()(const tetPoints& A, const tetPoints& B)
+            {
+                tetPointRef::sumVolOp iop;
+                tetTetOverlap<tetPointRef::sumVolOp>(A, B, iop);
+                vol_ += iop.vol_;
+                return false;
+            }
+        };
+
+        //- tetPoints combining : sum overlap volume
+        class sumOverlapMomentOp
+        {
+        public:
+
+            Tuple2<scalar, point> vol_;
+
+            inline sumOverlapMomentOp()
+            :
+                vol_(0.0, vector::zero)
+            {}
+
+            //- Overlap two tets
+            inline bool operator()(const tetPoints& A, const tetPoints& B)
+            {
+                sumMomentOp iop;
+                tetTetOverlap<sumMomentOp>(A, B, iop);
+                vol_.first() += iop.vol_.first();
+                vol_.second() += iop.vol_.second();
+                return false;
+            }
+        };
+
+
     // Private member functions
 
-        //- Tet overlap volume
-        scalar tetTetOverlapVol
+        //- Tet overlap calculation
+        template<class tetPointsOp>
+        static void tetTetOverlap
         (
             const tetPoints& tetA,
-            const tetPoints& tetB
-        ) const;
+            const tetPoints& tetB,
+            tetPointsOp& insideOp
+        );
+
+        //- Cell overlap calculation
+        template<class tetsOp>
+        static void cellCellOverlapMinDecomp
+        (
+            const primitiveMesh& meshA,
+            const label cellAI,
+            const primitiveMesh& meshB,
+            const label cellBI,
+            const treeBoundBox& cellBbB,
+            tetsOp& combineTetsOp
+        );
 
         //- Return a const treeBoundBox
-        treeBoundBox pyrBb
+        static treeBoundBox pyrBb
         (
             const pointField& points,
             const face& f,
             const point& fc
-        ) const;
+        );
 
 
 public:
@@ -114,12 +225,29 @@ public:
             const label cellBI,
             const treeBoundBox& cellBbB
         ) const;
+
+        //- Calculates the overlap volume and moment
+        Tuple2<scalar, point> cellCellOverlapMomentMinDecomp
+        (
+            const primitiveMesh& meshA,
+            const label cellAI,
+
+            const primitiveMesh& meshB,
+            const label cellBI,
+            const treeBoundBox& cellBbB
+        ) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "tetOverlapVolumeTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

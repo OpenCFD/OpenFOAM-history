@@ -38,15 +38,16 @@ namespace Foam
     const char* Foam::NamedEnum
     <
         Foam::meshToMesh::interpolationMethod,
-        3
+        4
     >::names[] =
     {
         "direct",
         "mapNearest",
-        "cellVolumeWeight"
+        "cellVolumeWeight",
+        "correctedCellVolumeWeight"
     };
 
-    const NamedEnum<meshToMesh::interpolationMethod, 3>
+    const NamedEnum<meshToMesh::interpolationMethod, 4>
         meshToMesh::interpolationMethodNames_;
 }
 
@@ -137,8 +138,10 @@ void Foam::meshToMesh::calcAddressing
     (
         srcToTgtCellAddr_,
         srcToTgtCellWght_,
+        srcToTgtCellVec_,
         tgtToSrcCellAddr_,
-        tgtToSrcCellWght_
+        tgtToSrcCellWght_,
+        tgtToSrcCellVec_
     );
 
     V_ = methodPtr->V();
@@ -366,6 +369,7 @@ Foam::meshToMesh::interpolationMethodAMI
             break;
         }
         case imCellVolumeWeight:
+        case imCorrectedCellVolumeWeight:
         {
             return AMIPatchToPatchInterpolation::imFaceAreaWeight;
             break;
@@ -460,6 +464,8 @@ Foam::meshToMesh::meshToMesh
     tgtToSrcCellAddr_(),
     srcToTgtCellWght_(),
     tgtToSrcCellWght_(),
+    srcToTgtCellVec_(),
+    tgtToSrcCellVec_(),
     method_(method),
     V_(0.0),
     singleMeshProc_(-1),
