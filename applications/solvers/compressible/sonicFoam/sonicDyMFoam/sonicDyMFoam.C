@@ -105,12 +105,9 @@ int main(int argc, char *argv[])
             #include "meshCourantNo.H"
         }
 
-        if (pimple.nCorrPIMPLE() <= 1)
-        {
-            #include "rhoEqn.H"
-            Info<< "rhoEqn max/min : " << max(rho).value()
-                << " " << min(rho).value() << endl;
-        }
+        #include "rhoEqn.H"
+        Info<< "rhoEqn max/min : " << max(rho).value()
+            << " " << min(rho).value() << endl;
 
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
