@@ -466,9 +466,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
         }
     }
 
-    vectorField gradP = gradP0_ + dGradP_;
-
-    writeProps(gradP);
+    writeProps(gradP0_ + dGradP_);
 }
 
 
@@ -492,9 +490,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::addSup
         dimensionedVector("zero", eqn.dimensions()/dimVolume, vector::zero)
     );
 
-    vectorField gradP = gradP0_ + dGradP_;
-
-    UIndirectList<vector>(Su, cells_) = gradP;
+    UIndirectList<vector>(Su, cells_) = gradP0_ + dGradP_;
 
     eqn += Su;
 }
