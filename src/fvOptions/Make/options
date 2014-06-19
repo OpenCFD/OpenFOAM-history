@@ -9,6 +9,7 @@ EXE_INC = \
     -I$(LIB_SRC)/turbulenceModels/compressible/turbulenceModel/lnInclude \
     -I$(LIB_SRC)/turbulenceModels \
     -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/turbulenceModels/incompressible/turbulenceModel/lnInclude
 
 
 LIB_LIBS = \
@@ -16,4 +17,5 @@ LIB_LIBS = \
     -lsampling \
     -lmeshTools \
     /*-lsolidThermo*/ \
-    -lcompressibleTurbulenceModel
+    -lcompressibleTurbulenceModel \
+    -lincompressibleTurbulenceModel
