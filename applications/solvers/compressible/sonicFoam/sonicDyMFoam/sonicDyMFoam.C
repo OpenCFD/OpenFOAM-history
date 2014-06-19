@@ -70,20 +70,20 @@ int main(int argc, char *argv[])
 
         #include "setDeltaT.H"
 
-        runTime++;
-
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
         {
-            // Store momentum to set rhoUf for introduced faces.
-            volVectorField rhoU("rhoU", rho*U);
-
             // Store divrhoU from the previous time-step/mesh for the correctPhi
             volScalarField divrhoU
             (
                 "divrhoU",
                 fvc::div(fvc::absolute(phi, rho, U))
             );
+
+            runTime++;
+
+            Info<< "Time = " << runTime.timeName() << nl << endl;
+
+            // Store momentum to set rhoUf for introduced faces.
+            volVectorField rhoU("rhoU", rho*U);
 
             // Do any mesh changes
             mesh.update();
