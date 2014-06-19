@@ -40,7 +40,7 @@ SourceFiles
 
 #include "TimePaths.H"
 #include "objectRegistry.H"
-#include "unregisteredIOdictionary.H"
+#include "unwatchedIOdictionary.H"
 #include "FIFOStack.H"
 #include "clock.H"
 #include "cpuTime.H"
@@ -84,7 +84,7 @@ class Time
         dlLibraryTable libs_;
 
         //- The controlDict
-        unregisteredIOdictionary controlDict_;
+        unwatchedIOdictionary controlDict_;
 
 public:
 
