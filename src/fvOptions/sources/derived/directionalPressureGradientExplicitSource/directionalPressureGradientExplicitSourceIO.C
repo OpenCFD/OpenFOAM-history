@@ -47,13 +47,24 @@ bool Foam::fv::directionalPressureGradientExplicitSource::read
     const dictionary& dict
 )
 {
-    notImplemented
-    (
-        "bool Foam::fv::directionalPressureGradientExplicitSource::read"
-        "("
-            "const dictionary&"
-        ") const"
-    );
+    const dictionary coeffs(dict.subDict(typeName + "Coeffs"));
+
+    relaxationFactor_ =
+        coeffs.lookupOrDefault<scalar>("relaxationFactor", 0.3);
+
+    coeffs.lookup("flowDir") >> flowDir_;
+    flowDir_ /= mag(flowDir_);
+
+    if (model_ == pConstant)
+    {
+        coeffs.lookup("pressureDrop") >> pressureDrop_;
+    }
+    else if (model_ == pDarcyForchheimer)
+    {
+        coeffs.lookup("D") >> D_;
+        coeffs.lookup("I") >> I_;
+        coeffs.lookup("length") >> length_;
+    }
 
     return false;
 }
