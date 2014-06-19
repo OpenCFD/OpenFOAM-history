@@ -10,53 +10,39 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      fvSchemes;
+    location    "constant";
+    object      thermophysicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
+thermoType
 {
-    default         steadyState;
+    type            hePsiThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          sensibleInternalEnergy;
 }
 
-gradSchemes
+mixture
 {
-    default         Gauss linear;
-    grad(U)         cellLimited Gauss linear 1;
-}
-
-divSchemes
-{
-    default         none;
-    div(phi,U)      bounded Gauss upwind;
-    div(phi,h)      bounded Gauss upwind;
-    div(phi,e)      bounded Gauss upwind;
-    div(phi,K)      bounded Gauss upwind;
-    div(phi,k)      bounded Gauss upwind;
-    div(phi,epsilon) bounded Gauss upwind;
-    div((muEff*dev2(T(grad(U))))) Gauss linear;
-}
-
-laplacianSchemes
-{
-    default         Gauss linear limited corrected 0.333;
-}
-
-interpolationSchemes
-{
-    default         linear;
-}
-
-snGradSchemes
-{
-    default         limited corrected 0.333;
-}
-
-fluxRequired
-{
-    default         no;
-    p_rgh;
+    specie
+    {
+        nMoles      1;
+        molWeight   28.9;
+    }
+    thermodynamics
+    {
+        Cp          1007;
+        Hf          2.544e+06;
+    }
+    transport
+    {
+        mu          1e-3;
+        Pr          0.7;
+    }
 }
 
 

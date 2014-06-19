@@ -40,7 +40,7 @@ SourceFiles
 
 #include "TimePaths.H"
 #include "objectRegistry.H"
-#include "IOdictionary.H"
+#include "unregisteredIOdictionary.H"
 #include "FIFOStack.H"
 #include "clock.H"
 #include "cpuTime.H"
@@ -84,7 +84,7 @@ class Time
         dlLibraryTable libs_;
 
         //- The controlDict
-        IOdictionary controlDict_;
+        unregisteredIOdictionary controlDict_;
 
 public:
 
@@ -335,8 +335,18 @@ public:
                 //- Read the objects that have been modified
                 void readModifiedObjects();
 
+                //- Helper: add watches for list of files
+                void addWatches(regIOobject&, const fileNameList&) const;
+
+                //- Find index (or -1) of file in list of handles
+                label findWatch
+                (
+                    const labelList& watchIndices,
+                    const fileName&
+                ) const;
+
                 //- Add watching of a file. Returns handle
-                label addWatch(const fileName&) const;
+                label addTimeWatch(const fileName&) const;
 
                 //- Remove watch on a file (using handle)
                 bool removeWatch(const label) const;

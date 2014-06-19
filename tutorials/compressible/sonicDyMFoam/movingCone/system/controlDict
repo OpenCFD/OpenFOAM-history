@@ -11,53 +11,42 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      fvSchemes;
+    object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ddtSchemes
-{
-    default         steadyState;
-}
+application     sonicDyMFoam;
 
-gradSchemes
-{
-    default         Gauss linear;
-    grad(U)         cellLimited Gauss linear 1;
-}
+startFrom       startTime;
 
-divSchemes
-{
-    default         none;
-    div(phi,U)      bounded Gauss upwind;
-    div(phi,h)      bounded Gauss upwind;
-    div(phi,e)      bounded Gauss upwind;
-    div(phi,K)      bounded Gauss upwind;
-    div(phi,k)      bounded Gauss upwind;
-    div(phi,epsilon) bounded Gauss upwind;
-    div((muEff*dev2(T(grad(U))))) Gauss linear;
-}
+startTime       0;
 
-laplacianSchemes
-{
-    default         Gauss linear limited corrected 0.333;
-}
+stopAt          endTime;
 
-interpolationSchemes
-{
-    default         linear;
-}
+endTime         0.00002;
 
-snGradSchemes
-{
-    default         limited corrected 0.333;
-}
+deltaT          1e-08;
 
-fluxRequired
-{
-    default         no;
-    p_rgh;
-}
+writeControl    adjustableRunTime;
 
+writeInterval   5e-7;
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           0.2;
 
 // ************************************************************************* //

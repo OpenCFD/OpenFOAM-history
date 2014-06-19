@@ -29,8 +29,8 @@ wmakeMpiLib()
     do
     (
         WM_OPTIONS="$WM_OPTIONS$WM_MPLIB"
-        whichmpi="$libName/Make/$WM_OPTIONS/using:$FOAM_MPI"
-        whichscotch="$libName/Make/$WM_OPTIONS/using:$SCOTCH_VERSION"
+        whichmpi="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/src/parallel/decompose/$libName/using:$FOAM_MPI"
+        whichscotch="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/src/parallel/decompose/$libName/using:$SCOTCH_VERSION"
         [ -e "$whichmpi" -a -e "$whichscotch" ] || wclean $libName
         echo "wmake $targetType $libName"
         wmake $targetType $libName
