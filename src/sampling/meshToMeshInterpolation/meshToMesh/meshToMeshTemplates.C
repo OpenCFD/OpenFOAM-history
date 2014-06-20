@@ -528,7 +528,7 @@ Foam::tmp<Foam::Field<Type> > Foam::meshToMesh::mapTgtToSrc
 
 
 template<class Type, class CombineOp>
-void Foam::meshToMesh::mapSrcToTgt
+void Foam::meshToMesh::mapInternalSrcToTgt
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
     const CombineOp& cop,
@@ -550,6 +550,20 @@ void Foam::meshToMesh::mapSrcToTgt
     {
         mapSrcToTgt(field, cop, result.internalField());
     }
+}
+
+
+template<class Type, class CombineOp>
+void Foam::meshToMesh::mapSrcToTgt
+(
+    const GeometricField<Type, fvPatchField, volMesh>& field,
+    const CombineOp& cop,
+    GeometricField<Type, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapInternalSrcToTgt(field, cop, result, secondOrder);
+
 
     const PtrList<AMIPatchToPatchInterpolation>& AMIList = patchAMIs();
 

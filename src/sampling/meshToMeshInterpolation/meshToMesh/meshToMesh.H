@@ -143,6 +143,17 @@ private:
         template<class Type>
         void add(UList<Type>& fld, const label offset) const;
 
+        //- Helper function to interpolate internal field. Optionally uses
+        //  gradient. Template specialisations for tensor types below
+        template<class Type, class CombineOp>
+        void mapInternalSrcToTgt
+        (
+            const GeometricField<Type, fvPatchField, volMesh>& field,
+            const CombineOp& cop,
+            GeometricField<Type, fvPatchField, volMesh>& result,
+            const bool secondOrder
+        ) const;
+
         //- Return src cell IDs for the overlap region
         labelList maskCells(const polyMesh& src, const polyMesh& tgt) const;
 
@@ -538,6 +549,58 @@ public:
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Disable gradient 2nd order correction for tensor types
+
+template<>
+void meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const plusEqOp<sphericalTensor>&,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const minusEqOp<sphericalTensor>&,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const plusEqOp<symmTensor>&,
+    GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const minusEqOp<symmTensor>&,
+    GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<tensor, fvPatchField, volMesh>&,
+    const plusEqOp<tensor>&,
+    GeometricField<tensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<tensor, fvPatchField, volMesh>&,
+    const minusEqOp<tensor>&,
+    GeometricField<tensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+
 
 } // End namespace Foam
 
