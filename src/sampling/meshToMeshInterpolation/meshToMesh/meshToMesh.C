@@ -132,6 +132,84 @@ void Foam::meshToMesh::mapInternalSrcToTgt
 }
 
 
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>& field,
+    const plusEqOp<sphericalTensor>& cop,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>& field,
+    const minusEqOp<sphericalTensor>& cop,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>& field,
+    const plusEqOp<symmTensor>& cop,
+    GeometricField<symmTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>& field,
+    const minusEqOp<symmTensor>& cop,
+    GeometricField<symmTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<tensor, fvPatchField, volMesh>& field,
+    const plusEqOp<tensor>& cop,
+    GeometricField<tensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<tensor, fvPatchField, volMesh>& field,
+    const minusEqOp<tensor>& cop,
+    GeometricField<tensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
 Foam::labelList Foam::meshToMesh::maskCells
 (
     const polyMesh& src,

@@ -536,7 +536,7 @@ void Foam::meshToMesh::mapInternalSrcToTgt
     const bool secondOrder
 ) const
 {
-    if (returnReduce(tgtToSrcCellVec_.size(), sumOp<label>()) && secondOrder)
+    if (secondOrder && returnReduce(tgtToSrcCellVec_.size(), sumOp<label>()))
     {
         mapSrcToTgt
         (
@@ -724,7 +724,7 @@ Foam::meshToMesh::mapSrcToTgt
 
 
 template<class Type, class CombineOp>
-void Foam::meshToMesh::mapTgtToSrc
+void Foam::meshToMesh::mapInternalTgtToSrc
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
     const CombineOp& cop,
@@ -732,7 +732,7 @@ void Foam::meshToMesh::mapTgtToSrc
     const bool secondOrder
 ) const
 {
-    if (returnReduce(srcToTgtCellVec_.size(), sumOp<label>()) && secondOrder)
+    if (secondOrder && returnReduce(srcToTgtCellVec_.size(), sumOp<label>()))
     {
         mapTgtToSrc
         (
@@ -746,6 +746,20 @@ void Foam::meshToMesh::mapTgtToSrc
     {
         mapTgtToSrc(field, cop, result.internalField());
     }
+}
+
+
+template<class Type, class CombineOp>
+void Foam::meshToMesh::mapTgtToSrc
+(
+    const GeometricField<Type, fvPatchField, volMesh>& field,
+    const CombineOp& cop,
+    GeometricField<Type, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapInternalTgtToSrc(field, cop, result, secondOrder);
+
 
     const PtrList<AMIPatchToPatchInterpolation>& AMIList = patchAMIs();
 

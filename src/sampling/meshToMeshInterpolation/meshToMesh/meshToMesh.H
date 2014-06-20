@@ -154,6 +154,17 @@ private:
             const bool secondOrder
         ) const;
 
+        //- Helper function to interpolate internal field. Optionally uses
+        //  gradient. Template specialisations for tensor types below
+        template<class Type, class CombineOp>
+        void mapInternalTgtToSrc
+        (
+            const GeometricField<Type, fvPatchField, volMesh>& field,
+            const CombineOp& cop,
+            GeometricField<Type, fvPatchField, volMesh>& result,
+            const bool secondOrder
+        ) const;
+
         //- Return src cell IDs for the overlap region
         labelList maskCells(const polyMesh& src, const polyMesh& tgt) const;
 
@@ -594,6 +605,54 @@ void meshToMesh::mapInternalSrcToTgt
 ) const;
 template<>
 void meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<tensor, fvPatchField, volMesh>&,
+    const minusEqOp<tensor>&,
+    GeometricField<tensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const plusEqOp<sphericalTensor>&,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const minusEqOp<sphericalTensor>&,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const plusEqOp<symmTensor>&,
+    GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const minusEqOp<symmTensor>&,
+    GeometricField<symmTensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<tensor, fvPatchField, volMesh>&,
+    const plusEqOp<tensor>&,
+    GeometricField<tensor, fvPatchField, volMesh>&,
+    const bool
+) const;
+template<>
+void meshToMesh::mapInternalTgtToSrc
 (
     const GeometricField<tensor, fvPatchField, volMesh>&,
     const minusEqOp<tensor>&,
