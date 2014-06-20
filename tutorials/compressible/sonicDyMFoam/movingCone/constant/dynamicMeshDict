@@ -9,56 +9,23 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volVectorField;
-    object      U;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 1 -1 0 0 0 0];
+dynamicFvMesh   dynamicMotionSolverFvMesh;
 
-internalField   uniform (0 0 0);
+motionSolverLibs ( "libfvMotionSolvers.so" );
 
-boundaryField
+solver          velocityComponentLaplacian;
+
+velocityComponentLaplacianCoeffs
 {
-    movingWall
-    {
-        type            movingWallVelocity;
-        value           $internalField;
-    }
-
-    farFieldMoving
-    {
-        type            fixedValue;
-        value           $internalField;
-    }
-
-    fixedWall
-    {
-        type            fixedValue;
-        value           $internalField;
-    }
-
-    left
-    {
-        type            pressureInletOutletVelocity;
-        value           $internalField;
-    }
-
-    farField
-    {
-        type            fixedValue;
-        value           $internalField;
-    }
-
-    back
-    {
-        type            wedge;
-    }
-
-    front
-    {
-        type            wedge;
-    }
+    component       x;
+    diffusivity     directional ( 1 200 0 );
 }
+
 
 // ************************************************************************* //
