@@ -177,6 +177,7 @@ directionalPressureGradientExplicitSource
     model_(PressureDropModelNames_.read(coeffs_.lookup("model"))),
     gradP0_(cells_.size(), vector::zero),
     dGradP_(cells_.size(), vector::zero),
+    gradPporous_(cells_.size(), vector::zero),
     flowDir_(coeffs_.lookup("flowDir")),
     invAPtr_(NULL),
     D_(0),
@@ -335,8 +336,6 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
 {
     const scalarField& rAU = invAPtr_().internalField();
 
-    scalarField gradPporous(cells_.size(), 0.0);
-
     const scalarField magUn(mag(U), cells_);
 
     const surfaceScalarField& phi =
@@ -356,7 +355,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
 
                 const scalarField nu(turbModel.nu(), cells_);
 
-                gradPporous = (D_*nu + I_*0.5*magUn)*magUn*length_;
+                gradPporous_ = -flowDir_*(D_*nu + I_*0.5*magUn)*magUn*length_;
                 break;
             }
             else
@@ -371,12 +370,13 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
 
                 const scalarField rho(turbModel.rho(),cells_);
 
-                gradPporous = (D_*mu + I_*0.5*rho*magUn)*magUn*length_;
+                gradPporous_ =
+                    - flowDir_*(D_*mu + I_*0.5*rho*magUn)*magUn*length_;
             }
         }
         case pConstant:
         {
-            gradPporous = pressureDrop_;
+            gradPporous_ = -flowDir_*pressureDrop_;
             break;
         }
 
@@ -417,7 +417,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
                 volFlowRate = mag(totalphi)/rhoAve;
             }
 
-            gradPporous = flowRate_(volFlowRate);
+            gradPporous_ = -flowDir_*flowRate_(volFlowRate);
             break;
         }
     }
@@ -451,8 +451,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
         const tensor D = rotationTensor(Ufnorm, flowDir_);
 
         dGradP_[i] +=
-            relaxationFactor_*((D & UfCells[i]) - U[cellI])/rAU[cellI]
-          - flowDir_*gradPporous[i];
+            relaxationFactor_*((D & UfCells[i]) - U[cellI])/rAU[cellI];
 
         if (debug)
         {
@@ -461,7 +460,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
             Info<< "Difference mag(U) = " << mag(UfCells[i]) - mag(U[cellI])
                 << endl;
             Info<< "Pressure drop in flowDir direction : "
-                << gradPporous[i] << endl;
+                << gradPporous_[i] << endl;
             Info<< "UfCell:= " << UfCells[i] << "U : " << U[cellI] << endl;
         }
     }
@@ -490,7 +489,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::addSup
         dimensionedVector("zero", eqn.dimensions()/dimVolume, vector::zero)
     );
 
-    UIndirectList<vector>(Su, cells_) = gradP0_ + dGradP_;
+    UIndirectList<vector>(Su, cells_) = gradP0_ + dGradP_ + gradPporous_;
 
     eqn += Su;
 }

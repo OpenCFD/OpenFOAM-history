@@ -135,6 +135,9 @@ private:
         //- Change in pressure gradient
         vectorField dGradP_;
 
+        //- Pressure drop due to porous media
+        vectorField gradPporous_;
+
         //- Flow direction
         vector flowDir_;
 
