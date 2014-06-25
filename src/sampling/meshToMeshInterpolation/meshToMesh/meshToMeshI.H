@@ -39,31 +39,39 @@ inline const Foam::polyMesh& Foam::meshToMesh::tgtRegion() const
 }
 
 
-inline const Foam::labelListList&
-Foam::meshToMesh::srcToTgtCellAddr() const
+inline const Foam::labelListList& Foam::meshToMesh::srcToTgtCellAddr() const
 {
     return srcToTgtCellAddr_;
 }
 
 
-inline const Foam::labelListList&
-Foam::meshToMesh::tgtToSrcCellAddr() const
+inline const Foam::labelListList& Foam::meshToMesh::tgtToSrcCellAddr() const
 {
     return tgtToSrcCellAddr_;
 }
 
 
-inline const Foam::scalarListList&
-Foam::meshToMesh::srcToTgtCellWght() const
+inline const Foam::scalarListList& Foam::meshToMesh::srcToTgtCellWght() const
 {
     return srcToTgtCellWght_;
 }
 
 
-inline const Foam::scalarListList&
-Foam::meshToMesh::tgtToSrcCellWght() const
+inline const Foam::scalarListList& Foam::meshToMesh::tgtToSrcCellWght() const
 {
     return tgtToSrcCellWght_;
+}
+
+
+inline const Foam::pointListList& Foam::meshToMesh::srcToTgtCellVec() const
+{
+    return srcToTgtCellVec_;
+}
+
+
+inline const Foam::pointListList& Foam::meshToMesh::tgtToSrcCellVec() const
+{
+    return tgtToSrcCellVec_;
 }
 
 

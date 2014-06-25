@@ -448,7 +448,7 @@ bool Foam::Time::read()
         {
             // For IOdictionary the call to regIOobject::read() would have
             // already updated all the watchIndices via the addWatch but
-            // controlDict_ is an unregisteredIOdictionary so will only have
+            // controlDict_ is an unwatchedIOdictionary so will only have
             // stored the dependencies as files.
              addWatches(controlDict_, controlDict_.files());
         }
@@ -491,7 +491,7 @@ void Foam::Time::readModifiedObjects()
             {
                 // For IOdictionary the call to regIOobject::read() would have
                 // already updated all the watchIndices via the addWatch but
-                // controlDict_ is an unregisteredIOdictionary so will only have
+                // controlDict_ is an unwatchedIOdictionary so will only have
                 // stored the dependencies as files.
 
                 addWatches(controlDict_, controlDict_.files());

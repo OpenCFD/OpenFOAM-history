@@ -498,10 +498,16 @@ void getInterfaceSizes
             }
             interfaceSizes[nInterfaces] = infoIter();
 
-            Map<label> zoneAndInterface;
-            zoneAndInterface.insert(zoneID, nInterfaces);
-            regionsToInterface.insert(e, zoneAndInterface);
-
+            if (regionsToInterface.found(e))
+            {
+                regionsToInterface[e].insert(zoneID, nInterfaces);
+            }
+            else
+            {
+                Map<label> zoneAndInterface;
+                zoneAndInterface.insert(zoneID, nInterfaces);
+                regionsToInterface.insert(e, zoneAndInterface);
+            }
             nInterfaces++;
         }
     }

@@ -308,6 +308,26 @@ Foam::IOobject::IOobject
 }
 
 
+Foam::IOobject::IOobject
+(
+    const IOobject& io,
+    const objectRegistry& registry
+)
+:
+    name_(io.name_),
+    headerClassName_(io.headerClassName_),
+    note_(io.note_),
+    instance_(io.instance_),
+    local_(io.local_),
+    db_(registry),
+    rOpt_(io.rOpt_),
+    wOpt_(io.wOpt_),
+    registerObject_(io.registerObject_),
+    globalObject_(io.globalObject_),
+    objState_(io.objState_)
+{}
+
+
 // * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * * //
 
 Foam::IOobject::~IOobject()

@@ -23,14 +23,14 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "unregisteredIOdictionary.H"
+#include "unwatchedIOdictionary.H"
 #include "objectRegistry.H"
 #include "Pstream.H"
 #include "Time.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::unregisteredIOdictionary::unregisteredIOdictionary(const IOobject& io)
+Foam::unwatchedIOdictionary::unwatchedIOdictionary(const IOobject& io)
 :
     baseIOdictionary(io)
 {
@@ -41,7 +41,7 @@ Foam::unregisteredIOdictionary::unregisteredIOdictionary(const IOobject& io)
 }
 
 
-Foam::unregisteredIOdictionary::unregisteredIOdictionary
+Foam::unwatchedIOdictionary::unwatchedIOdictionary
 (
     const IOobject& io,
     const dictionary& dict
@@ -59,7 +59,7 @@ Foam::unregisteredIOdictionary::unregisteredIOdictionary
 }
 
 
-Foam::unregisteredIOdictionary::unregisteredIOdictionary
+Foam::unwatchedIOdictionary::unwatchedIOdictionary
 (
     const IOobject& io,
     Istream& is
@@ -81,13 +81,13 @@ Foam::unregisteredIOdictionary::unregisteredIOdictionary
 
 // * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * * //
 
-Foam::unregisteredIOdictionary::~unregisteredIOdictionary()
+Foam::unwatchedIOdictionary::~unwatchedIOdictionary()
 {}
 
 
 // * * * * * * * * * * * * * * * Members Functions * * * * * * * * * * * * * //
 
-Foam::label Foam::unregisteredIOdictionary::addWatch(const fileName& f)
+Foam::label Foam::unwatchedIOdictionary::addWatch(const fileName& f)
 {
     label index = -1;
 
@@ -105,7 +105,7 @@ Foam::label Foam::unregisteredIOdictionary::addWatch(const fileName& f)
 }
 
 
-void Foam::unregisteredIOdictionary::addWatch()
+void Foam::unwatchedIOdictionary::addWatch()
 {
     if (readOpt() == MUST_READ_IF_MODIFIED)
     {

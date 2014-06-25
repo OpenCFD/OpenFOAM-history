@@ -22,17 +22,17 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::unregisteredIOdictionary
+    Foam::unwatchedIOdictionary
 
 Description
-    unregisteredIOdictionary is like IOdictionary but stores
+    unwatchedIOdictionary is like IOdictionary but stores
     dependencies as files instead of fileMonitor watchIndices. Used
     to read controlDict since there fileMonitor not yet setup.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef unregisteredIOdictionary_H
-#define unregisteredIOdictionary_H
+#ifndef unwatchedIOdictionary_H
+#define unwatchedIOdictionary_H
 
 #include "baseIOdictionary.H"
 
@@ -42,10 +42,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                   Class unregisteredIOdictionary Declaration
+                   Class unwatchedIOdictionary Declaration
 \*---------------------------------------------------------------------------*/
 
-class unregisteredIOdictionary
+class unwatchedIOdictionary
 :
     public baseIOdictionary
 {
@@ -57,20 +57,20 @@ public:
     // Constructors
 
         //- Construct given an IOobject
-        unregisteredIOdictionary(const IOobject& io);
+        unwatchedIOdictionary(const IOobject& io);
 
         //- Construct given an IOobject and dictionary
-        unregisteredIOdictionary
+        unwatchedIOdictionary
         (
             const IOobject& io,
             const dictionary& dict
         );
 
         //- Construct given an IOobject and Istream
-        unregisteredIOdictionary(const IOobject& io, Istream& is);
+        unwatchedIOdictionary(const IOobject& io, Istream& is);
 
     //- Destructor
-    virtual ~unregisteredIOdictionary();
+    virtual ~unwatchedIOdictionary();
 
 
     // Member functions
@@ -110,7 +110,7 @@ public:
 
 //- Template function for obtaining global status
 template<>
-inline bool typeGlobal<unregisteredIOdictionary>()
+inline bool typeGlobal<unwatchedIOdictionary>()
 {
     return true;
 }
