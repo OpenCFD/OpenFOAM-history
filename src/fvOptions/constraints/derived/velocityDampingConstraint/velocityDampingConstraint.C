@@ -76,7 +76,7 @@ void Foam::fv::velocityDampingConstraint::addDamping(fvMatrix<vector>& eqn)
 
     reduce(nDamped, sumOp<label>());
 
-    Info << type() << " " << name_ << " damped "
+    Info<< type() << " " << name_ << " damped "
         << nDamped << " ("
         << 100*scalar(nDamped)/mesh_.globalData().nTotalCells()
         << "%) of cells" << endl;
