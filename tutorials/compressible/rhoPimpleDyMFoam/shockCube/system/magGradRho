@@ -22,7 +22,7 @@ indicator
     type coded;
     // Name of on-the-fly generated functionObject
     redirectType indicatorField;
-    codeTimeSet
+    code
     #{
         if (!mesh().foundObject<volScalarField>("magGradRho"))
         {
@@ -38,13 +38,9 @@ indicator
             magGradRho.rename("magGradRho");
             magGradRho.writeOpt() = IOobject::AUTO_WRITE;
             magGradRho.writeMinMax(Info);
-
             tmagGradRho.ptr()->store();
-
         }
-    #};
-    code
-    #{
+
         Info<< "Looking up field magGradRho\n" << endl;
         volScalarField& magGradRho = const_cast<volScalarField&>
         (

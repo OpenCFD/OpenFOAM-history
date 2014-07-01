@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,6 +49,7 @@ SourceFiles
 #include "word.H"
 #include "Xfer.H"
 #include "className.H"
+#include "autoPtr.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -206,6 +207,9 @@ public:
 
         //- Construct by transferring the parameter contents
         HashTable(const Xfer<HashTable<T, Key, Hash> >&);
+
+        //- Clone
+        autoPtr<HashTable<T, Key, Hash> > clone() const;
 
 
     //- Destructor

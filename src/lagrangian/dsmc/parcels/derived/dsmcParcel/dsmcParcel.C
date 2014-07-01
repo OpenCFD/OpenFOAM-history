@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -48,7 +48,7 @@ Foam::dsmcParcel::dsmcParcel
     const label typeId
 )
 :
-    DsmcParcel<dsmcParcel>
+    DSMCParcel<dsmcParcel>
     (
         owner,
         position,
@@ -69,7 +69,7 @@ Foam::dsmcParcel::dsmcParcel
     bool readFields
 )
 :
-    DsmcParcel<dsmcParcel>(cloud, is, readFields)
+    DSMCParcel<dsmcParcel>(cloud, is, readFields)
 {}
 
 

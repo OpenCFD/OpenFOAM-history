@@ -231,14 +231,17 @@ private:
                     List<extrudeMode>& extrudeStatus
                 ) const;
 
-                //- See what patches boundaryedges should be extruded into
+                //- See what zones and patches edges should be extruded into
                 void determineSidePatches
                 (
                     const globalIndex& globalFaces,
                     const labelListList& edgeGlobalFaces,
                     const indirectPrimitivePatch& pp,
 
-                    labelList& sidePatchID
+                    labelList& edgePatchID,
+                    labelList& edgeZoneID,
+                    boolList& edgeFlip,
+                    labelList& inflateFaceID
                 );
 
                 //- Calculate pointwise wanted and minimum thickness.

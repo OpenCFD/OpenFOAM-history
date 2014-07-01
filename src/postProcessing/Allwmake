@@ -9,6 +9,6 @@ set -x
 wmake ${1:-libo} postCalc
 wmake $targetType foamCalcFunctions
 
-functionObjects/Allwmake $*
+functionObjects/Allwmake $targetType $*
 
 # ----------------------------------------------------------------- end-of-file

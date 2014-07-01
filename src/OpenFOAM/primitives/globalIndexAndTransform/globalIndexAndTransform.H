@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -151,12 +151,6 @@ private:
             const label transformIndex
         ) const;
 
-        //- Disallow default bitwise copy construct
-        globalIndexAndTransform(const globalIndexAndTransform&);
-
-        //- Disallow default bitwise assignment
-        void operator=(const globalIndexAndTransform&);
-
 
 public:
 
@@ -172,6 +166,9 @@ public:
 
         //- Construct from components
         globalIndexAndTransform(const polyMesh& mesh);
+
+        //- Clone
+        inline autoPtr<globalIndexAndTransform> clone() const;
 
 
     //- Destructor

@@ -38,20 +38,177 @@ namespace Foam
     const char* Foam::NamedEnum
     <
         Foam::meshToMesh::interpolationMethod,
-        3
+        4
     >::names[] =
     {
         "direct",
         "mapNearest",
-        "cellVolumeWeight"
+        "cellVolumeWeight",
+        "correctedCellVolumeWeight"
     };
 
-    const NamedEnum<meshToMesh::interpolationMethod, 3>
+    const NamedEnum<meshToMesh::interpolationMethod, 4>
         meshToMesh::interpolationMethodNames_;
 }
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+template<>
+void Foam::meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>& field,
+    const plusEqOp<sphericalTensor>& cop,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>& field,
+    const minusEqOp<sphericalTensor>& cop,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>& field,
+    const plusEqOp<symmTensor>& cop,
+    GeometricField<symmTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>& field,
+    const minusEqOp<symmTensor>& cop,
+    GeometricField<symmTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<tensor, fvPatchField, volMesh>& field,
+    const plusEqOp<tensor>& cop,
+    GeometricField<tensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalSrcToTgt
+(
+    const GeometricField<tensor, fvPatchField, volMesh>& field,
+    const minusEqOp<tensor>& cop,
+    GeometricField<tensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>& field,
+    const plusEqOp<sphericalTensor>& cop,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<sphericalTensor, fvPatchField, volMesh>& field,
+    const minusEqOp<sphericalTensor>& cop,
+    GeometricField<sphericalTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>& field,
+    const plusEqOp<symmTensor>& cop,
+    GeometricField<symmTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<symmTensor, fvPatchField, volMesh>& field,
+    const minusEqOp<symmTensor>& cop,
+    GeometricField<symmTensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<tensor, fvPatchField, volMesh>& field,
+    const plusEqOp<tensor>& cop,
+    GeometricField<tensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
+
+template<>
+void Foam::meshToMesh::mapInternalTgtToSrc
+(
+    const GeometricField<tensor, fvPatchField, volMesh>& field,
+    const minusEqOp<tensor>& cop,
+    GeometricField<tensor, fvPatchField, volMesh>& result,
+    const bool secondOrder
+) const
+{
+    mapSrcToTgt(field, cop, result.internalField());
+}
+
 
 Foam::labelList Foam::meshToMesh::maskCells
 (
@@ -137,8 +294,10 @@ void Foam::meshToMesh::calcAddressing
     (
         srcToTgtCellAddr_,
         srcToTgtCellWght_,
+        srcToTgtCellVec_,
         tgtToSrcCellAddr_,
-        tgtToSrcCellWght_
+        tgtToSrcCellWght_,
+        tgtToSrcCellVec_
     );
 
     V_ = methodPtr->V();
@@ -366,6 +525,7 @@ Foam::meshToMesh::interpolationMethodAMI
             break;
         }
         case imCellVolumeWeight:
+        case imCorrectedCellVolumeWeight:
         {
             return AMIPatchToPatchInterpolation::imFaceAreaWeight;
             break;
@@ -460,6 +620,8 @@ Foam::meshToMesh::meshToMesh
     tgtToSrcCellAddr_(),
     srcToTgtCellWght_(),
     tgtToSrcCellWght_(),
+    srcToTgtCellVec_(),
+    tgtToSrcCellVec_(),
     method_(method),
     V_(0.0),
     singleMeshProc_(-1),

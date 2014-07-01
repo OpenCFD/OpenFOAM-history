@@ -242,10 +242,23 @@ public:
             bool registerObject=true
         );
 
+        //- Construct from copy resetting registry
+        IOobject
+        (
+            const IOobject& io,
+            const objectRegistry& registry
+        );
+
         //- Clone
-        Foam::autoPtr<IOobject> clone() const
+        autoPtr<IOobject> clone() const
         {
             return autoPtr<IOobject>(new IOobject(*this));
+        }
+
+        //- Clone resetting registry
+        autoPtr<IOobject> clone(const objectRegistry& registry) const
+        {
+            return autoPtr<IOobject>(new IOobject(*this, registry));
         }
 
 

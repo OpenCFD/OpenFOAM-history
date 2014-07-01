@@ -121,13 +121,15 @@ public:
 
         // Evaluate
 
-            //- Calculate addressing and weights
+            //- Calculate addressing and weights and optionally offset vectors
             virtual void calculate
             (
                 labelListList& srcToTgtAddr,
                 scalarListList& srcToTgtWght,
-                labelListList& tgtToTgtAddr,
-                scalarListList& tgtToTgtWght
+                pointListList& srcToTgtVec,
+                labelListList& tgtToSrcAddr,
+                scalarListList& tgtToSrcWght,
+                pointListList& tgtToSrcVec
             );
 };
 

@@ -308,6 +308,21 @@ void Foam::Cloud<ParticleType>::move(TrackData& td, const scalar trackTime)
         {
             if (particleTransferLists[i].size())
             {
+                // forAllIter
+                // (
+                //     typename Cloud<ParticleType>,
+                //     particleTransferLists[i],
+                //     pIter
+                // )
+                // {
+                //     ParticleType& p = pIter();
+                //     Check particle is going to neighbourProcs[i]
+                //     Sum the particle size
+                // }
+
+                // Buffer size
+                // patchIndexTransferLists[i].byteSize() + particlesSize;
+
                 UOPstream particleStream
                 (
                     neighbourProcs[i],
@@ -417,6 +432,12 @@ void Foam::Cloud<ParticleType>::autoMap
     // Reset stored data that relies on the mesh
 //    polyMesh_.clearCellTree();
     cellWallFacesPtr_.clear();
+
+    // Ask for the tetBasePtIs to trigger all processors to build
+    // them, otherwise, if some processors have no particles then
+    // there is a comms mismatch.
+    polyMesh_.tetBasePtIs();
+
 
     forAllIter(typename Cloud<ParticleType>, *this, pIter)
     {

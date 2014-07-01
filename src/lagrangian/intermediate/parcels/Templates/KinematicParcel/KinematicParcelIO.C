@@ -34,6 +34,14 @@ template<class ParcelType>
 Foam::string Foam::KinematicParcel<ParcelType>::propertyList_ =
     Foam::KinematicParcel<ParcelType>::propertyList();
 
+template<class ParcelType>
+const std::size_t Foam::KinematicParcel<ParcelType>::sizeofFields_
+(
+    offsetof(KinematicParcel<ParcelType>, rhoc_)
+  - offsetof(KinematicParcel<ParcelType>, active_)
+);
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class ParcelType>
@@ -76,8 +84,7 @@ Foam::KinematicParcel<ParcelType>::KinematicParcel
         }
         else
         {
-            label size = long(&UTurb_) - long(&active_) + sizeof(UTurb_);
-            is.read(reinterpret_cast<char*>(&active_), size);
+            is.read(reinterpret_cast<char*>(&active_), sizeofFields_);
         }
     }
 
@@ -236,9 +243,11 @@ Foam::Ostream& Foam::operator<<
     else
     {
         os  << static_cast<const ParcelType&>(p);
-
-        label size = long(&p.UTurb_) - long(&p.active_) + sizeof(p.UTurb_);
-        os.write(reinterpret_cast<const char*>(&p.active_), size);
+        os.write
+        (
+            reinterpret_cast<const char*>(&p.active_),
+            KinematicParcel<ParcelType>::sizeofFields_
+        );
     }
 
     // Check state of Ostream

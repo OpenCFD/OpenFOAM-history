@@ -1113,11 +1113,28 @@ Foam::tmp<Foam::scalarField> Foam::polyMesh::movePoints
             << " index " << time().timeIndex() << endl;
     }
 
+    if (newPoints.size() != points_.size())
+    {
+        FatalErrorIn("polyMesh::movePoints(const pointField&)")
+            << "Size of newPoints " << newPoints.size()
+            << " does not correspond to current mesh points size "
+            << points_.size()
+            << exit(FatalError);
+    }
+
+
     moving(true);
 
     // Pick up old points
     if (curMotionTimeIndex_ != time().timeIndex())
     {
+        if (debug)
+        {
+            Info<< "tmp<scalarField> polyMesh::movePoints(const pointField&) : "
+                << " Storing current points for time " << time().value()
+                << " index " << time().timeIndex() << endl;
+        }
+
         // Mesh motion in the new time step
         oldPointsPtr_.clear();
         oldPointsPtr_.reset(new pointField(points_));

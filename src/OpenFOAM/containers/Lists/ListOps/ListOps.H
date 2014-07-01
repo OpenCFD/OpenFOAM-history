@@ -226,7 +226,7 @@ label findLower
 (
     const ListType&,
     typename ListType::const_reference,
-    const label stary,
+    const label start,
     const BinaryOp& bop
 );
 

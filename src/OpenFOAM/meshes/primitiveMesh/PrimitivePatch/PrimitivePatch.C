@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -170,6 +170,28 @@ PrimitivePatch
     faceNormalsPtr_(NULL),
     pointNormalsPtr_(NULL)
 {}
+
+
+template
+<
+    class Face,
+    template<class> class FaceList,
+    class PointField,
+    class PointType
+>
+Foam::autoPtr
+<
+    Foam::PrimitivePatch<Face, FaceList, PointField, PointType>
+> Foam::PrimitivePatch<Face, FaceList, PointField, PointType>::clone() const
+{
+    return autoPtr<PrimitivePatch<Face, FaceList, PointField, PointType> >
+    (
+        new PrimitivePatch<Face, FaceList, PointField, PointType>
+        (
+            *this
+        )
+    );
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

@@ -74,20 +74,20 @@ int main(int argc, char *argv[])
 
         #include "setDeltaT.H"
 
-        runTime++;
-
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
         {
-            // Store momentum to set rhoUf for introduced faces.
-            volVectorField rhoU("rhoU", rho*U);
-
             // Store divrhoU from the previous time-step/mesh for the correctPhi
             volScalarField divrhoU
             (
                 "divrhoU",
                 fvc::div(fvc::absolute(phi, rho, U))
             );
+
+            runTime++;
+
+            Info<< "Time = " << runTime.timeName() << nl << endl;
+
+            // Store momentum to set rhoUf for introduced faces.
+            volVectorField rhoU("rhoU", rho*U);
 
             // Do any mesh changes
             mesh.update();
@@ -109,12 +109,9 @@ int main(int argc, char *argv[])
             #include "meshCourantNo.H"
         }
 
-        if (pimple.nCorrPIMPLE() <= 1)
-        {
-            #include "rhoEqn.H"
-            Info<< "rhoEqn max/min : " << max(rho).value()
-                << " " << min(rho).value() << endl;
-        }
+        #include "rhoEqn.H"
+        Info<< "rhoEqn max/min : " << max(rho).value()
+            << " " << min(rho).value() << endl;
 
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())

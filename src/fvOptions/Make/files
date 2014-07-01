@@ -18,6 +18,8 @@ $(derivedSources)/explicitPorositySource/explicitPorositySource.C
 $(derivedSources)/MRFSource/MRFSource.C
 $(derivedSources)/pressureGradientExplicitSource/pressureGradientExplicitSource.C
 $(derivedSources)/pressureGradientExplicitSource/pressureGradientExplicitSourceIO.C
+$(derivedSources)/directionalPressureGradientExplicitSource/directionalPressureGradientExplicitSource.C
+$(derivedSources)/directionalPressureGradientExplicitSource/directionalPressureGradientExplicitSourceIO.C
 $(derivedSources)/radialActuationDiskSource/radialActuationDiskSource.C
 $(derivedSources)/rotorDiskSource/rotorDiskSource.C
 $(derivedSources)/rotorDiskSource/bladeModel/bladeModel.C
