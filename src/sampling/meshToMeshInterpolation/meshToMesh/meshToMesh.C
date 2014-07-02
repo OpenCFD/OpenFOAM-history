@@ -214,6 +214,17 @@ template<>
 void Foam::meshToMesh::mapAndOpSrcToTgt
 (
     const AMIPatchToPatchInterpolation& AMI,
+    const Field<scalar>& srcField,
+    Field<scalar>& tgtField,
+    const plusEqOp<scalar>& cop
+) const
+{}
+
+
+template<>
+void Foam::meshToMesh::mapAndOpSrcToTgt
+(
+    const AMIPatchToPatchInterpolation& AMI,
     const Field<vector>& srcField,
     Field<vector>& tgtField,
     const plusEqOp<vector>& cop
