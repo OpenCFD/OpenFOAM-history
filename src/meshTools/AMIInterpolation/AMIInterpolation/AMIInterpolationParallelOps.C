@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,6 +26,7 @@ License
 #include "AMIInterpolation.H"
 #include "mergePoints.H"
 #include "mapDistribute.H"
+#include "AABBTree.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -97,11 +98,11 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::calcOverlappingProcs
 
     forAll(procBb, procI)
     {
-        const List<treeBoundBox>& bbs = procBb[procI];
+        const treeBoundBoxList& bbp = procBb[procI];
 
-        forAll(bbs, bbI)
+        forAll(bbp, bbI)
         {
-            if (bbs[bbI].overlaps(bb))
+            if (bbp[bbI].overlaps(bb))
             {
                 overlaps[procI] = true;
                 nOverlaps++;
@@ -109,6 +110,7 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::calcOverlappingProcs
             }
         }
     }
+
     return nOverlaps;
 }
 
@@ -338,32 +340,20 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::calcProcMap
 
     if (srcPatch.size())
     {
-        procBb[Pstream::myProcNo()] = treeBoundBoxList
-        (
-            1,  // For now single bounding box per proc
-            treeBoundBox
+        procBb[Pstream::myProcNo()] =
+            AABBTree<face>
             (
-                srcPatch.points(),
-                srcPatch.meshPoints()
-            )
-        );
+                srcPatch.localFaces(),
+                srcPatch.localPoints()
+            ).boundBoxes();
     }
     else
     {
         procBb[Pstream::myProcNo()] = treeBoundBoxList();
     }
 
-    // slightly increase size of bounding boxes to allow for cases where
-    // bounding boxes are perfectly alligned
-    forAll(procBb[Pstream::myProcNo()], bbI)
-    {
-        treeBoundBox& bb = procBb[Pstream::myProcNo()][bbI];
-        bb.inflate(0.01);
-    }
-
     Pstream::gatherList(procBb);
     Pstream::scatterList(procBb);
-
 
     if (debug)
     {
@@ -374,7 +364,6 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::calcProcMap
             Info<< '\t' << procI << '\t' << procBb[procI] << endl;
         }
     }
-
 
     // Determine which faces of tgtPatch overlaps srcPatch per proc
     const faceList& faces = tgtPatch.localFaces();

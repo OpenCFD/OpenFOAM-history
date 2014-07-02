@@ -30,6 +30,7 @@ License
 #include "mergePoints.H"
 #include "processorPolyPatch.H"
 #include "SubField.H"
+#include "AABBTree.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -84,7 +85,7 @@ Foam::label Foam::meshToMesh::calcDistribution
 
 Foam::label Foam::meshToMesh::calcOverlappingProcs
 (
-    const List<boundBox>& procBb,
+    const List<treeBoundBoxList>& procBb,
     const boundBox& bb,
     boolList& overlaps
 ) const
@@ -95,12 +96,16 @@ Foam::label Foam::meshToMesh::calcOverlappingProcs
 
     forAll(procBb, procI)
     {
-        const boundBox& bbp = procBb[procI];
+        const treeBoundBoxList& bbp = procBb[procI];
 
-        if (bbp.overlaps(bb))
+        forAll(bbp, bbI)
         {
-            overlaps[procI] = true;
-            nOverlaps++;
+            if (bbp[bbI].overlaps(bb))
+            {
+                overlaps[procI] = true;
+                nOverlaps++;
+                break;
+            }
         }
     }
 
@@ -115,20 +120,16 @@ Foam::autoPtr<Foam::mapDistribute> Foam::meshToMesh::calcProcMap
 ) const
 {
     // get decomposition of cells on src mesh
-    List<boundBox> procBb(Pstream::nProcs());
+    List<treeBoundBoxList> procBb(Pstream::nProcs());
 
     if (src.nCells() > 0)
     {
-        // bounding box for my mesh - do not parallel reduce
-        procBb[Pstream::myProcNo()] = boundBox(src.points(), false);
-
-        // slightly increase size of bounding boxes to allow for cases where
-        // bounding boxes are perfectly alligned
-        procBb[Pstream::myProcNo()].inflate(0.01);
+        procBb[Pstream::myProcNo()] =
+            AABBTree<labelList>(src.cellPoints(), src.points()).boundBoxes();
     }
     else
     {
-        procBb[Pstream::myProcNo()] = boundBox();
+        procBb[Pstream::myProcNo()] = treeBoundBoxList();
     }
 
 
