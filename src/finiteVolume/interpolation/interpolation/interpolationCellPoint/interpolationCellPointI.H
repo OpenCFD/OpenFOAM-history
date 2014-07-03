@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,10 +34,12 @@ inline Type Foam::interpolationCellPoint<Type>::interpolate
     const List<scalar>& weights = cpw.weights();
     const List<label>& faceVertices = cpw.faceVertices();
 
+    const GeometricField<Type, pointPatchField, pointMesh>& psip = psip_();
+
     Type t = this->psi_[cpw.cell()]*weights[0];
-    t += psip_[faceVertices[0]]*weights[1];
-    t += psip_[faceVertices[1]]*weights[2];
-    t += psip_[faceVertices[2]]*weights[3];
+    t += psip[faceVertices[0]]*weights[1];
+    t += psip[faceVertices[1]]*weights[2];
+    t += psip[faceVertices[2]]*weights[3];
 
     return t;
 }
@@ -98,13 +100,15 @@ inline Type Foam::interpolationCellPoint<Type>::interpolate
     // Order of weights is the same as that of the vertices of the tet, i.e.
     // cellCentre, faceBasePt, facePtA, facePtB.
 
+    const GeometricField<Type, pointPatchField, pointMesh>& psip = psip_();
+
     Type t = this->psi_[tetIs.cell()]*weights[0];
 
-    t += psip_[f[tetIs.faceBasePt()]]*weights[1];
+    t += psip[f[tetIs.faceBasePt()]]*weights[1];
 
-    t += psip_[f[tetIs.facePtA()]]*weights[2];
+    t += psip[f[tetIs.facePtA()]]*weights[2];
 
-    t += psip_[f[tetIs.facePtB()]]*weights[3];
+    t += psip[f[tetIs.facePtB()]]*weights[3];
 
     return t;
 }

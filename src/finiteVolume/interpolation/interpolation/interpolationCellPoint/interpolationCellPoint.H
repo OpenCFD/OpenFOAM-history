@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -55,7 +55,7 @@ protected:
     // Protected data
 
         //- Interpolated volfield
-        const GeometricField<Type, pointPatchField, pointMesh> psip_;
+        tmp<GeometricField<Type, pointPatchField, pointMesh> > psip_;
 
 
 public:
