@@ -19,7 +19,7 @@ actions
 (
     // Heater
     {
-        name    heater;
+        name    heaterCells;
         type    cellSet;
         action  new;
         source  boxToCell;
@@ -29,7 +29,7 @@ actions
         }
     }
     {
-        name    heater;
+        name    heaterCells;
         type    cellSet;
         action  add;
         source  boxToCell;
@@ -45,13 +45,13 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set heater;           // name of cellSet
+            set heaterCells;           // name of cellSet
         }
     }
 
     // leftSolid
     {
-        name    leftSolid;
+        name    leftSolidCells;
         type    cellSet;
         action  new;
         source  boxToCell;
@@ -67,13 +67,13 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set leftSolid;
+            set leftSolidCells;
         }
     }
 
     // rightSolid
     {
-        name    rightSolid;
+        name    rightSolidCells;
         type    cellSet;
         action  new;
         source  boxToCell;
@@ -89,13 +89,13 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set rightSolid;
+            set rightSolidCells;
         }
     }
 
     // topAir
     {
-        name    topAir;
+        name    topAirCells;
         type    cellSet;
         action  new;
         source  boxToCell;
@@ -111,59 +111,54 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set topAir;
+            set topAirCells;
         }
     }
 
 
     // bottomAir is all the other cells
     {
-        name    bottomAir;
-        type    cellZoneSet;
-        action  clear;
+        name    bottomAirCells;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        sourceInfo
+        {
+            set heaterCells;
+        }
     }
     {
-        name    bottomAir;
+        name    bottomAirCells;
         type    cellSet;
         action  add;
         source  cellToCell;
         sourceInfo
         {
-            set heater;
+            set leftSolidCells;
         }
     }
     {
-        name    bottomAir;
+        name    bottomAirCells;
         type    cellSet;
         action  add;
         source  cellToCell;
         sourceInfo
         {
-            set leftSolid;
+            set rightSolidCells;
         }
     }
     {
-        name    bottomAir;
+        name    bottomAirCells;
         type    cellSet;
         action  add;
         source  cellToCell;
         sourceInfo
         {
-            set rightSolid;
+            set topAirCells;
         }
     }
     {
-        name    bottomAir;
-        type    cellSet;
-        action  add;
-        source  cellToCell;
-        sourceInfo
-        {
-            set topAir;
-        }
-    }
-    {
-        name    bottomAir;
+        name    bottomAirCells;
         type    cellSet;
         action  invert;
     }
@@ -174,7 +169,7 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set bottomAir;
+            set bottomAirCells;
         }
     }
 );
