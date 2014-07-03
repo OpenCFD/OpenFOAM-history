@@ -23,8 +23,6 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "pointFields.H"
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
@@ -36,7 +34,8 @@ inline Type Foam::interpolationCellPointWallModified<Type>::interpolate
     const List<scalar>& weights = cpw.weights();
     const List<label>& faceVertices = cpw.faceVertices();
 
-    const GeometricField<Type, pointPatchField, pointMesh>& psip = psip_();
+    const GeometricField<Type, pointPatchField, pointMesh>& psip =
+        this->psip_();
 
     Type t = this->psi_[cpw.cell()]*weights[0];
     t += psip[faceVertices[0]]*weights[1];
