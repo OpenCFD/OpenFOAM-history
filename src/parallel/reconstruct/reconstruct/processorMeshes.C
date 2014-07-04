@@ -221,7 +221,8 @@ void Foam::processorMeshes::reconstructPoints(fvMesh& mesh)
                     polyMesh::meshSubDir,
                     meshes_[procI],
                     IOobject::MUST_READ,
-                    IOobject::NO_WRITE
+                    IOobject::NO_WRITE,
+                    false
                 )
             )
         );

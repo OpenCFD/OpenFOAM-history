@@ -957,6 +957,7 @@ void Foam::multiphaseMixtureThermo::solveAlphas
             phasei,
             new surfaceScalarField
             (
+                phi_.name() + alpha.name(),
                 fvc::flux
                 (
                     phi_,

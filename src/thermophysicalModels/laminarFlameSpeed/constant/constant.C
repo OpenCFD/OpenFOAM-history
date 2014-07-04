@@ -79,7 +79,8 @@ Foam::laminarFlameSpeedModels::constant::operator()() const
                 psiuReactionThermo_.T().time().timeName(),
                 psiuReactionThermo_.T().db(),
                 IOobject::NO_READ,
-                IOobject::NO_WRITE
+                IOobject::NO_WRITE,
+                false
             ),
             psiuReactionThermo_.T().mesh(),
             Su_

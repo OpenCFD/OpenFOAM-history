@@ -147,6 +147,7 @@ void Foam::threePhaseInterfaceProperties::calculateK()
 
     // Face unit interface normal
     surfaceVectorField nHatfv(gradAlphaf/(mag(gradAlphaf) + deltaN_));
+
     correctContactAngle(nHatfv.boundaryField());
 
     // Face unit interface normal flux
@@ -192,21 +193,26 @@ Foam::threePhaseInterfaceProperties::threePhaseInterfaceProperties
 
     nHatf_
     (
+        IOobject
         (
-            fvc::interpolate(fvc::grad(mixture.alpha1()))
-           /(mag(fvc::interpolate(fvc::grad(mixture.alpha1()))) + deltaN_)
-        ) & mixture.alpha1().mesh().Sf()
+            "nHatf",
+            mixture.alpha1().time().timeName(),
+            mixture.alpha1().mesh()
+        ),
+        mixture.alpha1().mesh(),
+        dimensionedScalar("nHatf", dimArea, 0.0)
     ),
 
     K_
     (
         IOobject
         (
-            "K",
+            "interfaceProperties:K",
             mixture.alpha1().time().timeName(),
             mixture.alpha1().mesh()
         ),
-        -fvc::div(nHatf_)
+        mixture.alpha1().mesh(),
+        dimensionedScalar("K", dimless/dimLength, 0.0)
     )
 {
     calculateK();

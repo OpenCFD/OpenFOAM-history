@@ -182,6 +182,7 @@ void volPointInterpolation::makeInternalWeights(scalarField& sumWeights)
             scalarList& pw = pointWeights_[pointi];
             pw.setSize(pcp.size());
 
+            // Inverse-distance
             forAll(pcp, pointCelli)
             {
                 pw[pointCelli] =
@@ -189,6 +190,69 @@ void volPointInterpolation::makeInternalWeights(scalarField& sumWeights)
 
                 sumWeights[pointi] += pw[pointCelli];
             }
+
+            // Weighted zero-Laplacian
+            /*
+            symmTensor D(symmTensor::zero);
+            vector lambda(vector::zero);
+
+            forAll(pcp, pointCelli)
+            {
+                vector d = points[pointi] - cellCentres[pcp[pointCelli]];
+                lambda += d;
+                D += sqr(d)/magSqr(d);
+            }
+
+            lambda = inv(D) & lambda;
+
+            forAll(pcp, pointCelli)
+            {
+                vector d = points[pointi] - cellCentres[pcp[pointCelli]];
+                pw[pointCelli] = 1.0 - (lambda & d/magSqr(d));
+                sumWeights[pointi] += pw[pointCelli];
+            }
+            */
+
+            // Weighted least-squares
+            /*
+            scalar sumRrSqr(0);
+            vector dBar(vector::zero);
+            forAll(pcp, pointCelli)
+            {
+                vector d = points[pointi] - cellCentres[pcp[pointCelli]];
+                scalar rrSqr = 1.0/magSqr(d);
+                sumRrSqr += rrSqr;
+                dBar += rrSqr*d;
+            }
+
+            dBar /= sumRrSqr;
+
+            symmTensor D(symmTensor::zero);
+            vector lambda(vector::zero);
+
+            forAll(pcp, pointCelli)
+            {
+                vector d = points[pointi] - cellCentres[pcp[pointCelli]];
+                scalar lambda2 = 1.0/magSqr(d);
+                vector dp(d - dBar);
+                lambda += lambda2*dp;
+                D += lambda2*sqr(dp);
+            }
+
+            tensor invD = inv(D);
+
+            forAll(pcp, pointCelli)
+            {
+                vector d = points[pointi] - cellCentres[pcp[pointCelli]];
+                scalar lambda2 = 1.0/magSqr(d);
+                scalar mu = lambda2/sumRrSqr;
+                vector dp(d - dBar);
+                pw[pointCelli] =
+                    mu - (dBar & invD & (lambda2*dp - mu*lambda));
+
+                sumWeights[pointi] += pw[pointCelli];
+            }
+            */
         }
     }
 }

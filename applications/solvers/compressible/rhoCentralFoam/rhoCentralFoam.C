@@ -205,8 +205,6 @@ int main(int argc, char *argv[])
         U.correctBoundaryConditions();
         rhoU.boundaryField() = rho.boundaryField()*U.boundaryField();
 
-        volScalarField rhoBydt(rho/runTime.deltaT());
-
         if (!inviscid)
         {
             solve

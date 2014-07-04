@@ -50,7 +50,6 @@ bool Foam::regIOobject::masterOnlyReading = false;
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-// Construct from IOobject
 Foam::regIOobject::regIOobject(const IOobject& io, const bool isTime)
 :
     IOobject(io),
@@ -73,7 +72,6 @@ Foam::regIOobject::regIOobject(const IOobject& io, const bool isTime)
 }
 
 
-// Construct as copy
 Foam::regIOobject::regIOobject(const regIOobject& rio)
 :
     IOobject(rio),
@@ -87,8 +85,6 @@ Foam::regIOobject::regIOobject(const regIOobject& rio)
 }
 
 
-// Construct as copy, and transfering objectRegistry registration to copy
-// if registerCopy is true
 Foam::regIOobject::regIOobject(const regIOobject& rio, bool registerCopy)
 :
     IOobject(rio),
@@ -106,9 +102,62 @@ Foam::regIOobject::regIOobject(const regIOobject& rio, bool registerCopy)
 }
 
 
+Foam::regIOobject::regIOobject
+(
+    const word& newName,
+    const regIOobject& rio,
+    bool registerCopy
+)
+:
+    IOobject(newName, rio.instance(), rio.local(), rio.db()),
+    registered_(false),
+    ownedByRegistry_(false),
+    watchIndices_(),
+    eventNo_(db().getEvent()),
+    isPtr_(NULL)
+{
+    if (registerCopy && rio.registered_)
+    {
+        const_cast<regIOobject&>(rio).checkOut();
+    }
+
+    rename(newName);
+
+    if (registerCopy)
+    {
+        checkIn();
+    }
+}
+
+
+Foam::regIOobject::regIOobject
+(
+    const IOobject& io,
+    const regIOobject& rio
+)
+:
+    IOobject(io),
+    registered_(false),
+    ownedByRegistry_(false),
+    watchIndices_(),
+    eventNo_(db().getEvent()),
+    isPtr_(NULL)
+{
+    if (registerObject() && rio.registered_)
+    {
+        const_cast<regIOobject&>(rio).checkOut();
+    }
+
+    // Register with objectRegistry if requested
+    if (registerObject())
+    {
+        checkIn();
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-// Delete read stream, checkout from objectRegistry and destroy
 Foam::regIOobject::~regIOobject()
 {
     if (objectRegistry::debug)
@@ -365,14 +414,12 @@ bool Foam::regIOobject::upToDate
 }
 
 
-//- Flag me as up to date
 void Foam::regIOobject::setUpToDate()
 {
     eventNo_ = db().getEvent();
 }
 
 
-// Rename object and re-register with objectRegistry under new name
 void Foam::regIOobject::rename(const word& newName)
 {
     // Check out of objectRegistry
@@ -441,7 +488,6 @@ bool Foam::regIOobject::headerOk()
 }
 
 
-// Assign to IOobject
 void Foam::regIOobject::operator=(const IOobject& io)
 {
     if (isPtr_)

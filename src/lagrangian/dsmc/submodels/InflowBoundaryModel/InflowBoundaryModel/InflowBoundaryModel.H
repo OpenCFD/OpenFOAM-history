@@ -110,22 +110,31 @@ public:
     );
 
 
-    // Access
+    // Member Functions
 
-        //- Return const access the owner cloud object
-        inline const CloudType& owner() const;
+        // Access
 
-        //- Return non-const access the owner cloud object for manipulation
-        inline CloudType& owner();
+            //- Return const access the owner cloud object
+            inline const CloudType& owner() const;
 
-        //- Return the owner cloud dictionary
-        inline const dictionary& dict() const;
+            //- Return non-const access the owner cloud object for manipulation
+            inline CloudType& owner();
 
-        //- Return the coefficients dictionary
-        inline const dictionary& coeffDict() const;
+            //- Return the owner cloud dictionary
+            inline const dictionary& dict() const;
 
-    //- Introduce particles
-    virtual void inflow() = 0;
+            //- Return the coefficients dictionary
+            inline const dictionary& coeffDict() const;
+
+        // Mapping
+
+            //- Remap the cells of particles corresponding to the
+            //  mesh topology change with a default tracking data object
+            virtual void autoMap(const mapPolyMesh&)
+            {}
+
+        //- Introduce particles
+        virtual void inflow() = 0;
 };
 
 

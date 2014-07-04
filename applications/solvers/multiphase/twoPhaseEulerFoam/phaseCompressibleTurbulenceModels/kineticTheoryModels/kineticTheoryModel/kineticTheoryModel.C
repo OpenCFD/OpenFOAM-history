@@ -406,7 +406,7 @@ void Foam::RASModels::kineticTheoryModel::correct()
         // Particle viscosity (Table 3.2, p.47)
         nut_ = viscosityModel_->nu(alpha, Theta_, gs0_, rho, da, e_);
 
-        volScalarField ThetaSqrt(sqrt(Theta_));
+        volScalarField ThetaSqrt("sqrtTheta", sqrt(Theta_));
 
         // Bulk viscosity  p. 45 (Lun et al. 1984).
         lambda_ = (4.0/3.0)*sqr(alpha)*da*gs0_*(1.0 + e_)*ThetaSqrt/sqrtPi;
@@ -535,7 +535,7 @@ void Foam::RASModels::kineticTheoryModel::correct()
         // particle viscosity (Table 3.2, p.47)
         nut_ = viscosityModel_->nu(alpha, Theta_, gs0_, rho, da, e_);
 
-        volScalarField ThetaSqrt(sqrt(Theta_));
+        volScalarField ThetaSqrt("sqrtTheta", sqrt(Theta_));
 
         // Bulk viscosity  p. 45 (Lun et al. 1984).
         lambda_ = (4.0/3.0)*sqr(alpha)*da*gs0_*(1.0 + e_)*ThetaSqrt/sqrtPi;
