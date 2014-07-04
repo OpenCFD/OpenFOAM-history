@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,35 +22,34 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::dynamicMotionSolverFvMesh
+    Foam::dynamicMotionSolverTopoFvMesh
 
 Description
-    The dynamicMotionSolverFvMesh
+    Mesh motion solver which combines both topology change and mesh motion
 
 SourceFiles
-    dynamicMotionSolverFvMesh.C
+    dynamicMotionSolverTopoFvMesh.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef dynamicMotionSolverFvMesh_H
-#define dynamicMotionSolverFvMesh_H
+#ifndef dynamicMotionSolverTopoFvMesh_H
+#define dynamicMotionSolverTopoFvMesh_H
 
-#include "dynamicFvMesh.H"
+#include "topoChangerFvMesh.H"
+#include "motionSolver.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-class motionSolver;
-
 /*---------------------------------------------------------------------------*\
-                  Class dynamicMotionSolverFvMesh Declaration
+                Class dynamicMotionSolverTopoFvMesh Declaration
 \*---------------------------------------------------------------------------*/
 
-class dynamicMotionSolverFvMesh
+class dynamicMotionSolverTopoFvMesh
 :
-    public dynamicFvMesh
+    public topoChangerFvMesh
 {
     // Private data
 
@@ -61,26 +60,26 @@ class dynamicMotionSolverFvMesh
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
-        dynamicMotionSolverFvMesh(const dynamicMotionSolverFvMesh&);
+        dynamicMotionSolverTopoFvMesh(const dynamicMotionSolverTopoFvMesh&);
 
         //- Disallow default bitwise assignment
-        void operator=(const dynamicMotionSolverFvMesh&);
+        void operator=(const dynamicMotionSolverTopoFvMesh&);
 
 
 public:
 
     //- Runtime type information
-    TypeName("dynamicMotionSolverFvMesh");
+    TypeName("dynamicMotionSolverTopoFvMesh");
 
 
     // Constructors
 
-        //- Construct from IOobject
-        dynamicMotionSolverFvMesh(const IOobject& io);
+        //- Construct from database
+        dynamicMotionSolverTopoFvMesh(const IOobject& io);
 
 
     //- Destructor
-    virtual ~dynamicMotionSolverFvMesh();
+    virtual ~dynamicMotionSolverTopoFvMesh();
 
 
     // Member Functions

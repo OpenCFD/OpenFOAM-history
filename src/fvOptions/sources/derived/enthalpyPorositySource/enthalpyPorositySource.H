@@ -144,9 +144,6 @@ private:
         //- Reference density - typically the solid density
         scalar rhoRef_;
 
-        //- Name of density field - default = "rho" (optional)
-        word rhoName_;
-
         //- Name of temperature field - default = "T" (optional)
         word TName_;
 
@@ -183,9 +180,6 @@ private:
         //- Flag to indicate whether to solve for given field
         bool solveField(const word& fieldName) const;
 
-        //- Return the density field
-        tmp<volScalarField> rho(const surfaceScalarField& phi) const;
-
         //- Return the specific heat capacity field
         tmp<volScalarField> Cp() const;
 
@@ -193,7 +187,11 @@ private:
         vector g() const;
 
         //- Update the model
-        void update();
+        void update(const volScalarField& Cp);
+
+        //- Helper function to apply to the energy equation
+        template<class RhoFieldType>
+        void apply(const RhoFieldType& rho, fvMatrix<scalar>& eqn);
 
         //- Disallow default bitwise copy construct
         enthalpyPorositySource(const enthalpyPorositySource&);
@@ -225,21 +223,14 @@ public:
         //- Flag to bypass the apply flag list checking
         virtual bool alwaysApply() const;
 
+
         // Add explicit and implicit contributions
 
             //- Add explicit contribution to enthalpy equation
-            virtual void addSup
-            (
-                fvMatrix<scalar>& eqn,
-                const label fieldI
-            );
+            virtual void addSup(fvMatrix<scalar>& eqn, const label fieldI);
 
             //- Add implicit contribution to momentum equation
-            virtual void addSup
-            (
-                fvMatrix<vector>& eqn,
-                const label fieldI
-            );
+            virtual void addSup(fvMatrix<vector>& eqn, const label fieldI);
 
 
         // Add explicit and implicit contributions to compressible equation
@@ -275,6 +266,12 @@ public:
 
 } // End namespace fv
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "enthalpyPorositySourceTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
