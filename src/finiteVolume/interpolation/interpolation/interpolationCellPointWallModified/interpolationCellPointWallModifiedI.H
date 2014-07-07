@@ -35,7 +35,7 @@ inline Type Foam::interpolationCellPointWallModified<Type>::interpolate
     const List<label>& faceVertices = cpw.faceVertices();
 
     const GeometricField<Type, pointPatchField, pointMesh>& psip =
-        this->psip_();
+        this->psip_;
 
     Type t = this->psi_[cpw.cell()]*weights[0];
     t += psip[faceVertices[0]]*weights[1];

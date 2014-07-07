@@ -55,7 +55,7 @@ protected:
     // Protected data
 
         //- Interpolated volfield
-        tmp<GeometricField<Type, pointPatchField, pointMesh> > psip_;
+        const GeometricField<Type, pointPatchField, pointMesh> psip_;
 
 
 public:
