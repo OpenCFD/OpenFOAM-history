@@ -75,6 +75,9 @@ protected:
 
     // Protected Data
 
+        //- Tolerance
+        static scalar tolerance_;
+
         //- Maximum tree level
         label maxLevel_;
 
