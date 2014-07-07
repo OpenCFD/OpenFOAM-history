@@ -730,7 +730,7 @@ DebugSwitches
     refinementHistory   0;
     refinementIterator  0;
     reflect             0;
-    regIOobject         0;
+    regIOobject         1;
     regionSplit         0;
     regionToCell        0;
     remove              0;

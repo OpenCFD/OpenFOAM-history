@@ -146,6 +146,13 @@ public:
         //  if registerCopy is true
         regIOobject(const regIOobject&, bool registerCopy);
 
+        //- Construct as copy with new name, and transfering objectRegistry
+        //  registration to copy if registerCopy is true
+        regIOobject(const word& newName, const regIOobject&, bool registerCopy);
+
+        //- Construct as copy with new IO parameters
+        regIOobject(const IOobject&, const regIOobject&);
+
 
     //- Destructor
     virtual ~regIOobject();

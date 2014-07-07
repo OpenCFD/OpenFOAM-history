@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -433,7 +433,7 @@ Foam::regionToCell::regionToCell
     topoSetSource(mesh),
     setName_(checkIs(is)),
     insidePoints_(checkIs(is)),
-    nErode_(0)
+    nErode_(readLabel(is))
 {}
 
 

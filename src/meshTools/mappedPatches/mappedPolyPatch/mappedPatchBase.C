@@ -523,17 +523,8 @@ void Foam::mappedPatchBase::calcMapping() const
 
     if (sampleMyself && coincident)
     {
-        WarningIn
-        (
-            "mappedPatchBase::mappedPatchBase\n"
-            "(\n"
-            "    const polyPatch& pp,\n"
-            "    const word& sampleRegion,\n"
-            "    const sampleMode mode,\n"
-            "    const word& samplePatch,\n"
-            "    const vector& offset\n"
-            ")\n"
-        )   << "Invalid offset " << d << endl
+        WarningIn("mappedPatchBase::calcMapping() const")
+            << "Invalid offset " << d << endl
             << "Offset is the vector added to the patch face centres to"
             << " find the patch face supplying the data." << endl
             << "Setting it to " << d
@@ -585,17 +576,8 @@ void Foam::mappedPatchBase::calcMapping() const
         {
             if (!hasWarned)
             {
-                WarningIn
-                (
-                    "mappedPatchBase::mappedPatchBase\n"
-                    "(\n"
-                    "    const polyPatch& pp,\n"
-                    "    const word& sampleRegion,\n"
-                    "    const sampleMode mode,\n"
-                    "    const word& samplePatch,\n"
-                    "    const vector& offset\n"
-                    ")\n"
-                )   << "Did not find " << nNotFound
+                WarningIn("mappedPatchBase::calcMapping() const")
+                    << "Did not find " << nNotFound
                     << " out of " << sampleProcs.size() << " total samples."
                     << " Sampling these on owner cell centre instead." << endl
                     << "On patch " << patch_.name()
@@ -1381,8 +1363,16 @@ Foam::pointIndexHit Foam::mappedPatchBase::facePoint
 
         default:
         {
-            FatalErrorIn("mappedPatchBase::facePoint()")
-                << "problem" << abort(FatalError);
+            FatalErrorIn
+            (
+                "mappedPatchBase::facePoint"
+                "("
+                    "const polyMesh&, "
+                    "const label, "
+                    "const polyMesh::cellRepresentation"
+                ")"
+            )   << "problem" << abort(FatalError);
+
             return pointIndexHit();
         }
     }

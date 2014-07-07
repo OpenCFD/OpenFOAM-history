@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,21 +22,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::wedgeFvPatch
+    Foam::dynamicMotionSolverTopoFvMesh
 
 Description
-    Wedge front and back plane patch.
+    Mesh motion solver which combines both topology change and mesh motion
 
 SourceFiles
-    wedgeFvPatch.C
+    dynamicMotionSolverTopoFvMesh.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef wedgeFvPatch_H
-#define wedgeFvPatch_H
+#ifndef dynamicMotionSolverTopoFvMesh_H
+#define dynamicMotionSolverTopoFvMesh_H
 
-#include "fvPatch.H"
-#include "wedgePolyPatch.H"
+#include "topoChangerFvMesh.H"
+#include "motionSolver.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,45 +44,48 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class wedgeFvPatch Declaration
+                Class dynamicMotionSolverTopoFvMesh Declaration
 \*---------------------------------------------------------------------------*/
 
-class wedgeFvPatch
+class dynamicMotionSolverTopoFvMesh
 :
-    public fvPatch
+    public topoChangerFvMesh
 {
     // Private data
 
-        const wedgePolyPatch& wedgePolyPatch_;
+        //- Motion solver
+        autoPtr<motionSolver> motionPtr_;
+
+
+    // Private Member Functions
+
+        //- Disallow default bitwise copy construct
+        dynamicMotionSolverTopoFvMesh(const dynamicMotionSolverTopoFvMesh&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const dynamicMotionSolverTopoFvMesh&);
 
 
 public:
 
     //- Runtime type information
-    TypeName(wedgePolyPatch::typeName_());
+    TypeName("dynamicMotionSolverTopoFvMesh");
 
 
     // Constructors
 
-        //- Construct from polyPatch
-        wedgeFvPatch(const polyPatch& patch, const fvBoundaryMesh& bm);
+        //- Construct from database
+        dynamicMotionSolverTopoFvMesh(const IOobject& io);
 
 
-    // Member functions
+    //- Destructor
+    virtual ~dynamicMotionSolverTopoFvMesh();
 
-        // Access
 
-            //- Return face transformation tensor
-            const tensor& faceT() const
-            {
-                return wedgePolyPatch_.faceT();
-            }
+    // Member Functions
 
-            //- Return neighbour-cell transformation tensor
-            const tensor& cellT() const
-            {
-                return wedgePolyPatch_.cellT();
-            }
+        //- Update the mesh for both mesh motion and topology change
+        virtual bool update();
 };
 
 

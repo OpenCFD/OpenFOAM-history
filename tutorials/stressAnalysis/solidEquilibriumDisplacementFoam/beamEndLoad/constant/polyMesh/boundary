@@ -44,6 +44,7 @@ FoamFile
     defaultFaces
     {
         type            empty;
+        inGroups        1(empty);
         nFaces          24;
         startFace       32;
     }

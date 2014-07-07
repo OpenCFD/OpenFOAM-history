@@ -92,7 +92,6 @@ int main(int argc, char *argv[])
                - (fvOptions(alpha2, rho2)&rho2)
             );
 
-
             #include "UEqns.H"
             #include "EEqns.H"
 

@@ -973,34 +973,42 @@ void Foam::autoLayerDriver::determineSidePatches
     const labelListList& edgeGlobalFaces,
     const indirectPrimitivePatch& pp,
 
-    labelList& sidePatchID
+    labelList& edgePatchID,
+    labelList& edgeZoneID,
+    boolList& edgeFlip,
+    labelList& inflateFaceID
 )
 {
     // Sometimes edges-to-be-extruded are on more than 2 processors.
     // Work out which 2 hold the faces to be extruded and thus which procpatch
-    // the side-face should be in. As an additional complication this might
+    // the edge-face should be in. As an additional complication this might
     // mean that 2 procesors that were only edge-connected now suddenly need
     // to become face-connected i.e. have a processor patch between them.
 
     fvMesh& mesh = meshRefiner_.mesh();
 
-    // Determine sidePatchID. Any additional processor boundary gets added to
+    // Determine edgePatchID. Any additional processor boundary gets added to
     // patchToNbrProc,nbrProcToPatch and nPatches gets set to the new number
     // of patches.
     label nPatches;
     Map<label> nbrProcToPatch;
     Map<label> patchToNbrProc;
-    addPatchCellLayer::calcSidePatch
+    addPatchCellLayer::calcExtrudeInfo
     (
+        true,           // zoneFromAnyFace
+
         mesh,
         globalFaces,
         edgeGlobalFaces,
         pp,
 
-        sidePatchID,
+        edgePatchID,
         nPatches,
         nbrProcToPatch,
-        patchToNbrProc
+        patchToNbrProc,
+        edgeZoneID,
+        edgeFlip,
+        inflateFaceID
     );
 
     label nOldPatches = mesh.boundaryMesh().size();
@@ -1012,7 +1020,7 @@ void Foam::autoLayerDriver::determineSidePatches
     if (nAdded > 0)
     {
         // We might not add patches in same order as in patchToNbrProc
-        // so prepare to renumber sidePatchID
+        // so prepare to renumber edgePatchID
         Map<label> wantedToAddedPatch;
 
         for (label patchI = nOldPatches; patchI < nPatches; patchI++)
@@ -1046,14 +1054,14 @@ void Foam::autoLayerDriver::determineSidePatches
             wantedToAddedPatch.insert(patchI, procPatchI);
         }
 
-        // Renumber sidePatchID
-        forAll(sidePatchID, i)
+        // Renumber edgePatchID
+        forAll(edgePatchID, i)
         {
-            label patchI = sidePatchID[i];
+            label patchI = edgePatchID[i];
             Map<label>::const_iterator fnd = wantedToAddedPatch.find(patchI);
             if (fnd != wantedToAddedPatch.end())
             {
-                sidePatchID[i] = fnd();
+                edgePatchID[i] = fnd();
             }
         }
 
@@ -3262,14 +3270,20 @@ void Foam::autoLayerDriver::addLayers
     // Determine patches for extruded boundary edges. Calculates if any
     // additional processor patches need to be constructed.
 
-    labelList sidePatchID;
+    labelList edgePatchID;
+    labelList edgeZoneID;
+    boolList edgeFlip;
+    labelList inflateFaceID;
     determineSidePatches
     (
         globalFaces,
         edgeGlobalFaces,
         pp,
 
-        sidePatchID
+        edgePatchID,
+        edgeZoneID,
+        edgeFlip,
+        inflateFaceID
     );
 
 
@@ -3671,7 +3685,13 @@ void Foam::autoLayerDriver::addLayers
 
                 invExpansionRatio,
                 pp(),
-                sidePatchID,    // boundary patch for extruded boundary edges
+
+                edgePatchID,    // boundary patch for extruded boundary edges
+                edgeZoneID,     // zone for extruded edges
+                edgeFlip,
+                inflateFaceID,
+
+
                 labelList(0),   // exposed patchIDs, not used for adding layers
                 nPatchFaceLayers,   // layers per face
                 nPatchPointLayers,  // layers per point

@@ -61,8 +61,8 @@ void Foam::polyPatch::movePoints(PstreamBuffers&, const pointField& p)
 
 void Foam::polyPatch::updateMesh(PstreamBuffers&)
 {
+    primitivePatch::clearGeom();
     clearAddressing();
-    primitivePatch::clearOut();
 }
 
 
@@ -372,6 +372,8 @@ const Foam::labelList& Foam::polyPatch::meshEdges() const
 
 void Foam::polyPatch::clearAddressing()
 {
+    primitivePatch::clearTopology();
+    primitivePatch::clearPatchMeshAddr();
     deleteDemandDrivenData(faceCellsPtr_);
     deleteDemandDrivenData(mePtr_);
 }

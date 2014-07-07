@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,45 +23,47 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "enthalpyPorositySource.H"
+#include "fvMatrices.H"
+#include "fvcDdt.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::fv::enthalpyPorositySource::writeData(Ostream& os) const
+template<class RhoFieldType>
+void Foam::fv::enthalpyPorositySource::apply
+(
+    const RhoFieldType& rho,
+    fvMatrix<scalar>& eqn
+)
 {
-    os  << indent << name_ << endl;
-    dict_.write(os);
-}
-
-
-bool Foam::fv::enthalpyPorositySource::read(const dictionary& dict)
-{
-    if (option::read(dict))
+    if (!solveField(eqn.psi().name()))
     {
-        coeffs_.lookup("Tmelt") >> Tmelt_;
-        coeffs_.lookup("L") >> L_;
+        return;
+    }
 
-        coeffs_.readIfPresent("relax", relax_);
+    if (debug)
+    {
+        Info<< type() << ": applying source to " << eqn.psi().name() << endl;
+    }
 
-        mode_ = thermoModeTypeNames_.read(coeffs_.lookup("thermoMode"));
+    const volScalarField Cp(this->Cp());
 
-        coeffs_.lookup("rhoRef") >> rhoRef_;
-        coeffs_.readIfPresent("TName", TName_);
-        coeffs_.readIfPresent("UName", UName_);
+    update(Cp);
 
-        coeffs_.readIfPresent("Cu", Cu_);
-        coeffs_.readIfPresent("q", q_);
+    dimensionedScalar L("L", dimEnergy/dimMass, L_);
 
-        coeffs_.readIfPresent("beta", beta_);
-
-        return true;
+    // contributions added to rhs of solver equation
+    if (eqn.psi().dimensions() == dimTemperature)
+    {
+        // isothermal phase change - only include time derivative
+//        eqn -= L/Cp*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
+        eqn -= L/Cp*(fvc::ddt(rho, alpha1_));
     }
     else
     {
-        return false;
+        // isothermal phase change - only include time derivative
+//        eqn -= L*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
+        eqn -= L*(fvc::ddt(rho, alpha1_));
     }
-
-    return false;
 }
 
 
