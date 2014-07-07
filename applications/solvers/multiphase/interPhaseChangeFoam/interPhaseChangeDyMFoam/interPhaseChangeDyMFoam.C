@@ -109,7 +109,10 @@ int main(int argc, char *argv[])
             if (pimple.firstIter() || moveMeshOuterCorrectors)
             {
                 // Store divU from the previous mesh for the correctPhi
-                volScalarField divU(fvc::div(fvc::absolute(phi, U)));
+                volScalarField divU
+                (
+                    "div(phi0)", fvc::div(fvc::absolute(phi, U))
+                );
 
                 scalar timeBeforeMeshUpdate = runTime.elapsedCpuTime();
 

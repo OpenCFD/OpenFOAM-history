@@ -346,7 +346,10 @@ int main(int argc, char *argv[])
             (
                 regionName,
                 runTime.timeName(),
-                runTime
+                runTime,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
             )
         );
 

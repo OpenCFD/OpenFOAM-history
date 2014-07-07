@@ -90,7 +90,7 @@
         if (MULESCorr)
         {
             tmp<surfaceScalarField> tphiAlphaCorr(tphiAlphaUn() - phiAlpha);
-            volScalarField alpha10(alpha1);
+            volScalarField alpha10("alpha10", alpha1);
 
             #ifdef LTSSOLVE
             MULES::LTScorrect

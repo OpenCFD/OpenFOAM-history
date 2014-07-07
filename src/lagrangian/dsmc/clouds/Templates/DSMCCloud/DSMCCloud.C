@@ -556,7 +556,17 @@ Foam::DSMCCloud<ParcelType>::DSMCCloud
         ),
         mesh_
     ),
-    collisionSelectionRemainder_(mesh_.nCells(), 0),
+    collisionSelectionRemainder_
+    (
+        IOobject
+        (
+            this->name() + ":collisionSelectionRemainder",
+            mesh_.time().timeName(),
+            mesh_
+        ),
+        mesh_,
+        dimensionedScalar("collisionSelectionRemainder", dimless, 0)
+    ),
     q_
     (
         IOobject
@@ -780,7 +790,17 @@ Foam::DSMCCloud<ParcelType>::DSMCCloud
         dimensionedScalar("zero",  dimensionSet(0, 3, -1, 0, 0), 0.0),
         zeroGradientFvPatchScalarField::typeName
     ),
-    collisionSelectionRemainder_(),
+    collisionSelectionRemainder_
+    (
+        IOobject
+        (
+            this->name() + ":collisionSelectionRemainder",
+            mesh_.time().timeName(),
+            mesh_
+        ),
+        mesh_,
+        dimensionedScalar("collisionSelectionRemainder", dimless, 0)
+    ),
     q_
     (
         IOobject
@@ -1130,6 +1150,13 @@ void Foam::DSMCCloud<ParcelType>::autoMap(const mapPolyMesh& mapper)
     typedef typename  ParcelType::trackingData tdType;
     tdType td(*this);
     Cloud<ParcelType>::template autoMap<tdType>(td, mapper);
+
+    // Resize the cell occupancy
+    cellOccupancy_.setSize(mesh_.nCells());
+    buildCellOccupancy();
+
+    // Map the inflow BCs
+    this->inflowBoundary().autoMap(mapper);
 }
 
 

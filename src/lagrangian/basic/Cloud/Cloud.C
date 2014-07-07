@@ -430,7 +430,7 @@ void Foam::Cloud<ParticleType>::autoMap
     const labelList& reverseFaceMap = mapper.reverseFaceMap();
 
     // Reset stored data that relies on the mesh
-//    polyMesh_.clearCellTree();
+    // polyMesh_.clearCellTree();
     cellWallFacesPtr_.clear();
 
     // Ask for the tetBasePtIs to trigger all processors to build

@@ -132,6 +132,34 @@
             mesh.facesInstance(),
             mesh,
             IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info<< "Reading field Nv\n" << endl;
+    volScalarField Nv
+    (
+        IOobject
+        (
+            "Nv",
+            mesh.facesInstance(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info<< "Reading field nsv\n" << endl;
+    volSymmTensorField nsv
+    (
+        IOobject
+        (
+            "nsv",
+            mesh.facesInstance(),
+            mesh,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         ),
         mesh

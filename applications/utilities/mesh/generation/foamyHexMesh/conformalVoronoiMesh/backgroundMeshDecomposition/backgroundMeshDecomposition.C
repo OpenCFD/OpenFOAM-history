@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -796,7 +796,8 @@ Foam::backgroundMeshDecomposition::backgroundMeshDecomposition
             runTime_.timeName(),
             runTime_,
             IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
+            IOobject::AUTO_WRITE,
+            false
         )
     ),
     meshCutter_
