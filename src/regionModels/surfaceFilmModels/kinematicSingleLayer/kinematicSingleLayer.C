@@ -140,6 +140,13 @@ void kinematicSingleLayer::transferPrimaryRegionSourceFields()
     // update addedMassTotal counter
     if (time().outputTime())
     {
+        if (debug)
+        {
+            rhoSp_.write();
+            USp_.write();
+            pSp_.write();
+        }
+
         scalar addedMassTotal = 0.0;
         outputProperties().readIfPresent("addedMassTotal", addedMassTotal);
         addedMassTotal += returnReduce(addedMassTotal_, sumOp<scalar>());
