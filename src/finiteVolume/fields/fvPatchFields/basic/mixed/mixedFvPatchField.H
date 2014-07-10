@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -54,7 +54,7 @@ Description
         Property     | Description             | Required    | Default value
         valueFraction | weight field           | yes         |
         refValue     | fixed value             | yes         |
-        refGrad      | patch normal gradient   | yes         |
+        refGradient  | patch normal gradient   | yes         |
     \endtable
 
 Note
