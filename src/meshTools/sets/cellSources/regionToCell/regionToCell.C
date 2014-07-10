@@ -47,7 +47,7 @@ addToRunTimeSelectionTable(topoSetSource, regionToCell, istream);
 Foam::topoSetSource::addToUsageTable Foam::regionToCell::usage_
 (
     regionToCell::typeName,
-    "\n    Usage: regionToCell subCellSet (pt0 .. ptn)\n\n"
+    "\n    Usage: regionToCell subCellSet (pt0 .. ptn) nErode\n\n"
     "    Select all cells in the connected region containing"
     " points (pt0..ptn).\n"
 );
@@ -433,7 +433,7 @@ Foam::regionToCell::regionToCell
     topoSetSource(mesh),
     setName_(checkIs(is)),
     insidePoints_(checkIs(is)),
-    nErode_(readLabel(is))
+    nErode_(readLabel(checkIs(is)))
 {}
 
 
