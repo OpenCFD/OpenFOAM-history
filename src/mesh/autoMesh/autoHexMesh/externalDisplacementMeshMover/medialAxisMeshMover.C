@@ -2067,6 +2067,15 @@ bool Foam::medialAxisMeshMover::shrinkMesh
             meshOk = true;
             break;
         }
+
+
+        if (debug)
+        {
+            const_cast<Time&>(mesh().time())++;
+            Info<< "Writing shrunk mesh to time "
+                << mesh().time().timeName() << endl;
+            mesh().write();
+        }
     }
 
     if (oldErrorReduction >= 0)
