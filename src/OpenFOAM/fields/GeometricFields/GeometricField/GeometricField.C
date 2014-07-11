@@ -610,6 +610,8 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
     }
 
     tgf.clear();
+
+    readIfPresent();
 }
 #endif
 
