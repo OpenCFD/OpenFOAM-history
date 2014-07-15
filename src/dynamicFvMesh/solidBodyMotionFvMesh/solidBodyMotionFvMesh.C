@@ -237,7 +237,7 @@ bool Foam::solidBodyMotionFvMesh::update()
 
         WarningIn("solidBodyMotionFvMesh::update()")
             << "Did not find volVectorField " << UName_
-            << " Not updating " << UName_ << "boundary conditions."
+            << ". Not updating " << UName_ << " boundary conditions."
             << endl;
     }
 

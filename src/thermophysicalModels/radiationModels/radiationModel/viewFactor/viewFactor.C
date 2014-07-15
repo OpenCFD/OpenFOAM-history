@@ -249,7 +249,7 @@ Foam::radiation::viewFactor::viewFactor(const volScalarField& T)
     (
         IOobject
         (
-            mesh_.name(),
+            "coarse:" + mesh_.name(),
             mesh_.polyMesh::instance(),
             mesh_.time(),
             IOobject::NO_READ,

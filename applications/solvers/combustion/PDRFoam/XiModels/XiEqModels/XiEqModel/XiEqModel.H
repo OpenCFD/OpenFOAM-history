@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -73,12 +73,6 @@ protected:
 
         //- Laminar burning velocity
         const volScalarField& Su_;
-
-        //- Volumetric obstacles number
-        volScalarField Nv_;
-
-        //
-        volSymmTensorField nsv_;
 
 
 private:

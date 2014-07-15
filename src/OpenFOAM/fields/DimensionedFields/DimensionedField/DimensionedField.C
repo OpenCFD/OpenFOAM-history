@@ -200,7 +200,7 @@ DimensionedField<Type, GeoMesh>::DimensionedField
     const DimensionedField<Type, GeoMesh>& df
 )
 :
-    regIOobject(IOobject(newName, df.time().timeName(), df.db())),
+    regIOobject(newName, df, newName == df.name()),
     Field<Type>(df),
     mesh_(df.mesh_),
     dimensions_(df.dimensions_)
@@ -215,7 +215,22 @@ DimensionedField<Type, GeoMesh>::DimensionedField
     bool reUse
 )
 :
-    regIOobject(IOobject(newName, df.time().timeName(), df.db())),
+    regIOobject(newName, df, true),
+    Field<Type>(df, reUse),
+    mesh_(df.mesh_),
+    dimensions_(df.dimensions_)
+{}
+
+
+template<class Type, class GeoMesh>
+DimensionedField<Type, GeoMesh>::DimensionedField
+(
+    const IOobject& io,
+    DimensionedField<Type, GeoMesh>& df,
+    bool reUse
+)
+:
+    regIOobject(io, df),
     Field<Type>(df, reUse),
     mesh_(df.mesh_),
     dimensions_(df.dimensions_)
@@ -229,7 +244,7 @@ DimensionedField<Type, GeoMesh>::DimensionedField
     const Xfer<DimensionedField<Type, GeoMesh> >& df
 )
 :
-    regIOobject(IOobject(newName, df->time().timeName(), df->db())),
+    regIOobject(newName, df, true),
     Field<Type>(df),
     mesh_(df->mesh_),
     dimensions_(df->dimensions_)
@@ -244,7 +259,7 @@ DimensionedField<Type, GeoMesh>::DimensionedField
     const tmp<DimensionedField<Type, GeoMesh> >& tdf
 )
 :
-    regIOobject(IOobject(newName, tdf().time().timeName(), tdf().db())),
+    regIOobject(newName, tdf(), true),
     Field<Type>
     (
         const_cast<DimensionedField<Type, GeoMesh>&>(tdf()),

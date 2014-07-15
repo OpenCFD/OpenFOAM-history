@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -53,31 +53,7 @@ Foam::XiEqModel::XiEqModel
     ),
     thermo_(thermo),
     turbulence_(turbulence),
-    Su_(Su),
-    Nv_
-    (
-        IOobject
-        (
-            "Nv",
-            Su.mesh().facesInstance(),
-            Su.mesh(),
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        ),
-        Su.mesh()
-    ),
-    nsv_
-    (
-        IOobject
-        (
-            "nsv",
-            Su.mesh().facesInstance(),
-            Su.mesh(),
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        ),
-        Su.mesh()
-    )
+    Su_(Su)
 {}
 
 
@@ -99,8 +75,6 @@ bool Foam::XiEqModel::read(const dictionary& XiEqProperties)
 
 void Foam::XiEqModel::writeFields() const
 {
-    Nv_.write();
-    nsv_.write();
     if (Su_.mesh().foundObject<volSymmTensorField>("B"))
     {
         const volSymmTensorField& B =

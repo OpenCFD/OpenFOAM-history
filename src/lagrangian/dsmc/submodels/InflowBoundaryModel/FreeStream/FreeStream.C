@@ -124,6 +124,33 @@ Foam::FreeStream<CloudType>::~FreeStream()
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class CloudType>
+void Foam::FreeStream<CloudType>::autoMap(const mapPolyMesh& mapper)
+{
+    CloudType& cloud(this->owner());
+
+    const polyMesh& mesh(cloud.mesh());
+
+    forAll(patches_, p)
+    {
+        label patchI = patches_[p];
+
+        const polyPatch& patch = mesh.boundaryMesh()[patchI];
+
+        // Add mass to the accumulators.  negative face area dotted with the
+        // velocity to point flux into the domain.
+
+        // Take a reference to the particleFluxAccumulator for this patch
+        List<Field<scalar> >& pFA = particleFluxAccumulators_[p];
+
+        forAll(pFA, i)
+        {
+            pFA[i].setSize(patch.size(), 0);
+        }
+    }
+}
+
+
+template<class CloudType>
 void Foam::FreeStream<CloudType>::inflow()
 {
     CloudType& cloud(this->owner());

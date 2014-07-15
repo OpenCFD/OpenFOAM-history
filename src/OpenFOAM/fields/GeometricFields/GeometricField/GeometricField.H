@@ -386,6 +386,15 @@ public:
         );
         #endif
 
+        //- Construct as copy resetting IO parameters
+        #ifdef ConstructFromTmp
+        GeometricField
+        (
+            const IOobject&,
+            const tmp<GeometricField<Type, PatchField, GeoMesh> >&
+        );
+        #endif
+
         //- Construct as copy resetting IO parameters and patch type
         GeometricField
         (

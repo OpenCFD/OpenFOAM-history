@@ -28,6 +28,7 @@ License
 #include "directFvPatchFieldMapper.H"
 #include "calculatedFvPatchField.H"
 #include "fvcGrad.H"
+#include "distributedWeightedFvPatchFieldMapper.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -118,7 +119,6 @@ void Foam::meshToMesh::mapSrcToTgt
 
             if (srcAddress.size())
             {
-//                result[cellI] = pTraits<Type>::zero;
                 result[cellI] *= (1.0 - sum(srcWeight));
                 forAll(srcAddress, i)
                 {
@@ -138,7 +138,6 @@ void Foam::meshToMesh::mapSrcToTgt
 
             if (srcAddress.size())
             {
-//                result[cellI] = pTraits<Type>::zero;
                 result[cellI] *= (1.0 - sum(srcWeight));
                 forAll(srcAddress, i)
                 {
@@ -554,6 +553,27 @@ void Foam::meshToMesh::mapInternalSrcToTgt
 
 
 template<class Type, class CombineOp>
+void Foam::meshToMesh::mapAndOpSrcToTgt
+(
+    const AMIPatchToPatchInterpolation& AMI,
+    const Field<Type>& srcField,
+    Field<Type>& tgtField,
+    const CombineOp& cop
+) const
+{
+    tgtField = pTraits<Type>::zero;
+
+    AMI.interpolateToTarget
+    (
+        srcField,
+        multiplyWeightedOp<Type, CombineOp>(cop),
+        tgtField,
+        UList<Type>::null()
+    );
+}
+
+
+template<class Type, class CombineOp>
 void Foam::meshToMesh::mapSrcToTgt
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
@@ -572,18 +592,40 @@ void Foam::meshToMesh::mapSrcToTgt
         label srcPatchI = srcPatchID_[i];
         label tgtPatchI = tgtPatchID_[i];
 
-        const Field<Type>& srcField = field.boundaryField()[srcPatchI];
-        Field<Type>& tgtField = result.boundaryField()[tgtPatchI];
+        const fvPatchField<Type>& srcField = field.boundaryField()[srcPatchI];
+        fvPatchField<Type>& tgtField = result.boundaryField()[tgtPatchI];
 
-        tgtField = pTraits<Type>::zero;
 
-        AMIList[i].interpolateToTarget
+        // Clone and map (since rmap does not do general mapping)
+        tmp<fvPatchField<Type> > tnewTgt
         (
-            srcField,
-            multiplyWeightedOp<Type, CombineOp>(cop),
-            tgtField,
-            UList<Type>::null()
+            fvPatchField<Type>::New
+            (
+                srcField,
+                tgtField.patch(),
+                result.dimensionedInternalField(),
+                distributedWeightedFvPatchFieldMapper
+                (
+                    AMIList[i].singlePatchProc(),
+                    (
+                        AMIList[i].singlePatchProc() == -1
+                      ? &AMIList[i].srcMap()
+                      : NULL
+                    ),
+                    AMIList[i].tgtAddress(),
+                    AMIList[i].tgtWeights()
+                )
+            )
         );
+
+        // Transfer all mapped quantities (value and e.g. gradient) onto
+        // tgtField
+        tgtField.rmap(tnewTgt(), identity(tgtField.size()));
+
+
+        // Override value to account for CombineOp (note: is dummy template
+        // specialisation for plusEqOp)
+        mapAndOpSrcToTgt(AMIList[i], srcField, tgtField, cop);
     }
 
     forAll(cuttingPatches_, i)
@@ -750,6 +792,27 @@ void Foam::meshToMesh::mapInternalTgtToSrc
 
 
 template<class Type, class CombineOp>
+void Foam::meshToMesh::mapAndOpTgtToSrc
+(
+    const AMIPatchToPatchInterpolation& AMI,
+    Field<Type>& srcField,
+    const Field<Type>& tgtField,
+    const CombineOp& cop
+) const
+{
+    srcField = pTraits<Type>::zero;
+
+    AMI.interpolateToSource
+    (
+        tgtField,
+        multiplyWeightedOp<Type, CombineOp>(cop),
+        srcField,
+        UList<Type>::null()
+    );
+}
+
+
+template<class Type, class CombineOp>
 void Foam::meshToMesh::mapTgtToSrc
 (
     const GeometricField<Type, fvPatchField, volMesh>& field,
@@ -768,17 +831,40 @@ void Foam::meshToMesh::mapTgtToSrc
         label srcPatchI = srcPatchID_[i];
         label tgtPatchI = tgtPatchID_[i];
 
-        Field<Type>& srcField = result.boundaryField()[srcPatchI];
-        const Field<Type>& tgtField = field.boundaryField()[tgtPatchI];
+        fvPatchField<Type>& srcField = result.boundaryField()[srcPatchI];
+        const fvPatchField<Type>& tgtField = field.boundaryField()[tgtPatchI];
 
-        srcField = pTraits<Type>::zero;
 
-        AMIList[i].interpolateToSource
+        // Clone and map (since rmap does not do general mapping)
+        tmp<fvPatchField<Type> > tnewSrc
         (
-            tgtField,
-            multiplyWeightedOp<Type, CombineOp>(cop),
-            srcField
+            fvPatchField<Type>::New
+            (
+                tgtField,
+                srcField.patch(),
+                result.dimensionedInternalField(),
+                distributedWeightedFvPatchFieldMapper
+                (
+                    AMIList[i].singlePatchProc(),
+                    (
+                        AMIList[i].singlePatchProc() == -1
+                      ? &AMIList[i].tgtMap()
+                      : NULL
+                    ),
+                    AMIList[i].srcAddress(),
+                    AMIList[i].srcWeights()
+                )
+            )
         );
+
+        // Transfer all mapped quantities (value and e.g. gradient) onto
+        // tgtField
+        srcField.rmap(tnewSrc(), identity(srcField.size()));
+
+
+        // Override value to account for CombineOp (could be dummy for
+        // plusEqOp)
+        mapAndOpTgtToSrc(AMIList[i], srcField, tgtField, cop);
     }
 
     forAll(cuttingPatches_, i)

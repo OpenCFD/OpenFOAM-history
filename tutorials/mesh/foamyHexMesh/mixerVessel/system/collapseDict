@@ -32,7 +32,7 @@ collapseEdgesCoeffs
 collapseFacesCoeffs
 {
     // The initial face length factor
-    initialFaceLengthFactor                 1;
+    initialFaceLengthFactor                 0.35;
 
     // If the face can't be collapsed to an edge, and it has a span less than
     // the target face length multiplied by this coefficient, collapse it

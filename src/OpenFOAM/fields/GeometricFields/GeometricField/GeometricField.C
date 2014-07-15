@@ -157,7 +157,7 @@ bool Foam::GeometricField<Type, PatchField, GeoMesh>::readOldTimeIfPresent()
         this->registerObject()
     );
 
-    if 
+    if
     (
         field0.template typeHeaderOk<GeometricField<Type, PatchField, GeoMesh> >
         (
@@ -313,7 +313,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 }
 
 
-//  construct from components
+// Construct from components
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 (
@@ -423,7 +423,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 }
 
 
-// construct as copy
+// Construct as copy
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 (
@@ -454,7 +454,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
     this->writeOpt() = IOobject::NO_WRITE;
 }
 
-// construct as copy of tmp<GeometricField> deleting argument
+// Construct as copy of tmp<GeometricField> deleting argument
 #ifdef ConstructFromTmp
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
@@ -486,7 +486,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 #endif
 
 
-// construct as copy resetting IO parameters
+// Construct as copy resetting IO parameters
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 (
@@ -518,7 +518,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 }
 
 
-// construct as copy resetting name
+// Construct as copy resetting name
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 (
@@ -550,7 +550,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 }
 
 
-// construct as copy resetting name
+// Construct as copy resetting name
 #ifdef ConstructFromTmp
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
@@ -581,7 +581,42 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 }
 #endif
 
-// construct as copy resetting IO parameters and patch type
+
+// Construct as copy resetting IO parameters
+#ifdef ConstructFromTmp
+template<class Type, template<class> class PatchField, class GeoMesh>
+Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
+(
+    const IOobject& io,
+    const tmp<GeometricField<Type, PatchField, GeoMesh> >& tgf
+)
+:
+    DimensionedField<Type, GeoMesh>
+    (
+        io,
+        const_cast<GeometricField<Type, PatchField, GeoMesh>&>(tgf()),
+        tgf.isTmp()
+    ),
+    timeIndex_(tgf().timeIndex()),
+    field0Ptr_(NULL),
+    fieldPrevIterPtr_(NULL),
+    boundaryField_(*this, tgf().boundaryField_)
+{
+    if (debug)
+    {
+        Info<< "GeometricField<Type, PatchField, GeoMesh>::GeometricField : "
+               "constructing from tmp resetting IO params"
+            << endl << this->info() << endl;
+    }
+
+    tgf.clear();
+
+    readIfPresent();
+}
+#endif
+
+
+// Construct as copy resetting IO parameters and patch type
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 (
@@ -599,7 +634,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
     if (debug)
     {
         Info<< "GeometricField<Type, PatchField, GeoMesh>::GeometricField : "
-               "constructing as copy resetting IO params"
+               "constructing as copy resetting IO params and patch type"
             << endl << this->info() << endl;
     }
 
@@ -616,7 +651,7 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 }
 
 
-// construct as copy resetting IO parameters and boundary types
+// Construct as copy resetting IO parameters and boundary types
 template<class Type, template<class> class PatchField, class GeoMesh>
 Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
 (

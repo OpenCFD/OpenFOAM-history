@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,10 +34,13 @@ inline Type Foam::interpolationCellPointWallModified<Type>::interpolate
     const List<scalar>& weights = cpw.weights();
     const List<label>& faceVertices = cpw.faceVertices();
 
+    const GeometricField<Type, pointPatchField, pointMesh>& psip =
+        this->psip_;
+
     Type t = this->psi_[cpw.cell()]*weights[0];
-    t += this->psip_[faceVertices[0]]*weights[1];
-    t += this->psip_[faceVertices[1]]*weights[2];
-    t += this->psip_[faceVertices[2]]*weights[3];
+    t += psip[faceVertices[0]]*weights[1];
+    t += psip[faceVertices[1]]*weights[2];
+    t += psip[faceVertices[2]]*weights[3];
 
     return t;
 }

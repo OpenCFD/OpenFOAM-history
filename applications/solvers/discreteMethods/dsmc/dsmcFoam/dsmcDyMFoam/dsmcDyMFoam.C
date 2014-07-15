@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,33 +21,59 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Application
+    dsmcDyMFoam
+
+Group
+    grpDiscreteMethodsSolvers grpMovingMeshSolvers
+
+Description
+    Direct simulation Monte Carlo (DSMC) solver for 3D, transient, multi-
+    species flows on a moving/changing mesh.
+
 \*---------------------------------------------------------------------------*/
 
-#include "wedgeFvPatch.H"
-#include "addToRunTimeSelectionTable.H"
+#include "fvCFD.H"
+#include "dynamicFvMesh.H"
+#include "dsmcCloud.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
+int main(int argc, char *argv[])
 {
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createDynamicFvMesh.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(wedgeFvPatch, 0);
-addToRunTimeSelectionTable(fvPatch, wedgeFvPatch, polyPatch);
+    Info<< nl << "Constructing dsmcCloud " << endl;
 
+    dsmcCloud dsmc("dsmc", mesh);
 
-// * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * * * * * //
+    Info<< "\nStarting time loop\n" << endl;
 
-wedgeFvPatch::wedgeFvPatch(const polyPatch& patch, const fvBoundaryMesh& bm)
-:
-    fvPatch(patch, bm),
-    wedgePolyPatch_(refCast<const wedgePolyPatch>(patch))
-{}
+    while (runTime.loop())
+    {
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        mesh.update();
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+        dsmc.evolve();
 
-} // End namespace Foam
+        dsmc.info();
+
+        runTime.write();
+
+        Info<< nl << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
+    }
+
+    Info<< "End\n" << endl;
+
+    return 0;
+}
+
 
 // ************************************************************************* //

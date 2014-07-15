@@ -177,12 +177,12 @@ public:
         );
 
         //- Construct as copy of tmp<DimensionedField> deleting argument
-#       ifdef ConstructFromTmp
+        #ifdef ConstructFromTmp
         DimensionedField
         (
             const tmp<DimensionedField<Type, GeoMesh> >&
         );
-#       endif
+        #endif
 
         //- Construct as copy resetting IO parameters
         DimensionedField
@@ -206,6 +206,14 @@ public:
             bool reUse
         );
 
+        //- Construct as copy resetting IO parameters and re-use as specified.
+        DimensionedField
+        (
+            const IOobject&,
+            DimensionedField<Type, GeoMesh>&,
+            bool reUse
+        );
+
         //- Construct by transferring the DimensionedField with a new name
         DimensionedField
         (
@@ -214,13 +222,13 @@ public:
         );
 
         //- Construct as copy resetting name
-#       ifdef ConstructFromTmp
+        #ifdef ConstructFromTmp
         DimensionedField
         (
             const word& newName,
             const tmp<DimensionedField<Type, GeoMesh> >&
         );
-#       endif
+        #endif
 
         //- Clone
         tmp<DimensionedField<Type, GeoMesh> > clone() const;

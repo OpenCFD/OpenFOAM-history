@@ -492,16 +492,16 @@ void humidityTemperatureCoupledMixedFvPatchScalarField::updateCoeffs()
                     )
                 );
 
-            const fvPatchField& pp =
+            const fvPatchScalarField& pp =
                 patch().lookupPatchField<volScalarField, scalar>("p");
 
             const fvPatchVectorField& Up =
                 patch().lookupPatchField<volVectorField, vector>("U");
 
-            const fvPatchField& rhop =
+            const fvPatchScalarField& rhop =
                 patch().lookupPatchField<volScalarField, scalar>("rho");
 
-            const fvPatchField& mup =
+            const fvPatchScalarField& mup =
                 patch().lookupPatchField<volScalarField, scalar>("thermo:mu");
 
             const vectorField Ui(Up.patchInternalField());
