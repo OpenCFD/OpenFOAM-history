@@ -43,6 +43,9 @@ void Foam::cloudInfo::writeFileHeader(const label i)
     writeCommented(file(), "Time");
     writeTabbed(file(), "nParcels");
     writeTabbed(file(), "mass");
+    writeTabbed(file(), "Dmax");
+    writeTabbed(file(), "D10");
+    writeTabbed(file(), "D32");
     file() << endl;
 }
 
@@ -60,7 +63,8 @@ Foam::cloudInfo::cloudInfo
     functionObjectFile(obr, name),
     name_(name),
     obr_(obr),
-    active_(true)
+    active_(true),
+    log_(true)
 {
     read(dict);
 }
@@ -78,7 +82,7 @@ void Foam::cloudInfo::read(const dictionary& dict)
 {
     if (active_)
     {
-        functionObjectFile::read(dict);
+        log_ = dict.lookupOrDefault<Switch>("log", true);
 
         functionObjectFile::resetNames(dict.lookup("clouds"));
 
@@ -136,13 +140,30 @@ void Foam::cloudInfo::write()
             scalar massInSystem =
                 returnReduce(cloud.massInSystem(), sumOp<scalar>());
 
+            scalar Dmax = cloud.Dmax();
+            scalar D10 = cloud.Dij(1, 0);
+            scalar D32 = cloud.Dij(3, 2);
+
             if (Pstream::master())
             {
                 file(i)
                     << obr_.time().value() << token::TAB
                     << nParcels << token::TAB
-                    << massInSystem << endl;
+                    << massInSystem << token::TAB
+                    << Dmax << token::TAB
+                    << D10 << token::TAB
+                    << D32 << token::TAB
+                    << endl;
             }
+
+            Info(log_)<< type() << " " << name_ <<  " output:" << nl;
+            Info(log_)
+                << "    number of parcels : " << nParcels << nl
+                << "    mass in system    : " << massInSystem << nl
+                << "    maximum diameter  : " << Dmax << nl
+                << "    D10 diameter      : " << D10 << nl
+                << "    D32 diameter      : " << D32 << nl
+                << endl;
 
             i++;
         }

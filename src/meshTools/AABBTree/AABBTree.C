@@ -27,6 +27,9 @@ License
 #include "meshTools.H"
 #include "OFstream.H"
 
+template<class Type>
+Foam::scalar Foam::AABBTree<Type>::tolerance_ = 1e-4;
+
 // * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
 template<class Type>
@@ -152,7 +155,7 @@ void Foam::AABBTree<Type>::createBoxes
     DynamicList<label> minBinObjectIDs(objectIDs.size());
     treeBoundBox minBb(point::max, point::min);
     {
-        const scalar divide = bb.min()[maxDir] + 0.51*maxSpan;
+        const scalar divide = bb.min()[maxDir] + (0.5 + tolerance_)*maxSpan;
 
         boolList markedPoints(points.size(), false);
         forAll(points, pointI)
@@ -200,7 +203,7 @@ void Foam::AABBTree<Type>::createBoxes
     DynamicList<label> maxBinObjectIDs(objectIDs.size());
     treeBoundBox maxBb(point::max, point::min);
     {
-        const scalar divide = bb.min()[maxDir] + 0.49*maxSpan;
+        const scalar divide = bb.min()[maxDir] + (0.5 - tolerance_)*maxSpan;
 
         boolList markedPoints(points.size(), false);
         forAll(points, pointI)

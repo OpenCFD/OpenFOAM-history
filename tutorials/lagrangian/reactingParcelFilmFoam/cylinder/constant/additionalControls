@@ -15,6 +15,6 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solvePrimaryRegion true; // false; // true;
+solvePrimaryRegion false; // true;
 
 // ************************************************************************* //
