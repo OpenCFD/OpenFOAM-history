@@ -33,9 +33,9 @@ writeInterval   1e-06;
 
 purgeWrite      0;
 
-writeFormat     binary;
+writeFormat     ascii;
 
-writePrecision  8;
+writePrecision  10;
 
 writeCompression uncompressed;
 
