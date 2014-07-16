@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,7 +32,7 @@ Description
     condition as a base.
 
     The jump is specified as a \c DataEntry type, to enable the use of, e.g.
-    contant, polynomial, table values.
+    contant, polynomial, and table values.
 
     \heading Patch usage
 
@@ -55,7 +55,7 @@ Description
             refColumn       0;
             componentColumns 1(1);
             separator       ",";
-            fileName        "$FOAM_CASE/constant/pressureVsU";
+            fileName        "$FOAM_CASE/constant/VelocityVsDeltaPressure";
         }
         value           uniform 0;
     }
@@ -71,6 +71,7 @@ SeeAlso
     Foam::DataEntry
 
 SourceFiles
+    fanFvPatchField.H
     fanFvPatchField.C
     fanFvPatchFields.H
     fanFvPatchFields.C
