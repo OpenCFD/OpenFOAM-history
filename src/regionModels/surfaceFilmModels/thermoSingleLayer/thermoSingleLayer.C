@@ -187,6 +187,14 @@ void thermoSingleLayer::transferPrimaryRegionSourceFields()
 
     // Apply enthalpy source as difference between incoming and actual states
     hsSp_ -= rhoSp_*hs_;
+
+    if (time().outputTime())
+    {
+        if (debug)
+        {
+            hsSp_.write();
+        }
+    }
 }
 
 

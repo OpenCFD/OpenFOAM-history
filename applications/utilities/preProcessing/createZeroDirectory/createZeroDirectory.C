@@ -221,9 +221,6 @@ void createFieldFiles
 // Main program:
 int main(int argc, char *argv[])
 {
-    // keep variable substitutions
-    entry::disableFunctionEntries = 1;
-
     Foam::argList::addOption
     (
         "templateDir",
@@ -263,6 +260,10 @@ int main(int argc, char *argv[])
 
     baseDir.expand();
     baseDir.toAbsolute();
+
+    // keep variable substitutions - delay until after creation of controlDict
+    // to allow #include files to be processed
+    entry::disableFunctionEntries = 1;
 
     // read the solver
     const word& solverName = controlDict.lookup("application");

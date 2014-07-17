@@ -64,7 +64,6 @@ Foam::regIOobject::regIOobject(const IOobject& io, const bool isTime)
     ),
     isPtr_(NULL)
 {
-    // Register with objectRegistry if requested
     if (registerObject())
     {
         checkIn();
@@ -116,13 +115,6 @@ Foam::regIOobject::regIOobject
     eventNo_(db().getEvent()),
     isPtr_(NULL)
 {
-    if (registerCopy && rio.registered_)
-    {
-        const_cast<regIOobject&>(rio).checkOut();
-    }
-
-    rename(newName);
-
     if (registerCopy)
     {
         checkIn();
@@ -143,12 +135,6 @@ Foam::regIOobject::regIOobject
     eventNo_(db().getEvent()),
     isPtr_(NULL)
 {
-    if (registerObject() && rio.registered_)
-    {
-        const_cast<regIOobject&>(rio).checkOut();
-    }
-
-    // Register with objectRegistry if requested
     if (registerObject())
     {
         checkIn();
@@ -175,7 +161,6 @@ Foam::regIOobject::~regIOobject()
     }
 
     // Check out of objectRegistry if not owned by the registry
-
     if (!ownedByRegistry_)
     {
         checkOut();

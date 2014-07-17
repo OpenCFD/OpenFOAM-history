@@ -987,7 +987,10 @@ void Foam::forces::execute()
 
 void Foam::forces::end()
 {
-    // Do nothing
+    if (active_)
+    {
+        execute();
+    }
 }
 
 
