@@ -63,6 +63,9 @@ protected:
         //- Calculate the patch geometry
         virtual void calcGeometry(PstreamBuffers&);
 
+        //- Update of the patch topology
+        virtual void updateMesh(PstreamBuffers&);
+
 
 public:
 

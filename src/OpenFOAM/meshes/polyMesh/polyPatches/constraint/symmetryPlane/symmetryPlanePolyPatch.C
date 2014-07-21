@@ -80,6 +80,17 @@ void Foam::symmetryPlanePolyPatch::calcGeometry(PstreamBuffers&)
 }
 
 
+void Foam::symmetryPlanePolyPatch::updateMesh(PstreamBuffers& pBufs)
+{
+    polyPatch::updateMesh(pBufs);
+
+    // Reset n_ to enforce recalculation. For 'normal' topology changes this
+    // should not be necessary since we assume the symmetry planes stay in
+    // the same plane, however for mesh.readUpdate() this can be necessary.
+    n_ = vector::rootMax;
+}
+
+
 // * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * * * * * //
 
 Foam::symmetryPlanePolyPatch::symmetryPlanePolyPatch
