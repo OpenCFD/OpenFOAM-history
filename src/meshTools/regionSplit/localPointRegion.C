@@ -648,17 +648,14 @@ Foam::List<Foam::labelPair> Foam::localPointRegion::findDuplicateFacePairs
             label meshFace1 = testFaces[otherFaceI];
             label patch1 = patches.whichPatch(meshFace1);
 
-            // Check for illegal topology. Should normally not happen but can
-            // sometimes happen in snappyHexMesh when collapsing out difficult
-            // topology. 'All' it takes is for four vertices to be collapsed
-            // onto the four vertices of a processor face.
+            // Check for illegal topology. Should normally not happen!
             if
             (
                 (patch0 != -1 && isA<processorPolyPatch>(patches[patch0]))
              || (patch1 != -1 && isA<processorPolyPatch>(patches[patch1]))
             )
             {
-                WarningIn
+                FatalErrorIn
                 (
                     "localPointRegion::findDuplicateFacePairs(const polyMesh&)"
                 )   << "One of two duplicate faces is on"
@@ -671,8 +668,7 @@ Foam::List<Foam::labelPair> Foam::localPointRegion::findDuplicateFacePairs
                     << "Face:" << meshFace1
                     << " fc:" << mesh.faceCentres()[meshFace1]
                     << " is on patch:" << patches[patch1].name()
-                    //<< abort(FatalError);
-                    << endl;
+                    << abort(FatalError);
             }
             else
             {
