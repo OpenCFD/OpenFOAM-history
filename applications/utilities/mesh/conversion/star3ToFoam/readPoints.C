@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,6 +37,11 @@ label starMesh::readVtxLabel(IFstream& is)
 
     for (int i=0; i<15; i++)
     {
+        if (!is.good())
+        {
+            return -1;
+        }
+
         is.get(lcs[i]);
     }
 
@@ -85,12 +90,10 @@ void starMesh::readPoints(const scalar scaleFactor)
 
         if (pointsFile.good())
         {
-            label pointLabel;
-
             maxLabel = -1;
             while (pointsFile)
             {
-                pointLabel = readVtxLabel(pointsFile);
+                label pointLabel = readVtxLabel(pointsFile);
 
                 if (!pointsFile) break;
 
