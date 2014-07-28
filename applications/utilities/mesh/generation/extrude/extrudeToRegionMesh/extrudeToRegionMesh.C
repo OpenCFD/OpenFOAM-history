@@ -2430,10 +2430,9 @@ int main(int argc, char *argv[])
     // Add the new patches
     forAll(regionPatches, patchI)
     {
-        regionPatches[patchI] = regionPatches[patchI]->clone
-        (
-            regionMesh.boundaryMesh()
-        ).ptr();
+        polyPatch* ppPtr = regionPatches[patchI];
+        regionPatches[patchI] = ppPtr->clone(regionMesh.boundaryMesh()).ptr();
+        delete ppPtr;
     }
     regionMesh.clearOut();
     regionMesh.removeFvBoundary();
