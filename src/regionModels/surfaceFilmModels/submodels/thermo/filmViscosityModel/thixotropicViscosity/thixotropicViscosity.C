@@ -139,6 +139,7 @@ void thixotropicViscosity::correct
     const kinematicSingleLayer& film = filmType<kinematicSingleLayer>();
 
     // references to film fields
+    const volScalarField& alpha = film.alpha();
     const volVectorField& U = film.U();
     const volVectorField& Uw = film.Uw();
     const volScalarField& delta = film.delta();
@@ -149,7 +150,7 @@ void thixotropicViscosity::correct
     volScalarField gDotPowD
     (
         "gDotPowD",
-        pow(mag(U - Uw)/(delta + film.deltaSmall()), d_)
+        alpha*pow(mag(U - Uw)/(delta + film.deltaSmall()), d_)
     );
 
     dimensionedScalar c0("SMALL", dimMass/sqr(dimLength)/dimTime, SMALL);
