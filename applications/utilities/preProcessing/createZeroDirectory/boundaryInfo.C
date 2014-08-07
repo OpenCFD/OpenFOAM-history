@@ -50,7 +50,7 @@ Foam::boundaryInfo::boundaryInfo(const Time& runTime, const word& regionName)
     // read the mesh boundaries for the current region
     Info<< "    Reading mesh boundaries" << endl;
 
-    const_cast<word&>(IOPtrList<entry>::typeName) = word::null;
+    const_cast<word&>(IOPtrList<entry>::typeName) = polyBoundaryMesh::typeName;
     IOPtrList<entry> boundaryPatchList
     (
         IOobject
@@ -59,12 +59,31 @@ Foam::boundaryInfo::boundaryInfo(const Time& runTime, const word& regionName)
             runTime.constant(),
             regionName/polyMesh::meshSubDir,
             runTime,
-            IOobject::READ_IF_PRESENT,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         )
     );
 
+
+    // remove zero-sized patches
+    PtrList<entry> boundaryPatchListNew;
+    forAll(boundaryPatchList, patchI)
+    {
+        const dictionary& dict = boundaryPatchList[patchI].dict();
+        label nFaces = readLabel(dict.lookup("nFaces"));
+
+        if (nFaces != 0)
+        {
+            boundaryPatchListNew.append(boundaryPatchList[patchI].clone());
+        }
+    }
+
+    boundaryPatchList.transfer(boundaryPatchListNew);
+    boundaryPatchList.write();
+
+
+    // generate the boundary info
     names_.setSize(boundaryPatchList.size());
     types_.setSize(boundaryPatchList.size());
     constraint_.setSize(boundaryPatchList.size(), false);
