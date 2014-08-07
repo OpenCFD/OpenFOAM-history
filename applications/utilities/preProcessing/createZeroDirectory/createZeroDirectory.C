@@ -77,7 +77,6 @@ Usage
 #include "argList.H"
 #include "volFields.H"
 #include "IOdictionary.H"
-#include "boundaryInfo.H"
 #include "caseInfo.H"
 #include "boundaryTemplates.H"
 #include "solverTemplate.H"
