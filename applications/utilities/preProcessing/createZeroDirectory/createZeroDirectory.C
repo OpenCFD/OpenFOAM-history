@@ -130,7 +130,7 @@ void createFieldFiles
     Info<< "    Generating field files" << nl << endl;
 
     // create files
-    mkDir(runTime.path()/"0"/regionName);
+    mkDir(runTime.path()/runTime.timeName()/regionName);
     forAll(fieldNames, i)
     {
         const_cast<word&>(IOdictionary::typeName) =
