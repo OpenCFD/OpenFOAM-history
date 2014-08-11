@@ -38,48 +38,35 @@ Foam::label Foam::caseInfo::findPatchConditionID
     const word& patchName
 ) const
 {
-    // 1. explicit patch names
-    forAll(patchNames_, i)
-    {
-        const wordReList& p = patchNames_[i];
-        forAll(p, j)
-        {
-            if (!p[j].isPattern() && p[j] == patchName)
-            {
-                return i;
-            }
-        }
-    }
-
-    // 2. patch groups using non-wildcard entries
     const wordList& patchGroups = boundaryInfo_.groups()[patchI];
-    forAll(patchNames_, i)
+
+    // assign condition according to last condition applied, wins
+    forAllReverse(conditionNames_, conditionI)
     {
-        const wordReList& p = patchNames_[i];
-        forAll(p, j)
+        const wordReList& patchNames = patchNames_[conditionI];
+
+        forAll(patchNames, nameI)
         {
-            if (!p[j].isPattern())
+            if (patchNames[nameI] == patchName)
             {
+                // check for explicit match
+                return conditionI;
+            }
+            else if (patchNames[nameI].match(patchName))
+            {
+                // check wildcards
+                return conditionI;
+            }
+            else
+            {
+                // check for group match
                 forAll(patchGroups, groupI)
                 {
-                    if (p[j] == patchGroups[groupI])
+                    if (patchNames[nameI] == patchGroups[groupI])
                     {
-                        return i;
+                        return conditionI;
                     }
                 }
-            }
-        }
-    }
-
-    // 3. wildcard overrides
-    forAll(patchNames_, i)
-    {
-        const wordReList& p = patchNames_[i];
-        forAll(p, j)
-        {
-            if (p[j].match(patchName))
-            {
-                return i;
             }
         }
     }

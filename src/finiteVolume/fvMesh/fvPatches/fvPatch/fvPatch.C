@@ -40,6 +40,7 @@ namespace Foam
     addToRunTimeSelectionTable(fvPatch, fvPatch, polyPatch);
 }
 
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::fvPatch::fvPatch(const polyPatch& p, const fvBoundaryMesh& bm)

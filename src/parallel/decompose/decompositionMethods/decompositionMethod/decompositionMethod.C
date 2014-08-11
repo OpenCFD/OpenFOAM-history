@@ -1297,7 +1297,8 @@ Foam::labelList Foam::decompositionMethod::decompose
             List<minData> cellData(mesh.nCells());
             List<minData> faceData(mesh.nFaces());
 
-            // Take over blockedFaces
+            // Take over blockedFaces by seeding a negative number
+            // (so is always less than the decomposition)
             label nUnblocked = 0;
             forAll(blockedFace, faceI)
             {
