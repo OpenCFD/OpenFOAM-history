@@ -121,7 +121,7 @@ public:
         //- Return the explicit value
         template<class Type>
         tmp<GeometricField<Type, fvPatchField, volMesh> > F() const;
-        
+
         //- Return the model for the supplied phase
         const modelType& phaseModel(const phaseModel& phase) const;
 };
