@@ -555,33 +555,43 @@ void Foam::autoSnapDriver::calcNearestFacePointProperties
         }
 
         // See if pp point uses any non-meshed boundary faces
+        // Note that we cannot use pp.boundaryPoints/pp.InternalEdges
+        // since we also want to pick up outside edges of faceZones
+        // (which have all been converted into baffles so all edges have
+        //  at least two faces)
 
-        const labelList& boundaryPoints = pp.boundaryPoints();
-        forAll(boundaryPoints, i)
+        labelList patchToMeshPoint(mesh.nPoints(), -1);
+        forAll(pp.meshPoints(), pointI)
         {
-            label pointI = boundaryPoints[i];
-            label meshPointI = pp.meshPoints()[pointI];
-            const point& pt = mesh.points()[meshPointI];
-            const labelList& pFaces = mesh.pointFaces()[meshPointI];
+            patchToMeshPoint[pp.meshPoints()[pointI]] = pointI;
+        }
 
-            List<point>& pNormals = pointFaceSurfNormals[pointI];
-            List<point>& pDisp = pointFaceDisp[pointI];
-            List<point>& pFc = pointFaceCentres[pointI];
-            labelList& pFid = pointFacePatchID[pointI];
+        forAll(patchID, bFaceI)
+        {
+            label patchI = patchID[bFaceI];
 
-            forAll(pFaces, i)
+            if (patchI != -1)
             {
-                label meshFaceI = pFaces[i];
-                if (!mesh.isInternalFace(meshFaceI))
-                {
-                    label patchI = patchID[meshFaceI-mesh.nInternalFaces()];
+                label faceI = mesh.nInternalFaces()+bFaceI;
+                const face& f = mesh.faces()[faceI];
 
-                    if (patchI != -1)
+                forAll(f, fp)
+                {
+                    label pointI = patchToMeshPoint[f[fp]];
+
+                    if (pointI != -1)
                     {
-                        vector fn = mesh.faceAreas()[meshFaceI];
+                        List<point>& pNormals = pointFaceSurfNormals[pointI];
+                        List<point>& pDisp = pointFaceDisp[pointI];
+                        List<point>& pFc = pointFaceCentres[pointI];
+                        labelList& pFid = pointFacePatchID[pointI];
+
+                        const point& pt = mesh.points()[f[fp]];
+                        vector fn = mesh.faceAreas()[faceI];
+
                         pNormals.append(fn/mag(fn));
-                        pDisp.append(mesh.faceCentres()[meshFaceI]-pt);
-                        pFc.append(mesh.faceCentres()[meshFaceI]);
+                        pDisp.append(mesh.faceCentres()[faceI]-pt);
+                        pFc.append(mesh.faceCentres()[faceI]);
                         pFid.append(patchI);
                     }
                 }
