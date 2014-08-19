@@ -30,7 +30,7 @@ Description
     Reference:
     \verbatim
         "Hydrodynamics"
-        H Lamb 
+        H Lamb
         Cambridge University Press, 1895
     \endverbatim
 
