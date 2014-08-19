@@ -33,7 +33,7 @@ namespace Foam
 {
 namespace aspectRatioModels
 {
-    defineTypeNameAndDebug(constantAspectRatio, 0); 
+    defineTypeNameAndDebug(constantAspectRatio, 0);
     addToRunTimeSelectionTable
     (
         aspectRatioModel,

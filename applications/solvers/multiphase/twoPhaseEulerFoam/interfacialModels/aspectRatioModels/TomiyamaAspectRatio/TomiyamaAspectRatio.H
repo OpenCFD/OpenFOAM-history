@@ -45,6 +45,7 @@ SourceFiles
 #define TomiyamaAspectRatio_H
 
 #include "VakhrushevEfremov.H"
+#include "wallDependentModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -59,16 +60,9 @@ namespace aspectRatioModels
 
 class TomiyamaAspectRatio
 :
-    public VakhrushevEfremov
+    public VakhrushevEfremov,
+    public wallDependentModel
 {
-private:
-
-    // Private data
-
-        //- Wall distance
-        const volScalarField& yWall_;
-
-
 public:
 
     //- Runtime type information
