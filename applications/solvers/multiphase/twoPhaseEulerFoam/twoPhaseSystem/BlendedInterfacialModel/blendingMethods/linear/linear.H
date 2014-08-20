@@ -83,7 +83,7 @@ public:
 
 
     // Member Functions
-        
+
         //- Factor for primary phase
         virtual tmp<volScalarField> f1
         (

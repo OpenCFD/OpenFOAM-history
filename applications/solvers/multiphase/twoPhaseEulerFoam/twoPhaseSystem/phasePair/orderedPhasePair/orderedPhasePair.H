@@ -54,10 +54,10 @@ class orderedPhasePair
 private:
 
     // Private data
-    
+
         //- Aspect ratio model
         autoPtr<aspectRatioModel> aspectRatio_;
-        
+
 
 public:
 

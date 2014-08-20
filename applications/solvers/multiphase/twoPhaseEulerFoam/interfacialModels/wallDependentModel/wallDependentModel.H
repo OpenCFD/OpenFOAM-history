@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,85 +22,72 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::hyperbolic
+    Foam::wallDependentModel
 
 Description
+    A class which provides on-demand creation and caching of wall distance and
+    wall normal fields for use by multiple models.
 
 SourceFiles
-    hyperbolic.C
+    wallDependentModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef hyperbolic_H
-#define hyperbolic_H
+#ifndef wallDependentModel_H
+#define wallDependentModel_H
 
-#include "blendingMethod.H"
+#include "fvMesh.H"
+#include "volFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace blendingMethods
-{
 
 /*---------------------------------------------------------------------------*\
-                         Class hyperbolic Declaration
+                         Class wallDependentModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class hyperbolic
-:
-    public blendingMethod
+class wallDependentModel
 {
     // Private data
 
-        //- Maximum fraction of phases which can be considered dispersed
-        HashTable<dimensionedScalar, word, word::hash> maxDispersedAlpha_;
+        //- Reference to the mesh
+        const fvMesh& mesh_;
 
-        //- Width of the transition
-        const dimensionedScalar transitionAlphaScale_;
+
+    // Private Member Functions
+
+        //- Disallow default bitwise copy construct
+        wallDependentModel(const wallDependentModel&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const wallDependentModel&);
 
 
 public:
 
-    //- Runtime type information
-    TypeName("hyperbolic");
-
-
     // Constructors
 
-        //- Construct from a dictionary and a list of phase names
-        hyperbolic
-        (
-            const dictionary& dict,
-            const wordList& phaseNames
-        );
+        //- Construct from a mesh
+        wallDependentModel(const fvMesh& mesh);
 
 
     //- Destructor
-    ~hyperbolic();
-
+    virtual ~wallDependentModel();
 
     // Member Functions
 
-        //- Factor for first phase
-        virtual tmp<volScalarField> f1
-        (
-            const phaseModel& phase1,
-            const phaseModel& phase2
-        ) const;
+        // Return the wall distance, creating and storing it if necessary
+        const volScalarField& yWall() const;
 
-        //- Factor for second phase
-        virtual tmp<volScalarField> f2
-        (
-            const phaseModel& phase1,
-            const phaseModel& phase2
-        ) const;
+        // Return the wall normal, creating and storing it if necessary
+        const volVectorField& nWall() const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace blendingMethods
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
