@@ -34,7 +34,7 @@ namespace Foam
 namespace dragModels
 {
     defineTypeNameAndDebug(WenYu, 0);
-    addToRunTimeSelectionTable(dragModel, WenYu, dictionary); 
+    addToRunTimeSelectionTable(dragModel, WenYu, dictionary);
 }
 }
 

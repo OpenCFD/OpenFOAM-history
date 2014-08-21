@@ -186,6 +186,10 @@ void filterPatches(polyMesh& mesh, const HashSet<word>& addedPatchNames)
     else
     {
         Info<< "No patches removed." << endl;
+        forAll(allPatches, i)
+        {
+            delete allPatches[i];
+        }
     }
 }
 

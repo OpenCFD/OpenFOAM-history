@@ -33,6 +33,8 @@ InClass
 #include "faceSet.H"
 #include "regionSplit.H"
 #include "localPointRegion.H"
+#include "minData.H"
+#include "FaceCellWave.H"
 
 #include "preserveBafflesConstraint.H"
 #include "preservePatchesConstraint.H"
@@ -1283,6 +1285,72 @@ Foam::labelList Foam::decompositionMethod::decompose
         }
 
 
+        // blockedFaces corresponding to processor faces need to be handled
+        // separately since not handled by local regionSplit. We need to
+        // walk now across coupled faces and make sure to move a whole
+        // global region across
+        if (Pstream::parRun())
+        {
+            // Re-do regionSplit
+
+            // Field on cells and faces.
+            List<minData> cellData(mesh.nCells());
+            List<minData> faceData(mesh.nFaces());
+
+            // Take over blockedFaces by seeding a negative number
+            // (so is always less than the decomposition)
+            label nUnblocked = 0;
+            forAll(blockedFace, faceI)
+            {
+                if (blockedFace[faceI])
+                {
+                    faceData[faceI] = minData(-123);
+                }
+                else
+                {
+                    nUnblocked++;
+                }
+            }
+
+            // Seed unblocked faces with destination processor
+            labelList seedFaces(nUnblocked);
+            List<minData> seedData(nUnblocked);
+            nUnblocked = 0;
+
+            forAll(blockedFace, faceI)
+            {
+                if (!blockedFace[faceI])
+                {
+                    label own = mesh.faceOwner()[faceI];
+                    seedFaces[nUnblocked] = faceI;
+                    seedData[nUnblocked] = minData(finalDecomp[own]);
+                    nUnblocked++;
+                }
+            }
+
+
+            // Propagate information inwards
+            FaceCellWave<minData> deltaCalc
+            (
+                mesh,
+                seedFaces,
+                seedData,
+                faceData,
+                cellData,
+                mesh.globalData().nTotalCells()+1
+            );
+
+            // And extract
+            forAll(finalDecomp, cellI)
+            {
+                if (cellData[cellI].valid(deltaCalc.data()))
+                {
+                    finalDecomp[cellI] = cellData[cellI].data();
+                }
+            }
+        }
+
+
         // For specifiedProcessorFaces rework the cellToProc to enforce
         // all on one processor since we can't guarantee that the input
         // to regionSplit was a single region.
@@ -1322,6 +1390,44 @@ Foam::labelList Foam::decompositionMethod::decompose
                         if (mesh.isInternalFace(faceI))
                         {
                             finalDecomp[mesh.faceNeighbour()[faceI]] = procI;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        if (debug && Pstream::parRun())
+        {
+            labelList nbrDecomp;
+            syncTools::swapBoundaryCellList(mesh, finalDecomp, nbrDecomp);
+
+            const polyBoundaryMesh& patches = mesh.boundaryMesh();
+            forAll(patches, patchI)
+            {
+                const polyPatch& pp = patches[patchI];
+                if (pp.coupled())
+                {
+                    forAll(pp, i)
+                    {
+                        label faceI = pp.start()+i;
+                        label own = mesh.faceOwner()[faceI];
+                        label bFaceI = faceI-mesh.nInternalFaces();
+
+                        if (!blockedFace[faceI])
+                        {
+                            label ownProc = finalDecomp[own];
+                            label nbrProc = nbrDecomp[bFaceI];
+                            if (ownProc != nbrProc)
+                            {
+                                FatalErrorIn("decompositionMethod::decompose()")
+                                    << "patch:" << pp.name()
+                                    << " face:" << faceI
+                                    << " at:" << mesh.faceCentres()[faceI]
+                                    << " ownProc:" << ownProc
+                                    << " nbrProc:" << nbrProc
+                                    << exit(FatalError);
+                            }
                         }
                     }
                 }

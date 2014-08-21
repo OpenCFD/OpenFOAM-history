@@ -82,7 +82,7 @@ public:
 
     // Static data members
 
-        //- Force dimensions 
+        //- Force dimensions
         static const dimensionSet dimF;
 
 

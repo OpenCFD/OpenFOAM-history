@@ -22,85 +22,73 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::hyperbolic
+    Foam::IOmapDistribute
 
 Description
+    IOmapDistribute is derived from mapDistribute and
+    IOobject to give the mapDistribute
+    automatic IO functionality via the objectRegistry.
 
 SourceFiles
-    hyperbolic.C
+    IOmapDistribute.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef hyperbolic_H
-#define hyperbolic_H
+#ifndef IOmapDistribute_H
+#define IOmapDistribute_H
 
-#include "blendingMethod.H"
+#include "mapDistribute.H"
+#include "regIOobject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace blendingMethods
-{
 
 /*---------------------------------------------------------------------------*\
-                         Class hyperbolic Declaration
+                       Class IOmapDistribute Declaration
 \*---------------------------------------------------------------------------*/
 
-class hyperbolic
+class IOmapDistribute
 :
-    public blendingMethod
+    public regIOobject,
+    public mapDistribute
 {
-    // Private data
-
-        //- Maximum fraction of phases which can be considered dispersed
-        HashTable<dimensionedScalar, word, word::hash> maxDispersedAlpha_;
-
-        //- Width of the transition
-        const dimensionedScalar transitionAlphaScale_;
-
 
 public:
 
     //- Runtime type information
-    TypeName("hyperbolic");
-
+    TypeName("mapDistribute");
 
     // Constructors
 
-        //- Construct from a dictionary and a list of phase names
-        hyperbolic
-        (
-            const dictionary& dict,
-            const wordList& phaseNames
-        );
+        //- Construct given an IOobject
+        IOmapDistribute(const IOobject&);
+
+        //- Construct given an IOobject and mapDistribute
+        IOmapDistribute(const IOobject&, const mapDistribute&);
+
+        //- Construct by transferring the mapDistribute contents
+        IOmapDistribute(const IOobject&, const Xfer<mapDistribute>&);
 
 
     //- Destructor
-    ~hyperbolic();
+    virtual ~IOmapDistribute();
 
 
-    // Member Functions
+    // Member functions
 
-        //- Factor for first phase
-        virtual tmp<volScalarField> f1
-        (
-            const phaseModel& phase1,
-            const phaseModel& phase2
-        ) const;
+        //- ReadData function required for regIOobject read operation
+        virtual bool readData(Istream&);
 
-        //- Factor for second phase
-        virtual tmp<volScalarField> f2
-        (
-            const phaseModel& phase1,
-            const phaseModel& phase2
-        ) const;
+        //- WriteData function required for regIOobject write operation
+        virtual bool writeData(Ostream&) const;
+
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace blendingMethods
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

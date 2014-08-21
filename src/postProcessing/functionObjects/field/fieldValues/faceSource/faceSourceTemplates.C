@@ -195,7 +195,14 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
         }
         case opWeightedAverage:
         {
-            result = sum(values)/(sum(weightField) + ROOTVSMALL);
+            if (weightField.size())
+            {
+                result = sum(values)/(sum(weightField) + ROOTVSMALL);
+            }
+            else
+            {
+                result = sum(values)/values.size();
+            }
             break;
         }
         case opAreaAverage:
@@ -328,7 +335,11 @@ bool Foam::fieldValues::faceSource::writeValues
         }
 
         // apply scale factor and weight field
-        values *= scaleFactor_*weightField;
+        values *= scaleFactor_;
+        if (weightField.size())
+        {
+            values *= weightField;
+        }
 
         Type result = processValues(values, Sf, weightField);
 

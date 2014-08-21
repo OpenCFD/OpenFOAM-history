@@ -118,7 +118,7 @@ Foam::symmetryPlanePolyPatch::symmetryPlanePolyPatch
 )
 :
     polyPatch(pp, bm),
-    n_(pp.n_)
+    n_(vector::rootMax)
 {}
 
 
@@ -132,7 +132,7 @@ Foam::symmetryPlanePolyPatch::symmetryPlanePolyPatch
 )
 :
     polyPatch(pp, bm, index, newSize, newStart),
-    n_(pp.n_)
+    n_(vector::rootMax)
 {}
 
 
@@ -146,7 +146,7 @@ Foam::symmetryPlanePolyPatch::symmetryPlanePolyPatch
 )
 :
     polyPatch(pp, bm, index, mapAddressing, newStart),
-    n_(pp.n_)
+    n_(vector::rootMax)
 {}
 
 

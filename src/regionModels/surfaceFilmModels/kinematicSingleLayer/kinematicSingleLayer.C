@@ -939,7 +939,7 @@ scalar kinematicSingleLayer::CourantNumber() const
 
         forAll(delta_, i)
         {
-            if (delta_[i] > deltaCoLimit_)
+            if ((delta_[i] > deltaCoLimit_) && (alpha_[i] > 0.5))
             {
                 CoNum = max(CoNum, sumPhi[i]/(delta_[i]*magSf()[i]));
             }

@@ -322,7 +322,7 @@ void Foam::hexRef8Data::distribute(const mapDistributePolyMesh& map)
 
     // No need to distribute the level0Edge
 
-    if (refHistoryPtr_.valid())
+    if (refHistoryPtr_.valid() && refHistoryPtr_().active())
     {
         refHistoryPtr_().distribute(map);
     }

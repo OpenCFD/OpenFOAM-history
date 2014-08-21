@@ -34,7 +34,7 @@ Description
         A Tomiyama, I Kataoka, T Fukuda, and T Sakaguchi
         Nippon Kikai Gakkai Ronbunshu
         Volume 61, Issue 588, Pages 2810-2817, 1995
-    \endverbatim 
+    \endverbatim
 
 SourceFiles
     TomiyamaSwarm.C

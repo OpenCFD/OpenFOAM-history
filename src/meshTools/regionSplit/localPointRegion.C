@@ -662,14 +662,18 @@ Foam::List<Foam::labelPair> Foam::localPointRegion::findDuplicateFacePairs
                     << " processorPolyPatch."
                     << "This is not allowed." << nl
                     << "Face:" << meshFace0
+                    << " fc:" << mesh.faceCentres()[meshFace0]
                     << " is on patch:" << patches[patch0].name()
                     << nl
                     << "Face:" << meshFace1
+                    << " fc:" << mesh.faceCentres()[meshFace1]
                     << " is on patch:" << patches[patch1].name()
                     << abort(FatalError);
             }
-
-            baffles.append(labelPair(meshFace0, meshFace1));
+            else
+            {
+                baffles.append(labelPair(meshFace0, meshFace1));
+            }
         }
     }
     return baffles.shrink();

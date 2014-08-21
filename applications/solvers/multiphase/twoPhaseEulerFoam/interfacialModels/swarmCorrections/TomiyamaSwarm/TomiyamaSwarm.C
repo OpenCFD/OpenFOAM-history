@@ -33,7 +33,7 @@ namespace Foam
 {
 namespace swarmCorrections
 {
-    defineTypeNameAndDebug(TomiyamaSwarm, 0); 
+    defineTypeNameAndDebug(TomiyamaSwarm, 0);
     addToRunTimeSelectionTable
     (
         swarmCorrection,
@@ -69,7 +69,7 @@ Foam::swarmCorrections::TomiyamaSwarm::~TomiyamaSwarm()
 Foam::tmp<Foam::volScalarField>
 Foam::swarmCorrections::TomiyamaSwarm::Cs() const
 {
-    return 
+    return
         pow(max(this->pair_.continuous(), residualAlpha_), scalar(3) - 2*l_);
 }
 

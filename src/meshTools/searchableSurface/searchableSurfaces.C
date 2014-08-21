@@ -27,9 +27,7 @@ License
 #include "searchableSurfacesQueries.H"
 #include "ListOps.H"
 #include "Time.H"
-//#include "vtkSetWriter.H"
 #include "DynamicField.H"
-//#include "OBJstream.H"
 #include "PatchTools.H"
 #include "triSurfaceMesh.H"
 
@@ -405,9 +403,9 @@ void Foam::searchableSurfaces::findNearest
 // Find nearest. Return -1 or nearest point
 void Foam::searchableSurfaces::findNearest
 (
+    const labelListList& regionIndices,
     const pointField& samples,
     const scalarField& nearestDistSqr,
-    const labelList& regionIndices,
     labelList& nearestSurfaces,
     List<pointIndexHit>& nearestInfo
 ) const
@@ -416,9 +414,11 @@ void Foam::searchableSurfaces::findNearest
     (
         *this,
         allSurfaces_,
+        regionIndices,
+
         samples,
         nearestDistSqr,
-        regionIndices,
+
         nearestSurfaces,
         nearestInfo
     );
