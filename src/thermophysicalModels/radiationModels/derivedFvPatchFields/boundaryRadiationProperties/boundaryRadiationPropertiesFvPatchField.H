@@ -22,49 +22,29 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::radiation::greyDiffusiveViewFactorFixedValueFvPatchScalarField
-
-Group
-    grpThermoBoundaryConditions
+    boundaryRadiationPropertiesFvPatchField
 
 Description
-    This boundary condition provides a grey-diffuse condition for radiative
-    heat flux, \c Qr, for use with the view factor model
+    Common functions to emissivity. It gets supplied from lookup into a
+    dictionary or calculated by the solidThermo:
 
-    \heading Patch usage
-
-    \table
-        Property     | Description             | Required    | Default value
-        Qro          | external radiative heat flux | yes    |
-    \endtable
-
-    Example of the boundary condition specification:
-    \verbatim
-    myPatch
-    {
-        type            greyDiffusiveRadiationViewFactor;
-        Qro             uniform 0;
-        value           uniform 0;
-    }
-    \endverbatim
-
-SeeAlso
-    Foam::radiation::radiationModel
-    Foam::radiation::viewFactor
-    Foam::radiationCoupledBase
-    Foam::fixedValueFvPatchField
+    - 'lookup' : lookup volScalarField with name
+    - 'solidThermo' : use solidThermo
 
 SourceFiles
-    greyDiffusiveViewFactorFixedValueFvPatchScalarField.C
+    boundaryRadiationPropertiesFvPatchField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef greyDiffusiveViewFactorFixedValueFvPatchScalarField_H
-#define greyDiffusiveViewFactorFixedValueFvPatchScalarField_H
+#ifndef boundaryRadiationPropertiesFvPatchField_H
+#define boundaryRadiationPropertiesFvPatchField_H
 
-//#include "radiationCoupledBase.H"
-//#include "radiationPropertiesBase.H"
-#include "fixedValueFvPatchFields.H"
+#include "scalarField.H"
+#include "NamedEnum.H"
+#include "fvPatch.H"
+#include "calculatedFvPatchFields.H"
+#include "transmissivityModel.H"
+#include "absorptionEmissionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,43 +53,69 @@ namespace Foam
 namespace radiation
 {
 /*---------------------------------------------------------------------------*\
-      Class greyDiffusiveViewFactorFixedValueFvPatchScalarField declaration
+             Class boundaryRadiationPropertiesFvPatchField Declaration
 \*---------------------------------------------------------------------------*/
 
-class greyDiffusiveViewFactorFixedValueFvPatchScalarField
+class boundaryRadiationPropertiesFvPatchField
 :
-    public fixedValueFvPatchScalarField
-    //public radiationCoupledBase
+    public calculatedFvPatchScalarField
 {
+public:
+
+    // - Type of look up
+    enum methodType
+    {
+        SOLIDRADIATION,
+        LOOKUP,
+        MODEL
+    };
+
+
+private:
+
     // Private data
 
-        //- External radiative heat flux
-        scalarField Qro_;
+        static const NamedEnum<methodType, 3> methodTypeNames_;
 
-        //- Activate solar load
-        bool solarLoad_;
+        //- How to get property
+        const methodType method_;
 
-        //- Solar load field name
-        word solarLoadFieldName_;
+        //- Dictionary
+        const dictionary dict_;
+
+        //- Absorption/emission model
+        autoPtr<absorptionEmissionModel> absorptionEmission_;
+
+        //- transmissivity model
+        autoPtr<transmissivityModel> transmissivity_;
+
+
+    // Private functions
+
+        //- Return nbr patch index
+        label nbrPatchIndex() const;
+
+        //- Return nbr mesh
+        const fvMesh& nbrRegion() const;
 
 
 public:
 
     //- Runtime type information
-    TypeName("greyDiffusiveRadiationViewFactor");
-
+    TypeName("boundaryRadiation");
 
     // Constructors
 
+
         //- Construct from patch and internal field
-        greyDiffusiveViewFactorFixedValueFvPatchScalarField
+        boundaryRadiationPropertiesFvPatchField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        greyDiffusiveViewFactorFixedValueFvPatchScalarField
+        boundaryRadiationPropertiesFvPatchField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
@@ -118,18 +124,25 @@ public:
 
         //- Construct by mapping given a
         // greyDiffusiveViewFactorFixedValueFvPatchScalarField onto a new patch
-        greyDiffusiveViewFactorFixedValueFvPatchScalarField
+        boundaryRadiationPropertiesFvPatchField
         (
-            const greyDiffusiveViewFactorFixedValueFvPatchScalarField&,
+            const boundaryRadiationPropertiesFvPatchField&,
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
         );
 
         //- Construct as copy
-        greyDiffusiveViewFactorFixedValueFvPatchScalarField
+        boundaryRadiationPropertiesFvPatchField
         (
-            const greyDiffusiveViewFactorFixedValueFvPatchScalarField&
+            const boundaryRadiationPropertiesFvPatchField&
+        );
+
+        //- Construct as copy setting internal field reference
+        boundaryRadiationPropertiesFvPatchField
+        (
+            const boundaryRadiationPropertiesFvPatchField&,
+            const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct and return a clone
@@ -137,16 +150,9 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new greyDiffusiveViewFactorFixedValueFvPatchScalarField(*this)
+                new boundaryRadiationPropertiesFvPatchField(*this)
             );
         }
-
-        //- Construct as copy setting internal field reference
-        greyDiffusiveViewFactorFixedValueFvPatchScalarField
-        (
-            const greyDiffusiveViewFactorFixedValueFvPatchScalarField&,
-            const DimensionedField<scalar, volMesh>&
-        );
 
         //- Construct and return a clone setting internal field reference
         virtual tmp<fvPatchScalarField> clone
@@ -156,40 +162,41 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new greyDiffusiveViewFactorFixedValueFvPatchScalarField
-                (
-                    *this,
-                    iF
-                )
+                new boundaryRadiationPropertiesFvPatchField(*this, iF)
             );
         }
 
 
     // Member functions
 
-        // Access
-
-            //- Return external + solar load radiative heat flux
-            tmp<scalarField> Qro() const;
-
-
-        // Evaluation functions
-
-            //- Update the coefficients associated with the patch field
-            virtual void updateCoeffs();
+        //- Method to obtain properties
+        word method() const
+        {
+            return methodTypeNames_[method_];
+        }
 
 
-        // I-O
+        //- Calculate corresponding emissivity field for bandI
+        tmp<scalarField> emissivity(const label bandI = 0) const;
 
-            //- Write
-            virtual void write(Ostream&) const;
+        //- Calculate corresponding absorptivity field for bandI
+        tmp<scalarField> absorptivity(const label bandI = 0) const;
+
+        //- Calculate corresponding transmissivity field for bandI
+        tmp<scalarField> transmissivity(const label bandI = 0) const;
+
+        //- Calculate corresponding reflectivity field
+        tmp<scalarField> reflectivity(const label bandI = 0) const;
+
+        //- Write
+        virtual void write(Ostream&) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-}
+} // End namespace radiation
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

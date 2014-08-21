@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,8 +39,10 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(p, iF),
-    radiationCoupledBase(patch(), "undefined", scalarField::null()),
-    Qro_(p.size(), 0.0)
+    //radiationCoupledBase(patch(), "undefined", scalarField::null()),
+    Qro_(),
+    solarLoad_(false),
+    solarLoadFieldName_("none")
 {}
 
 
@@ -54,13 +56,15 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(ptf, p, iF, mapper),
-    radiationCoupledBase
-    (
-        patch(),
-        ptf.emissivityMethod(),
-        ptf.emissivity_
-    ),
-    Qro_(ptf.Qro_)
+//     radiationCoupledBase
+//     (
+//         patch(),
+//         ptf.emissivityMethod(),
+//         ptf.emissivity_
+//     ),
+    Qro_(ptf.Qro_, mapper),
+    solarLoad_(ptf.solarLoad_),
+    solarLoadFieldName_(ptf.solarLoadFieldName_)
 {}
 
 
@@ -73,8 +77,16 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(p, iF),
-    radiationCoupledBase(p, dict),
-    Qro_("Qro", dict, p.size())
+    //radiationCoupledBase(p, dict),
+    Qro_("Qro", dict, p.size()),
+    solarLoad_(dict.lookupOrDefault<bool>("solarLoad", false)),
+    solarLoadFieldName_
+    (
+        dict.lookupOrDefault<word>
+        (
+            "solarLoadFieldName", "solarLoadField"
+        )
+    )
 {
     if (dict.found("value"))
     {
@@ -98,13 +110,15 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(ptf),
-    radiationCoupledBase
-    (
-        ptf.patch(),
-        ptf.emissivityMethod(),
-        ptf.emissivity_
-    ),
-    Qro_(ptf.Qro_)
+//     radiationCoupledBase
+//     (
+//         ptf.patch(),
+//         ptf.emissivityMethod(),
+//         ptf.emissivity_
+//     ),
+    Qro_(ptf.Qro_),
+    solarLoad_(ptf.solarLoad_),
+    solarLoadFieldName_(ptf.solarLoadFieldName_)
 {}
 
 
@@ -116,13 +130,15 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(ptf, iF),
-    radiationCoupledBase
-    (
-        ptf.patch(),
-        ptf.emissivityMethod(),
-        ptf.emissivity_
-    ),
-    Qro_(ptf.Qro_)
+//     radiationCoupledBase
+//     (
+//         ptf.patch(),
+//         ptf.emissivityMethod(),
+//         ptf.emissivity_
+//     ),
+    Qro_(ptf.Qro_),
+    solarLoad_(ptf.solarLoad_),
+    solarLoadFieldName_(ptf.solarLoadFieldName_)
 {}
 
 
@@ -135,6 +151,7 @@ updateCoeffs()
     {
         return;
     }
+
 
     // Do nothing
 
@@ -152,8 +169,23 @@ updateCoeffs()
             << " avg:" << gAverage(*this)
             << endl;
     }
+}
 
-    fixedValueFvPatchScalarField::updateCoeffs();
+
+Foam::tmp<Foam::scalarField> Foam::radiation::
+greyDiffusiveViewFactorFixedValueFvPatchScalarField::Qro() const
+{
+    tmp<scalarField> tQrt(new scalarField(Qro_));
+
+    if (solarLoad_)
+    {
+        tQrt() += patch().lookupPatchField<volScalarField,scalar>
+        (
+            solarLoadFieldName_
+        );
+    }
+
+    return tQrt;
 }
 
 
@@ -164,8 +196,16 @@ write
 ) const
 {
     fixedValueFvPatchScalarField::write(os);
-    radiationCoupledBase::write(os);
+    //radiationCoupledBase::write(os);
     Qro_.writeEntry("Qro", os);
+    os.writeKeyword("solarLoad") << solarLoad_ << token::END_STATEMENT << nl;
+    writeEntryIfDifferent<word>
+    (
+        os,
+        "solarLoadFieldName",
+        "solarLoadFieldName",
+        solarLoadFieldName_
+    );
 }
 
 

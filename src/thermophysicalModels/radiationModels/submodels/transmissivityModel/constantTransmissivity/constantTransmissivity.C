@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,9 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "constantAbsorptionEmission.H"
+#include "constantTransmissivity.H"
 #include "addToRunTimeSelectionTable.H"
-#include "zeroGradientFvPatchFields.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -33,12 +32,12 @@ namespace Foam
 {
     namespace radiation
     {
-        defineTypeNameAndDebug(constantAbsorptionEmission, 0);
+        defineTypeNameAndDebug(constantTransmissivity, 0);
 
         addToRunTimeSelectionTable
         (
-            absorptionEmissionModel,
-            constantAbsorptionEmission,
+            transmissivityModel,
+            constantTransmissivity,
             dictionary
         );
     }
@@ -47,38 +46,36 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::radiation::constantAbsorptionEmission::constantAbsorptionEmission
+Foam::radiation::constantTransmissivity::constantTransmissivity
 (
     const dictionary& dict,
     const fvMesh& mesh
 )
 :
-    absorptionEmissionModel(dict, mesh),
+    transmissivityModel(dict, mesh),
     coeffsDict_(dict.subDict(typeName + "Coeffs")),
-    a_(coeffsDict_.lookup("absorptivity")),
-    e_(coeffsDict_.lookup("emissivity")),
-    E_(coeffsDict_.lookup("E"))
+    tau_(coeffsDict_.lookup("tau"))
 {}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::radiation::constantAbsorptionEmission::~constantAbsorptionEmission()
+Foam::radiation::constantTransmissivity::~constantTransmissivity()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 Foam::tmp<Foam::volScalarField>
-Foam::radiation::constantAbsorptionEmission::aCont(const label bandI) const
+Foam::radiation::constantTransmissivity::tauEff(const label bandI) const
 {
-    tmp<volScalarField> ta
+    return tmp<volScalarField>
     (
         new volScalarField
         (
             IOobject
             (
-                "a",
+                "tau",
                 mesh_.time().timeName(),
                 mesh_,
                 IOobject::NO_READ,
@@ -86,70 +83,9 @@ Foam::radiation::constantAbsorptionEmission::aCont(const label bandI) const
                 false
             ),
             mesh_,
-            a_,
-            zeroGradientFvPatchField<vector>::typeName
+            tau_
         )
     );
-
-    ta().correctBoundaryConditions();
-
-    return ta;
-}
-
-
-Foam::tmp<Foam::volScalarField>
-Foam::radiation::constantAbsorptionEmission::eCont(const label bandI) const
-{
-    tmp<volScalarField> te
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "e",
-                mesh_.time().timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            mesh_,
-            e_,
-            zeroGradientFvPatchField<vector>::typeName
-        )
-    );
-
-    te().correctBoundaryConditions();
-
-    return te;
-}
-
-
-Foam::tmp<Foam::volScalarField>
-Foam::radiation::constantAbsorptionEmission::ECont(const label bandI) const
-{
-    tmp<volScalarField> tE
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "E",
-                mesh_.time().timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            mesh_,
-            E_,
-            zeroGradientFvPatchField<vector>::typeName
-        )
-    );
-
-    tE().correctBoundaryConditions();
-
-    return tE;
 }
 
 

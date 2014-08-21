@@ -86,6 +86,8 @@ void Foam::radiation::radiationModel::initialise()
         scatter_.reset(scatterModel::New(*this, mesh_).ptr());
 
         soot_.reset(sootModel::New(*this, mesh_).ptr());
+
+        transmissivity_.reset(transmissivityModel::New(*this, mesh_).ptr());
     }
 }
 
@@ -114,7 +116,8 @@ Foam::radiation::radiationModel::radiationModel(const volScalarField& T)
     firstIter_(true),
     absorptionEmission_(NULL),
     scatter_(NULL),
-    soot_(NULL)
+    soot_(NULL),
+    transmissivity_(NULL)
 {}
 
 
@@ -134,7 +137,8 @@ Foam::radiation::radiationModel::radiationModel
     firstIter_(true),
     absorptionEmission_(NULL),
     scatter_(NULL),
-    soot_(NULL)
+    soot_(NULL),
+    transmissivity_(NULL)
 {
     if (readOpt() == IOobject::NO_READ)
     {
@@ -173,7 +177,8 @@ Foam::radiation::radiationModel::radiationModel
     firstIter_(true),
     absorptionEmission_(NULL),
     scatter_(NULL),
-    soot_(NULL)
+    soot_(NULL),
+    transmissivity_(NULL)
 {
     initialise();
 }
@@ -291,6 +296,24 @@ Foam::radiation::radiationModel::soot() const
     }
 
     return soot_();
+}
+
+
+const Foam::radiation::transmissivityModel&
+Foam::radiation::radiationModel::transmissivity() const
+{
+    if (!transmissivity_.valid())
+    {
+        FatalErrorIn
+        (
+            "const Foam::radiation::transmissivityModel&"
+            "Foam::radiation::radiationModel::transmissivity() const"
+        )
+            << "Requested radiation transmissivity model, but model is "
+            << "not activate" << abort(FatalError);
+    }
+
+    return transmissivity_();
 }
 
 

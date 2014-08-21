@@ -22,7 +22,7 @@ dict.add
     ]
 );
 dict.add("mergeDistance", SMALL);
-
+/*
 labelHashSet includePatches;
 forAll(patches, patchI)
 {
@@ -32,7 +32,7 @@ forAll(patches, patchI)
         includePatches.insert(patchI);
     }
 }
-
+*/
 labelList triSurfaceToAgglom(5*nFineFaces);
 
 const triSurface localSurface = triangulate

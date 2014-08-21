@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,6 @@ Description
     \table
         Property     | Description             | Required    | Default value
         T            | temperature field name  | no          | T
-        emissivityMode | emissivity mode: solidThermo or lookup | yes |
     \endtable
 
     Example of the boundary condition specification:
@@ -47,7 +46,6 @@ Description
     {
         type            greyDiffusiveRadiation;
         T               T;
-        emissivityMode  solidThermo;
         value           uniform 0;
     }
     \endverbatim
@@ -67,7 +65,7 @@ SourceFiles
 #define greyDiffusiveRadiationMixedFvPatchScalarField_H
 
 #include "mixedFvPatchFields.H"
-#include "radiationCoupledBase.H"
+//#include "radiationCoupledBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -81,13 +79,19 @@ namespace radiation
 
 class greyDiffusiveRadiationMixedFvPatchScalarField
 :
-    public mixedFvPatchScalarField,
-    public radiationCoupledBase
+    public mixedFvPatchScalarField
+    //public radiationCoupledBase
 {
     // Private data
 
         //- Name of temperature field
         word TName_;
+
+        //- Activate solar load
+        bool solarLoad_;
+
+        //- Solar load field name
+        word solarLoadFieldName_;
 
 
 public:

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -246,8 +246,8 @@ void Foam::radiation::P1::calculate()
         if (!G_.boundaryField()[patchi].coupled())
         {
             Qr_.boundaryField()[patchi] =
-                -gamma.boundaryField()[patchi]
-                *G_.boundaryField()[patchi].snGrad();
+               - gamma.boundaryField()[patchi]
+               * G_.boundaryField()[patchi].snGrad();
         }
     }
 }

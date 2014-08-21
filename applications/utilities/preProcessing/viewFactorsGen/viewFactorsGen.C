@@ -340,26 +340,34 @@ int main(int argc, char *argv[])
     const polyBoundaryMesh& patches = mesh.boundaryMesh();
     const polyBoundaryMesh& coarsePatches = coarseMesh.boundaryMesh();
 
-    labelList viewFactorsPatches(patches.size());
+//    labelList viewFactorsPatches(patches.size());
 
-    const volScalarField::GeometricBoundaryField& Qrb = Qr.boundaryField();
+//     const volScalarField::GeometricBoundaryField& Qrb = Qr.boundaryField();
+//
+//     label count = 0;
+//     forAll(Qrb, patchI)
+//     {
+//         const polyPatch& pp = patches[patchI];
+//         const fvPatchScalarField& QrpI = Qrb[patchI];
+//
+//         if ((isA<fixedValueFvPatchScalarField>(QrpI)))
+//         {
+//             viewFactorsPatches[count] = QrpI.patch().index();
+//             nCoarseFaces += coarsePatches[patchI].size();
+//             nFineFaces += patches[patchI].size();
+//             count ++;
+//         }
+//     }
+//
+//     viewFactorsPatches.resize(count--);
 
-    label count = 0;
-    forAll(Qrb, patchI)
+    labelList viewFactorsPatches(patches.findIndices("radiativeWall"));
+    forAll (viewFactorsPatches, i)
     {
-        const polyPatch& pp = patches[patchI];
-        const fvPatchScalarField& QrpI = Qrb[patchI];
-
-        if ((isA<fixedValueFvPatchScalarField>(QrpI)) && (pp.size() > 0))
-        {
-            viewFactorsPatches[count] = QrpI.patch().index();
-            nCoarseFaces += coarsePatches[patchI].size();
-            nFineFaces += patches[patchI].size();
-            count ++;
-        }
+        label patchI = viewFactorsPatches[i];
+        nCoarseFaces += coarsePatches[patchI].size();
+        nFineFaces += patches[patchI].size();
     }
-
-    viewFactorsPatches.resize(count--);
 
     // total number of coarse faces
     label totalNCoarseFaces = nCoarseFaces;
@@ -385,77 +393,84 @@ int main(int argc, char *argv[])
 
     DynamicList<label> localAgg(nCoarseFaces);
 
+    labelHashSet includePatches;
     forAll (viewFactorsPatches, i)
     {
         const label patchID = viewFactorsPatches[i];
 
         const polyPatch& pp = patches[patchID];
-        const labelList& agglom = finalAgglom[patchID];
-        label nAgglom = max(agglom)+1;
-        labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
-        const labelList& coarsePatchFace = coarseMesh.patchFaceMap()[patchID];
-
-        const pointField& coarseCf = coarseMesh.Cf().boundaryField()[patchID];
-        const pointField& coarseSf = coarseMesh.Sf().boundaryField()[patchID];
-
-        labelHashSet includePatches;
-        includePatches.insert(patchID);
-
-        forAll(coarseCf, faceI)
+        if (pp.size() > 0)
         {
-            point cf = coarseCf[faceI];
+            const labelList& agglom = finalAgglom[patchID];
+            label nAgglom = max(agglom)+1;
+            labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
+            const labelList& coarsePatchFace =
+                coarseMesh.patchFaceMap()[patchID];
 
-            const label coarseFaceI = coarsePatchFace[faceI];
-            const labelList& fineFaces = coarseToFine[coarseFaceI];
-            const label agglomI =
-                agglom[fineFaces[0]] + coarsePatches[patchID].start();
+            const pointField& coarseCf =
+                coarseMesh.Cf().boundaryField()[patchID];
+            const pointField& coarseSf =
+                coarseMesh.Sf().boundaryField()[patchID];
 
-            // Construct single face
-            uindirectPrimitivePatch upp
-            (
-                UIndirectList<face>(pp, fineFaces),
-                pp.points()
-            );
+            //labelHashSet includePatches;
+            includePatches.insert(patchID);
 
-
-            List<point> availablePoints
-            (
-                upp.faceCentres().size()
-              + upp.localPoints().size()
-            );
-
-            SubList<point>
-            (
-                availablePoints,
-                upp.faceCentres().size()
-            ).assign(upp.faceCentres());
-
-            SubList<point>
-            (
-                availablePoints,
-                upp.localPoints().size(),
-                upp.faceCentres().size()
-            ).assign(upp.localPoints());
-
-            point cfo = cf;
-            scalar dist = GREAT;
-            forAll(availablePoints, iPoint)
+            forAll(coarseCf, faceI)
             {
-                point cfFine = availablePoints[iPoint];
-                if (mag(cfFine-cfo) < dist)
-                {
-                    dist = mag(cfFine-cfo);
-                    cf = cfFine;
-                }
-            }
+                point cf = coarseCf[faceI];
 
-            point sf = coarseSf[faceI];
-            localCoarseCf.append(cf);
-            localCoarseSf.append(sf);
-            localAgg.append(agglomI);
+                const label coarseFaceI = coarsePatchFace[faceI];
+                const labelList& fineFaces = coarseToFine[coarseFaceI];
+                const label agglomI =
+                    agglom[fineFaces[0]] + coarsePatches[patchID].start();
+
+                // Construct single face
+                uindirectPrimitivePatch upp
+                (
+                    UIndirectList<face>(pp, fineFaces),
+                    pp.points()
+                );
+
+
+                List<point> availablePoints
+                (
+                    upp.faceCentres().size()
+                + upp.localPoints().size()
+                );
+
+                SubList<point>
+                (
+                    availablePoints,
+                    upp.faceCentres().size()
+                ).assign(upp.faceCentres());
+
+                SubList<point>
+                (
+                    availablePoints,
+                    upp.localPoints().size(),
+                    upp.faceCentres().size()
+                ).assign(upp.localPoints());
+
+                point cfo = cf;
+                scalar dist = GREAT;
+                forAll(availablePoints, iPoint)
+                {
+                    point cfFine = availablePoints[iPoint];
+                    if (mag(cfFine-cfo) < dist)
+                    {
+                        dist = mag(cfFine-cfo);
+                        cf = cfFine;
+                    }
+                }
+
+                point sf = coarseSf[faceI];
+                localCoarseCf.append(cf);
+                localCoarseSf.append(sf);
+                localAgg.append(agglomI);
+
+            }
         }
     }
-
 
     // Distribute local coarse Cf and Sf for shooting rays
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -511,7 +526,6 @@ int main(int argc, char *argv[])
         visibleFaceFaces[faceI].setSize(nVisibleFaceFaces[faceI]);
         nViewFactors += nVisibleFaceFaces[faceI];
     }
-
 
     // - Construct compact numbering
     // - return map from remote to compact indices
@@ -604,33 +618,38 @@ int main(int argc, char *argv[])
     forAll(viewFactorsPatches, i)
     {
         label patchID = viewFactorsPatches[i];
-        const labelList& agglom = finalAgglom[patchID];
-        label nAgglom = max(agglom)+1;
-        labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
-        const labelList& coarsePatchFace = coarseMesh.patchFaceMap()[patchID];
-
-        forAll(coarseToFine, coarseI)
+        const polyPatch& pp = patches[patchID];
+        if (pp.size() > 0)
         {
-            compactPatchId.append(patchID);
-            List<point>& fineCf = compactFineCf[compactI];
-            List<point>& fineSf = compactFineSf[compactI++];
+            const labelList& agglom = finalAgglom[patchID];
+            label nAgglom = max(agglom)+1;
+            labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
+            const labelList& coarsePatchFace =
+                coarseMesh.patchFaceMap()[patchID];
 
-            const label coarseFaceI = coarsePatchFace[coarseI];
-            const labelList& fineFaces = coarseToFine[coarseFaceI];
+            forAll(coarseToFine, coarseI)
+            {
+                compactPatchId.append(patchID);
+                List<point>& fineCf = compactFineCf[compactI];
+                List<point>& fineSf = compactFineSf[compactI++];
 
-            fineCf.setSize(fineFaces.size());
-            fineSf.setSize(fineFaces.size());
+                const label coarseFaceI = coarsePatchFace[coarseI];
+                const labelList& fineFaces = coarseToFine[coarseFaceI];
 
-            fineCf = UIndirectList<point>
-            (
-                mesh.Cf().boundaryField()[patchID],
-                coarseToFine[coarseFaceI]
-            );
-            fineSf = UIndirectList<point>
-            (
-                mesh.Sf().boundaryField()[patchID],
-                coarseToFine[coarseFaceI]
-            );
+                fineCf.setSize(fineFaces.size());
+                fineSf.setSize(fineFaces.size());
+
+                fineCf = UIndirectList<point>
+                (
+                    mesh.Cf().boundaryField()[patchID],
+                    coarseToFine[coarseFaceI]
+                );
+                fineSf = UIndirectList<point>
+                (
+                    mesh.Sf().boundaryField()[patchID],
+                    coarseToFine[coarseFaceI]
+                );
+            }
         }
     }
 
@@ -840,23 +859,27 @@ int main(int argc, char *argv[])
         forAll(viewFactorsPatches, i)
         {
             label patchID = viewFactorsPatches[i];
-            const labelList& agglom = finalAgglom[patchID];
-            label nAgglom = max(agglom)+1;
-            labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
-            const labelList& coarsePatchFace =
-                coarseMesh.patchFaceMap()[patchID];
-
-            forAll(coarseToFine, coarseI)
+            const polyPatch& pp = patches[patchID];
+            if (pp.size() > 0)
             {
-                const scalar Fij = sum(F[compactI]);
-                const label coarseFaceID = coarsePatchFace[coarseI];
-                const labelList& fineFaces = coarseToFine[coarseFaceID];
-                forAll (fineFaces, fineId)
+                const labelList& agglom = finalAgglom[patchID];
+                label nAgglom = max(agglom)+1;
+                labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
+                const labelList& coarsePatchFace =
+                    coarseMesh.patchFaceMap()[patchID];
+
+                forAll(coarseToFine, coarseI)
                 {
-                    const label faceID = fineFaces[fineId];
-                    viewFactorField.boundaryField()[patchID][faceID] = Fij;
+                    const scalar Fij = sum(F[compactI]);
+                    const label coarseFaceID = coarsePatchFace[coarseI];
+                    const labelList& fineFaces = coarseToFine[coarseFaceID];
+                    forAll (fineFaces, fineId)
+                    {
+                        const label faceID = fineFaces[fineId];
+                        viewFactorField.boundaryField()[patchID][faceID] = Fij;
+                    }
+                    compactI++;
                 }
-                compactI++;
             }
         }
         viewFactorField.write();

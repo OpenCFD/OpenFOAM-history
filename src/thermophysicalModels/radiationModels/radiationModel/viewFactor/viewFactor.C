@@ -29,6 +29,7 @@ License
 #include "greyDiffusiveViewFactorFixedValueFvPatchScalarField.H"
 #include "typeInfo.H"
 #include "addToRunTimeSelectionTable.H"
+#include "boundaryRadiationProperties.H"
 
 using namespace Foam::constant;
 
@@ -49,23 +50,30 @@ namespace Foam
 void Foam::radiation::viewFactor::initialise()
 {
     const polyBoundaryMesh& coarsePatches = coarseMesh_.boundaryMesh();
-    const volScalarField::GeometricBoundaryField& Qrp = Qr_.boundaryField();
+//  const volScalarField::GeometricBoundaryField& Qrp = Qr_.boundaryField();
 
-    label count = 0;
-    forAll(Qrp, patchI)
+//     label count = 0;
+//     forAll(Qrp, patchI)
+//     {
+//         //const polyPatch& pp = mesh_.boundaryMesh()[patchI];
+//         const fvPatchScalarField& QrPatchI = Qrp[patchI];
+//
+//         if ((isA<fixedValueFvPatchScalarField>(QrPatchI)))
+//         {
+//             selectedPatches_[count] = QrPatchI.patch().index();
+//             nLocalCoarseFaces_ += coarsePatches[patchI].size();
+//             count++;
+//         }
+//     }
+//
+//     selectedPatches_.resize(count--);
+
+    selectedPatches_ = mesh_.boundaryMesh().findIndices("radiativeWall");
+    forAll(selectedPatches_, i)
     {
-        //const polyPatch& pp = mesh_.boundaryMesh()[patchI];
-        const fvPatchScalarField& QrPatchI = Qrp[patchI];
-
-        if ((isA<fixedValueFvPatchScalarField>(QrPatchI)))
-        {
-            selectedPatches_[count] = QrPatchI.patch().index();
-            nLocalCoarseFaces_ += coarsePatches[patchI].size();
-            count++;
-        }
+        const label patchI = selectedPatches_[i];
+        nLocalCoarseFaces_ += coarsePatches[patchI].size();
     }
-
-    selectedPatches_.resize(count--);
 
     if (debug)
     {
@@ -307,7 +315,7 @@ Foam::radiation::viewFactor::viewFactor
     (
         IOobject
         (
-            mesh_.name(),
+            "coarse:" + mesh_.name(),
             mesh_.polyMesh::instance(),
             mesh_.time(),
             IOobject::NO_READ,
@@ -401,6 +409,9 @@ void Foam::radiation::viewFactor::calculate()
     DynamicList<scalar> localCoarseEave(nLocalCoarseFaces_);
     DynamicList<scalar> localCoarseHoave(nLocalCoarseFaces_);
 
+    const boundaryRadiationProperties& boundaryRadiation =
+        boundaryRadiationProperties::New(mesh_);
+
     forAll(selectedPatches_, i)
     {
         label patchID = selectedPatches_[i];
@@ -416,9 +427,11 @@ void Foam::radiation::viewFactor::calculate()
                 greyDiffusiveViewFactorFixedValueFvPatchScalarField
             >(QrPatch);
 
-        const scalarList eb = Qrp.emissivity();
+        const tmp<scalarField> teb = boundaryRadiation.emissivity(patchID);
+        const scalarField& eb = teb();
 
-        const scalarList& Hoi = Qrp.Qro();
+        const tmp<scalarField> tHoi = Qrp.Qro();
+        const scalarField& Hoi = tHoi();
 
         const polyPatch& pp = coarseMesh_.boundaryMesh()[patchID];
         const labelList& coarsePatchFace = coarseMesh_.patchFaceMap()[patchID];

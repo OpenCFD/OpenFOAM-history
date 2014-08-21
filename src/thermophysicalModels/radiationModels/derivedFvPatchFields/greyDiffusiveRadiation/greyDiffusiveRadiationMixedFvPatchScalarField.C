@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -27,6 +27,7 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
+#include "boundaryRadiationProperties.H"
 
 #include "fvDOM.H"
 #include "constants.H"
@@ -44,8 +45,10 @@ greyDiffusiveRadiationMixedFvPatchScalarField
 )
 :
     mixedFvPatchScalarField(p, iF),
-    radiationCoupledBase(p, "undefined", scalarField::null()),
-    TName_("T")
+    //radiationCoupledBase(p, "undefined", scalarField::null()),
+    TName_("T"),
+    solarLoad_(false),
+    solarLoadFieldName_("none")
 {
     refValue() = 0.0;
     refGrad() = 0.0;
@@ -63,13 +66,15 @@ greyDiffusiveRadiationMixedFvPatchScalarField
 )
 :
     mixedFvPatchScalarField(ptf, p, iF, mapper),
-    radiationCoupledBase
-    (
-        p,
-        ptf.emissivityMethod(),
-        ptf.emissivity_
-    ),
-    TName_(ptf.TName_)
+//     radiationCoupledBase
+//     (
+//         p,
+//         ptf.emissivityMethod(),
+//         ptf.emissivity_
+//     ),
+    TName_(ptf.TName_),
+    solarLoad_(ptf.solarLoad_),
+    solarLoadFieldName_(ptf.solarLoadFieldName_)
 {}
 
 
@@ -82,8 +87,16 @@ greyDiffusiveRadiationMixedFvPatchScalarField
 )
 :
     mixedFvPatchScalarField(p, iF),
-    radiationCoupledBase(p, dict),
-    TName_(dict.lookupOrDefault<word>("T", "T"))
+    //radiationCoupledBase(p, dict),
+    TName_(dict.lookupOrDefault<word>("T", "T")),
+    solarLoad_(dict.lookupOrDefault<bool>("solarLoad", false)),
+    solarLoadFieldName_
+    (
+        dict.lookupOrDefault<word>
+        (
+            "solarLoadFieldName", "solarLoadField"
+        )
+    )
 {
     if (dict.found("refValue"))
     {
@@ -113,13 +126,15 @@ greyDiffusiveRadiationMixedFvPatchScalarField
 )
 :
     mixedFvPatchScalarField(ptf),
-    radiationCoupledBase
-    (
-        ptf.patch(),
-        ptf.emissivityMethod(),
-        ptf.emissivity_
-    ),
-    TName_(ptf.TName_)
+//     radiationCoupledBase
+//     (
+//         ptf.patch(),
+//         ptf.emissivityMethod(),
+//         ptf.emissivity_
+//     ),
+    TName_(ptf.TName_),
+    solarLoad_(ptf.solarLoad_),
+    solarLoadFieldName_(ptf.solarLoadFieldName_)
 {}
 
 
@@ -131,13 +146,15 @@ greyDiffusiveRadiationMixedFvPatchScalarField
 )
 :
     mixedFvPatchScalarField(ptf, iF),
-    radiationCoupledBase
-    (
-        ptf.patch(),
-        ptf.emissivityMethod(),
-        ptf.emissivity_
-    ),
-    TName_(ptf.TName_)
+//     radiationCoupledBase
+//     (
+//         ptf.patch(),
+//         ptf.emissivityMethod(),
+//         ptf.emissivity_
+//     ),
+    TName_(ptf.TName_),
+    solarLoad_(ptf.solarLoad_),
+    solarLoadFieldName_(ptf.solarLoadFieldName_)
 {}
 
 
@@ -181,6 +198,7 @@ updateCoeffs()
     }
 
     scalarField& Iw = *this;
+
     const vectorField n(patch().nf());
 
     radiativeIntensityRay& ray =
@@ -190,7 +208,16 @@ updateCoeffs()
 
     ray.Qr().boundaryField()[patchI] += Iw*nAve;
 
-    const scalarField temissivity = emissivity();
+    //const scalarField temissivity = emissivity();
+    const boundaryRadiationProperties& boundaryRadiation =
+        boundaryRadiationProperties::New(dimensionedInternalField().mesh());
+
+    const tmp<scalarField> temissivity
+    (
+        boundaryRadiation.emissivity(patch().index())
+    );
+
+    const scalarField& emissivity = temissivity();
 
     scalarField& Qem = ray.Qem().boundaryField()[patchI];
     scalarField& Qin = ray.Qin().boundaryField()[patchI];
@@ -206,6 +233,14 @@ updateCoeffs()
         Ir += dom.IRay(rayI).Qin().boundaryField()[patchI];
     }
 
+    if (solarLoad_)
+    {
+        Ir += patch().lookupPatchField<volScalarField,scalar>
+        (
+            solarLoadFieldName_
+        );
+    }
+
     forAll(Iw, faceI)
     {
         if ((-n[faceI] & myRayId) > 0.0)
@@ -215,8 +250,8 @@ updateCoeffs()
             valueFraction()[faceI] = 1.0;
             refValue()[faceI] =
                 (
-                    Ir[faceI]*(scalar(1.0) - temissivity[faceI])
-                  + temissivity[faceI]*physicoChemical::sigma.value()
+                    Ir[faceI]*(scalar(1.0) - emissivity[faceI])
+                  + emissivity[faceI]*physicoChemical::sigma.value()
                   * pow4(Tp[faceI])
                 )/pi;
 
@@ -248,8 +283,16 @@ void Foam::radiation::greyDiffusiveRadiationMixedFvPatchScalarField::write
 ) const
 {
     mixedFvPatchScalarField::write(os);
-    radiationCoupledBase::write(os);
+    //radiationCoupledBase::write(os);
     writeEntryIfDifferent<word>(os, "T", "T", TName_);
+    os.writeKeyword("solarLoad") << solarLoad_ << token::END_STATEMENT << nl;
+    writeEntryIfDifferent<word>
+    (
+        os,
+        "solarLoadFieldName",
+        "solarLoadFieldName",
+        solarLoadFieldName_
+    );
 }
 
 

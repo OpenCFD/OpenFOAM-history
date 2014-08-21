@@ -49,6 +49,7 @@ SourceFiles
 #include "DimensionedField.H"
 #include "fvMatricesFwd.H"
 #include "Switch.H"
+#include "transmissivityModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -111,6 +112,9 @@ protected:
 
             //- Soot model
             autoPtr<sootModel> soot_;
+
+            //- Transmissivity model
+            autoPtr<transmissivityModel> transmissivity_;
 
 
 private:
@@ -237,8 +241,12 @@ public:
             //- Access to absorptionEmission model
             const absorptionEmissionModel& absorptionEmission() const;
 
+            //- Access to transmissivity Model
+            const transmissivityModel& transmissivity() const;
+
             //- Access to soot Model
             const sootModel& soot() const;
+
 };
 
 
