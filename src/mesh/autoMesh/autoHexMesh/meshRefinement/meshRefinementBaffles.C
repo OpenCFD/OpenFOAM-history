@@ -2195,7 +2195,13 @@ void Foam::meshRefinement::handleSnapProblems
     }
     else
     {
-        facePatch = markFacesOnProblemCellsGeometric(snapParams, motionDict);
+        facePatch = markFacesOnProblemCellsGeometric
+        (
+            snapParams,
+            motionDict,
+            globalToMasterPatch,
+            globalToSlavePatch
+        );
     }
     Info<< "Analyzed problem cells in = "
         << runTime.cpuTimeIncrement() << " s\n" << nl << endl;
