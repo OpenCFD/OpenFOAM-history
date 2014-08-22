@@ -46,7 +46,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class IOmapDistributePolyMesh Declaration
+                   Class IOmapDistributePolyMesh Declaration
 \*---------------------------------------------------------------------------*/
 
 class IOmapDistributePolyMesh
