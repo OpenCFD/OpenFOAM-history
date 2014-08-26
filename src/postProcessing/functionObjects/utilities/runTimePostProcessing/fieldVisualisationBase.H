@@ -1,0 +1,186 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Class
+    Foam::fieldVisualisationBase
+
+Description
+
+SourceFiles
+    fieldVisualisationBase.C
+
+\*---------------------------------------------------------------------------*/
+
+#ifndef fieldVisualisationBase_H
+#define fieldVisualisationBase_H
+
+#include "dictionary.H"
+#include "Tuple2.H"
+#include "NamedEnum.H"
+#include "vector.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+class vtkLookupTable;
+class vtkPolyData;
+class vtkPolyDataMapper;
+class vtkRenderer;
+
+namespace Foam
+{
+
+class runTimePostProcessing;
+
+/*---------------------------------------------------------------------------*\
+                   Class fieldVisualisationBase Declaration
+\*---------------------------------------------------------------------------*/
+
+class fieldVisualisationBase
+{
+public:
+
+    // Public enumerations
+
+        enum colourByType
+        {
+            cbColour,
+            cbField
+        };
+
+        static const NamedEnum<colourByType, 2> colourByTypeNames;
+
+
+private:
+
+    // Private data
+
+        //- Reference to the parent function object
+        const runTimePostProcessing& parent_;
+
+
+    // Private Member Functions
+
+        //- Disallow default bitwise copy construct
+        fieldVisualisationBase(const fieldVisualisationBase&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const fieldVisualisationBase&);
+
+
+protected:
+
+    // Protected data
+
+        struct scalarBar
+        {
+            bool visible_;
+            bool vertical_;
+            Tuple2<scalar, scalar> position_;
+            string title_;
+            label fontSize_;
+            string labelFormat_;
+            label numberOfLabels_;
+        };
+
+        //- Colours
+        const HashTable<vector, word>& colours_;
+
+        //- Field name
+        word fieldName_;
+
+        //- Colur by type
+        colourByType colourBy_;
+
+        //- Range of values
+        Tuple2<scalar, scalar> range_;
+
+        //- Scalar bar
+        scalarBar scalarBar_;
+
+
+    // Protected Member Functions
+
+        //- Return the number of components for the supplied field
+        label nComponents(const word& fieldName) const;
+
+        //- Set the colour map
+        void setColourMap(vtkLookupTable* lut) const;
+
+        //- Add scalar bar to renderer
+        void addScalarBar(vtkRenderer* renderer, vtkLookupTable* lut) const;
+
+        //- Set field/configure mapper, add scalar bar
+        void setField(vtkPolyDataMapper* mapper, vtkRenderer* renderer) const;
+
+        //- Add glyphs
+        void addGlyphs(vtkPolyData* data, vtkRenderer* renderer) const;
+
+        //- Set the number of components for the supplied field type
+        template<class Type>
+        void testFieldType(const word& fieldName, label& result) const;
+
+
+public:
+
+    // Constructors
+
+        //- Construct from dictionary
+        fieldVisualisationBase
+        (
+            const runTimePostProcessing& parent,
+            const dictionary& dict,
+            const HashTable<vector, word>& colours
+        );
+
+
+    //- Destructor
+    virtual ~fieldVisualisationBase();
+
+
+    // Member Functions
+
+        // Access
+
+            //- Return the colours
+            const HashTable<vector, word>& colours() const;
+
+            //- Return the field name
+            const word& fieldName() const;
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "fieldVisualisationBaseTemplates.C"
+#endif
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
+
+// ************************************************************************* //
