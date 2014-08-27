@@ -39,8 +39,11 @@ SourceFiles
 #include "NamedEnum.H"
 #include "vector.H"
 
+#include "vtkSmartPointer.h"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+class vtkActor;
 class vtkLookupTable;
 class vtkPolyData;
 class vtkPolyDataMapper;
@@ -133,7 +136,12 @@ protected:
         void setField(vtkPolyDataMapper* mapper, vtkRenderer* renderer) const;
 
         //- Add glyphs
-        void addGlyphs(vtkPolyData* data, vtkRenderer* renderer) const;
+        void addGlyphs
+        (
+            vtkPolyData* data,
+            vtkActor* actor,
+            vtkRenderer* renderer
+        ) const;
 
         //- Set the number of components for the supplied field type
         template<class Type>

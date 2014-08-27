@@ -64,7 +64,7 @@ Foam::text::~text()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::text::addToScene(const label frameI, vtkRenderer* renderer)
+void Foam::text::addGeometryToScene(const label frameI, vtkRenderer* renderer)
 {
     if (!visible_)
     {
@@ -93,6 +93,12 @@ void Foam::text::addToScene(const label frameI, vtkRenderer* renderer)
     );
 
     renderer->AddActor2D(actor);
+}
+
+
+void Foam::text::updateActors(const label frameI)
+{
+    // do nothing - all handled by addGeometryToScene
 }
 
 

@@ -122,11 +122,14 @@ public:
 
 
         //- Add geometry to scene
-        virtual void addToScene
+        virtual void addGeometryToScene
         (
             const label frameI,
             vtkRenderer* renderer
         ) = 0;
+
+        //- Update the actors
+        virtual void updateActors(const label frameI) = 0;
 };
 
 

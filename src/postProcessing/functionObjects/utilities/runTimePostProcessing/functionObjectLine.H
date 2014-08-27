@@ -72,9 +72,8 @@ protected:
         //- Name of field
         word fieldName_;
 
-
-    // Protected Member Functions
-
+        //- Actor
+        vtkSmartPointer<vtkActor> actor_;
 
 
 public:
@@ -101,7 +100,14 @@ public:
     // Member Functions
 
         //- Add tube(s) to scene
-        virtual void addToScene(const label frameI, vtkRenderer* renderer);
+        virtual void addGeometryToScene
+        (
+            const label frameI,
+            vtkRenderer* renderer
+        );
+
+        //- Update actors
+        virtual void updateActors(const label frameI);
 };
 
 

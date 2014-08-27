@@ -101,7 +101,7 @@ protected:
         void addLines
         (
             vtkActor* actor,
-            vtkPolyDataMapper* mapperr,
+            vtkPolyDataMapper* mapper,
             vtkPolyData* data
         ) const;
 

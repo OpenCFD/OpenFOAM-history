@@ -57,8 +57,11 @@ Foam::functionObjectLine::functionObjectLine
     pathline(parent, dict, colours),
     fieldVisualisationBase(parent, dict, colours),
     functionObject_(dict.lookup("functionObject")),
-    fieldName_(dict.lookup("fieldName"))
-{}
+    fieldName_(dict.lookup("fieldName")),
+    actor_()
+{
+    actor_ = vtkSmartPointer<vtkActor>::New();
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -69,7 +72,7 @@ Foam::functionObjectLine::~functionObjectLine()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::functionObjectLine::addToScene
+void Foam::functionObjectLine::addGeometryToScene
 (
     const label frameI,
     vtkRenderer* renderer
@@ -117,15 +120,19 @@ void Foam::functionObjectLine::addToScene
             vtkSmartPointer<vtkPolyDataMapper>::New();
         setField(mapper, renderer);
 
-        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-        actor->SetMapper(mapper);
-        actor->GetProperty()->SetLineWidth(2);
-        actor->GetProperty()->SetOpacity(opacity(frameI));
+        actor_->SetMapper(mapper);
 
-        addLines(actor, mapper, lines->GetOutput());
+        addLines(actor_, mapper, lines->GetOutput());
 
-        renderer->AddActor(actor);
+        renderer->AddActor(actor_);
     }
+}
+
+
+void Foam::functionObjectLine::updateActors(const label frameI)
+{
+    actor_->GetProperty()->SetLineWidth(2);
+    actor_->GetProperty()->SetOpacity(opacity(frameI));
 }
 
 

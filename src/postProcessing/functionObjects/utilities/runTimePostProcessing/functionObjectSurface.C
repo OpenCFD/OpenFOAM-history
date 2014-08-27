@@ -73,7 +73,7 @@ Foam::functionObjectSurface::~functionObjectSurface()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::functionObjectSurface::addToScene
+void Foam::functionObjectSurface::addGeometryToScene
 (
     const label frameI,
     vtkRenderer* renderer
@@ -103,42 +103,43 @@ void Foam::functionObjectSurface::addToScene
         return;
     }
 
-    if ((colourBy_ == cbField) && (fName.ext() == "vtk"))
+
+    if (representation_ == rtGlyph)
     {
         vtkSmartPointer<vtkPolyDataReader> surf =
             vtkSmartPointer<vtkPolyDataReader>::New();
         surf->SetFileName(fName.c_str());
         surf->Update();
 
-        addFeatureEdges(renderer, surf->GetOutput());
-
-        vtkSmartPointer<vtkPolyDataMapper> mapper =
-            vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputConnection(surf->GetOutputPort());
-
-        setField(mapper, renderer);
-
-        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-        actor->SetMapper(mapper);
-        actor->GetProperty()->SetEdgeColor
-        (
-            edgeColour_[0],
-            edgeColour_[1],
-            edgeColour_[2]
-        );
-        actor->GetProperty()->SetOpacity(opacity(frameI));
-        setRepresentation(actor);
-
-//        renderer->AddActor(actor);
-
-        if (1) // glyph_)
-        {
-            addGlyphs(surf->GetOutput(), renderer);
-        }
+        addGlyphs(surf->GetOutput(), surfaceActor_, renderer);
     }
     else
     {
-        geometrySurface::addToScene(frameI, renderer, fName);
+        if ((colourBy_ == cbField) && (fName.ext() == "vtk"))
+        {
+            vtkSmartPointer<vtkPolyDataReader> surf =
+                vtkSmartPointer<vtkPolyDataReader>::New();
+            surf->SetFileName(fName.c_str());
+            surf->Update();
+
+            addFeatureEdges(renderer, surf->GetOutput());
+
+            vtkSmartPointer<vtkPolyDataMapper> mapper =
+                vtkSmartPointer<vtkPolyDataMapper>::New();
+            mapper->SetInputConnection(surf->GetOutputPort());
+
+            setField(mapper, renderer);
+
+            surfaceActor_->SetMapper(mapper);
+
+            setRepresentation(surfaceActor_);
+
+            renderer->AddActor(surfaceActor_);
+        }
+        else
+        {
+            geometrySurface::addGeometryToScene(frameI, renderer);
+        }
     }
 }
 

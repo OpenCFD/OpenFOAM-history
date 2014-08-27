@@ -41,19 +41,20 @@ License
 namespace Foam
 {
     template<>
-    const char* NamedEnum<surface::representationType, 4>::names[] =
+    const char* NamedEnum<surface::representationType, 5>::names[] =
     {
         "none",
         "wireframe",
         "surface",
-        "surfaceWithEdges"
+        "surfaceWithEdges",
+        "glyph"
     };
 
     defineTypeNameAndDebug(surface, 0);
     defineRunTimeSelectionTable(surface, dictionary);
 }
 
-const Foam::NamedEnum<Foam::surface::representationType, 4>
+const Foam::NamedEnum<Foam::surface::representationType, 5>
     Foam::surface::representationTypeNames;
 
 
@@ -81,6 +82,7 @@ void Foam::surface::setRepresentation(vtkActor* actor) const
             actor->GetProperty()->SetRepresentationToWireframe();
             break;
         }
+        case rtGlyph:
         case rtSurface:
         {
             actor->GetProperty()->SetRepresentationToSurface();
@@ -122,17 +124,27 @@ void Foam::surface::addFeatureEdges
     mapper->SetInputConnection(featureEdges->GetOutputPort());
     mapper->ScalarVisibilityOff();
 
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    actor->GetProperty()->SetColor
+    edgeActor_->SetMapper(mapper);
+
+    renderer->AddActor(edgeActor_);
+}
+
+
+void Foam::surface::updateActors(const label frameI)
+{
+    if (!featureEdges_)
+    {
+        return;
+    }
+
+    edgeActor_->GetProperty()->SetLineWidth(2);
+    edgeActor_->GetProperty()->SetOpacity(opacity(frameI));
+    edgeActor_->GetProperty()->SetEdgeColor
     (
         edgeColour_[0],
         edgeColour_[1],
         edgeColour_[2]
     );
-    actor->GetProperty()->SetLineWidth(2);
-
-    renderer->AddActor(actor);
 }
 
 
@@ -152,8 +164,13 @@ Foam::surface::surface
     ),
     featureEdges_(readBool(dict.lookup("featureEdges"))),
     surfaceColour_(dict.lookupOrDefault("surfaceColour", vector(-1, 0, 0))),
-    edgeColour_(dict.lookupOrDefault("edgeColour", vector(-1, 0, 0)))
+    edgeColour_(dict.lookupOrDefault("edgeColour", vector(-1, 0, 0))),
+    surfaceActor_(),
+    edgeActor_()
 {
+    surfaceActor_ = vtkSmartPointer<vtkActor>::New();
+    edgeActor_ = vtkSmartPointer<vtkActor>::New();
+
     if (surfaceColour_[0] < 0)
     {
         surfaceColour_ = colours["surface"];

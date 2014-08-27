@@ -38,6 +38,8 @@ SourceFiles
 #include "NamedEnum.H"
 #include "runTimeSelectionTables.H"
 
+#include "vtkSmartPointer.h"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 class vtkActor;
@@ -64,10 +66,11 @@ public:
             rtNone,
             rtWireframe,
             rtSurface,
-            rtSurfaceWithEdges
+            rtSurfaceWithEdges,
+            rtGlyph
         };
 
-        static const NamedEnum<representationType, 4> representationTypeNames;
+        static const NamedEnum<representationType, 5> representationTypeNames;
 
 
 private:
@@ -96,6 +99,12 @@ protected:
 
         //- Edge colour
         vector edgeColour_;
+
+        //- Surface actor
+        vtkSmartPointer<vtkActor> surfaceActor_;
+
+        //- Edge actor
+        vtkSmartPointer<vtkActor> edgeActor_;
 
 
     // Protected Member Functions
@@ -158,6 +167,12 @@ public:
 
     //- Destructor
     virtual ~surface();
+
+
+    // Member Functions
+
+        //- Update the actors
+        virtual void updateActors(const label frameI);
 };
 
 

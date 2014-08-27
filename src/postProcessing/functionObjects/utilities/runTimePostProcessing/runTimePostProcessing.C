@@ -256,25 +256,37 @@ void Foam::runTimePostProcessing::write()
 
     while (camera_.loop(renderer))
     {
+        // add the text
+        forAll(text_, i)
+        {
+            text_[i].addGeometryToScene(camera_.frameIndex(), renderer);
+        }
+
         if (camera_.addObjects())
         {
             // add the lines
             forAll(lines_, i)
             {
-                lines_[i].addToScene(camera_.frameIndex(), renderer);
+                lines_[i].addGeometryToScene(camera_.frameIndex(), renderer);
             }
 
             // add the surfaces
             forAll(surfaces_, i)
             {
-                surfaces_[i].addToScene(camera_.frameIndex(), renderer);
+                surfaces_[i].addGeometryToScene(camera_.frameIndex(), renderer);
             }
+        }
 
-            // add the text
-            forAll(text_, i)
-            {
-                text_[i].addToScene(camera_.frameIndex(), renderer);
-            }
+        // add the lines
+        forAll(lines_, i)
+        {
+            lines_[i].updateActors(camera_.frameIndex());
+        }
+
+        // add the surfaces
+        forAll(surfaces_, i)
+        {
+            surfaces_[i].updateActors(camera_.frameIndex());
         }
 
         // saveimage to file

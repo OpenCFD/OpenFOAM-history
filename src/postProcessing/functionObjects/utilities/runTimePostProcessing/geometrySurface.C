@@ -55,7 +55,7 @@ namespace Foam
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-void Foam::geometrySurface::addToScene
+void Foam::geometrySurface::addGeometryToScene
 (
     const label frameI,
     vtkRenderer* renderer,
@@ -114,26 +114,11 @@ void Foam::geometrySurface::addToScene
     mapper->SetInputData(polyData);
     addFeatureEdges(renderer, polyData);
 
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
+    surfaceActor_->SetMapper(mapper);
 
-    actor->GetProperty()->SetColor
-    (
-        surfaceColour_[0],
-        surfaceColour_[1],
-        surfaceColour_[2]
-    );
-    actor->GetProperty()->SetEdgeColor
-    (
-        edgeColour_[0],
-        edgeColour_[1],
-        edgeColour_[2]
-    );
-    actor->GetProperty()->SetOpacity(opacity(frameI));
+    setRepresentation(surfaceActor_);
 
-    setRepresentation(actor);
-
-    renderer->AddActor(actor);
+    renderer->AddActor(surfaceActor_);
 }
 
 
@@ -172,7 +157,7 @@ Foam::geometrySurface::~geometrySurface()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::geometrySurface::addToScene
+void Foam::geometrySurface::addGeometryToScene
 (
     const label frameI,
     vtkRenderer* renderer
@@ -187,8 +172,33 @@ void Foam::geometrySurface::addToScene
     {
         fileName fName = fileNames_[i].expand();
 
-        addToScene(frameI, renderer, fName);
+        addGeometryToScene(frameI, renderer, fName);
     }
+}
+
+
+void Foam::geometrySurface::updateActors(const label frameI)
+{
+    if (!visible_)
+    {
+        return;
+    }
+
+    surface::updateActors(frameI);
+
+    surfaceActor_->GetProperty()->SetOpacity(opacity(frameI));
+    surfaceActor_->GetProperty()->SetColor
+    (
+        surfaceColour_[0],
+        surfaceColour_[1],
+        surfaceColour_[2]
+    );
+    surfaceActor_->GetProperty()->SetEdgeColor
+    (
+        edgeColour_[0],
+        edgeColour_[1],
+        edgeColour_[2]
+    );
 }
 
 

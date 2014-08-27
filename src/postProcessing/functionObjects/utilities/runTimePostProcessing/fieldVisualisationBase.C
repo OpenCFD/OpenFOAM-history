@@ -248,6 +248,7 @@ void Foam::fieldVisualisationBase::setField
 void Foam::fieldVisualisationBase::addGlyphs
 (
     vtkPolyData* data,
+    vtkActor* actor,
     vtkRenderer* renderer
 ) const
 {
@@ -331,10 +332,9 @@ void Foam::fieldVisualisationBase::addGlyphs
 
         setField(glyphMapper, renderer);
 
-        vtkSmartPointer<vtkActor> glyphActor = vtkSmartPointer<vtkActor>::New();
-        glyphActor->SetMapper(glyphMapper);
+        actor->SetMapper(glyphMapper);
 
-        renderer->AddActor(glyphActor);
+        renderer->AddActor(actor);
     }
 }
 
