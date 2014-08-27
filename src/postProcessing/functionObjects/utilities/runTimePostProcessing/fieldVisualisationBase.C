@@ -83,10 +83,31 @@ void Foam::fieldVisualisationBase::setColourMap(vtkLookupTable* lut) const
 
     vtkSmartPointer<vtkColorTransferFunction> ctf =
         vtkSmartPointer<vtkColorTransferFunction>::New();
+
+    // rainbow
     ctf->SetColorSpaceToHSV();
-    ctf->AddRGBPoint(0.0, 0, 0, 1.0);
-    ctf->AddRGBPoint(0.5, 0, 1.0, 0);
-    ctf->AddRGBPoint(1.0, 1.0, 0, 0);
+    ctf->AddRGBPoint(0, 0, 0, 1);
+    ctf->AddRGBPoint(0.5, 0, 1, 0);
+    ctf->AddRGBPoint(1, 1, 0, 0);
+
+    // blue-whit-red
+//    ctf->SetColorSpaceToDiverging();
+//    ctf->AddRGBPoint(0.0, 0.231373, 0.298039, 0.752941);
+//    ctf->AddRGBPoint(0.5, 0.865003, 0.865003, 0.865003);
+//    ctf->AddRGBPoint(1.0, 0.705882, 0.0156863, 0.14902);
+
+    // fire
+//    ctf->SetColorSpaceToRGB();
+//    ctf->AddRGBPoint(0, 0, 0, 0);
+//    ctf->AddRGBPoint(0.4, 0.901961, 0, 0);
+//    ctf->AddRGBPoint(0.8, 0.901961, 0.901961, 0);
+//    ctf->AddRGBPoint(1, 1, 1, 1);
+
+    // greyscale
+//    ctf->SetColorSpaceToRGB();
+//    ctf->AddRGBPoint(0, 0, 0, 0);
+//    ctf->AddRGBPoint(1, 1, 1, 1);
+
     for (label i = 0; i < nColours; i++)
     {
         double* c = ctf->GetColor(scalar(i)/scalar(nColours));
