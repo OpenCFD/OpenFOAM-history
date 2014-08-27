@@ -69,7 +69,7 @@ Foam::radiation::constantTransmissivity::~constantTransmissivity()
 Foam::tmp<Foam::volScalarField>
 Foam::radiation::constantTransmissivity::tauEff(const label bandI) const
 {
-    return tmp<volScalarField>
+    tmp<volScalarField> tt
     (
         new volScalarField
         (
@@ -86,6 +86,8 @@ Foam::radiation::constantTransmissivity::tauEff(const label bandI) const
             tau_
         )
     );
+
+    return tt;
 }
 
 

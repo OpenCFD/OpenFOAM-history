@@ -86,12 +86,9 @@ Foam::radiation::constantAbsorptionEmission::aCont(const label bandI) const
                 false
             ),
             mesh_,
-            a_,
-            zeroGradientFvPatchField<vector>::typeName
+            a_
         )
     );
-
-    ta().correctBoundaryConditions();
 
     return ta;
 }
@@ -114,12 +111,9 @@ Foam::radiation::constantAbsorptionEmission::eCont(const label bandI) const
                 false
             ),
             mesh_,
-            e_,
-            zeroGradientFvPatchField<vector>::typeName
+            e_
         )
     );
-
-    te().correctBoundaryConditions();
 
     return te;
 }
@@ -142,12 +136,9 @@ Foam::radiation::constantAbsorptionEmission::ECont(const label bandI) const
                 false
             ),
             mesh_,
-            E_,
-            zeroGradientFvPatchField<vector>::typeName
+            E_
         )
     );
-
-    tE().correctBoundaryConditions();
 
     return tE;
 }

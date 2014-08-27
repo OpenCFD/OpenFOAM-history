@@ -66,6 +66,8 @@ Description
 #include "IOdictionary.H"
 #include "fixedValueFvPatchFields.H"
 
+#include "IOmapDistribute.H"
+
 using namespace Foam;
 
 
@@ -128,7 +130,7 @@ triSurface triangulate
         newPatchI++;
     }
 
-    triSurfaceToAgglom.resize(localTriFaceI-1);
+    //striSurfaceToAgglom.resize(localTriFaceI-1);
 
     triangles.shrink();
 
@@ -268,6 +270,8 @@ int main(int argc, char *argv[])
        )
     );
 
+    const word viewFactorWall("viewFactorWall");
+
     const bool writeViewFactors =
         viewFactorDict.lookupOrDefault<bool>("writeViewFactorMatrix", false);
 
@@ -275,7 +279,7 @@ int main(int argc, char *argv[])
         viewFactorDict.lookupOrDefault<bool>("dumpRays", false);
 
     const label debug = viewFactorDict.lookupOrDefault<label>("debug", 0);
-
+/*
     volScalarField Qr
     (
         IOobject
@@ -288,7 +292,7 @@ int main(int argc, char *argv[])
         ),
         mesh
     );
-
+*/
     // Read agglomeration map
     labelListIOList finalAgglom
     (
@@ -361,7 +365,7 @@ int main(int argc, char *argv[])
 //
 //     viewFactorsPatches.resize(count--);
 
-    labelList viewFactorsPatches(patches.findIndices("radiativeWall"));
+    labelList viewFactorsPatches(patches.findIndices(viewFactorWall));
     forAll (viewFactorsPatches, i)
     {
         label patchI = viewFactorsPatches[i];
@@ -399,9 +403,12 @@ int main(int argc, char *argv[])
         const label patchID = viewFactorsPatches[i];
 
         const polyPatch& pp = patches[patchID];
-        if (pp.size() > 0)
+        //if (pp.size() > 0)
+        //{
+        const labelList& agglom = finalAgglom[patchID];
+
+        if (agglom.size() > 0)
         {
-            const labelList& agglom = finalAgglom[patchID];
             label nAgglom = max(agglom)+1;
             labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
             const labelList& coarsePatchFace =
@@ -497,7 +504,6 @@ int main(int argc, char *argv[])
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #include "searchingEngine.H"
 
-
     // Determine rays between coarse face centres
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     DynamicList<label> rayStartFace(nCoarseFaces + 0.01*nCoarseFaces);
@@ -537,6 +543,7 @@ int main(int argc, char *argv[])
 
     mapDistribute map(globalNumbering, rayEndFace, compactMap);
 
+/*
     labelListIOList IOsubMap
     (
         IOobject
@@ -583,7 +590,7 @@ int main(int argc, char *argv[])
         List<label>(1, map.constructSize())
     );
     consMapDim.write();
-
+*/
 
     // visibleFaceFaces has:
     //    (local face, local viewed face) = compact viewed face
@@ -618,10 +625,12 @@ int main(int argc, char *argv[])
     forAll(viewFactorsPatches, i)
     {
         label patchID = viewFactorsPatches[i];
-        const polyPatch& pp = patches[patchID];
-        if (pp.size() > 0)
+        //const polyPatch& pp = patches[patchID];
+        //if (pp.size() > 0)
+        //{
+        const labelList& agglom = finalAgglom[patchID];
+        if (agglom.size() > 0)
         {
-            const labelList& agglom = finalAgglom[patchID];
             label nAgglom = max(agglom)+1;
             labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
             const labelList& coarsePatchFace =
@@ -859,10 +868,12 @@ int main(int argc, char *argv[])
         forAll(viewFactorsPatches, i)
         {
             label patchID = viewFactorsPatches[i];
-            const polyPatch& pp = patches[patchID];
-            if (pp.size() > 0)
+            //const polyPatch& pp = patches[patchID];
+            //if (pp.size() > 0)
+            //{
+            const labelList& agglom = finalAgglom[patchID];
+            if (agglom.size() > 0)
             {
-                const labelList& agglom = finalAgglom[patchID];
                 label nAgglom = max(agglom)+1;
                 labelListList coarseToFine(invertOneToMany(nAgglom, agglom));
                 const labelList& coarsePatchFace =
@@ -913,9 +924,9 @@ int main(int argc, char *argv[])
     }
 
 
-    if (Pstream::master())
-    {
-        scalarSquareMatrix Fmatrix(totalNCoarseFaces, totalNCoarseFaces, 0.0);
+    //if (Pstream::master())
+    //{
+        //scalarSquareMatrix Fmatrix(totalNCoarseFaces, totalNCoarseFaces, 0.0);
 
         labelListList globalFaceFaces(visibleFaceFaces.size());
 
@@ -944,7 +955,40 @@ int main(int argc, char *argv[])
             globalFaceFaces
         );
         IOglobalFaceFaces.write();
-    }
+
+
+        labelListIOList IOvisibleFaceFaces
+        (
+            IOobject
+            (
+                "visibleFaceFaces",
+                mesh.facesInstance(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            visibleFaceFaces
+        );
+        IOvisibleFaceFaces.write();
+
+        IOmapDistribute IOmapDist
+        (
+            IOobject
+            (
+                "mapDist",
+                mesh.facesInstance(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            map.xfer()
+        );
+
+        IOmapDist.write();
+
+    //}
+    /*
     else
     {
         labelListList globalFaceFaces(visibleFaceFaces.size());
@@ -973,6 +1017,7 @@ int main(int argc, char *argv[])
 
         IOglobalFaceFaces.write();
     }
+    */
 
     Info<< "End\n" << endl;
     return 0;

@@ -467,12 +467,10 @@ Foam::tmp<Foam::scalarField> Foam::radiation::
 boundaryRadiationPropertiesFvPatchField::
 reflectivity(const label bandI) const
 {
-    const tmp<Foam::scalarField> treflectivity
-    (
-        scalar(1.0) - transmissivity(bandI) - absorptivity(bandI)
-    );
+    //const tmp<Foam::scalarField> treflectivity =
+    //        scalar(1.0) - transmissivity(bandI) - absorptivity(bandI);
 
-    return treflectivity;
+    return (scalar(1.0) - transmissivity(bandI) - absorptivity(bandI));
 }
 
 
