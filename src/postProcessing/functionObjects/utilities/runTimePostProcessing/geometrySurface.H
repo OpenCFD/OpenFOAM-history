@@ -94,7 +94,7 @@ public:
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
-            const HashTable<vector, word>& colours
+            const HashPtrTable<DataEntry<vector>, word>& colours
         );
 
         //- Construct from components
@@ -102,7 +102,7 @@ public:
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
-            const HashTable<vector, word>& colours,
+            const HashPtrTable<DataEntry<vector>, word>& colours,
             const List<fileName>& fileNames
         );
 

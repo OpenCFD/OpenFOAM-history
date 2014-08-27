@@ -91,8 +91,8 @@ protected:
         //- Radius for the tube filter
         scalar tubeRadius_;
 
-       //- Line colour
-        vector lineColour_;
+        //- Line colour
+        autoPtr<DataEntry<vector> > lineColour_;
 
 
     // Protected Member Functions
@@ -100,6 +100,7 @@ protected:
         //- Add the pathlines to the renderer
         void addLines
         (
+            const label frameI,
             vtkActor* actor,
             vtkPolyDataMapper* mapper,
             vtkPolyData* data
@@ -122,7 +123,7 @@ public:
             (
                 const runTimePostProcessing& parent,
                 const dictionary& dict,
-                const HashTable<vector, word>& colours
+                const HashPtrTable<DataEntry<vector>, word>& colours
             ),
             (parent, dict, colours)
         );
@@ -135,7 +136,7 @@ public:
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
-            const HashTable<vector, word>& colours
+            const HashPtrTable<DataEntry<vector>, word>& colours
         );
 
 
@@ -146,7 +147,7 @@ public:
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
-            const HashTable<vector, word>& colours,
+            const HashPtrTable<DataEntry<vector>, word>& colours,
             const word& pathlineName
         );
 

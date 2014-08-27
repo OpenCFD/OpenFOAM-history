@@ -38,7 +38,7 @@ SourceFiles
 #include "objectRegistry.H"
 #include "mapPolyMesh.H"
 #include "PtrList.H"
-#include "HashTable.H"
+#include "HashPtrTable.H"
 #include "vector.H"
 #include "Tuple2.H"
 #include "camera.H"
@@ -83,7 +83,7 @@ private:
         camera camera_;
 
         //- Colours
-        HashTable<vector, word> colours_;
+        HashPtrTable<DataEntry<vector>, word> colours_;
 
         //- List of lines
         PtrList<pathline> lines_;

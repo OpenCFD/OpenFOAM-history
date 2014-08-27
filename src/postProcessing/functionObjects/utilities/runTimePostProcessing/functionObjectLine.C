@@ -51,7 +51,7 @@ Foam::functionObjectLine::functionObjectLine
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     pathline(parent, dict, colours),
@@ -118,11 +118,11 @@ void Foam::functionObjectLine::addGeometryToScene
 
         vtkSmartPointer<vtkPolyDataMapper> mapper =
             vtkSmartPointer<vtkPolyDataMapper>::New();
-        setField(mapper, renderer);
+        setField(frameI, mapper, renderer);
 
         actor_->SetMapper(mapper);
 
-        addLines(actor_, mapper, lines->GetOutput());
+        addLines(frameI, actor_, mapper, lines->GetOutput());
 
         renderer->AddActor(actor_);
     }

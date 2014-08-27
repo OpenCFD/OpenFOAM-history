@@ -39,19 +39,23 @@ Foam::text::text
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     geometryBase(parent, dict, colours),
     string_(dict.lookup("string")),
     position_(dict.lookup("position")),
     size_(readScalar(dict.lookup("size"))),
-    colour_(dict.lookupOrDefault("colour", vector(-1, 0, 0))),
+    colour_(NULL),
     bold_(readBool(dict.lookup("bold")))
 {
-    if (colour_[0] < 0)
+    if (dict.found("colour"))
     {
-        colour_ = colours["text"];
+        colour_.reset(DataEntry<vector>::New("colour", dict).ptr());
+    }
+    else
+    {
+        colour_.reset(colours["text"]->clone().ptr());
     }
 }
 
@@ -79,12 +83,9 @@ void Foam::text::addGeometryToScene(const label frameI, vtkRenderer* renderer)
     actor->GetTextProperty()->SetJustificationToLeft();
     actor->GetTextProperty()->SetVerticalJustificationToBottom();
     actor->GetTextProperty()->SetBold(bold_);
-    actor->GetTextProperty()->SetColor
-    (
-        colour_[0],
-        colour_[1],
-        colour_[2]
-    );
+
+    const vector colour = colour_->value(frameI);
+    actor->GetTextProperty()->SetColor(colour[0], colour[1], colour[2]);
     actor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
     actor->GetPositionCoordinate()->SetValue
     (

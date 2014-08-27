@@ -51,8 +51,8 @@ void Foam::runTimePostProcessing::initialiseScene(vtkRenderer* renderer)
 {
     // set the background
     renderer->GradientBackgroundOn();
-    const vector& backgroundColour = colours_["background"];
-    const vector& backgroundColour2 = colours_["background2"];
+    const vector backgroundColour = colours_["background"]->value(0);
+    const vector backgroundColour2 = colours_["background2"]->value(0);
     renderer->SetBackground
     (
         backgroundColour.x(),
@@ -106,22 +106,36 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
     Info<< type() << " " << name_ << ": reading post-processing data" << endl;
 
     const dictionary& colourDict = dict.subDict("colours");
-    vector backgroundColour(colourDict.lookup("background"));
-    vector backgroundColour2
-    (
-        colourDict.lookupOrDefault("background2", backgroundColour)
-    );
-    vector textColour(colourDict.lookup("text"));
-    vector surfaceColour(colourDict.lookup("surface"));
-    vector edgeColour(colourDict.lookup("edge"));
-    vector lineColour(colourDict.lookup("line"));
 
-    colours_.insert("background", backgroundColour);
-    colours_.insert("background2", backgroundColour2);
-    colours_.insert("text", textColour);
-    colours_.insert("surface", surfaceColour);
-    colours_.insert("edge", edgeColour);
-    colours_.insert("line", lineColour);
+    colours_.insert
+    (
+        "background",
+        DataEntry<vector>::New("background", colourDict).ptr()
+    );
+    if (colourDict.found("background2"))
+    {
+        colours_.insert
+        (
+            "background2",
+            DataEntry<vector>::New("background2", colourDict).ptr()
+        );
+    }
+    else
+    {
+        colours_.insert
+        (
+            "background2",
+            DataEntry<vector>::New("background", colourDict).ptr()
+        );
+    }
+    colours_.insert("text", DataEntry<vector>::New("text", colourDict).ptr());
+    colours_.insert
+    (
+        "surface",
+        DataEntry<vector>::New("surface", colourDict).ptr()
+    );
+    colours_.insert("edge", DataEntry<vector>::New("edge", colourDict).ptr());
+    colours_.insert("line", DataEntry<vector>::New("line", colourDict).ptr());
 
     const dictionary& outputDict = dict.subDict("output");
     outputDict.lookup("name") >> output_.name_;

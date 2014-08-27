@@ -128,7 +128,7 @@ Foam::geometrySurface::geometrySurface
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     surface(parent, dict, colours),
@@ -140,7 +140,7 @@ Foam::geometrySurface::geometrySurface
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours,
+    const HashPtrTable<DataEntry<vector>, word>& colours,
     const List<fileName>& fileNames
 )
 :
@@ -187,18 +187,12 @@ void Foam::geometrySurface::updateActors(const label frameI)
     surface::updateActors(frameI);
 
     surfaceActor_->GetProperty()->SetOpacity(opacity(frameI));
-    surfaceActor_->GetProperty()->SetColor
-    (
-        surfaceColour_[0],
-        surfaceColour_[1],
-        surfaceColour_[2]
-    );
-    surfaceActor_->GetProperty()->SetEdgeColor
-    (
-        edgeColour_[0],
-        edgeColour_[1],
-        edgeColour_[2]
-    );
+
+    vector sc = surfaceColour_->value(frameI);
+    surfaceActor_->GetProperty()->SetColor(sc[0], sc[1], sc[2]);
+
+    vector ec = edgeColour_->value(frameI);
+    surfaceActor_->GetProperty()->SetEdgeColor(ec[0], ec[1], ec[2]);
 }
 
 

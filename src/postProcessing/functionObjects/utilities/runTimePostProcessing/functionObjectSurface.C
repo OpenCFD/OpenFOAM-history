@@ -51,7 +51,7 @@ Foam::functionObjectSurface::functionObjectSurface
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     geometrySurface(parent, dict, colours, List<fileName>()),
@@ -111,7 +111,7 @@ void Foam::functionObjectSurface::addGeometryToScene
         surf->SetFileName(fName.c_str());
         surf->Update();
 
-        addGlyphs(surf->GetOutput(), surfaceActor_, renderer);
+        addGlyphs(frameI, surf->GetOutput(), surfaceActor_, renderer);
     }
     else
     {
@@ -128,7 +128,7 @@ void Foam::functionObjectSurface::addGeometryToScene
                 vtkSmartPointer<vtkPolyDataMapper>::New();
             mapper->SetInputConnection(surf->GetOutputPort());
 
-            setField(mapper, renderer);
+            setField(frameI, mapper, renderer);
 
             surfaceActor_->SetMapper(mapper);
 

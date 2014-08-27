@@ -118,6 +118,7 @@ void Foam::fieldVisualisationBase::setColourMap(vtkLookupTable* lut) const
 
 void Foam::fieldVisualisationBase::addScalarBar
 (
+    const label frameI,
     vtkRenderer* renderer,
     vtkLookupTable* lut
 ) const
@@ -134,7 +135,7 @@ void Foam::fieldVisualisationBase::addScalarBar
     sbar->SetTitle(scalarBar_.title_.c_str());
     sbar->SetNumberOfLabels(scalarBar_.numberOfLabels_);
 
-    const vector& textColour = colours_["text"];
+    const vector textColour = colours_["text"]->value(frameI);
 
     sbar->GetTitleTextProperty()->SetColor
     (
@@ -190,6 +191,7 @@ void Foam::fieldVisualisationBase::addScalarBar
 
 void Foam::fieldVisualisationBase::setField
 (
+    const label frameI,
     vtkPolyDataMapper* mapper,
     vtkRenderer* renderer
 ) const
@@ -218,6 +220,7 @@ void Foam::fieldVisualisationBase::setField
                 (
                     "void Foam::fieldVisualisationBase::setField"
                     "("
+                        "const label, "
                         "vtkPolyDataMapper*, "
                         "vtkRenderer*"
                     ") const"
@@ -235,7 +238,7 @@ void Foam::fieldVisualisationBase::setField
             mapper->ScalarVisibilityOn();
 
             // add the bar
-            addScalarBar(renderer, lut);
+            addScalarBar(frameI, renderer, lut);
             break;
         }
     }
@@ -247,6 +250,7 @@ void Foam::fieldVisualisationBase::setField
 
 void Foam::fieldVisualisationBase::addGlyphs
 (
+    const label frameI,
     vtkPolyData* data,
     vtkActor* actor,
     vtkRenderer* renderer
@@ -260,7 +264,9 @@ void Foam::fieldVisualisationBase::addGlyphs
         (
             "void Foam::fieldVisualisationBase::addGlyphs"
             "("
+                "const label, "
                 "vtkPolyData*, "
+                "vtkActor*, "
                 "vtkRenderer*"
             ") const"
         )
@@ -313,7 +319,9 @@ void Foam::fieldVisualisationBase::addGlyphs
         (
             "void Foam::fieldVisualisationBase::addGlyphs"
             "("
+                "const label, "
                 "vtkPolyData*, "
+                "vtkActor*, "
                 "vtkRenderer*"
             ") const"
         )
@@ -330,7 +338,7 @@ void Foam::fieldVisualisationBase::addGlyphs
         glyph->Update();
         glyphMapper->Update();
 
-        setField(glyphMapper, renderer);
+        setField(frameI, glyphMapper, renderer);
 
         actor->SetMapper(glyphMapper);
 
@@ -345,7 +353,7 @@ Foam::fieldVisualisationBase::fieldVisualisationBase
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     parent_(parent),
@@ -391,7 +399,7 @@ Foam::fieldVisualisationBase::~fieldVisualisationBase()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-const Foam::HashTable<Foam::vector, Foam::word>&
+const Foam::HashPtrTable<Foam::DataEntry<Foam::vector>, Foam::word>&
 Foam::fieldVisualisationBase::colours() const
 {
     return colours_;

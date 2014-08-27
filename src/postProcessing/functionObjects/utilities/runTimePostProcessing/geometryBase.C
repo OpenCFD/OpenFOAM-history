@@ -33,7 +33,7 @@ Foam::geometryBase::geometryBase
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     parent_(parent),
@@ -85,7 +85,7 @@ Foam::scalar Foam::geometryBase::opacity(const label frameI) const
 }
 
 
-const Foam::HashTable<Foam::vector, Foam::word>&
+const Foam::HashPtrTable<Foam::DataEntry<Foam::vector>, Foam::word>&
 Foam::geometryBase::colours() const
 {
     return colours_;

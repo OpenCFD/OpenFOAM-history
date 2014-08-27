@@ -61,6 +61,7 @@ const Foam::NamedEnum<Foam::pathline::representationType, 4>
 
 void Foam::pathline::addLines
 (
+    const label frameI,
     vtkActor* actor,
     vtkPolyDataMapper* mapper,
     vtkPolyData* data
@@ -68,12 +69,9 @@ void Foam::pathline::addLines
 {
     actor->GetProperty()->SetSpecular(0);
     actor->GetProperty()->SetSpecularPower(20);
-    actor->GetProperty()->SetColor
-    (
-        lineColour_[0],
-        lineColour_[1],
-        lineColour_[2]
-    );
+
+    vector colour = lineColour_->value(frameI);
+    actor->GetProperty()->SetColor(colour[0], colour[1], colour[2]);
 
     switch (representation_)
     {
@@ -119,7 +117,7 @@ Foam::pathline::pathline
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     geometryBase(parent, dict, colours),
@@ -128,11 +126,15 @@ Foam::pathline::pathline
         representationTypeNames.read(dict.lookup("representation"))
     ),
     tubeRadius_(0.0),
-    lineColour_(dict.lookupOrDefault("lineColour", vector(-1, 0, 0)))
+    lineColour_(NULL)
 {
-    if (lineColour_[0] < 0)
+    if (dict.found("lineColour"))
     {
-        lineColour_ = colours["line"];
+        lineColour_.reset(DataEntry<vector>::New("lineColour", dict).ptr());
+    }
+    else
+    {
+        lineColour_.reset(colours["line"]->clone().ptr());
     }
 
     switch (representation_)
@@ -165,7 +167,7 @@ Foam::autoPtr<Foam::pathline> Foam::pathline::New
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours,
+    const HashPtrTable<DataEntry<vector>, word>& colours,
     const word& pathlineType
 )
 {
@@ -185,7 +187,7 @@ Foam::autoPtr<Foam::pathline> Foam::pathline::New
             "("
                 "const runTimePostProcessing&, "
                 "const dictionary&, "
-                "const HashTable<vector, word>&, "
+                "const HashPtrTable<DataEntry<vector>, word>&, "
                 "const word&"
             ")"
         )   << "Unknown pathline type "

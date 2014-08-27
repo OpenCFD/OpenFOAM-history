@@ -37,6 +37,7 @@ SourceFiles
 #include "dictionary.H"
 #include "vector.H"
 #include "DataEntry.H"
+#include "HashPtrTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -81,7 +82,7 @@ protected:
         autoPtr<DataEntry<scalar> > opacity_;
 
         //- Reference to the colours
-        const HashTable<vector, word>& colours_;
+        const HashPtrTable<DataEntry<vector>, word>& colours_;
 
 
 public:
@@ -93,7 +94,7 @@ public:
         (
             const runTimePostProcessing& parent_,
             const dictionary& dict,
-            const HashTable<vector, word>& colours
+            const HashPtrTable<DataEntry<vector>, word>& colours
         );
 
 
@@ -118,7 +119,7 @@ public:
             scalar opacity(const label frameI) const;
 
             //- Return reference to the colours
-            const HashTable<vector, word>& colours() const;
+            const HashPtrTable<DataEntry<vector>, word>& colours() const;
 
 
         //- Add geometry to scene

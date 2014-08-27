@@ -38,6 +38,8 @@ SourceFiles
 #include "Tuple2.H"
 #include "NamedEnum.H"
 #include "vector.H"
+#include "HashPtrTable.H"
+#include "DataEntry.H"
 
 #include "vtkSmartPointer.h"
 
@@ -106,7 +108,7 @@ protected:
         };
 
         //- Colours
-        const HashTable<vector, word>& colours_;
+        const HashPtrTable<DataEntry<vector>, word>& colours_;
 
         //- Field name
         word fieldName_;
@@ -130,14 +132,25 @@ protected:
         void setColourMap(vtkLookupTable* lut) const;
 
         //- Add scalar bar to renderer
-        void addScalarBar(vtkRenderer* renderer, vtkLookupTable* lut) const;
+        void addScalarBar
+        (
+            const label frameI,
+            vtkRenderer* renderer,
+            vtkLookupTable* lut
+        ) const;
 
         //- Set field/configure mapper, add scalar bar
-        void setField(vtkPolyDataMapper* mapper, vtkRenderer* renderer) const;
+        void setField
+        (
+            const label frameI,
+            vtkPolyDataMapper* mapper,
+            vtkRenderer* renderer
+        ) const;
 
         //- Add glyphs
         void addGlyphs
         (
+            const label frameI,
             vtkPolyData* data,
             vtkActor* actor,
             vtkRenderer* renderer
@@ -157,7 +170,7 @@ public:
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
-            const HashTable<vector, word>& colours
+            const HashPtrTable<DataEntry<vector>, word>& colours
         );
 
 
@@ -170,7 +183,7 @@ public:
         // Access
 
             //- Return the colours
-            const HashTable<vector, word>& colours() const;
+            const HashPtrTable<DataEntry<vector>, word>& colours() const;
 
             //- Return the field name
             const word& fieldName() const;

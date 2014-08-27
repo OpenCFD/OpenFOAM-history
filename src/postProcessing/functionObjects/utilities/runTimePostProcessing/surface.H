@@ -95,10 +95,10 @@ protected:
         bool featureEdges_;
 
         //- Surface colour
-        vector surfaceColour_;
+        autoPtr<DataEntry<vector> > surfaceColour_;
 
         //- Edge colour
-        vector edgeColour_;
+        autoPtr<DataEntry<vector> > edgeColour_;
 
         //- Surface actor
         vtkSmartPointer<vtkActor> surfaceActor_;
@@ -136,7 +136,7 @@ public:
             (
                 const runTimePostProcessing& parent,
                 const dictionary& dict,
-                const HashTable<vector, word>& colours
+                const HashPtrTable<DataEntry<vector>, word>& colours
             ),
             (parent, dict, colours)
         );
@@ -149,7 +149,7 @@ public:
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
-            const HashTable<vector, word>& colours
+            const HashPtrTable<DataEntry<vector>, word>& colours
         );
 
 
@@ -160,7 +160,7 @@ public:
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
-            const HashTable<vector, word>& colours,
+            const HashPtrTable<DataEntry<vector>, word>& colours,
             const word& surfaceName
         );
 

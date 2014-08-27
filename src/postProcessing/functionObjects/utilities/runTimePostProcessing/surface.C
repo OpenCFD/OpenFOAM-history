@@ -130,31 +130,13 @@ void Foam::surface::addFeatureEdges
 }
 
 
-void Foam::surface::updateActors(const label frameI)
-{
-    if (!featureEdges_)
-    {
-        return;
-    }
-
-    edgeActor_->GetProperty()->SetLineWidth(2);
-    edgeActor_->GetProperty()->SetOpacity(opacity(frameI));
-    edgeActor_->GetProperty()->SetEdgeColor
-    (
-        edgeColour_[0],
-        edgeColour_[1],
-        edgeColour_[2]
-    );
-}
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::surface::surface
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours
+    const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
     geometryBase(parent, dict, colours),
@@ -163,22 +145,33 @@ Foam::surface::surface
         representationTypeNames.read(dict.lookup("representation"))
     ),
     featureEdges_(readBool(dict.lookup("featureEdges"))),
-    surfaceColour_(dict.lookupOrDefault("surfaceColour", vector(-1, 0, 0))),
-    edgeColour_(dict.lookupOrDefault("edgeColour", vector(-1, 0, 0))),
+    surfaceColour_(NULL),
+    edgeColour_(NULL),
     surfaceActor_(),
     edgeActor_()
 {
     surfaceActor_ = vtkSmartPointer<vtkActor>::New();
     edgeActor_ = vtkSmartPointer<vtkActor>::New();
 
-    if (surfaceColour_[0] < 0)
+    if (dict.found("surfaceColour"))
     {
-        surfaceColour_ = colours["surface"];
+        surfaceColour_.reset
+        (
+            DataEntry<vector>::New("surfaceColour", dict).ptr()
+        );
+    }
+    else
+    {
+        surfaceColour_.reset(colours["surface"]->clone().ptr());
     }
 
-    if (edgeColour_[0] < 0)
+    if (dict.found("edgeColour"))
     {
-        edgeColour_ = colours["edge"];
+        edgeColour_.reset(DataEntry<vector>::New("edgeColour", dict).ptr());
+    }
+    else
+    {
+        edgeColour_.reset(colours["edge"]->clone().ptr());
     }
 }
 
@@ -189,7 +182,7 @@ Foam::autoPtr<Foam::surface> Foam::surface::New
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
-    const HashTable<vector, word>& colours,
+    const HashPtrTable<DataEntry<vector>, word>& colours,
     const word& surfaceType
 )
 {
@@ -209,7 +202,7 @@ Foam::autoPtr<Foam::surface> Foam::surface::New
             "("
                 "const runTimePostProcessing&, "
                 "const dictionary&, "
-                "const HashTable<vector, word>&, "
+                "const HashPtrTable<DataEntry<vector>, word>&, "
                 "const word&"
             ")"
         )   << "Unknown surface type "
@@ -227,6 +220,28 @@ Foam::autoPtr<Foam::surface> Foam::surface::New
 
 Foam::surface::~surface()
 {}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+void Foam::surface::updateActors(const label frameI)
+{
+    if (!featureEdges_)
+    {
+        return;
+    }
+
+    edgeActor_->GetProperty()->SetLineWidth(2);
+    edgeActor_->GetProperty()->SetOpacity(opacity(frameI));
+
+    const vector colour = edgeColour_->value(frameI);
+    edgeActor_->GetProperty()->SetEdgeColor
+    (
+        colour[0],
+        colour[1],
+        colour[2]
+    );
+}
 
 
 // ************************************************************************* //
