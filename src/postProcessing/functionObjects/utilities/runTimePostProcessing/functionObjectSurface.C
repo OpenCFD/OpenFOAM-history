@@ -73,7 +73,11 @@ Foam::functionObjectSurface::~functionObjectSurface()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::functionObjectSurface::addToScene(vtkRenderer* renderer)
+void Foam::functionObjectSurface::addToScene
+(
+    const label frameI,
+    vtkRenderer* renderer
+)
 {
     if (!visible_)
     {
@@ -122,10 +126,10 @@ void Foam::functionObjectSurface::addToScene(vtkRenderer* renderer)
             edgeColour_[1],
             edgeColour_[2]
         );
-        actor->GetProperty()->SetOpacity(opacity_);
+        actor->GetProperty()->SetOpacity(opacity(frameI));
         setRepresentation(actor);
 
-        renderer->AddActor(actor);
+//        renderer->AddActor(actor);
 
         if (1) // glyph_)
         {
@@ -134,7 +138,7 @@ void Foam::functionObjectSurface::addToScene(vtkRenderer* renderer)
     }
     else
     {
-        geometrySurface::addToScene(renderer, fName);
+        geometrySurface::addToScene(frameI, renderer, fName);
     }
 }
 

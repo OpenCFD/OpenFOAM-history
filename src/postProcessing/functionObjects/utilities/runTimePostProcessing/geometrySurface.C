@@ -57,6 +57,7 @@ namespace Foam
 
 void Foam::geometrySurface::addToScene
 (
+    const label frameI,
     vtkRenderer* renderer,
     const fileName& fName
 ) const
@@ -128,7 +129,7 @@ void Foam::geometrySurface::addToScene
         edgeColour_[1],
         edgeColour_[2]
     );
-    actor->GetProperty()->SetOpacity(opacity_);
+    actor->GetProperty()->SetOpacity(opacity(frameI));
 
     setRepresentation(actor);
 
@@ -171,7 +172,11 @@ Foam::geometrySurface::~geometrySurface()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::geometrySurface::addToScene(vtkRenderer* renderer)
+void Foam::geometrySurface::addToScene
+(
+    const label frameI,
+    vtkRenderer* renderer
+)
 {
     if (!visible_)
     {
@@ -182,7 +187,7 @@ void Foam::geometrySurface::addToScene(vtkRenderer* renderer)
     {
         fileName fName = fileNames_[i].expand();
 
-        addToScene(renderer, fName);
+        addToScene(frameI, renderer, fName);
     }
 }
 

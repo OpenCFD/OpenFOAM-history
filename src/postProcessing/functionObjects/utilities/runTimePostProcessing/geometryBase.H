@@ -36,6 +36,7 @@ SourceFiles
 
 #include "dictionary.H"
 #include "vector.H"
+#include "DataEntry.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -77,7 +78,7 @@ protected:
         bool visible_;
 
         //- Opacity
-        scalar opacity_;
+        autoPtr<DataEntry<scalar> > opacity_;
 
         //- Reference to the colours
         const HashTable<vector, word>& colours_;
@@ -114,14 +115,18 @@ public:
             bool visible() const;
 
             //- Return the opacity
-            scalar opacity() const;
+            scalar opacity(const label frameI) const;
 
             //- Return reference to the colours
             const HashTable<vector, word>& colours() const;
 
 
         //- Add geometry to scene
-        virtual void addToScene(vtkRenderer* renderer) = 0;
+        virtual void addToScene
+        (
+            const label frameI,
+            vtkRenderer* renderer
+        ) = 0;
 };
 
 

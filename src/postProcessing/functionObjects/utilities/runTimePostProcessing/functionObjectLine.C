@@ -69,7 +69,11 @@ Foam::functionObjectLine::~functionObjectLine()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::functionObjectLine::addToScene(vtkRenderer* renderer)
+void Foam::functionObjectLine::addToScene
+(
+    const label frameI,
+    vtkRenderer* renderer
+)
 {
     if (!visible_)
     {
@@ -87,7 +91,14 @@ void Foam::functionObjectLine::addToScene(vtkRenderer* renderer)
     fileName fName;
     if (!dict.readIfPresent("file", fName))
     {
-        WarningIn("void Foam::functionObjectLine::addToScene(vtkRenderer*)")
+        WarningIn
+        (
+            "void Foam::functionObjectLine::addToScene"
+            "("
+                "const label, "
+                "vtkRenderer*"
+            ")"
+        )
             << "Unable to find function object " << functionObject_
             << " output for field " << fieldName_
             << ". Line will not be processed"
@@ -109,6 +120,7 @@ void Foam::functionObjectLine::addToScene(vtkRenderer* renderer)
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
         actor->GetProperty()->SetLineWidth(2);
+        actor->GetProperty()->SetOpacity(opacity(frameI));
 
         addLines(actor, mapper, lines->GetOutput());
 

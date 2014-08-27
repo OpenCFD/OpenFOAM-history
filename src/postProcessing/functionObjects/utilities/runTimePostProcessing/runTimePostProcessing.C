@@ -50,12 +50,20 @@ namespace Foam
 void Foam::runTimePostProcessing::initialiseScene(vtkRenderer* renderer)
 {
     // set the background
+    renderer->GradientBackgroundOn();
     const vector& backgroundColour = colours_["background"];
+    const vector& backgroundColour2 = colours_["background2"];
     renderer->SetBackground
     (
         backgroundColour.x(),
         backgroundColour.y(),
         backgroundColour.z()
+    );
+    renderer->SetBackground2
+    (
+        backgroundColour2.x(),
+        backgroundColour2.y(),
+        backgroundColour2.z()
     );
 
     camera_.initialise(renderer);
@@ -99,12 +107,17 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
 
     const dictionary& colourDict = dict.subDict("colours");
     vector backgroundColour(colourDict.lookup("background"));
+    vector backgroundColour2
+    (
+        colourDict.lookupOrDefault("background2", backgroundColour)
+    );
     vector textColour(colourDict.lookup("text"));
     vector surfaceColour(colourDict.lookup("surface"));
     vector edgeColour(colourDict.lookup("edge"));
     vector lineColour(colourDict.lookup("line"));
 
     colours_.insert("background", backgroundColour);
+    colours_.insert("background2", backgroundColour2);
     colours_.insert("text", textColour);
     colours_.insert("surface", surfaceColour);
     colours_.insert("edge", edgeColour);
@@ -219,6 +232,11 @@ void Foam::runTimePostProcessing::timeSet()
 
 void Foam::runTimePostProcessing::write()
 {
+    if (!Pstream::master())
+    {
+        return;
+    }
+
     Info<< type() << " " << name_ <<  " output:" << nl
         << "    Constructing scene" << endl;
 
@@ -227,6 +245,7 @@ void Foam::runTimePostProcessing::write()
         vtkSmartPointer<vtkRenderWindow>::New();
     renderWindow->OffScreenRenderingOn();
     renderWindow->SetSize(output_.width_, output_.height_);
+    renderWindow->SetAAFrames(10);
 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     initialiseScene(renderer);
@@ -237,26 +256,29 @@ void Foam::runTimePostProcessing::write()
 
     while (camera_.loop(renderer))
     {
-        // add the lines
-        forAll(lines_, i)
+        if (camera_.addObjects())
         {
-            lines_[i].addToScene(renderer);
-        }
+            // add the lines
+            forAll(lines_, i)
+            {
+                lines_[i].addToScene(camera_.frameIndex(), renderer);
+            }
 
-        // add the surfaces
-        forAll(surfaces_, i)
-        {
-            surfaces_[i].addToScene(renderer);
-        }
+            // add the surfaces
+            forAll(surfaces_, i)
+            {
+                surfaces_[i].addToScene(camera_.frameIndex(), renderer);
+            }
 
-        // add the text
-        forAll(text_, i)
-        {
-            text_[i].addToScene(renderer);
+            // add the text
+            forAll(text_, i)
+            {
+                text_[i].addToScene(camera_.frameIndex(), renderer);
+            }
         }
 
         // saveimage to file
-        camera_.saveImage(renderWindow, renderer, prefix, output_.name_);
+        camera_.saveImage(renderWindow, prefix, output_.name_);
     }
 }
 

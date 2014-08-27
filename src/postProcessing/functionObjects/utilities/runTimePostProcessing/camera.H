@@ -39,15 +39,14 @@ SourceFiles
 #include "DataEntry.H"
 #include "vector.H"
 #include "point.H"
+#include "boundBox.H"
+#include "NamedEnum.H"
 
 // VTK includes
 #include "vtkSmartPointer.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-class vtkActor;
-class vtkCubeSource;
-class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkRenderWindow;
 
@@ -60,6 +59,13 @@ namespace Foam
 
 class camera
 {
+public:
+
+    enum modeType{mtStatic, mtFlightPath};
+
+    NamedEnum<modeType, 2> modeTypeNames_;
+
+
 private:
 
     // Private data
@@ -78,6 +84,9 @@ protected:
 
     // Protected data
 
+        //- Mode
+        modeType mode_;
+
         //- Position
         autoPtr<DataEntry<point> > position_;
 
@@ -93,14 +102,14 @@ protected:
         //- View angle
         autoPtr<DataEntry<scalar> > viewAngle_;
 
-        //- Minimum extent point
-        autoPtr<DataEntry<point> > minExtent_;
-
-        //- Maximum extent point
-        autoPtr<DataEntry<point> > maxExtent_;
+        //- Clipping box
+        boundBox clipBox_;
 
         //- Parallel projection flag
         bool parallelProjection_;
+
+        //- Frozen objects flag (only camera moves)
+        bool frozenObjects_;
 
         //- Number of frames
         label nFrameTotal_;
@@ -108,20 +117,12 @@ protected:
         //- Index of current frame
         label currentFrameI_;
 
-        //- Clip to region
-        vtkSmartPointer<vtkCubeSource> clipBox_;
-
-        vtkSmartPointer<vtkPolyDataMapper> clipMapper_;
-
-        vtkSmartPointer<vtkActor> clipActor_;
-
 
     // Protected Member Functions
 
-        void setCamera(vtkRenderer* renderer) const;
+        void setCamera(vtkRenderer* rendere, const bool override) const;
 
-        void setExtents(vtkRenderer* renderer) const;
-
+        string frameIndexStr() const;
 
 
 public:
@@ -140,6 +141,9 @@ public:
 
         // Access
 
+            //- Return the current frame index
+            label frameIndex() const;
+
             void read(const dictionary& dict);
 
             void initialise(vtkRenderer* renderer);
@@ -147,11 +151,13 @@ public:
             //- Main control loop
             bool loop(vtkRenderer* renderer);
 
+            //- Flag to indicate whether to add objects to scene
+            bool addObjects() const;
+
             //- Save image to file
             void saveImage
             (
                 vtkRenderWindow* renderWindow,
-                vtkRenderer* renderer,
                 const fileName& prefix,
                 const word& outputName
             ) const;

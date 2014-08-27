@@ -25,6 +25,7 @@ License
 
 #include "geometryBase.H"
 #include "runTimePostProcessing.H"
+#include "Constant.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -38,9 +39,18 @@ Foam::geometryBase::geometryBase
     parent_(parent),
     name_(dict.dictName()),
     visible_(readBool(dict.lookup("visible"))),
-    opacity_(dict.lookupOrDefault("opacity", 1.0)),
+    opacity_(NULL),
     colours_(colours)
-{}
+{
+    if (dict.found("opacity"))
+    {
+        opacity_.reset(DataEntry<scalar>::New("opacity", dict).ptr());
+    }
+    else
+    {
+        opacity_.reset(new Constant<scalar>("opacity", 1.0));
+    }
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -69,9 +79,9 @@ bool Foam::geometryBase::visible() const
 }
 
 
-Foam::scalar Foam::geometryBase::opacity() const
+Foam::scalar Foam::geometryBase::opacity(const label frameI) const
 {
-    return opacity_;
+    return opacity_->value(frameI);
 }
 
 

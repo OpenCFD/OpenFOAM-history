@@ -33,8 +33,18 @@ License
 #include "vtkPolyDataMapper.h"
 #include "vtkPNGWriter.h"
 #include "vtkRenderer.h"
+#include "vtkRendererCollection.h"
 #include "vtkRenderWindow.h"
 #include "vtkWindowToImageFilter.h"
+
+template<>
+const char* Foam::NamedEnum<Foam::camera::modeType, 2>::names[] =
+{
+    "static",
+    "flightPath"
+};
+
+const Foam::NamedEnum<Foam::camera::modeType, 2> modeTypeNames_;
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -42,92 +52,72 @@ void Foam::camera::initialise(vtkRenderer* renderer)
 {
     // set the camera
     vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
-
-    if (parallelProjection_)
-    {
-        camera->ParallelProjectionOn();
-    }
-    else
-    {
-        camera->ParallelProjectionOff();
-    }
-
+    camera->SetParallelProjection(parallelProjection_);
     renderer->SetActiveCamera(camera);
 
+    setCamera(renderer, true);
 
     // initialise the extents
-    if (minExtent_.valid())
+    if (mode_ == mtStatic)
     {
-        clipBox_ = vtkSmartPointer<vtkCubeSource>::New();
-        point min = minExtent_->value(currentFrameI_);
-        point max = maxExtent_->value(currentFrameI_);
-
-        clipBox_->SetXLength(max.x() - min.x());
-        clipBox_->SetYLength(max.y() - min.y());
-        clipBox_->SetZLength(max.z() - min.z());
-        clipBox_->SetCenter
+        const point& min = clipBox_.min();
+        const point& max = clipBox_.max();
+        vtkSmartPointer<vtkCubeSource> clipBox =
+            vtkSmartPointer<vtkCubeSource>::New();
+        clipBox->SetXLength(max.x() - min.x());
+        clipBox->SetYLength(max.y() - min.y());
+        clipBox->SetZLength(max.z() - min.z());
+        clipBox->SetCenter
         (
             min.x() + 0.5*(max.x() - min.x()),
             min.y() + 0.5*(max.y() - min.y()),
             min.z() + 0.5*(max.z() - min.z())
         );
+        vtkSmartPointer<vtkPolyDataMapper> clipMapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+        clipMapper->SetInputConnection(clipBox->GetOutputPort());
 
-        clipMapper_ = vtkSmartPointer<vtkPolyDataMapper>::New();
-        clipMapper_->SetInputConnection(clipBox_->GetOutputPort());
+        vtkSmartPointer<vtkActor> clipActor = vtkSmartPointer<vtkActor>::New();
+        clipActor->SetMapper(clipMapper);
+        clipActor->VisibilityOn();
+        renderer->AddActor(clipActor);
 
-        clipActor_ = vtkSmartPointer<vtkActor>::New();
-        clipActor_->VisibilityOff();
-        clipActor_->SetMapper(clipMapper_);
-
-        renderer->AddActor(clipActor_);
-    }
-}
-
-
-void Foam::camera::setCamera(vtkRenderer* renderer) const
-{
-    vtkCamera* camera = renderer->GetActiveCamera();
-
-    if (!parallelProjection_)
-    {
-        camera->SetViewAngle(viewAngle_->value(currentFrameI_));
-    }
-
-    const vector up = up_->value(currentFrameI_);
-    const vector position = position_->value(currentFrameI_);
-    const point focalPoint = focalPoint_->value(currentFrameI_);
-
-    camera->SetViewUp(up.x(), up.y(), up.z());
-    camera->SetPosition(position.x(), position.y(), position.z());
-    camera->SetFocalPoint(focalPoint.x(), focalPoint.y(), focalPoint.z());
-}
-
-
-void Foam::camera::setExtents(vtkRenderer* renderer) const
-{
-    if (!minExtent_.valid())
-    {
         renderer->ResetCamera();
-        return;
+
+        clipActor->VisibilityOff();
     }
+}
 
-    point min = minExtent_->value(currentFrameI_);
-    point max = maxExtent_->value(currentFrameI_);
 
-    clipBox_->SetXLength(max.x() - min.x());
-    clipBox_->SetYLength(max.y() - min.y());
-    clipBox_->SetZLength(max.z() - min.z());
-    clipBox_->SetCenter
-    (
-        min.x() + 0.5*(max.x() - min.x()),
-        min.y() + 0.5*(max.y() - min.y()),
-        min.z() + 0.5*(max.z() - min.z())
-    );
+void Foam::camera::setCamera(vtkRenderer* renderer, const bool override) const
+{
+    if (mode_ == mtFlightPath || override)
+    {
+        vtkCamera* camera = renderer->GetActiveCamera();
 
-    clipActor_->VisibilityOn();
-    clipMapper_->Update();
-    renderer->ResetCamera();
-    clipActor_->VisibilityOff();
+        if (!parallelProjection_)
+        {
+            camera->SetViewAngle(viewAngle_->value(currentFrameI_));
+        }
+
+        const vector up = up_->value(currentFrameI_);
+        const vector position = position_->value(currentFrameI_);
+        const point focalPoint = focalPoint_->value(currentFrameI_);
+
+        camera->SetViewUp(up.x(), up.y(), up.z());
+        camera->SetPosition(position.x(), position.y(), position.z());
+        camera->SetFocalPoint(focalPoint.x(), focalPoint.y(), focalPoint.z());
+        camera->Modified();
+    }
+}
+
+
+Foam::string Foam::camera::frameIndexStr() const
+{
+    string str = Foam::name(currentFrameI_);
+    str.insert(0, 4 - str.length(), '0');
+
+    return str;
 }
 
 
@@ -135,17 +125,17 @@ void Foam::camera::setExtents(vtkRenderer* renderer) const
 
 Foam::camera::camera()
 :
+    mode_(mtStatic),
     position_(NULL),
     focalPoint_(NULL),
     up_(NULL),
     zoom_(NULL),
     viewAngle_(NULL),
-    minExtent_(NULL),
-    maxExtent_(NULL),
+    clipBox_(),
     parallelProjection_(true),
+    frozenObjects_(false),
     nFrameTotal_(1),
-    currentFrameI_(0),
-    clipBox_(NULL)
+    currentFrameI_(0)
 {}
 
 
@@ -157,53 +147,94 @@ Foam::camera::~camera()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+Foam::label Foam::camera::frameIndex() const
+{
+    return currentFrameI_;
+}
+
+
 void Foam::camera::read(const dictionary& dict)
 {
-    position_.reset(DataEntry<vector>::New("position", dict).ptr());
-    focalPoint_.reset(DataEntry<point>::New("focalPoint", dict).ptr());
-    up_.reset(DataEntry<vector>::New("up", dict).ptr());
-
+    nFrameTotal_ = dict.lookupOrDefault("nFrameTotal", 1);
+    frozenObjects_ = dict.lookupOrDefault("frozenObjects", false);
     dict.lookup("parallelProjection") >> parallelProjection_;
+
+    mode_ = modeTypeNames_.read(dict.lookup("mode"));
+
+    word coeffsName = modeTypeNames_[mode_] + word("Coeffs");
+    const dictionary& coeffs = dict.subDict(coeffsName);
+
+    switch (mode_)
+    {
+        case mtStatic:
+        {
+            clipBox_ = boundBox(coeffs.lookup("clipBox"));
+            const vector lookDir(vector(coeffs.lookup("lookDir")));
+            position_.reset(new Constant<point>("position", -lookDir));
+            const vector focalPoint(coeffs.lookup("focalPoint"));
+            focalPoint_.reset(new Constant<point>("focalPoint", focalPoint));
+            const vector up(coeffs.lookup("up"));
+            up_.reset(new Constant<point>("up", up));
+            break;
+        }
+        case mtFlightPath:
+        {
+            position_.reset(DataEntry<vector>::New("position", coeffs).ptr());
+            focalPoint_.reset
+            (
+                DataEntry<point>::New("focalPoint", coeffs).ptr()
+            );
+            up_.reset(DataEntry<vector>::New("up", coeffs).ptr());
+            break;
+        }
+        default:
+        {
+            FatalErrorIn("void Foam::camera::read(const dictionary&)")
+                << "Unhandled enumeration " << modeTypeNames_[mode_]
+                << abort(FatalError);
+        }
+    }
 
     if (dict.found("zoom"))
     {
         zoom_.reset(DataEntry<scalar>::New("zoom", dict).ptr());
-
-        if (dict.found("viewAngle"))
-        {
-            viewAngle_.reset(DataEntry<scalar>::New("viewAngle", dict).ptr());
-        }
-        else
-        {
-            zoom_.reset(new Constant<scalar>("viewAngle", 35.0));
-        }
     }
     else
     {
         zoom_.reset(new Constant<scalar>("zoom", 1.0));
     }
 
-    if (dict.found("minExtent") && dict.found("maxExtent"))
+    if (dict.found("viewAngle"))
     {
-        Info<< "    Using user-defined extents" << endl;
-        minExtent_.reset(DataEntry<point>::New("minExtent", dict).ptr());
-        maxExtent_.reset(DataEntry<point>::New("maxExtent", dict).ptr());
+        viewAngle_.reset(DataEntry<scalar>::New("viewAngle", dict).ptr());
     }
     else
     {
-        Info<< "    Extents defined by geometry" << endl;
+        zoom_.reset(new Constant<scalar>("viewAngle", 35.0));
     }
 }
 
 
 bool Foam::camera::loop(vtkRenderer* renderer)
 {
+    // note: 1-based loop
     if (currentFrameI_ < nFrameTotal_)
     {
         currentFrameI_++;
 
-        setCamera(renderer);
+        setCamera(renderer, false);
 
+        return true;
+    }
+
+    return false;
+}
+
+
+bool Foam::camera::addObjects() const
+{
+    if ((currentFrameI_ == 1) || (!frozenObjects_))
+    {
         return true;
     }
 
@@ -214,7 +245,6 @@ bool Foam::camera::loop(vtkRenderer* renderer)
 void Foam::camera::saveImage
 (
     vtkRenderWindow* renderWindow,
-    vtkRenderer* renderer,
     const fileName& prefix,
     const word& outputName
 ) const
@@ -224,15 +254,7 @@ void Foam::camera::saveImage
         return;
     }
 
-    setExtents(renderer);
-
     renderWindow->Render();
-
-    renderer->GetActiveCamera()->Zoom(zoom_->value(currentFrameI_));
-
-    // anti-aliasing -  recommendation that 5-6 is ok, but 10 doesn't appear
-    // to be too expensive...
-    renderWindow->SetAAFrames(10);
 
     // set-up off-screen rendering
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
@@ -249,7 +271,7 @@ void Foam::camera::saveImage
 
     // save the image
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
-    fileName fName(prefix/outputName + Foam::name(currentFrameI_) + ".png");
+    fileName fName(prefix/outputName + '.' + frameIndexStr() + ".png");
     writer->SetFileName(fName.c_str());
     writer->SetInputConnection(windowToImageFilter->GetOutputPort());
 

@@ -73,7 +73,12 @@ protected:
     // Protected Member Functions
 
         //- Add surface (file) to scene
-        void addToScene(vtkRenderer* renderer, const fileName& fName) const;
+        void addToScene
+        (
+            const label frameI,
+            vtkRenderer* renderer,
+            const fileName& fName
+        ) const;
 
 
 public:
@@ -109,7 +114,11 @@ public:
     // Member Functions
 
         //- Add surface(s) to scene
-        virtual void addToScene(vtkRenderer* renderer);
+        virtual void addToScene
+        (
+            const label frameI,
+            vtkRenderer* renderer
+        );
 };
 
 

@@ -96,7 +96,11 @@ public:
     // Member Functions
 
         //- Add surface(s) to scene
-        virtual void addToScene(vtkRenderer* renderer);
+        virtual void addToScene
+        (
+            const label frameI,
+            vtkRenderer* renderer
+        );
 };
 
 

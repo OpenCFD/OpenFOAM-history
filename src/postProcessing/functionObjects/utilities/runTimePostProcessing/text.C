@@ -64,7 +64,7 @@ Foam::text::~text()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::text::addToScene(vtkRenderer* renderer)
+void Foam::text::addToScene(const label frameI, vtkRenderer* renderer)
 {
     if (!visible_)
     {

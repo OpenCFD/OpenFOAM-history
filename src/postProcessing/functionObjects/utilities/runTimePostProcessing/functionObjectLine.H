@@ -101,7 +101,7 @@ public:
     // Member Functions
 
         //- Add tube(s) to scene
-        virtual void addToScene(vtkRenderer* renderer);
+        virtual void addToScene(const label frameI, vtkRenderer* renderer);
 };
 
 
