@@ -51,6 +51,9 @@ class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkRenderer;
 
+
+class vtkMapper;
+
 namespace Foam
 {
 
@@ -73,6 +76,16 @@ public:
         };
 
         static const NamedEnum<colourByType, 2> colourByTypeNames;
+
+        enum colourMapType
+        {
+            cmRainbow,
+            cmBlueWhiteRed,
+            cmFire,
+            cmGreyscale
+        };
+
+        static const NamedEnum<colourMapType, 4> colourMapTypeNames;
 
 
 private:
@@ -113,8 +126,11 @@ protected:
         //- Field name
         word fieldName_;
 
-        //- Colur by type
+        //- Colour by type
         colourByType colourBy_;
+
+        //- Colour map type
+        colourMapType colourMap_;
 
         //- Range of values
         Tuple2<scalar, scalar> range_;

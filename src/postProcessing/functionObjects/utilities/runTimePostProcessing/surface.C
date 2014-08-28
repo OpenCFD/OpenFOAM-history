@@ -62,12 +62,7 @@ const Foam::NamedEnum<Foam::surface::representationType, 5>
 
 void Foam::surface::setRepresentation(vtkActor* actor) const
 {
-    actor->GetProperty()->SetSpecular(0);
-    actor->GetProperty()->SetSpecularPower(20);
-
-//    actor->GetProperty()->SetInterpolationToFlat();
-    actor->GetProperty()->SetInterpolationToGouraud();
-//    actor->GetProperty()->SetInterpolationToPhong();
+    geometryBase::initialiseActor(actor);
 
     switch (representation_)
     {

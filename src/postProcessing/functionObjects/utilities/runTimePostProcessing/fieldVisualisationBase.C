@@ -30,8 +30,10 @@ License
 // VTK includes
 #include "vtkArrowSource.h"
 #include "vtkColorTransferFunction.h"
+#include "vtkFloatArray.h"
 #include "vtkGlyph3D.h"
 #include "vtkLookupTable.h"
+#include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkRenderer.h"
@@ -50,10 +52,22 @@ namespace Foam
         "colour",
         "field"
     };
+
+    template<>
+    const char* NamedEnum<fieldVisualisationBase::colourMapType, 4>::names[] =
+    {
+        "rainbow",
+        "blueWhiteRed",
+        "fire",
+        "greyscale"
+    };
 }
 
 const Foam::NamedEnum<Foam::fieldVisualisationBase::colourByType, 2>
     Foam::fieldVisualisationBase::colourByTypeNames;
+
+const Foam::NamedEnum<Foam::fieldVisualisationBase::colourMapType, 4>
+    Foam::fieldVisualisationBase::colourMapTypeNames;
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
@@ -84,29 +98,42 @@ void Foam::fieldVisualisationBase::setColourMap(vtkLookupTable* lut) const
     vtkSmartPointer<vtkColorTransferFunction> ctf =
         vtkSmartPointer<vtkColorTransferFunction>::New();
 
-    // rainbow
-    ctf->SetColorSpaceToHSV();
-    ctf->AddRGBPoint(0, 0, 0, 1);
-    ctf->AddRGBPoint(0.5, 0, 1, 0);
-    ctf->AddRGBPoint(1, 1, 0, 0);
+    switch (colourMap_)
+    {
+        case cmRainbow:
+        {
+            ctf->SetColorSpaceToHSV();
+            ctf->AddRGBPoint(0, 0, 0, 1);
+            ctf->AddRGBPoint(0.5, 0, 1, 0);
+            ctf->AddRGBPoint(1, 1, 0, 0);
+            break;
+        }
+        case cmBlueWhiteRed:
+        {
+            ctf->SetColorSpaceToDiverging();
+            ctf->AddRGBPoint(0.0, 0.231373, 0.298039, 0.752941);
+            ctf->AddRGBPoint(0.5, 0.865003, 0.865003, 0.865003);
+            ctf->AddRGBPoint(1.0, 0.705882, 0.0156863, 0.14902);
+            break;
+        }
+        case cmFire:
+        {
+            ctf->SetColorSpaceToRGB();
+            ctf->AddRGBPoint(0, 0, 0, 0);
+            ctf->AddRGBPoint(0.4, 0.901961, 0, 0);
+            ctf->AddRGBPoint(0.8, 0.901961, 0.901961, 0);
+            ctf->AddRGBPoint(1, 1, 1, 1);
+            break;
+        }
+        case cmGreyscale:
+        {
+            ctf->SetColorSpaceToRGB();
+            ctf->AddRGBPoint(0, 0, 0, 0);
+            ctf->AddRGBPoint(1, 1, 1, 1);
+            break;
+        }
+    }
 
-    // blue-whit-red
-//    ctf->SetColorSpaceToDiverging();
-//    ctf->AddRGBPoint(0.0, 0.231373, 0.298039, 0.752941);
-//    ctf->AddRGBPoint(0.5, 0.865003, 0.865003, 0.865003);
-//    ctf->AddRGBPoint(1.0, 0.705882, 0.0156863, 0.14902);
-
-    // fire
-//    ctf->SetColorSpaceToRGB();
-//    ctf->AddRGBPoint(0, 0, 0, 0);
-//    ctf->AddRGBPoint(0.4, 0.901961, 0, 0);
-//    ctf->AddRGBPoint(0.8, 0.901961, 0.901961, 0);
-//    ctf->AddRGBPoint(1, 1, 1, 1);
-
-    // greyscale
-//    ctf->SetColorSpaceToRGB();
-//    ctf->AddRGBPoint(0, 0, 0, 0);
-//    ctf->AddRGBPoint(1, 1, 1, 1);
 
     for (label i = 0; i < nColours; i++)
     {
@@ -279,23 +306,48 @@ void Foam::fieldVisualisationBase::addGlyphs
         vtkSmartPointer<vtkPolyDataMapper>::New();
     glyphMapper->SetInputConnection(glyph->GetOutputPort());
 
+    glyph->SetInputData(data);
+    glyph->ScalingOn();
+    scalar maxGlyphLength = 0.1;
+
     bool ok = true;
     if (nComponents == 1)
     {
         vtkSmartPointer<vtkSphereSource> sphere =
             vtkSmartPointer<vtkSphereSource>::New();
-//        sphere->SetPhiResolution(30);
-//        sphere->SetThetaResolution(30);
+        sphere->SetCenter(0, 0, 0);
+        sphere->SetRadius(0.5);
+//        sphere->SetPhiResolution(20);
+//        sphere->SetThetaResolution(20);
+
 
         glyph->SetSourceConnection(sphere->GetOutputPort());
-        glyph->SetInputData(data);
-        glyph->SetScaleFactor(0.1);
+
+        vtkDataArray* values =
+            data->GetPointData()->GetScalars(fieldName_.c_str());
+
+        double range[2];
+        values->GetRange(range);
+        glyph->ClampingOn();
+        glyph->SetRange(range);
+        glyph->SetScaleModeToScaleByScalar();
+        glyph->SetScaleFactor(maxGlyphLength);
+        glyph->OrientOff();
         glyph->SetColorModeToColorByScalar();
-//        glyph->ScalingOff();
-        glyph->ScalingOn();
+        glyph->SetInputArrayToProcess
+        (
+            0, // 0=scalars, 1=vectors
+            0,
+            0,
+            vtkDataObject::FIELD_ASSOCIATION_POINTS,
+            fieldName_.c_str()
+        );
     }
     else if (nComponents == 3)
     {
+        vtkDataArray* values =
+            data->GetPointData()->GetVectors(fieldName_.c_str());
+
         vtkSmartPointer<vtkArrowSource> arrow =
             vtkSmartPointer<vtkArrowSource>::New();
         arrow->SetTipResolution(10);
@@ -305,13 +357,24 @@ void Foam::fieldVisualisationBase::addGlyphs
         arrow->SetShaftRadius(0.03);
 
         glyph->SetSourceConnection(arrow->GetOutputPort());
-        glyph->SetInputData(data);
-        glyph->SetScaleFactor(0.1);
+
+        double range[6];
+        values->GetRange(range);
+        glyph->ClampingOn();
+        glyph->SetRange(range);
+        glyph->SetScaleModeToScaleByVector();
+        glyph->SetScaleFactor(maxGlyphLength);
+        glyph->OrientOn();
         glyph->SetVectorModeToUseVector();
-//        glyph->SetVectorModeToUseNormal();
         glyph->SetColorModeToColorByVector();
-//        glyph->ScalingOff();
-        glyph->ScalingOn();
+        glyph->SetInputArrayToProcess
+        (
+            1, // vectors
+            0,
+            0,
+            vtkDataObject::FIELD_ASSOCIATION_POINTS,
+            fieldName_.c_str()
+        );
     }
     else
     {
@@ -360,6 +423,7 @@ Foam::fieldVisualisationBase::fieldVisualisationBase
     colours_(colours),
     fieldName_(dict.lookup("fieldName")),
     colourBy_(cbColour),
+    colourMap_(cmRainbow),
     range_()
 {
     colourBy_ = colourByTypeNames.read(dict.lookup("colourBy"));
@@ -375,6 +439,11 @@ Foam::fieldVisualisationBase::fieldVisualisationBase
             dict.lookup("range") >> range_;
             break;
         }
+    }
+
+    if (dict.found("colourMap"))
+    {
+        colourMap_ = colourMapTypeNames.read(dict.lookup("colourMap"));
     }
 
     const dictionary& sbarDict = dict.subDict("scalarBar");

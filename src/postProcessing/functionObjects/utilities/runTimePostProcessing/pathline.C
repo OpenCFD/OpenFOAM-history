@@ -67,8 +67,7 @@ void Foam::pathline::addLines
     vtkPolyData* data
 ) const
 {
-    actor->GetProperty()->SetSpecular(0);
-    actor->GetProperty()->SetSpecularPower(20);
+    geometryBase::initialiseActor(actor);
 
     vector colour = lineColour_->value(frameI);
     actor->GetProperty()->SetColor(colour[0], colour[1], colour[2]);

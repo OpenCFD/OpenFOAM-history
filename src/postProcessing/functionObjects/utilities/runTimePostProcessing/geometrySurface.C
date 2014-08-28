@@ -62,6 +62,21 @@ void Foam::geometrySurface::addGeometryToScene
     const fileName& fName
 ) const
 {
+    if (representation_ == rtGlyph)
+    {
+        FatalErrorIn
+        (
+            "void Foam::geometrySurface::addGeometryToScene"
+            "("
+                "const label, "
+                "vtkRenderer*, "
+                "const fileName&"
+            ") const"
+        )
+            << "Glyph representation not available for " << typeName
+            << "object" << exit(FatalError);
+    }
+
     triSurface surf(fName);
 
     const Field<point>& surfPoints = surf.points();
