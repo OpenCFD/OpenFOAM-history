@@ -38,10 +38,12 @@ SourceFiles
 #include "vector.H"
 #include "DataEntry.H"
 #include "HashPtrTable.H"
+#include "NamedEnum.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 class vtkRenderer;
+class vtkActor;
 
 namespace Foam
 {
@@ -54,6 +56,21 @@ class runTimePostProcessing;
 
 class geometryBase
 {
+
+public:
+
+    // Public enumerations
+
+        enum renderModeType
+        {
+            rmFlat,
+            rmGouraud,
+            rmPhong
+        };
+
+        static const NamedEnum<renderModeType, 3> renderModeTypeNames;
+
+
 private:
 
     // Private Member Functions
@@ -78,11 +95,20 @@ protected:
         //- Visible flag
         bool visible_;
 
+        //- Render mode
+        renderModeType renderMode_;
+
         //- Opacity
         autoPtr<DataEntry<scalar> > opacity_;
 
         //- Reference to the colours
         const HashPtrTable<DataEntry<vector>, word>& colours_;
+
+
+    // Protected functions
+
+        //- Initialse actor
+        void initialiseActor(vtkActor* actor) const;
 
 
 public:

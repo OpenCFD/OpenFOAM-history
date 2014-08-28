@@ -27,6 +27,54 @@ License
 #include "runTimePostProcessing.H"
 #include "Constant.H"
 
+#include "vtkActor.h"
+#include "vtkProperty.h"
+
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+
+namespace Foam
+{
+    template<>
+    const char* NamedEnum<geometryBase::renderModeType, 3>::names[] =
+    {
+        "flat",
+        "gouraud",
+        "phong"
+    };
+}
+
+const Foam::NamedEnum<Foam::geometryBase::renderModeType, 3>
+    Foam::geometryBase::renderModeTypeNames;
+
+
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+
+void Foam::geometryBase::initialiseActor(vtkActor* actor) const
+{
+    actor->GetProperty()->SetSpecular(0);
+    actor->GetProperty()->SetSpecularPower(20);
+
+    switch (renderMode_)
+    {
+        case rmFlat:
+        {
+            actor->GetProperty()->SetInterpolationToFlat();
+            break;
+        }
+        case rmGouraud:
+        {
+            actor->GetProperty()->SetInterpolationToGouraud();
+            break;
+        }
+        case rmPhong:
+        {
+            actor->GetProperty()->SetInterpolationToPhong();
+            break;
+        }
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::geometryBase::geometryBase
@@ -39,9 +87,15 @@ Foam::geometryBase::geometryBase
     parent_(parent),
     name_(dict.dictName()),
     visible_(readBool(dict.lookup("visible"))),
+    renderMode_(rmGouraud),
     opacity_(NULL),
     colours_(colours)
 {
+    if (dict.found("renderMode"))
+    {
+        renderMode_ = renderModeTypeNames.read(dict.lookup("renderMode"));
+    }
+
     if (dict.found("opacity"))
     {
         opacity_.reset(DataEntry<scalar>::New("opacity", dict).ptr());
