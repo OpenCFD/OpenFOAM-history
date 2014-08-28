@@ -108,9 +108,6 @@ protected:
         //- Parallel projection flag
         bool parallelProjection_;
 
-        //- Frozen objects flag (only camera moves)
-        bool frozenObjects_;
-
         //- Number of frames
         label nFrameTotal_;
 

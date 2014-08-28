@@ -133,7 +133,6 @@ Foam::camera::camera()
     viewAngle_(NULL),
     clipBox_(),
     parallelProjection_(true),
-    frozenObjects_(false),
     nFrameTotal_(1),
     currentFrameI_(0)
 {}
@@ -156,7 +155,7 @@ Foam::label Foam::camera::frameIndex() const
 void Foam::camera::read(const dictionary& dict)
 {
     nFrameTotal_ = dict.lookupOrDefault("nFrameTotal", 1);
-    frozenObjects_ = dict.lookupOrDefault("frozenObjects", false);
+    currentFrameI_ = dict.lookupOrDefault("startFrameIndex", 0);
     dict.lookup("parallelProjection") >> parallelProjection_;
 
     mode_ = modeTypeNames_.read(dict.lookup("mode"));
@@ -233,8 +232,11 @@ bool Foam::camera::loop(vtkRenderer* renderer)
 
 bool Foam::camera::addObjects() const
 {
-    if ((currentFrameI_ == 1) || (!frozenObjects_))
+    static bool initialised = false;
+
+    if (!initialised)
     {
+        initialised = true;
         return true;
     }
 
