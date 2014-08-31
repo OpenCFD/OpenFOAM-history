@@ -40,6 +40,7 @@ License
 #include "vtkScalarBarActor.h"
 #include "vtkSmartPointer.h"
 #include "vtkSphereSource.h"
+#include "vtkTextActor.h"
 #include "vtkTextProperty.h"
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
@@ -159,11 +160,32 @@ void Foam::fieldVisualisationBase::addScalarBar
     vtkSmartPointer<vtkScalarBarActor> sbar =
         vtkSmartPointer<vtkScalarBarActor>::New();
     sbar->SetLookupTable(lut);
-    sbar->SetTitle(scalarBar_.title_.c_str());
     sbar->SetNumberOfLabels(scalarBar_.numberOfLabels_);
 
     const vector textColour = colours_["text"]->value(frameI);
 
+    // workaround to supply our own scalarbar title
+    vtkSmartPointer<vtkTextActor> titleActor =
+        vtkSmartPointer<vtkTextActor>::New();
+    sbar->SetTitle(" ");
+    titleActor->SetInput(scalarBar_.title_.c_str());
+    titleActor->GetTextProperty()->SetFontFamilyToArial();
+    titleActor->GetTextProperty()->SetFontSize(3*scalarBar_.fontSize_);
+    titleActor->GetTextProperty()->SetJustificationToCentered();
+    titleActor->GetTextProperty()->SetVerticalJustificationToBottom();
+    titleActor->GetTextProperty()->BoldOn();
+    titleActor->GetTextProperty()->ItalicOff();
+    titleActor->GetTextProperty()->SetColor
+    (
+        textColour[0],
+        textColour[1],
+        textColour[2]
+    );
+    titleActor->GetPositionCoordinate()->
+        SetCoordinateSystemToNormalizedViewport();
+
+/*
+    sbar->SetTitle(scalarBar_.title_.c_str());
     sbar->GetTitleTextProperty()->SetColor
     (
         textColour[0],
@@ -174,6 +196,8 @@ void Foam::fieldVisualisationBase::addScalarBar
     sbar->GetTitleTextProperty()->ShadowOff();
     sbar->GetTitleTextProperty()->BoldOn();
     sbar->GetTitleTextProperty()->ItalicOff();
+*/
+
     sbar->GetLabelTextProperty()->SetColor
     (
         textColour[0],
@@ -192,19 +216,31 @@ void Foam::fieldVisualisationBase::addScalarBar
         scalarBar_.position_.first(),
         scalarBar_.position_.second()
     );
-
     if (scalarBar_.vertical_)
     {
         sbar->SetOrientationToVertical();
         sbar->SetWidth(0.1);
         sbar->SetHeight(0.75);
+        sbar->SetTextPositionToSucceedScalarBar();
     }
     else
     {
         sbar->SetOrientationToHorizontal();
+
+        // adjustments since not using scalarbar title property
         sbar->SetWidth(0.75);
-        sbar->SetHeight(0.1);
+        sbar->SetHeight(0.07);
+        sbar->SetBarRatio(0.5);
+//        sbar->SetHeight(0.1);
+//        sbar->SetTitleRatio(0.01);
+        sbar->SetTextPositionToPrecedeScalarBar();
     }
+
+    titleActor->GetPositionCoordinate()->SetValue
+    (
+        scalarBar_.position_.first() + 0.5*sbar->GetWidth(),
+        scalarBar_.position_.second() + sbar->GetHeight()
+    );
 
 //    sbar->DrawFrameOn();
 //    sbar->DrawBackgroundOn();
@@ -213,6 +249,7 @@ void Foam::fieldVisualisationBase::addScalarBar
     sbar->VisibilityOn();
 
     renderer->AddActor(sbar);
+    renderer->AddActor2D(titleActor);
 }
 
 
