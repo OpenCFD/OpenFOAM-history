@@ -260,6 +260,8 @@ void Foam::runTimePostProcessing::write()
     renderWindow->OffScreenRenderingOn();
     renderWindow->SetSize(output_.width_, output_.height_);
     renderWindow->SetAAFrames(10);
+//    renderWindow->SetMultiSamples(10);
+//    renderWindow->PolygonSmoothingOn();
 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     initialiseScene(renderer);
@@ -267,6 +269,18 @@ void Foam::runTimePostProcessing::write()
 
     fileName prefix("postProcessing"/name_/obr_.time().timeName());
     mkDir(prefix);
+
+    // add the lines
+    forAll(lines_, i)
+    {
+        lines_[i].addGeometryToScene(0, renderer);
+    }
+
+    // add the surfaces
+    forAll(surfaces_, i)
+    {
+        surfaces_[i].addGeometryToScene(0, renderer);
+    }
 
     while (camera_.loop(renderer))
     {
@@ -276,28 +290,13 @@ void Foam::runTimePostProcessing::write()
             text_[i].addGeometryToScene(camera_.frameIndex(), renderer);
         }
 
-        if (camera_.addObjects())
-        {
-            // add the lines
-            forAll(lines_, i)
-            {
-                lines_[i].addGeometryToScene(camera_.frameIndex(), renderer);
-            }
-
-            // add the surfaces
-            forAll(surfaces_, i)
-            {
-                surfaces_[i].addGeometryToScene(camera_.frameIndex(), renderer);
-            }
-        }
-
-        // add the lines
+        // update the lines
         forAll(lines_, i)
         {
             lines_[i].updateActors(camera_.frameIndex());
         }
 
-        // add the surfaces
+        // update the surfaces
         forAll(surfaces_, i)
         {
             surfaces_[i].updateActors(camera_.frameIndex());

@@ -209,7 +209,7 @@ void Foam::camera::read(const dictionary& dict)
     }
     else
     {
-        zoom_.reset(new Constant<scalar>("viewAngle", 35.0));
+        viewAngle_.reset(new Constant<scalar>("viewAngle", 35.0));
     }
 }
 
@@ -223,20 +223,6 @@ bool Foam::camera::loop(vtkRenderer* renderer)
 
         setCamera(renderer, false);
 
-        return true;
-    }
-
-    return false;
-}
-
-
-bool Foam::camera::addObjects() const
-{
-    static bool initialised = false;
-
-    if (!initialised)
-    {
-        initialised = true;
         return true;
     }
 

@@ -148,9 +148,6 @@ public:
             //- Main control loop
             bool loop(vtkRenderer* renderer);
 
-            //- Flag to indicate whether to add objects to scene
-            bool addObjects() const;
-
             //- Save image to file
             void saveImage
             (
