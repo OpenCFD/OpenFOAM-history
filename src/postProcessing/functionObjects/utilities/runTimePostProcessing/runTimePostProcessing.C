@@ -66,6 +66,11 @@ void Foam::runTimePostProcessing::initialiseScene(vtkRenderer* renderer)
         backgroundColour2.z()
     );
 
+    // depth peeling
+    renderer->SetUseDepthPeeling(true);
+    renderer->SetMaximumNumberOfPeels(4);
+    renderer->SetOcclusionRatio(0);
+
     camera_.initialise(renderer);
 }
 
@@ -260,11 +265,13 @@ void Foam::runTimePostProcessing::write()
     renderWindow->OffScreenRenderingOn();
     renderWindow->SetSize(output_.width_, output_.height_);
     renderWindow->SetAAFrames(10);
-//    renderWindow->SetMultiSamples(10);
+    renderWindow->SetAlphaBitPlanes(true);
+    renderWindow->SetMultiSamples(0);
 //    renderWindow->PolygonSmoothingOn();
 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     initialiseScene(renderer);
+
     renderWindow->AddRenderer(renderer);
 
     fileName prefix("postProcessing"/name_/obr_.time().timeName());
