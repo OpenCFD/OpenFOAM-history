@@ -353,6 +353,37 @@ public:
                 const pointField& pt,
                 labelList& insideSurfaces
             ) const;
+
+            // Region wise searching
+
+                //- Find nearest point on selected regions of surfaces.
+                void findNearest
+                (
+                    const labelList& surfacesToTest,
+                    const labelListList& regions,
+
+                    const pointField& samples,
+                    const scalarField& nearestDistSqr,
+
+                    labelList& hitSurface,
+                    List<pointIndexHit>& hitInfo
+                ) const;
+
+                //- Find nearest point on selected regions of surfaces.
+                void findNearestRegion
+                (
+                    const labelList& surfacesToTest,
+                    const labelListList& regions,
+
+                    const pointField& samples,
+                    const scalarField& nearestDistSqr,
+
+                    labelList& hitSurface,
+                    List<pointIndexHit>& hitInfo,
+                    labelList& hitRegion,
+                    vectorField& hitNormal
+                ) const;
+
 };
 
 

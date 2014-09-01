@@ -142,6 +142,44 @@ class autoSnapDriver
             //  faceZone
             labelList getInternalOrBaffleDuplicateFace() const;
 
+            //- Get points both on patch and facezone.
+            static labelList getZoneSurfacePoints
+            (
+                const fvMesh& mesh,
+                const indirectPrimitivePatch&,
+                const word& zoneName
+            );
+
+            //- Get points both on patch and facezone.
+            template<class FaceList>
+            static labelList getFacePoints
+            (
+                const indirectPrimitivePatch& pp,
+                const FaceList& faces
+            );
+
+            //- Per patch point calculate point on nearest surface.
+            //  Return displacement of patch points.
+            static void calcNearestSurface
+            (
+                const refinementSurfaces& surfaces,
+
+                const labelList& surfacesToTest,
+                const labelListList& regionsToTest,
+
+                const pointField& localPoints,
+                const labelList& zonePointIndices,
+
+                scalarField& minSnapDist,
+                labelList& snapSurf,
+                vectorField& patchDisp,
+
+                // Optional: nearest point, normal
+                pointField& nearestPoint,
+                vectorField& nearestNormal
+            );
+
+
             // Feature line snapping
 
                 //- Is point on two feature edges that make a largish angle?
@@ -459,6 +497,7 @@ class autoSnapDriver
                 void determineBaffleFeatures
                 (
                     const label iter,
+                    const bool baffleFeaturePoints,
                     const scalar featureCos,
 
                     const indirectPrimitivePatch& pp,
@@ -546,6 +585,7 @@ class autoSnapDriver
                     const bool multiRegionFeatureSnap,
 
                     const bool detectBaffles,
+                    const bool baffleFeaturePoints,
                     const bool releasePoints,
                     const bool stringFeatures,
                     const bool avoidDiagonal,
@@ -651,14 +691,6 @@ public:
                 motionSmoother&
             );
 
-            //- Get points both on patch and facezone.
-            static labelList getZoneSurfacePoints
-            (
-                const fvMesh& mesh,
-                const indirectPrimitivePatch&,
-                const word& zoneName
-            );
-
             //- Helper: calculate average cell centre per point
             static tmp<pointField> avgCellCentres
             (
@@ -681,7 +713,10 @@ public:
             //  displacement of patch points.
             static vectorField calcNearestSurface
             (
+                const bool strictRegionSnap,
                 const meshRefinement& meshRefiner,
+                const labelList& globalToMasterPatch,
+                const labelList& globalToSlavePatch,
                 const scalarField& snapDist,
                 const indirectPrimitivePatch&,
                 pointField& nearestPoint,
@@ -740,6 +775,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "autoSnapDriverTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

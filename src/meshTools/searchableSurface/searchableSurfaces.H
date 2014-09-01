@@ -200,9 +200,9 @@ public:
 
             void findNearest
             (
+                const labelListList& regionIndices,
                 const pointField& samples,
                 const scalarField& nearestDistSqr,
-                const labelList& regionIndices,
                 labelList& nearestSurfaces,
                 List<pointIndexHit>& nearestInfo
             ) const;

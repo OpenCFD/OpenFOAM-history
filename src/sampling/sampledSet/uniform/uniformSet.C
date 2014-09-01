@@ -231,8 +231,7 @@ void Foam::uniformSet::calcSamples
     const vector smallVec = tol*offset;
     const scalar smallDist = mag(smallVec);
 
-    // Force calculation of minimum-tet decomposition.
-    (void) mesh().tetBasePtIs();
+    // Force calculation of cloud addressing on all processors
     passiveParticleCloud particleCloud(mesh());
 
     // Get all boundary intersections

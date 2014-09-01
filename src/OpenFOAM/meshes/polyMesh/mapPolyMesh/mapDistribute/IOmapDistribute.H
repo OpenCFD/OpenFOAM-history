@@ -22,22 +22,22 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::IOmapDistributePolyMesh
+    Foam::IOmapDistribute
 
 Description
-    IOmapDistributePolyMesh is derived from mapDistributePolyMesh and
-    IOobject to give the mapDistributePolyMesh
+    IOmapDistribute is derived from mapDistribute and
+    IOobject to give the mapDistribute
     automatic IO functionality via the objectRegistry.
 
 SourceFiles
-    IOmapDistributePolyMesh.C
+    IOmapDistribute.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef IOmapDistributePolyMesh_H
-#define IOmapDistributePolyMesh_H
+#ifndef IOmapDistribute_H
+#define IOmapDistribute_H
 
-#include "mapDistributePolyMesh.H"
+#include "mapDistribute.H"
 #include "regIOobject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -46,31 +46,34 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                   Class IOmapDistributePolyMesh Declaration
+                       Class IOmapDistribute Declaration
 \*---------------------------------------------------------------------------*/
 
-class IOmapDistributePolyMesh
+class IOmapDistribute
 :
     public regIOobject,
-    public mapDistributePolyMesh
+    public mapDistribute
 {
 
 public:
 
     //- Runtime type information
-    TypeName("mapDistributePolyMesh");
+    TypeName("mapDistribute");
 
     // Constructors
 
         //- Construct given an IOobject
-        IOmapDistributePolyMesh(const IOobject&);
+        IOmapDistribute(const IOobject&);
 
-        //- Construct given an IOobject and mapDistributePolyMesh
-        IOmapDistributePolyMesh(const IOobject&, const mapDistributePolyMesh&);
+        //- Construct given an IOobject and mapDistribute
+        IOmapDistribute(const IOobject&, const mapDistribute&);
+
+        //- Construct by transferring the mapDistribute contents
+        IOmapDistribute(const IOobject&, const Xfer<mapDistribute>&);
 
 
     //- Destructor
-    virtual ~IOmapDistributePolyMesh();
+    virtual ~IOmapDistribute();
 
 
     // Member functions
