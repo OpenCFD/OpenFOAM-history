@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -141,10 +141,10 @@ Foam::scalar Foam::COxidationIntrinsicRate<CloudType>::calculate
 {
     // Fraction of remaining combustible material
     const label idSolid = CloudType::parcelType::SLD;
-    const scalar fComb = YMixture[idSolid]*YSolid[CsLocalId_];
+    const scalar Ychar = YMixture[idSolid]*YSolid[CsLocalId_];
 
-    // Surface combustion active combustible fraction is consumed
-    if (fComb < SMALL)
+    // Surface combustion until combustible fraction is consumed
+    if (Ychar < SMALL)
     {
         return 0.0;
     }
@@ -198,7 +198,7 @@ Foam::scalar Foam::COxidationIntrinsicRate<CloudType>::calculate
     scalar dmC = Ap*rhoc*specie::RR*Tc*YO2/WO2_*D0*R/(D0 + R)*dt;
 
     // Limit mass transfer by availability of C
-    dmC = min(mass*fComb, dmC);
+    dmC = min(mass*Ychar, dmC);
 
     // Molar consumption [kmol]
     const scalar dOmega = dmC/WC_;

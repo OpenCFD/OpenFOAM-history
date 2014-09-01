@@ -81,6 +81,12 @@ class caseInfo
             wordList patchTypes_;
 
 
+    // Private member functions
+
+        //- Update the polyMesh boundary based on the patch categories
+        void updateGeometricBoundaryField();
+
+
 public:
 
     //- Constructor
