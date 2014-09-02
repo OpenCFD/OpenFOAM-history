@@ -27,12 +27,12 @@ Class
 Description
 
 SourceFiles
-    camera.C
+    scene.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef camera_H
-#define camera_H
+#ifndef scene_H
+#define scene_H
 
 // OpenFOAM includes
 #include "dictionary.H"
@@ -41,6 +41,8 @@ SourceFiles
 #include "point.H"
 #include "boundBox.H"
 #include "NamedEnum.H"
+#include "HashPtrTable.H"
+#include "vector.H"
 
 // VTK includes
 #include "vtkSmartPointer.h"
@@ -54,10 +56,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class camera Declaration
+                           Class scene Declaration
 \*---------------------------------------------------------------------------*/
 
-class camera
+class scene
 {
 public:
 
@@ -70,54 +72,80 @@ private:
 
     // Private data
 
+        //- Reference to the object registry
+        const objectRegistry& obr_;
+
+        //- Object name
+        const word name_;
+
 
     // Private Member Functions
 
+        //- Read camera properties
+        void readCamera(const dictionary& dict);
+
+        //- Read solour properties
+        void readColours(const dictionary& dict);
+
         //- Disallow default bitwise copy construct
-        camera(const camera&);
+        scene(const scene&);
 
         //- Disallow default bitwise assignment
-        void operator=(const camera&);
+        void operator=(const scene&);
 
 
 protected:
 
     // Protected data
 
-        //- Mode
-        modeType mode_;
+        // Camera settings
 
-        //- Position
-        autoPtr<DataEntry<point> > position_;
+            //- Colours
+            HashPtrTable<DataEntry<vector>, word> colours_;
 
-        //- Focal point
-        autoPtr<DataEntry<point> > focalPoint_;
+            //- Mode
+            modeType mode_;
 
-        //- Up direction
-        autoPtr<DataEntry<vector> > up_;
+            //- Position
+            autoPtr<DataEntry<point> > position_;
 
-        //- Zoom level
-        autoPtr<DataEntry<scalar> > zoom_;
+            //- Focal point
+            autoPtr<DataEntry<point> > focalPoint_;
 
-        //- View angle
-        autoPtr<DataEntry<scalar> > viewAngle_;
+            //- Up direction
+            autoPtr<DataEntry<vector> > up_;
 
-        //- Clipping box
-        boundBox clipBox_;
+            //- Zoom level
+            autoPtr<DataEntry<scalar> > zoom_;
 
-        //- Parallel projection flag
-        bool parallelProjection_;
+            //- View angle
+            autoPtr<DataEntry<scalar> > viewAngle_;
 
-        //- Number of frames
-        label nFrameTotal_;
+            //- Clipping box
+            boundBox clipBox_;
 
-        //- Index of current frame
-        label currentFrameI_;
+            //- Parallel projection flag
+            bool parallelProjection_;
+
+
+        // Scene management
+
+            //- Number of frames
+            label nFrameTotal_;
+
+            //- Index of start frame
+            label startFrameI_;
+
+            //- Index of current frame
+            label currentFrameI_;
+
+            //- Name prefix of output
+            word outputName_;
 
 
     // Protected Member Functions
 
-        void setCamera(vtkRenderer* rendere, const bool override) const;
+        void setCamera(vtkRenderer* renderer, const bool override) const;
 
         string frameIndexStr() const;
 
@@ -126,35 +154,36 @@ public:
 
     // Constructors
 
-        //- Construct null
-        camera();
+        //- Construct from components
+        scene(const objectRegistry& obr, const word& name);
 
 
     //- Destructor
-    virtual ~camera();
+    virtual ~scene();
 
 
     // Member Functions
 
         // Access
 
+            //- Return the colours
+            const HashPtrTable<DataEntry<vector>, word>& colours() const;
+
             //- Return the current frame index
             label frameIndex() const;
 
+            //- Return the current position (in range 0-1)
+            scalar position() const;
+
             void read(const dictionary& dict);
 
-            void initialise(vtkRenderer* renderer);
+            void initialise(vtkRenderer* renderer, const word& outputName);
 
             //- Main control loop
             bool loop(vtkRenderer* renderer);
 
             //- Save image to file
-            void saveImage
-            (
-                vtkRenderWindow* renderWindow,
-                const fileName& prefix,
-                const word& outputName
-            ) const;
+            void saveImage(vtkRenderWindow* renderWindow) const;
 };
 
 

@@ -150,7 +150,7 @@ protected:
         //- Add scalar bar to renderer
         void addScalarBar
         (
-            const label frameI,
+            const scalar position,
             vtkRenderer* renderer,
             vtkLookupTable* lut
         ) const;
@@ -158,7 +158,7 @@ protected:
         //- Set field/configure mapper, add scalar bar
         void setField
         (
-            const label frameI,
+            const scalar position,
             vtkPolyDataMapper* mapper,
             vtkRenderer* renderer
         ) const;
@@ -166,7 +166,8 @@ protected:
         //- Add glyphs
         void addGlyphs
         (
-            const label frameI,
+            const scalar position,
+            const scalar maxGlyphLength,
             vtkPolyData* data,
             vtkActor* actor,
             vtkRenderer* renderer

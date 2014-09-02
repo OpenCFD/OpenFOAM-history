@@ -57,7 +57,7 @@ namespace Foam
 
 void Foam::geometrySurface::addGeometryToScene
 (
-    const label frameI,
+    const scalar position,
     vtkRenderer* renderer,
     const fileName& fName
 ) const
@@ -127,6 +127,7 @@ void Foam::geometrySurface::addGeometryToScene
         vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->ScalarVisibilityOff();
     mapper->SetInputData(polyData);
+
     addFeatureEdges(renderer, polyData);
 
     surfaceActor_->SetMapper(mapper);
@@ -174,7 +175,7 @@ Foam::geometrySurface::~geometrySurface()
 
 void Foam::geometrySurface::addGeometryToScene
 (
-    const label frameI,
+    const scalar position,
     vtkRenderer* renderer
 )
 {
@@ -186,27 +187,26 @@ void Foam::geometrySurface::addGeometryToScene
     forAll(fileNames_, i)
     {
         fileName fName = fileNames_[i].expand();
-
-        addGeometryToScene(frameI, renderer, fName);
+        addGeometryToScene(position, renderer, fName);
     }
 }
 
 
-void Foam::geometrySurface::updateActors(const label frameI)
+void Foam::geometrySurface::updateActors(const scalar position)
 {
     if (!visible_)
     {
         return;
     }
 
-    surface::updateActors(frameI);
+    surface::updateActors(position);
 
-    surfaceActor_->GetProperty()->SetOpacity(opacity(frameI));
+    surfaceActor_->GetProperty()->SetOpacity(opacity(position));
 
-    vector sc = surfaceColour_->value(frameI);
+    vector sc = surfaceColour_->value(position);
     surfaceActor_->GetProperty()->SetColor(sc[0], sc[1], sc[2]);
 
-    vector ec = edgeColour_->value(frameI);
+    vector ec = edgeColour_->value(position);
     surfaceActor_->GetProperty()->SetEdgeColor(ec[0], ec[1], ec[2]);
 }
 

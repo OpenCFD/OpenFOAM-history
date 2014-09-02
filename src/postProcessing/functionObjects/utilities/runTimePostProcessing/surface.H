@@ -106,6 +106,9 @@ protected:
         //- Edge actor
         vtkSmartPointer<vtkActor> edgeActor_;
 
+        //- Max glyph length for representation type rtGlyph
+        scalar maxGlyphLength_;
+
 
     // Protected Member Functions
 
@@ -172,7 +175,7 @@ public:
     // Member Functions
 
         //- Update the actors
-        virtual void updateActors(const label frameI);
+        virtual void updateActors(const scalar position);
 };
 
 

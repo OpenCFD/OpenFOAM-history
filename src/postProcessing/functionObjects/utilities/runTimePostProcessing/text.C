@@ -68,7 +68,11 @@ Foam::text::~text()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::text::addGeometryToScene(const label frameI, vtkRenderer* renderer)
+void Foam::text::addGeometryToScene
+(
+    const scalar position,
+    vtkRenderer* renderer
+)
 {
     if (!visible_)
     {
@@ -84,7 +88,7 @@ void Foam::text::addGeometryToScene(const label frameI, vtkRenderer* renderer)
     actor->GetTextProperty()->SetVerticalJustificationToBottom();
     actor->GetTextProperty()->SetBold(bold_);
 
-    const vector colour = colour_->value(frameI);
+    const vector colour = colour_->value(position);
     actor->GetTextProperty()->SetColor(colour[0], colour[1], colour[2]);
     actor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
     actor->GetPositionCoordinate()->SetValue
@@ -97,7 +101,7 @@ void Foam::text::addGeometryToScene(const label frameI, vtkRenderer* renderer)
 }
 
 
-void Foam::text::updateActors(const label frameI)
+void Foam::text::updateActors(const scalar position)
 {
     // do nothing - all handled by addGeometryToScene
 }

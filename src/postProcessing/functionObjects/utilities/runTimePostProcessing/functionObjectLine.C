@@ -74,7 +74,7 @@ Foam::functionObjectLine::~functionObjectLine()
 
 void Foam::functionObjectLine::addGeometryToScene
 (
-    const label frameI,
+    const scalar position,
     vtkRenderer* renderer
 )
 {
@@ -118,21 +118,21 @@ void Foam::functionObjectLine::addGeometryToScene
 
         vtkSmartPointer<vtkPolyDataMapper> mapper =
             vtkSmartPointer<vtkPolyDataMapper>::New();
-        setField(frameI, mapper, renderer);
+        setField(position, mapper, renderer);
 
         actor_->SetMapper(mapper);
 
-        addLines(frameI, actor_, mapper, lines->GetOutput());
+        addLines(position, actor_, mapper, lines->GetOutput());
 
         renderer->AddActor(actor_);
     }
 }
 
 
-void Foam::functionObjectLine::updateActors(const label frameI)
+void Foam::functionObjectLine::updateActors(const scalar position)
 {
     actor_->GetProperty()->SetLineWidth(2);
-    actor_->GetProperty()->SetOpacity(opacity(frameI));
+    actor_->GetProperty()->SetOpacity(opacity(position));
 }
 
 

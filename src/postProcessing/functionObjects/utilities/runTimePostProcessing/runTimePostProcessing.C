@@ -37,41 +37,13 @@ License
 #include "vtkRenderWindow.h"
 #include "vtkSmartPointer.h"
 
+#include "vtkLight.h"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
     defineTypeNameAndDebug(runTimePostProcessing, 0);
-}
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-void Foam::runTimePostProcessing::initialiseScene(vtkRenderer* renderer)
-{
-    // set the background
-    renderer->GradientBackgroundOn();
-    const vector backgroundColour = colours_["background"]->value(0);
-    const vector backgroundColour2 = colours_["background2"]->value(0);
-    renderer->SetBackground
-    (
-        backgroundColour.x(),
-        backgroundColour.y(),
-        backgroundColour.z()
-    );
-    renderer->SetBackground2
-    (
-        backgroundColour2.x(),
-        backgroundColour2.y(),
-        backgroundColour2.z()
-    );
-
-    // depth peeling
-    renderer->SetUseDepthPeeling(true);
-    renderer->SetMaximumNumberOfPeels(4);
-    renderer->SetOcclusionRatio(0);
-
-    camera_.initialise(renderer);
 }
 
 
@@ -86,8 +58,7 @@ Foam::runTimePostProcessing::runTimePostProcessing
 )
 :
     functionObjectState(obr, name),
-    camera_(),
-    colours_(),
+    scene_(obr, name),
     lines_(),
     surfaces_(),
     text_(),
@@ -110,37 +81,7 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
 {
     Info<< type() << " " << name_ << ": reading post-processing data" << endl;
 
-    const dictionary& colourDict = dict.subDict("colours");
-
-    colours_.insert
-    (
-        "background",
-        DataEntry<vector>::New("background", colourDict).ptr()
-    );
-    if (colourDict.found("background2"))
-    {
-        colours_.insert
-        (
-            "background2",
-            DataEntry<vector>::New("background2", colourDict).ptr()
-        );
-    }
-    else
-    {
-        colours_.insert
-        (
-            "background2",
-            DataEntry<vector>::New("background", colourDict).ptr()
-        );
-    }
-    colours_.insert("text", DataEntry<vector>::New("text", colourDict).ptr());
-    colours_.insert
-    (
-        "surface",
-        DataEntry<vector>::New("surface", colourDict).ptr()
-    );
-    colours_.insert("edge", DataEntry<vector>::New("edge", colourDict).ptr());
-    colours_.insert("line", DataEntry<vector>::New("line", colourDict).ptr());
+    scene_.read(dict);
 
     const dictionary& outputDict = dict.subDict("output");
     outputDict.lookup("name") >> output_.name_;
@@ -172,7 +113,7 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
         lines_.set
         (
             i++,
-            pathline::New(*this, iter().dict(), colours_, lineType)
+            pathline::New(*this, iter().dict(), scene_.colours(), lineType)
         );
     }
 
@@ -199,7 +140,7 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
         surfaces_.set
         (
             i++,
-            surface::New(*this, iter().dict(), colours_, surfaceType)
+            surface::New(*this, iter().dict(), scene_.colours(), surfaceType)
         );
     }
 
@@ -223,11 +164,9 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
         text_.set
         (
             i++,
-            new text(*this, iter().dict(), colours_)
+            new text(*this, iter().dict(), scene_.colours())
         );
     }
-
-    camera_.read(dict.subDict("camera"));
 }
 
 
@@ -270,12 +209,9 @@ void Foam::runTimePostProcessing::write()
 //    renderWindow->PolygonSmoothingOn();
 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-    initialiseScene(renderer);
+    scene_.initialise(renderer, output_.name_);
 
     renderWindow->AddRenderer(renderer);
-
-    fileName prefix("postProcessing"/name_/obr_.time().timeName());
-    mkDir(prefix);
 
     // add the lines
     forAll(lines_, i)
@@ -289,28 +225,27 @@ void Foam::runTimePostProcessing::write()
         surfaces_[i].addGeometryToScene(0, renderer);
     }
 
-    while (camera_.loop(renderer))
+    while (scene_.loop(renderer))
     {
+        scalar position = scene_.position();
+
         // add the text
         forAll(text_, i)
         {
-            text_[i].addGeometryToScene(camera_.frameIndex(), renderer);
+            text_[i].addGeometryToScene(position, renderer);
         }
 
         // update the lines
         forAll(lines_, i)
         {
-            lines_[i].updateActors(camera_.frameIndex());
+            lines_[i].updateActors(position);
         }
 
         // update the surfaces
         forAll(surfaces_, i)
         {
-            surfaces_[i].updateActors(camera_.frameIndex());
+            surfaces_[i].updateActors(position);
         }
-
-        // saveimage to file
-        camera_.saveImage(renderWindow, prefix, output_.name_);
     }
 }
 

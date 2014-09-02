@@ -38,10 +38,7 @@ SourceFiles
 #include "objectRegistry.H"
 #include "mapPolyMesh.H"
 #include "PtrList.H"
-#include "HashPtrTable.H"
-#include "vector.H"
-#include "Tuple2.H"
-#include "camera.H"
+#include "scene.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,11 +76,8 @@ private:
         //- Output instance
         outputType output_;
 
-        //- Camera instance
-        camera camera_;
-
-        //- Colours
-        HashPtrTable<DataEntry<vector>, word> colours_;
+        //- Scene manager
+        scene scene_;
 
         //- List of lines
         PtrList<pathline> lines_;

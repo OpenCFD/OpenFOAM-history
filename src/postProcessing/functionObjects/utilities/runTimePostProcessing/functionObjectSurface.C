@@ -75,7 +75,7 @@ Foam::functionObjectSurface::~functionObjectSurface()
 
 void Foam::functionObjectSurface::addGeometryToScene
 (
-    const label frameI,
+    const scalar position,
     vtkRenderer* renderer
 )
 {
@@ -111,7 +111,14 @@ void Foam::functionObjectSurface::addGeometryToScene
         surf->SetFileName(fName.c_str());
         surf->Update();
 
-        addGlyphs(frameI, surf->GetOutput(), surfaceActor_, renderer);
+        addGlyphs
+        (
+            position,
+            maxGlyphLength_,
+            surf->GetOutput(),
+            surfaceActor_,
+            renderer
+        );
     }
     else
     {
@@ -128,7 +135,7 @@ void Foam::functionObjectSurface::addGeometryToScene
                 vtkSmartPointer<vtkPolyDataMapper>::New();
             mapper->SetInputConnection(surf->GetOutputPort());
 
-            setField(frameI, mapper, renderer);
+            setField(position, mapper, renderer);
 
             surfaceActor_->SetMapper(mapper);
 
@@ -138,7 +145,7 @@ void Foam::functionObjectSurface::addGeometryToScene
         }
         else
         {
-            geometrySurface::addGeometryToScene(frameI, renderer);
+            geometrySurface::addGeometryToScene(position, renderer);
         }
     }
 }

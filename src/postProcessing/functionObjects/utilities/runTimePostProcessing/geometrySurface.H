@@ -75,7 +75,7 @@ protected:
         //- Add surface (file) to scene
         void addGeometryToScene
         (
-            const label frameI,
+            const scalar position,
             vtkRenderer* renderer,
             const fileName& fName
         ) const;
@@ -116,12 +116,12 @@ public:
         //- Add surface(s) to scene
         virtual void addGeometryToScene
         (
-            const label frameI,
+            const scalar position,
             vtkRenderer* renderer
         );
 
         //- Update actors
-        virtual void updateActors(const label frameI);
+        virtual void updateActors(const scalar position);
 };
 
 

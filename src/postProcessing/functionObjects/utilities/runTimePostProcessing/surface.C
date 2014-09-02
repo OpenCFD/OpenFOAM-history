@@ -112,6 +112,7 @@ void Foam::surface::addFeatureEdges
     featureEdges->ManifoldEdgesOff();
     featureEdges->NonManifoldEdgesOff();
 //    featureEdges->SetFeatureAngle(60);
+    featureEdges->ColoringOff();
     featureEdges->Update();
 
     vtkSmartPointer<vtkPolyDataMapper> mapper =
@@ -119,6 +120,9 @@ void Foam::surface::addFeatureEdges
     mapper->SetInputConnection(featureEdges->GetOutputPort());
     mapper->ScalarVisibilityOff();
 
+    edgeActor_->GetProperty()->SetSpecular(0);
+    edgeActor_->GetProperty()->SetSpecularPower(20);
+    edgeActor_->GetProperty()->SetRepresentationToWireframe();
     edgeActor_->SetMapper(mapper);
 
     renderer->AddActor(edgeActor_);
@@ -139,11 +143,12 @@ Foam::surface::surface
     (
         representationTypeNames.read(dict.lookup("representation"))
     ),
-    featureEdges_(readBool(dict.lookup("featureEdges"))),
+    featureEdges_(false),
     surfaceColour_(NULL),
     edgeColour_(NULL),
     surfaceActor_(),
-    edgeActor_()
+    edgeActor_(),
+    maxGlyphLength_(0.0)
 {
     surfaceActor_ = vtkSmartPointer<vtkActor>::New();
     edgeActor_ = vtkSmartPointer<vtkActor>::New();
@@ -167,6 +172,15 @@ Foam::surface::surface
     else
     {
         edgeColour_.reset(colours["edge"]->clone().ptr());
+    }
+
+    if (representation_ == rtGlyph)
+    {
+        dict.lookup("maxGlyphLength") >> maxGlyphLength_;
+    }
+    else
+    {
+        dict.lookup("featureEdges") >> featureEdges_;
     }
 }
 
@@ -219,7 +233,7 @@ Foam::surface::~surface()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::surface::updateActors(const label frameI)
+void Foam::surface::updateActors(const scalar position)
 {
     if (!featureEdges_)
     {
@@ -227,9 +241,15 @@ void Foam::surface::updateActors(const label frameI)
     }
 
     edgeActor_->GetProperty()->SetLineWidth(2);
-    edgeActor_->GetProperty()->SetOpacity(opacity(frameI));
+    edgeActor_->GetProperty()->SetOpacity(opacity(position));
 
-    const vector colour = edgeColour_->value(frameI);
+    const vector colour = edgeColour_->value(position);
+    edgeActor_->GetProperty()->SetColor
+    (
+        colour[0],
+        colour[1],
+        colour[2]
+    );
     edgeActor_->GetProperty()->SetEdgeColor
     (
         colour[0],

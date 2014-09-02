@@ -98,7 +98,7 @@ public:
         //- Add surface(s) to scene
         virtual void addGeometryToScene
         (
-            const label frameI,
+            const scalar position,
             vtkRenderer* renderer
         );
 };

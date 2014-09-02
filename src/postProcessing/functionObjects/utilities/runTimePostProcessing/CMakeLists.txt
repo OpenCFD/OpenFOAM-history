@@ -44,7 +44,6 @@ ADD_DEFINITIONS(
 )
 
 FILE(GLOB SOURCE_FILES
-    camera.C
     fieldVisualisationBase.C
     functionObjectLine.C
     functionObjectSurface.C
@@ -53,6 +52,7 @@ FILE(GLOB SOURCE_FILES
     pathline.C
     runTimePostProcessing.C
     runTimePostProcessingFunctionObject.C
+    scene.C
     surface.C
     text.C
 )

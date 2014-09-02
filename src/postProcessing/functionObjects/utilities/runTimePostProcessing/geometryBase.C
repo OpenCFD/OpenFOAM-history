@@ -133,9 +133,9 @@ bool Foam::geometryBase::visible() const
 }
 
 
-Foam::scalar Foam::geometryBase::opacity(const label frameI) const
+Foam::scalar Foam::geometryBase::opacity(const scalar position) const
 {
-    return opacity_->value(frameI);
+    return opacity_->value(position);
 }
 
 

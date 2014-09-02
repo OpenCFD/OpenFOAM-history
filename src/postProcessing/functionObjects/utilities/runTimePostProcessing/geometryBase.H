@@ -142,7 +142,7 @@ public:
             bool visible() const;
 
             //- Return the opacity
-            scalar opacity(const label frameI) const;
+            scalar opacity(const scalar position) const;
 
             //- Return reference to the colours
             const HashPtrTable<DataEntry<vector>, word>& colours() const;
@@ -151,12 +151,12 @@ public:
         //- Add geometry to scene
         virtual void addGeometryToScene
         (
-            const label frameI,
+            const scalar position,
             vtkRenderer* renderer
         ) = 0;
 
         //- Update the actors
-        virtual void updateActors(const label frameI) = 0;
+        virtual void updateActors(const scalar position) = 0;
 };
 
 

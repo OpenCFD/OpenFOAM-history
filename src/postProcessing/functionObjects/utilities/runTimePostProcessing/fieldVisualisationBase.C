@@ -146,7 +146,7 @@ void Foam::fieldVisualisationBase::setColourMap(vtkLookupTable* lut) const
 
 void Foam::fieldVisualisationBase::addScalarBar
 (
-    const label frameI,
+    const scalar position,
     vtkRenderer* renderer,
     vtkLookupTable* lut
 ) const
@@ -162,7 +162,7 @@ void Foam::fieldVisualisationBase::addScalarBar
     sbar->SetLookupTable(lut);
     sbar->SetNumberOfLabels(scalarBar_.numberOfLabels_);
 
-    const vector textColour = colours_["text"]->value(frameI);
+    const vector textColour = colours_["text"]->value(position);
 
     // workaround to supply our own scalarbar title
     vtkSmartPointer<vtkTextActor> titleActor =
@@ -255,7 +255,7 @@ void Foam::fieldVisualisationBase::addScalarBar
 
 void Foam::fieldVisualisationBase::setField
 (
-    const label frameI,
+    const scalar position,
     vtkPolyDataMapper* mapper,
     vtkRenderer* renderer
 ) const
@@ -302,7 +302,7 @@ void Foam::fieldVisualisationBase::setField
             mapper->ScalarVisibilityOn();
 
             // add the bar
-            addScalarBar(frameI, renderer, lut);
+            addScalarBar(position, renderer, lut);
             break;
         }
     }
@@ -314,7 +314,8 @@ void Foam::fieldVisualisationBase::setField
 
 void Foam::fieldVisualisationBase::addGlyphs
 (
-    const label frameI,
+    const scalar position,
+    const scalar maxGlyphLength,
     vtkPolyData* data,
     vtkActor* actor,
     vtkRenderer* renderer
@@ -345,8 +346,6 @@ void Foam::fieldVisualisationBase::addGlyphs
 
     glyph->SetInputData(data);
     glyph->ScalingOn();
-    scalar maxGlyphLength = 0.1;
-
     bool ok = true;
     if (nComponents == 1)
     {
@@ -357,23 +356,29 @@ void Foam::fieldVisualisationBase::addGlyphs
 //        sphere->SetPhiResolution(20);
 //        sphere->SetThetaResolution(20);
 
-
         glyph->SetSourceConnection(sphere->GetOutputPort());
 
-        vtkDataArray* values =
-            data->GetPointData()->GetScalars(fieldName_.c_str());
+        if (maxGlyphLength > 0)
+        {
+            vtkDataArray* values =
+                data->GetPointData()->GetScalars(fieldName_.c_str());
 
-        double range[2];
-        values->GetRange(range);
-        glyph->ClampingOn();
-        glyph->SetRange(range);
+            double range[2];
+            values->GetRange(range);
+            glyph->ClampingOn();
+            glyph->SetRange(range);
+            glyph->SetScaleFactor(maxGlyphLength);
+        }
+        else
+        {
+            glyph->SetScaleFactor(1);
+        }
         glyph->SetScaleModeToScaleByScalar();
-        glyph->SetScaleFactor(maxGlyphLength);
         glyph->OrientOff();
         glyph->SetColorModeToColorByScalar();
         glyph->SetInputArrayToProcess
         (
-            0, // 0=scalars, 1=vectors
+            0, // scalars
             0,
             0,
             vtkDataObject::FIELD_ASSOCIATION_POINTS,
@@ -382,9 +387,6 @@ void Foam::fieldVisualisationBase::addGlyphs
     }
     else if (nComponents == 3)
     {
-        vtkDataArray* values =
-            data->GetPointData()->GetVectors(fieldName_.c_str());
-
         vtkSmartPointer<vtkArrowSource> arrow =
             vtkSmartPointer<vtkArrowSource>::New();
         arrow->SetTipResolution(10);
@@ -395,12 +397,22 @@ void Foam::fieldVisualisationBase::addGlyphs
 
         glyph->SetSourceConnection(arrow->GetOutputPort());
 
-        double range[6];
-        values->GetRange(range);
-        glyph->ClampingOn();
-        glyph->SetRange(range);
+        if (maxGlyphLength > 0)
+        {
+            vtkDataArray* values =
+                data->GetPointData()->GetVectors(fieldName_.c_str());
+
+            double range[6];
+            values->GetRange(range);
+            glyph->ClampingOn();
+            glyph->SetRange(range);
+            glyph->SetScaleFactor(maxGlyphLength);
+        }
+        else
+        {
+            glyph->SetScaleFactor(1);
+        }
         glyph->SetScaleModeToScaleByVector();
-        glyph->SetScaleFactor(maxGlyphLength);
         glyph->OrientOn();
         glyph->SetVectorModeToUseVector();
         glyph->SetColorModeToColorByVector();
@@ -438,7 +450,7 @@ void Foam::fieldVisualisationBase::addGlyphs
         glyph->Update();
         glyphMapper->Update();
 
-        setField(frameI, glyphMapper, renderer);
+        setField(position, glyphMapper, renderer);
 
         actor->SetMapper(glyphMapper);
 
