@@ -410,6 +410,11 @@ public:
         autoPtr<mapDistribute> clone() const;
 
 
+    //- Destructor
+    virtual ~mapDistribute()
+    {}
+
+
     // Member Functions
 
         // Access
