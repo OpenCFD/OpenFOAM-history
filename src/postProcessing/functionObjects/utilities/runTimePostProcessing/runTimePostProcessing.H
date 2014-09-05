@@ -49,6 +49,7 @@ namespace Foam
 {
 
 class dictionary;
+class pointData;
 class pathline;
 class surface;
 class text;
@@ -79,6 +80,9 @@ private:
         //- Scene manager
         scene scene_;
 
+        //- List of points
+        PtrList<pointData> points_;
+
         //- List of lines
         PtrList<pathline> lines_;
 
@@ -91,11 +95,13 @@ private:
 
         // Private Member Functions
 
-            //- Initialise the scene
-            void initialiseScene(vtkRenderer* renderer);
-
-            //- Save the image to file
-            void saveImage(vtkRenderWindow* renderWindow) const;
+            //- Helper function to read scene objects
+            template<class Type>
+            void readObjects
+            (
+                const dictionary& dict,
+                PtrList<Type>& objects
+            ) const;
 
 
 protected:
@@ -165,6 +171,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "runTimePostProcessingTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

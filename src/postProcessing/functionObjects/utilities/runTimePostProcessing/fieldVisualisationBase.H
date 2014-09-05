@@ -141,9 +141,6 @@ protected:
 
     // Protected Member Functions
 
-        //- Return the number of components for the supplied field
-        label nComponents(const word& fieldName) const;
-
         //- Set the colour map
         void setColourMap(vtkLookupTable* lut) const;
 
@@ -159,6 +156,7 @@ protected:
         void setField
         (
             const scalar position,
+            const word& colourFieldName,
             vtkPolyDataMapper* mapper,
             vtkRenderer* renderer
         ) const;
@@ -167,15 +165,13 @@ protected:
         void addGlyphs
         (
             const scalar position,
+            const word& scaleFieldName,
+            const word& colourFieldName,
             const scalar maxGlyphLength,
             vtkPolyData* data,
             vtkActor* actor,
             vtkRenderer* renderer
         ) const;
-
-        //- Set the number of components for the supplied field type
-        template<class Type>
-        void testFieldType(const word& fieldName, label& result) const;
 
 
 public:
@@ -212,10 +208,6 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-    #include "fieldVisualisationBaseTemplates.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

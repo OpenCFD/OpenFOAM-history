@@ -26,6 +26,7 @@ License
 // OpenFOAM includes
 #include "runTimePostProcessing.H"
 #include "dictionary.H"
+#include "pointData.H"
 #include "pathline.H"
 #include "surface.H"
 #include "text.H"
@@ -59,6 +60,7 @@ Foam::runTimePostProcessing::runTimePostProcessing
 :
     functionObjectState(obr, name),
     scene_(obr, name),
+    points_(),
     lines_(),
     surfaces_(),
     text_(),
@@ -89,65 +91,12 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
     outputDict.lookup("height") >> output_.height_;
 
 
-    label i = 0;
+    readObjects(dict.subOrEmptyDict("points"), points_);
+    readObjects(dict.subOrEmptyDict("lines"), lines_);
+    readObjects(dict.subOrEmptyDict("surfaces"), surfaces_);
 
-    const dictionary& linesDict = dict.subDict("lines");
-    label nLines = linesDict.toc().size();
-    lines_.setSize(nLines);
-    forAllConstIter(dictionary, linesDict, iter)
-    {
-        if (!iter().isDict())
-        {
-            FatalIOErrorIn
-            (
-                "void Foam::runTimePostProcessing::read(const dictionary&)",
-                linesDict
-            )
-                << "lines must be specified in dictionary format"
-                << exit(FatalIOError);
-        }
-
-        const dictionary& lineDict(iter().dict());
-        word lineType = lineDict.lookup("type");
-
-        lines_.set
-        (
-            i++,
-            pathline::New(*this, iter().dict(), scene_.colours(), lineType)
-        );
-    }
-
-    const dictionary& surfacesDict = dict.subDict("surfaces");
-    label nSurfaces = surfacesDict.toc().size();
-    surfaces_.setSize(nSurfaces);
-    i = 0;
-    forAllConstIter(dictionary, surfacesDict, iter)
-    {
-        if (!iter().isDict())
-        {
-            FatalIOErrorIn
-            (
-                "void Foam::runTimePostProcessing::read(const dictionary&)",
-                surfacesDict
-            )
-                << "surfaces must be specified in dictionary format"
-                << exit(FatalIOError);
-        }
-
-        const dictionary& surfDict(iter().dict());
-        word surfaceType = surfDict.lookup("type");
-
-        surfaces_.set
-        (
-            i++,
-            surface::New(*this, iter().dict(), scene_.colours(), surfaceType)
-        );
-    }
 
     const dictionary& textDict = dict.subDict("text");
-    label nText = textDict.toc().size();
-    text_.setSize(nText);
-    i = 0;
     forAllConstIter(dictionary, textDict, iter)
     {
         if (!iter().isDict())
@@ -161,11 +110,7 @@ void Foam::runTimePostProcessing::read(const dictionary& dict)
                 << exit(FatalIOError);
         }
 
-        text_.set
-        (
-            i++,
-            new text(*this, iter().dict(), scene_.colours())
-        );
+        text_.append(new text(*this, iter().dict(), scene_.colours()));
     }
 }
 
@@ -213,6 +158,12 @@ void Foam::runTimePostProcessing::write()
 
     renderWindow->AddRenderer(renderer);
 
+    // add the points
+    forAll(points_, i)
+    {
+        points_[i].addGeometryToScene(0, renderer);
+    }
+
     // add the lines
     forAll(lines_, i)
     {
@@ -233,6 +184,12 @@ void Foam::runTimePostProcessing::write()
         forAll(text_, i)
         {
             text_[i].addGeometryToScene(position, renderer);
+        }
+
+        // update the points
+        forAll(points_, i)
+        {
+            points_[i].updateActors(position);
         }
 
         // update the lines

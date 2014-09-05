@@ -23,23 +23,41 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "volFields.H"
-#include "runTimePostProcessing.H"
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-void Foam::fieldVisualisationBase::testFieldType
+void Foam::runTimePostProcessing::readObjects
 (
-    const word& fieldName,
-    label& result
+    const dictionary& dict,
+    PtrList<Type>& objects
 ) const
 {
-    typedef GeometricField<Type, fvPatchField, volMesh> fieldType;
-
-    if (parent_.obr().foundObject<fieldType>(fieldName))
+    objects.clear();
+    forAllConstIter(dictionary, dict, iter)
     {
-        result = pTraits<Type>::nComponents;
+        if (!iter().isDict())
+        {
+            FatalIOErrorIn
+            (
+                "void Foam::runTimePostProcessing::readObjects"
+                "("
+                    "const dictionary&, "
+                    "PtrList<Type>&"
+                ")",
+                dict
+            )
+                << dict.dictName()
+                << " objects must be specified in dictionary format"
+                << exit(FatalIOError);
+        }
+
+        const dictionary& objectDict(iter().dict());
+        word objectType = objectDict.lookup("type");
+
+        objects.append
+        (
+            Type::New(*this, iter().dict(), scene_.colours(), objectType)
+        );
     }
 }
 

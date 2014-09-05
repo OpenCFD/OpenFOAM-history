@@ -22,67 +22,115 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::functionObjectLine
+    Foam::pointData
 
 Description
 
 SourceFiles
-    functionObjectLine.C
+    pointData.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef functionObjectLine_H
-#define functionObjectLine_H
+#ifndef pointData_H
+#define pointData_H
 
-#include "pathline.H"
-#include "fieldVisualisationBase.H"
+#include "geometryBase.H"
+#include "NamedEnum.H"
+#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+class vtkActor;
+class vtkPolyData;
+class vtkPolyDataMapper;
 
 namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class functionObjectLine Declaration
+                          Class pointData Declaration
 \*---------------------------------------------------------------------------*/
 
-class functionObjectLine
+class pointData
 :
-    public pathline,
-    public fieldVisualisationBase
+    public geometryBase
 {
+public:
+
+    // Public enumerations
+
+        enum representationType
+        {
+            rtSphere,
+            rtVector
+        };
+
+        static const NamedEnum<representationType, 2> representationTypeNames;
+
+
 private:
 
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
-        functionObjectLine(const functionObjectLine&);
+        pointData(const pointData&);
 
         //- Disallow default bitwise assignment
-        void operator=(const functionObjectLine&);
+        void operator=(const pointData&);
 
 
 protected:
 
     // Protected data
 
-        //- Name of function object result to render
-        word functionObject_;
+        //- Representation type
+        representationType representation_;
 
-        //- Actor
-        vtkSmartPointer<vtkActor> actor_;
+        //- Max glyph length
+        scalar maxGlyphLength_;
+
+        //- Point colour
+        autoPtr<DataEntry<vector> > pointColour_;
+
+
+    // Protected Member Functions
+
+        //- Add the point data to the renderer
+        void addPoints
+        (
+            const label frameI,
+            vtkActor* actor,
+            vtkPolyDataMapper* mapper,
+            vtkPolyData* data
+        ) const;
 
 
 public:
 
     //- Run-time type information
-    TypeName("line");
+    TypeName("pointData");
+
+
+    // Declare run-time constructor selection table
+
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            pointData,
+            dictionary,
+            (
+                const runTimePostProcessing& parent,
+                const dictionary& dict,
+                const HashPtrTable<DataEntry<vector>, word>& colours
+            ),
+            (parent, dict, colours)
+        );
 
 
     // Constructors
 
         //- Construct from dictionary
-        functionObjectLine
+        pointData
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
@@ -90,21 +138,20 @@ public:
         );
 
 
-    //- Destructor
-    virtual ~functionObjectLine();
+    // Selectors
 
-
-    // Member Functions
-
-        //- Add tube(s) to scene
-        virtual void addGeometryToScene
+        //- Return a reference to the selected RAS model
+        static autoPtr<pointData> New
         (
-            const scalar position,
-            vtkRenderer* renderer
+            const runTimePostProcessing& parent,
+            const dictionary& dict,
+            const HashPtrTable<DataEntry<vector>, word>& colours,
+            const word& pointDataName
         );
 
-        //- Update actors
-        virtual void updateActors(const scalar position);
+
+    //- Destructor
+    virtual ~pointData();
 };
 
 

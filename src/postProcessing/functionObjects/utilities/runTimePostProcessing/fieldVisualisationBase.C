@@ -73,23 +73,6 @@ const Foam::NamedEnum<Foam::fieldVisualisationBase::colourMapType, 4>
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-Foam::label Foam::fieldVisualisationBase::nComponents
-(
-    const word& fieldName
-) const
-{
-    label result = -1;
-
-    testFieldType<scalar>(fieldName, result);
-    testFieldType<vector>(fieldName, result);
-    testFieldType<sphericalTensor>(fieldName, result);
-    testFieldType<symmTensor>(fieldName, result);
-    testFieldType<tensor>(fieldName, result);
-
-    return result;
-}
-
-
 void Foam::fieldVisualisationBase::setColourMap(vtkLookupTable* lut) const
 {
     label nColours = 256;
@@ -256,6 +239,7 @@ void Foam::fieldVisualisationBase::addScalarBar
 void Foam::fieldVisualisationBase::setField
 (
     const scalar position,
+    const word& colourFieldName,
     vtkPolyDataMapper* mapper,
     vtkRenderer* renderer
 ) const
@@ -275,28 +259,13 @@ void Foam::fieldVisualisationBase::setField
             vtkSmartPointer<vtkLookupTable> lut =
                 vtkSmartPointer<vtkLookupTable>::New();
             setColourMap(lut);
+            lut->SetVectorMode(vtkScalarsToColors::MAGNITUDE);
 
-            label nComponents = this->nComponents(fieldName_);
-
-            if (nComponents < 0)
-            {
-                FatalErrorIn
-                (
-                    "void Foam::fieldVisualisationBase::setField"
-                    "("
-                        "const label, "
-                        "vtkPolyDataMapper*, "
-                        "vtkRenderer*"
-                    ") const"
-                )
-                    << "Unable to determine number of components for field "
-                    << fieldName_ << abort(FatalError);
-            }
-
-            // configure the model
-            mapper->ColorByArrayComponent(fieldName_.c_str(), nComponents);
+            // configure the mapper
+            mapper->SelectColorArray(colourFieldName.c_str());
             mapper->SetScalarRange(range_.first(), range_.second());
             mapper->SetScalarModeToUsePointFieldData();
+
             mapper->SetColorModeToMapScalars();
             mapper->SetLookupTable(lut);
             mapper->ScalarVisibilityOn();
@@ -315,30 +284,14 @@ void Foam::fieldVisualisationBase::setField
 void Foam::fieldVisualisationBase::addGlyphs
 (
     const scalar position,
+    const word& scaleFieldName,
+    const word& colourFieldName,
     const scalar maxGlyphLength,
     vtkPolyData* data,
     vtkActor* actor,
     vtkRenderer* renderer
 ) const
 {
-    label nComponents = this->nComponents(fieldName_);
-
-    if (nComponents < 0)
-    {
-        FatalErrorIn
-        (
-            "void Foam::fieldVisualisationBase::addGlyphs"
-            "("
-                "const label, "
-                "vtkPolyData*, "
-                "vtkActor*, "
-                "vtkRenderer*"
-            ") const"
-        )
-            << "Unable to determine number of components for field "
-            << fieldName_ << abort(FatalError);
-    }
-
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
     vtkSmartPointer<vtkPolyDataMapper> glyphMapper =
         vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -347,6 +300,11 @@ void Foam::fieldVisualisationBase::addGlyphs
     glyph->SetInputData(data);
     glyph->ScalingOn();
     bool ok = true;
+
+    label nComponents =
+        data->GetPointData()->GetArray(scaleFieldName.c_str())
+            ->GetNumberOfComponents();
+Debug(nComponents);
     if (nComponents == 1)
     {
         vtkSmartPointer<vtkSphereSource> sphere =
@@ -360,13 +318,18 @@ void Foam::fieldVisualisationBase::addGlyphs
 
         if (maxGlyphLength > 0)
         {
-            vtkDataArray* values =
-                data->GetPointData()->GetScalars(fieldName_.c_str());
+//            vtkDataArray* values =
+//                data->GetPointData()->GetScalars(scaleFieldName.c_str());
 
             double range[2];
-            values->GetRange(range);
+//            values->GetRange(range);
+            range[0] = range_.first();
+            range[1] = range_.second();
             glyph->ClampingOn();
             glyph->SetRange(range);
+
+            // if range[0] != min(value), maxGlyphLength behaviour will not
+            // be correct...
             glyph->SetScaleFactor(maxGlyphLength);
         }
         else
@@ -382,7 +345,7 @@ void Foam::fieldVisualisationBase::addGlyphs
             0,
             0,
             vtkDataObject::FIELD_ASSOCIATION_POINTS,
-            fieldName_.c_str()
+            scaleFieldName.c_str()
         );
     }
     else if (nComponents == 3)
@@ -400,10 +363,20 @@ void Foam::fieldVisualisationBase::addGlyphs
         if (maxGlyphLength > 0)
         {
             vtkDataArray* values =
-                data->GetPointData()->GetVectors(fieldName_.c_str());
-
+                data->GetPointData()->GetVectors(scaleFieldName.c_str());
             double range[6];
             values->GetRange(range);
+
+/*
+            scalar x0 = sqrt(sqr(range_.first())/3.0);
+            scalar x1 = sqrt(sqr(range_.second())/3.0);
+            range[0] = x0;
+            range[1] = x0;
+            range[2] = x0;
+            range[3] = x1;
+            range[4] = x1;
+            range[5] = x1;
+*/
             glyph->ClampingOn();
             glyph->SetRange(range);
             glyph->SetScaleFactor(maxGlyphLength);
@@ -422,7 +395,7 @@ void Foam::fieldVisualisationBase::addGlyphs
             0,
             0,
             vtkDataObject::FIELD_ASSOCIATION_POINTS,
-            fieldName_.c_str()
+            scaleFieldName.c_str()
         );
     }
     else
@@ -431,7 +404,10 @@ void Foam::fieldVisualisationBase::addGlyphs
         (
             "void Foam::fieldVisualisationBase::addGlyphs"
             "("
-                "const label, "
+                "const scalar, "
+                "const word&, "
+                "const word&, "
+                "const scalar, "
                 "vtkPolyData*, "
                 "vtkActor*, "
                 "vtkRenderer*"
@@ -439,7 +415,7 @@ void Foam::fieldVisualisationBase::addGlyphs
         )
             << "Glyphs can only be added to " << pTraits<scalar>::typeName
             << " and " << pTraits<vector>::typeName << " fields. "
-            << " Field " << fieldName_ << " has " << nComponents
+            << " Field " << scaleFieldName << " has " << nComponents
             << " components" << endl;
 
         ok = false;
@@ -448,9 +424,10 @@ void Foam::fieldVisualisationBase::addGlyphs
     if (ok)
     {
         glyph->Update();
-        glyphMapper->Update();
 
-        setField(position, glyphMapper, renderer);
+        setField(position, colourFieldName, glyphMapper, renderer);
+
+        glyphMapper->Update();
 
         actor->SetMapper(glyphMapper);
 

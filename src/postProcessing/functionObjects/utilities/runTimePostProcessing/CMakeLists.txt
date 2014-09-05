@@ -45,11 +45,13 @@ ADD_DEFINITIONS(
 
 FILE(GLOB SOURCE_FILES
     fieldVisualisationBase.C
+    functionObjectCloud.C
     functionObjectLine.C
     functionObjectSurface.C
     geometryBase.C
     geometrySurface.C
     pathline.C
+    pointData.C
     runTimePostProcessing.C
     runTimePostProcessingFunctionObject.C
     scene.C

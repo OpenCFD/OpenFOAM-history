@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 // OpenFOAM includes
-#include "pathline.H"
+#include "pointData.H"
 #include "runTimePostProcessing.H"
 
 // VTK includes
@@ -41,69 +41,38 @@ License
 namespace Foam
 {
     template<>
-    const char* NamedEnum<pathline::representationType, 4>::names[] =
+    const char* NamedEnum<pointData::representationType, 2>::names[] =
     {
-        "none",
-        "line",
-        "tube",
+        "sphere",
         "vector"
     };
 
-    defineTypeNameAndDebug(pathline, 0);
-    defineRunTimeSelectionTable(pathline, dictionary);
+    defineTypeNameAndDebug(pointData, 0);
+    defineRunTimeSelectionTable(pointData, dictionary);
 }
 
-const Foam::NamedEnum<Foam::pathline::representationType, 4>
-    Foam::pathline::representationTypeNames;
+const Foam::NamedEnum<Foam::pointData::representationType, 2>
+    Foam::pointData::representationTypeNames;
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-void Foam::pathline::addLines
+void Foam::pointData::addPoints
 (
     const label frameI,
     vtkActor* actor,
+    vtkPolyDataMapper* mapper,
     vtkPolyData* data
 ) const
 {
     geometryBase::initialiseActor(actor);
 
-    vector colour = lineColour_->value(frameI);
+    vector colour = pointColour_->value(frameI);
     actor->GetProperty()->SetColor(colour[0], colour[1], colour[2]);
-
-    vtkPolyDataMapper* mapper =
-            vtkPolyDataMapper::SafeDownCast(actor->GetMapper());
 
     switch (representation_)
     {
-        case rtNone:
-        {
-            actor->VisibilityOff();
-            break;
-        }
-        case rtLine:
-        {
-            mapper->SetInputData(data);
-            mapper->Update();
-            break;
-
-        }
-        case rtTube:
-        {
-            vtkSmartPointer<vtkTubeFilter> tubes =
-                vtkSmartPointer<vtkTubeFilter>::New();
-            tubes->SetInputData(data);
-            tubes->SetRadius(tubeRadius_);
-            tubes->SetNumberOfSides(20);
-            tubes->CappingOn();
-            tubes->Update();
-
-            mapper->SetInputConnection(tubes->GetOutputPort());
-            mapper->Update();
-
-            break;
-
-        }
+        case rtSphere:
         case rtVector:
         {
             break;
@@ -114,7 +83,7 @@ void Foam::pathline::addLines
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::pathline::pathline
+Foam::pointData::pointData
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
@@ -126,31 +95,22 @@ Foam::pathline::pathline
     (
         representationTypeNames.read(dict.lookup("representation"))
     ),
-    tubeRadius_(0.0),
-    lineColour_(NULL)
+    maxGlyphLength_(readScalar(dict.lookup("maxGlyphLength"))),
+    pointColour_(NULL)
 {
-    if (dict.found("lineColour"))
+    if (dict.found("pointColour"))
     {
-        lineColour_.reset(DataEntry<vector>::New("lineColour", dict).ptr());
+        pointColour_.reset(DataEntry<vector>::New("pointColour", dict).ptr());
     }
     else
     {
-        lineColour_.reset(colours["line"]->clone().ptr());
+        pointColour_.reset(colours["point"]->clone().ptr());
     }
 
     switch (representation_)
     {
-        case rtNone:
+        case rtSphere:
         {
-            break;
-        }
-        case rtLine:
-        {
-            break;
-        }
-        case rtTube:
-        {
-            dict.lookup("tubeRadius") >> tubeRadius_;
             break;
         }
         case rtVector:
@@ -164,47 +124,47 @@ Foam::pathline::pathline
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::pathline> Foam::pathline::New
+Foam::autoPtr<Foam::pointData> Foam::pointData::New
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
     const HashPtrTable<DataEntry<vector>, word>& colours,
-    const word& pathlineType
+    const word& pointDataType
 )
 {
     if (debug)
     {
-        Info<< "Selecting pathline " << pathlineType << endl;
+        Info<< "Selecting pointData " << pointDataType << endl;
     }
 
     dictionaryConstructorTable::iterator cstrIter =
-        dictionaryConstructorTablePtr_->find(pathlineType);
+        dictionaryConstructorTablePtr_->find(pointDataType);
 
     if (cstrIter == dictionaryConstructorTablePtr_->end())
     {
         FatalErrorIn
         (
-            "Foam::autoPtr<Foam::pathline> Foam::pathline::New"
+            "Foam::autoPtr<Foam::pointData> Foam::pointData::New"
             "("
                 "const runTimePostProcessing&, "
                 "const dictionary&, "
                 "const HashPtrTable<DataEntry<vector>, word>&, "
                 "const word&"
             ")"
-        )   << "Unknown pathline type "
-            << pathlineType << nl << nl
-            << "Valid pathline types are:" << endl
+        )   << "Unknown pointData type "
+            << pointDataType << nl << nl
+            << "Valid pointData types are:" << endl
             << dictionaryConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
-    return autoPtr<pathline>(cstrIter()(parent, dict, colours));
+    return autoPtr<pointData>(cstrIter()(parent, dict, colours));
 }
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::pathline::~pathline()
+Foam::pointData::~pointData()
 {}
 
 

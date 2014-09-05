@@ -22,19 +22,19 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::functionObjectLine
+    Foam::functionObjectCloud
 
 Description
 
 SourceFiles
-    functionObjectLine.C
+    functionObjectCloud.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef functionObjectLine_H
-#define functionObjectLine_H
+#ifndef functionObjectCloud_H
+#define functionObjectCloud_H
 
-#include "pathline.H"
+#include "pointData.H"
 #include "fieldVisualisationBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -43,12 +43,12 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class functionObjectLine Declaration
+                     Class functionObjectCloud Declaration
 \*---------------------------------------------------------------------------*/
 
-class functionObjectLine
+class functionObjectCloud
 :
-    public pathline,
+    public pointData,
     public fieldVisualisationBase
 {
 private:
@@ -56,18 +56,24 @@ private:
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
-        functionObjectLine(const functionObjectLine&);
+        functionObjectCloud(const functionObjectCloud&);
 
         //- Disallow default bitwise assignment
-        void operator=(const functionObjectLine&);
+        void operator=(const functionObjectCloud&);
 
 
 protected:
 
     // Protected data
 
-        //- Name of function object result to render
+        //- Name of cloud
+        word cloudName_;
+
+        //- Name of cloud function object result to render
         word functionObject_;
+
+        //- Name of field to colour by
+        word colourFieldName_;
 
         //- Actor
         vtkSmartPointer<vtkActor> actor_;
@@ -76,13 +82,13 @@ protected:
 public:
 
     //- Run-time type information
-    TypeName("line");
+    TypeName("functionObjectCloud");
 
 
     // Constructors
 
         //- Construct from dictionary
-        functionObjectLine
+        functionObjectCloud
         (
             const runTimePostProcessing& parent,
             const dictionary& dict,
@@ -91,7 +97,7 @@ public:
 
 
     //- Destructor
-    virtual ~functionObjectLine();
+    virtual ~functionObjectCloud();
 
 
     // Member Functions

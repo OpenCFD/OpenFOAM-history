@@ -95,7 +95,14 @@ void Foam::functionObjectSurface::addGeometryToScene
     fileName fName;
     if (!dict.readIfPresent("file", fName))
     {
-        WarningIn("void Foam::functionObjectSurface::addToScene(vtkRenderer*)")
+        WarningIn
+        (
+            "void Foam::functionObjectSurface::addToScene"
+            "("
+                "const scalar, "
+                "vtkRenderer*"
+            ")"
+        )
             << "Unable to find function object " << functionObject_
             << " output for field " << fieldName_
             << ". Surface will not be processed"
@@ -114,6 +121,8 @@ void Foam::functionObjectSurface::addGeometryToScene
         addGlyphs
         (
             position,
+            fieldName_,
+            fieldName_,
             maxGlyphLength_,
             surf->GetOutput(),
             surfaceActor_,
@@ -135,7 +144,7 @@ void Foam::functionObjectSurface::addGeometryToScene
                 vtkSmartPointer<vtkPolyDataMapper>::New();
             mapper->SetInputConnection(surf->GetOutputPort());
 
-            setField(position, mapper, renderer);
+            setField(position, fieldName_, mapper, renderer);
 
             surfaceActor_->SetMapper(mapper);
 

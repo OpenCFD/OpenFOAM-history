@@ -102,7 +102,6 @@ protected:
         (
             const label frameI,
             vtkActor* actor,
-            vtkPolyDataMapper* mapper,
             vtkPolyData* data
         ) const;
 

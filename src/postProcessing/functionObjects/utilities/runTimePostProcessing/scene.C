@@ -53,9 +53,14 @@ const Foam::NamedEnum<Foam::scene::modeType, 2> modeTypeNames_;
 void Foam::scene::readCamera(const dictionary& dict)
 {
     nFrameTotal_ = dict.lookupOrDefault("nFrameTotal", 1);
-    startFrameI_ = dict.lookupOrDefault("startFrameIndex", 0);
-    currentFrameI_ = startFrameI_;
+    position_ = dict.lookupOrDefault<scalar>("startPosition", 0);
     dict.lookup("parallelProjection") >> parallelProjection_;
+
+    if (nFrameTotal_ > 1)
+    {
+        scalar endPosition = dict.lookupOrDefault<scalar>("endPosition", 1);
+        dPosition_ = (endPosition - position_)/scalar(nFrameTotal_ - 1);
+    }
 
     mode_ = modeTypeNames_.read(dict.lookup("mode"));
 
@@ -68,21 +73,27 @@ void Foam::scene::readCamera(const dictionary& dict)
         {
             clipBox_ = boundBox(coeffs.lookup("clipBox"));
             const vector lookDir(vector(coeffs.lookup("lookDir")));
-            position_.reset(new Constant<point>("position", -lookDir));
+            cameraPosition_.reset(new Constant<point>("position", -lookDir));
             const vector focalPoint(coeffs.lookup("focalPoint"));
-            focalPoint_.reset(new Constant<point>("focalPoint", focalPoint));
+            cameraFocalPoint_.reset
+            (
+                new Constant<point>("focalPoint", focalPoint)
+            );
             const vector up(coeffs.lookup("up"));
-            up_.reset(new Constant<point>("up", up));
+            cameraUp_.reset(new Constant<point>("up", up));
             break;
         }
         case mtFlightPath:
         {
-            position_.reset(DataEntry<vector>::New("position", coeffs).ptr());
-            focalPoint_.reset
+            cameraPosition_.reset
+            (
+                DataEntry<vector>::New("position", coeffs).ptr()
+            );
+            cameraFocalPoint_.reset
             (
                 DataEntry<point>::New("focalPoint", coeffs).ptr()
             );
-            up_.reset(DataEntry<vector>::New("up", coeffs).ptr());
+            cameraUp_.reset(DataEntry<vector>::New("up", coeffs).ptr());
             break;
         }
         default:
@@ -95,57 +106,39 @@ void Foam::scene::readCamera(const dictionary& dict)
 
     if (dict.found("zoom"))
     {
-        zoom_.reset(DataEntry<scalar>::New("zoom", dict).ptr());
+        cameraZoom_.reset(DataEntry<scalar>::New("zoom", dict).ptr());
     }
     else
     {
-        zoom_.reset(new Constant<scalar>("zoom", 1.0));
+        cameraZoom_.reset(new Constant<scalar>("zoom", 1.0));
     }
 
     if (dict.found("viewAngle"))
     {
-        viewAngle_.reset(DataEntry<scalar>::New("viewAngle", dict).ptr());
+        cameraViewAngle_.reset(DataEntry<scalar>::New("viewAngle", dict).ptr());
     }
     else
     {
-        viewAngle_.reset(new Constant<scalar>("viewAngle", 35.0));
+        cameraViewAngle_.reset(new Constant<scalar>("viewAngle", 35.0));
     }
 }
 
 
 void Foam::scene::readColours(const dictionary& dict)
 {
-    colours_.insert
-    (
-        "background",
-        DataEntry<vector>::New("background", dict).ptr()
-    );
-
-    if (dict.found("background2"))
+    const wordList colours = dict.toc();
+    forAll(colours, i)
     {
-        colours_.insert
-        (
-            "background2",
-            DataEntry<vector>::New("background2", dict).ptr()
-        );
+        const word& c = colours[i];
+        colours_.insert(c, DataEntry<vector>::New(c, dict).ptr());
     }
-    else
-    {
-        colours_.insert
-        (
-            "background2",
-            DataEntry<vector>::New("background", dict).ptr()
-        );
-    }
-    colours_.insert("text", DataEntry<vector>::New("text", dict).ptr());
-    colours_.insert("surface", DataEntry<vector>::New("surface", dict).ptr());
-    colours_.insert("edge", DataEntry<vector>::New("edge", dict).ptr());
-    colours_.insert("line", DataEntry<vector>::New("line", dict).ptr());
 }
 
 
 void Foam::scene::initialise(vtkRenderer* renderer, const word& outputName)
 {
+    currentFrameI_ = 0;
+
     outputName_ = outputName;
 
     // set the background
@@ -217,12 +210,12 @@ void Foam::scene::setCamera(vtkRenderer* renderer, const bool override) const
 
         if (!parallelProjection_)
         {
-            camera->SetViewAngle(viewAngle_->value(position()));
+            camera->SetViewAngle(cameraViewAngle_->value(position()));
         }
 
-        const vector up = up_->value(position());
-        const vector pos = position_->value(position());
-        const point focalPoint = focalPoint_->value(position());
+        const vector up = cameraUp_->value(position());
+        const vector pos = cameraPosition_->value(position());
+        const point focalPoint = cameraFocalPoint_->value(position());
 
         camera->SetViewUp(up.x(), up.y(), up.z());
         camera->SetPosition(pos.x(), pos.y(), pos.z());
@@ -253,15 +246,16 @@ Foam::scene::scene(const objectRegistry& obr, const word& name)
     name_(name),
     colours_(),
     mode_(mtStatic),
-    position_(NULL),
-    focalPoint_(NULL),
-    up_(NULL),
-    zoom_(NULL),
-    viewAngle_(NULL),
+    cameraPosition_(NULL),
+    cameraFocalPoint_(NULL),
+    cameraUp_(NULL),
+    cameraZoom_(NULL),
+    cameraViewAngle_(NULL),
     clipBox_(),
     parallelProjection_(true),
     nFrameTotal_(1),
-    startFrameI_(0),
+    position_(0),
+    dPosition_(0),
     currentFrameI_(0),
     outputName_("unknown")
 {}
@@ -290,7 +284,7 @@ Foam::label Foam::scene::frameIndex() const
 
 Foam::scalar Foam::scene::position() const
 {
-    return scalar(currentFrameI_)/scalar(nFrameTotal_);
+    return position_;
 }
 
 
@@ -318,7 +312,9 @@ bool Foam::scene::loop(vtkRenderer* renderer)
 
     currentFrameI_++;
 
-    if (currentFrameI_ < nFrameTotal_ + startFrameI_)
+    position_ = currentFrameI_*dPosition_;
+
+    if (currentFrameI_ < nFrameTotal_)
     {
         return true;
     }

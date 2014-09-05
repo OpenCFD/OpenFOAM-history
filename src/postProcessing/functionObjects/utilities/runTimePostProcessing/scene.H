@@ -98,28 +98,32 @@ protected:
 
     // Protected data
 
-        // Camera settings
+        //- Colours
+        HashPtrTable<DataEntry<vector>, word> colours_;
 
-            //- Colours
-            HashPtrTable<DataEntry<vector>, word> colours_;
+
+        // Camera settings
 
             //- Mode
             modeType mode_;
 
             //- Position
-            autoPtr<DataEntry<point> > position_;
+            autoPtr<DataEntry<point> > cameraPosition_;
 
             //- Focal point
-            autoPtr<DataEntry<point> > focalPoint_;
+            autoPtr<DataEntry<point> > cameraFocalPoint_;
 
             //- Up direction
-            autoPtr<DataEntry<vector> > up_;
+            autoPtr<DataEntry<vector> > cameraUp_;
 
             //- Zoom level
-            autoPtr<DataEntry<scalar> > zoom_;
+            autoPtr<DataEntry<scalar> > cameraZoom_;
 
             //- View angle
-            autoPtr<DataEntry<scalar> > viewAngle_;
+            autoPtr<DataEntry<scalar> > cameraViewAngle_;
+
+
+        // Scene management
 
             //- Clipping box
             boundBox clipBox_;
@@ -127,14 +131,14 @@ protected:
             //- Parallel projection flag
             bool parallelProjection_;
 
-
-        // Scene management
-
             //- Number of frames
             label nFrameTotal_;
 
-            //- Index of start frame
-            label startFrameI_;
+            //- Position [0-1]
+            scalar position_;
+
+            //- Change in position per frame
+            scalar dPosition_;
 
             //- Index of current frame
             label currentFrameI_;

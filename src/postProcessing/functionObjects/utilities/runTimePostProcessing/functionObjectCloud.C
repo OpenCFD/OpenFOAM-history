@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 // OpenFOAM includes
-#include "functionObjectLine.H"
+#include "functionObjectCloud.H"
 #include "runTimePostProcessing.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -40,23 +40,25 @@ License
 
 namespace Foam
 {
-    defineTypeNameAndDebug(functionObjectLine, 0);
-    addToRunTimeSelectionTable(pathline, functionObjectLine, dictionary);
+    defineTypeNameAndDebug(functionObjectCloud, 0);
+    addToRunTimeSelectionTable(pointData, functionObjectCloud, dictionary);
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::functionObjectLine::functionObjectLine
+Foam::functionObjectCloud::functionObjectCloud
 (
     const runTimePostProcessing& parent,
     const dictionary& dict,
     const HashPtrTable<DataEntry<vector>, word>& colours
 )
 :
-    pathline(parent, dict, colours),
+    pointData(parent, dict, colours),
     fieldVisualisationBase(parent, dict, colours),
+    cloudName_(dict.lookup("cloudName")),
     functionObject_(dict.lookup("functionObject")),
+    colourFieldName_(dict.lookup("colourFieldName")),
     actor_()
 {
     actor_ = vtkSmartPointer<vtkActor>::New();
@@ -65,13 +67,13 @@ Foam::functionObjectLine::functionObjectLine
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::functionObjectLine::~functionObjectLine()
+Foam::functionObjectCloud::~functionObjectCloud()
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::functionObjectLine::addGeometryToScene
+void Foam::functionObjectCloud::addGeometryToScene
 (
     const scalar position,
     vtkRenderer* renderer
@@ -82,20 +84,27 @@ void Foam::functionObjectLine::addGeometryToScene
         return;
     }
 
-    const dictionary dict =
-        geometryBase::parent_.getObjectProperty
+    const dictionary& cloudDict =
+        geometryBase::parent_.obr().lookupObject<IOdictionary>
         (
-            functionObject_,
-            fieldName_,
-            dictionary::null
+            cloudName_ + "OutputProperties"
         );
 
     fileName fName;
-    if (!dict.readIfPresent("file", fName))
+    if (cloudDict.found("cloudFunctionObject"))
+    {
+        const dictionary& foDict = cloudDict.subDict("cloudFunctionObject");
+        if (foDict.found(functionObject_))
+        {
+            foDict.subDict(functionObject_).readIfPresent("file", fName);
+        }
+    }
+
+    if (fName.empty())
     {
         WarningIn
         (
-            "void Foam::functionObjectLine::addToScene"
+            "void Foam::functionObjectCloud::addToScene"
             "("
                 "const scalar, "
                 "vtkRenderer*"
@@ -110,28 +119,38 @@ void Foam::functionObjectLine::addGeometryToScene
 
     if (fName.ext() == "vtk")
     {
-        vtkSmartPointer<vtkPolyDataReader> lines =
+        vtkSmartPointer<vtkPolyDataReader> points =
             vtkSmartPointer<vtkPolyDataReader>::New();
-        lines->SetFileName(fName.c_str());
-        lines->Update();
+        points->SetFileName(fName.c_str());
+        points->Update();
 
         vtkSmartPointer<vtkPolyDataMapper> mapper =
             vtkSmartPointer<vtkPolyDataMapper>::New();
-        setField(position, fieldName_, mapper, renderer);
 
         actor_->SetMapper(mapper);
 
-        addLines(position, actor_, lines->GetOutput());
+        addGlyphs
+        (
+            position,
+            fieldName_,
+            colourFieldName_,
+            maxGlyphLength_,
+            points->GetOutput(),
+            actor_,
+            renderer
+        );
 
         renderer->AddActor(actor_);
     }
 }
 
 
-void Foam::functionObjectLine::updateActors(const scalar position)
+void Foam::functionObjectCloud::updateActors(const scalar position)
 {
-    actor_->GetProperty()->SetLineWidth(2);
     actor_->GetProperty()->SetOpacity(opacity(position));
+
+    vector pc = pointColour_->value(position);
+    actor_->GetProperty()->SetColor(pc[0], pc[1], pc[2]);
 }
 
 
