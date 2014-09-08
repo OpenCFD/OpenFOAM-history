@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -123,6 +123,13 @@ void Foam::plane::calcPntAndVec
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::plane::plane()
+:
+    unitVector_(vector::zero),
+    basePoint_(vector::zero)
+{}
+
 
 // Construct from normal vector through the origin
 Foam::plane::plane(const vector& normalVector)

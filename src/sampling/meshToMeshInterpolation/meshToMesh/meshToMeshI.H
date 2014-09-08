@@ -81,4 +81,11 @@ inline Foam::scalar Foam::meshToMesh::V() const
 }
 
 
+inline const Foam::PtrList<Foam::AMIPatchToPatchInterpolation>&
+Foam::meshToMesh::patchAMIs() const
+{
+    return patchAMIs_;
+}
+
+
 // ************************************************************************* //

@@ -25,8 +25,8 @@ License
 
 #include "boundaryInfo.H"
 #include "Time.H"
-#include "IOPtrList.H"
 #include "polyMesh.H"
+#include "processorPolyPatch.H"
 
 using namespace Foam;
 
@@ -39,41 +39,79 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
+Foam::IOPtrList<Foam::entry> Foam::boundaryInfo::readBoundaryDict
+(
+    const Time& runTime,
+    const word& regionName
+) const
+{
+    Info<< "    Reading mesh boundaries" << endl;
+
+    const_cast<word&>(IOPtrList<entry>::typeName) = polyBoundaryMesh::typeName;
+    IOPtrList<entry> boundaryPatchList
+    (
+        IOobject
+        (
+            "boundary",
+            runTime.findInstance(regionName/polyMesh::meshSubDir, "boundary"),
+            regionName/polyMesh::meshSubDir,
+            runTime,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE,
+            false
+        )
+    );
+
+    // remove zero-sized patches
+    PtrList<entry> boundaryPatchListNew;
+    forAll(boundaryPatchList, patchI)
+    {
+        const dictionary& dict = boundaryPatchList[patchI].dict();
+        const word pType = dict.lookup("type");
+        bool procPatch = pType == processorPolyPatch::typeName;
+
+        bool addPatch = true;
+        if (!procPatch)
+        {
+            label nFaces = readLabel(dict.lookup("nFaces"));
+            reduce(nFaces, sumOp<label>());
+            if (nFaces == 0)
+            {
+                addPatch = false;
+            }
+        }
+
+        if (addPatch)
+        {
+            boundaryPatchListNew.append(boundaryPatchList[patchI].clone());
+        }
+    }
+
+    boundaryPatchList.transfer(boundaryPatchListNew);
+
+    return boundaryPatchList;
+}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
 Foam::boundaryInfo::boundaryInfo(const Time& runTime, const word& regionName)
 :
+    boundaryDict_(readBoundaryDict(runTime, regionName)),
     names_(),
     types_(),
     constraint_(),
     groups_(),
     allGroupNames_()
 {
-    // read the mesh boundaries for the current region
-    Info<< "    Reading mesh boundaries" << endl;
+    names_.setSize(boundaryDict_.size());
+    types_.setSize(boundaryDict_.size());
+    constraint_.setSize(boundaryDict_.size(), false);
+    groups_.setSize(boundaryDict_.size());
 
-    const_cast<word&>(IOPtrList<entry>::typeName) = word::null;
-    IOPtrList<entry> boundaryPatchList
-    (
-        IOobject
-        (
-            "boundary",
-            runTime.constant(),
-            regionName/polyMesh::meshSubDir,
-            runTime,
-            IOobject::READ_IF_PRESENT,
-            IOobject::NO_WRITE,
-            false
-        )
-    );
-
-    names_.setSize(boundaryPatchList.size());
-    types_.setSize(boundaryPatchList.size());
-    constraint_.setSize(boundaryPatchList.size(), false);
-    groups_.setSize(boundaryPatchList.size());
-
-
-    forAll(boundaryPatchList, patchI)
+    forAll(boundaryDict_, patchI)
     {
-        const dictionary& dict = boundaryPatchList[patchI].dict();
+        const dictionary& dict = boundaryDict_[patchI].dict();
 
         names_[patchI] = dict.dictName();
         dict.lookup("type") >> types_[patchI];
@@ -120,6 +158,40 @@ const Foam::List<Foam::wordList>& Foam::boundaryInfo::groups() const
 const Foam::wordHashSet& Foam::boundaryInfo::allGroupNames() const
 {
     return allGroupNames_;
+}
+
+
+void Foam::boundaryInfo::setType(const label patchI, const word& condition)
+{
+    if (constraint_[patchI])
+    {
+        // not overriding constraint types
+        return;
+    }
+
+    if (wordRe(".*[mM]apped.*", wordRe::DETECT).match(types_[patchI]))
+    {
+        // ugly hack to avoid overriding mapped types
+        return;
+    }
+
+    if (condition == "wall")
+    {
+        types_[patchI] = condition;
+    }
+    else
+    {
+        types_[patchI] = "patch";
+    }
+
+    dictionary& patchDict = boundaryDict_[patchI].dict();
+    patchDict.add("type", types_[patchI], true);
+}
+
+
+void Foam::boundaryInfo::write() const
+{
+    boundaryDict_.write();
 }
 
 
