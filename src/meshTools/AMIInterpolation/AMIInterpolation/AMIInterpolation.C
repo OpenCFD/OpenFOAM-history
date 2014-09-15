@@ -1500,7 +1500,7 @@ const
     forAll(addr, i)
     {
         label srcFaceI = addr[i];
-        const face& f = srcPatch[tgtFaceI];
+        const face& f = srcPatch[srcFaceI];
 
         pointHit ray = f.ray(tgtPoint, n, srcPoints);
 
@@ -1516,7 +1516,7 @@ const
     forAll(addr, i)
     {
         label srcFaceI = addr[i];
-        const face& f = srcPatch[tgtFaceI];
+        const face& f = srcPatch[srcFaceI];
 
         vector nFace(-srcPatch.faceNormals()[srcFaceI]);
         nFace += tgtPatch.faceNormals()[tgtFaceI];
