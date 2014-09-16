@@ -36,6 +36,8 @@ Description
 #include "boolList.H"
 #include "wordList.H"
 #include "HashSet.H"
+#include "IOPtrList.H"
+#include "entry.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -52,6 +54,9 @@ class boundaryInfo
 {
     // Private data
 
+        //- Boundary dictionary
+        IOPtrList<entry> boundaryDict_;
+
         //- Patch names
         wordList names_;
 
@@ -66,6 +71,16 @@ class boundaryInfo
 
         //- Set of all group names
         wordHashSet allGroupNames_;
+
+
+    // Private member functions
+
+        //- Read the boundary dict
+        IOPtrList<entry> readBoundaryDict
+        (
+            const Time& runTime,
+            const word& regionName
+        ) const;
 
 
 public:
@@ -90,6 +105,12 @@ public:
 
         //- Set of all group names
         const wordHashSet& allGroupNames() const;
+
+        //- Set the patch type based on the condition
+        void setType(const label patchI, const word& condition);
+
+        //- Write the boundary dictionary
+        void write() const;
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

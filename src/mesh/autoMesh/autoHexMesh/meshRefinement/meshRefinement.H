@@ -478,7 +478,9 @@ private:
             labelList markFacesOnProblemCellsGeometric
             (
                 const snapParameters& snapParams,
-                const dictionary& motionDict
+                const dictionary& motionDict,
+                const labelList& globalToMasterPatch,
+                const labelList& globalToSlavePatch
             ) const;
 
 

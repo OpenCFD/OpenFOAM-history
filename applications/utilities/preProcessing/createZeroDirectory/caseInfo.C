@@ -86,6 +86,27 @@ Foam::label Foam::caseInfo::findPatchConditionID
 }
 
 
+void Foam::caseInfo::updateGeometricBoundaryField()
+{
+    forAll(boundaryInfo_.names(), i)
+    {
+        const word& patchName = boundaryInfo_.names()[i];
+
+        if (!boundaryInfo_.constraint()[i])
+        {
+            // condition ID to apply to mesh boundary patch name
+            const label conditionI = findPatchConditionID(i, patchName);
+
+            const word& category = patchCategories_[conditionI];
+
+            boundaryInfo_.setType(i, category);
+        }
+    }
+
+    boundaryInfo_.write();
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::caseInfo::caseInfo(const Time& runTime, const word& regionName)
@@ -119,6 +140,8 @@ Foam::caseInfo::caseInfo(const Time& runTime, const word& regionName)
         dict.lookup("type") >> patchTypes_[i];
         dict.lookup("patches") >> patchNames_[i];
     }
+
+    updateGeometricBoundaryField();
 }
 
 
@@ -192,7 +215,7 @@ Foam::dictionary Foam::caseInfo::generateBoundaryField
         }
         else
         {
-            // condition ID to apply to mesh boundary boundaryPatchName
+            // condition ID to apply to mesh boundary patch name
             const label conditionI = findPatchConditionID(j, patchName);
 
             if (conditionI == -1)

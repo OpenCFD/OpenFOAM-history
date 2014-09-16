@@ -45,7 +45,12 @@ Foam::snapParameters::snapParameters(const dictionary& dict)
     (
         dict.lookupOrDefault("detectNearSurfacesSnap", true)
     ),
+    strictRegionSnap_
+    (
+        dict.lookupOrDefault("strictRegionSnap", false)
+    ),
     detectBaffles_(dict.lookupOrDefault("detectBaffles", true)),
+    baffleFeaturePoints_(dict.lookupOrDefault("baffleFeaturePoints", false)),
     releasePoints_(dict.lookupOrDefault("releasePoints", false)),
     stringFeatures_(dict.lookupOrDefault("stringFeatures", true)),
     avoidDiagonal_(dict.lookupOrDefault("avoidDiagonal", false)),

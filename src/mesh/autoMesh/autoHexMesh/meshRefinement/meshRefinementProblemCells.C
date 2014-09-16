@@ -1085,7 +1085,9 @@ Foam::labelList Foam::meshRefinement::markFacesOnProblemCells
 Foam::labelList Foam::meshRefinement::markFacesOnProblemCellsGeometric
 (
     const snapParameters& snapParams,
-    const dictionary& motionDict
+    const dictionary& motionDict,
+    const labelList& globalToMasterPatch,
+    const labelList& globalToSlavePatch
 ) const
 {
     pointField oldPoints(mesh_.points());
@@ -1162,7 +1164,10 @@ Foam::labelList Foam::meshRefinement::markFacesOnProblemCellsGeometric
         (
             autoSnapDriver::calcNearestSurface
             (
+                snapParams.strictRegionSnap(),
                 *this,
+                globalToMasterPatch,
+                globalToSlavePatch,
                 snapDist,   // attraction
                 pp,
                 nearestPoint,
@@ -1177,6 +1182,15 @@ Foam::labelList Foam::meshRefinement::markFacesOnProblemCellsGeometric
         {
             newPoints[meshPoints[i]] += disp[i];
         }
+
+        syncTools::syncPointList
+        (
+            mesh_,
+            newPoints,
+            minMagSqrEqOp<point>(),     // combine op
+            vector(GREAT, GREAT, GREAT) // null value (note: cannot use VGREAT)
+        );
+
         mesh_.movePoints(newPoints);
     }
 
