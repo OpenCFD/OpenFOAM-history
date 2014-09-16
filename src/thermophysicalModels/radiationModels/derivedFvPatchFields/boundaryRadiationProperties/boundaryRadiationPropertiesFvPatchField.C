@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) OpenCFD Ltd
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -467,10 +467,10 @@ Foam::tmp<Foam::scalarField> Foam::radiation::
 boundaryRadiationPropertiesFvPatchField::
 reflectivity(const label bandI) const
 {
-    //const tmp<Foam::scalarField> treflectivity =
-    //        scalar(1.0) - transmissivity(bandI) - absorptivity(bandI);
+    const tmp<scalarField> tt = transmissivity(bandI);
+    const tmp<scalarField> ta = absorptivity(bandI);
 
-    return (scalar(1.0) - transmissivity(bandI) - absorptivity(bandI));
+    return (1.0 - tt - ta);
 }
 
 
@@ -537,7 +537,6 @@ write(Ostream& os) const
         {
         }
     }
-    Info << method_ << endl;
 }
 
 

@@ -65,7 +65,6 @@ SourceFiles
 #define greyDiffusiveRadiationMixedFvPatchScalarField_H
 
 #include "mixedFvPatchFields.H"
-//#include "radiationCoupledBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -80,7 +79,6 @@ namespace radiation
 class greyDiffusiveRadiationMixedFvPatchScalarField
 :
     public mixedFvPatchScalarField
-    //public radiationCoupledBase
 {
     // Private data
 
@@ -89,9 +87,6 @@ class greyDiffusiveRadiationMixedFvPatchScalarField
 
         //- Activate solar load
         bool solarLoad_;
-
-        //- Solar load field name
-        word solarLoadFieldName_;
 
 
 public:

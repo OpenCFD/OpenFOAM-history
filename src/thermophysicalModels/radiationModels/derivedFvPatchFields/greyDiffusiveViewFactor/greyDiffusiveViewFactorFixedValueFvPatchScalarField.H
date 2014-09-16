@@ -62,8 +62,6 @@ SourceFiles
 #ifndef greyDiffusiveViewFactorFixedValueFvPatchScalarField_H
 #define greyDiffusiveViewFactorFixedValueFvPatchScalarField_H
 
-//#include "radiationCoupledBase.H"
-//#include "radiationPropertiesBase.H"
 #include "fixedValueFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -79,7 +77,6 @@ namespace radiation
 class greyDiffusiveViewFactorFixedValueFvPatchScalarField
 :
     public fixedValueFvPatchScalarField
-    //public radiationCoupledBase
 {
     // Private data
 
@@ -88,9 +85,6 @@ class greyDiffusiveViewFactorFixedValueFvPatchScalarField
 
         //- Activate solar load
         bool solarLoad_;
-
-        //- Solar load field name
-        word solarLoadFieldName_;
 
 
 public:

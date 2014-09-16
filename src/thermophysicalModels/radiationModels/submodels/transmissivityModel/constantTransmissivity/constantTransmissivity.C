@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -54,7 +54,7 @@ Foam::radiation::constantTransmissivity::constantTransmissivity
 :
     transmissivityModel(dict, mesh),
     coeffsDict_(dict.subDict(typeName + "Coeffs")),
-    tau_(coeffsDict_.lookup("tau"))
+    tau_(readScalar(coeffsDict_.lookup("transmissivity")))
 {}
 
 
@@ -83,7 +83,7 @@ Foam::radiation::constantTransmissivity::tauEff(const label bandI) const
                 false
             ),
             mesh_,
-            tau_
+            dimensionedScalar("tau", dimless/dimLength, tau_)
         )
     );
 

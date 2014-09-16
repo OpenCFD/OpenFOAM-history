@@ -45,11 +45,7 @@ wideBandDiffusiveRadiationMixedFvPatchScalarField
     const DimensionedField<scalar, volMesh>& iF
 )
 :
-    mixedFvPatchScalarField(p, iF),
-    //radiationCoupledBase(p, "undefined", scalarField::null()),
-    TName_("T"),
-    solarLoad_(false),
-    solarLoadFieldName_("none")
+    mixedFvPatchScalarField(p, iF)
 {
     refValue() = 0.0;
     refGrad() = 0.0;
@@ -66,16 +62,7 @@ wideBandDiffusiveRadiationMixedFvPatchScalarField
     const fvPatchFieldMapper& mapper
 )
 :
-    mixedFvPatchScalarField(ptf, p, iF, mapper),
-//     radiationCoupledBase
-//     (
-//         p,
-//         ptf.emissivityMethod(),
-//         ptf.emissivity_
-//     ),
-    TName_(ptf.TName_),
-    solarLoad_(ptf.solarLoad_),
-    solarLoadFieldName_(ptf.solarLoadFieldName_)
+    mixedFvPatchScalarField(ptf, p, iF, mapper)
 {}
 
 
@@ -87,17 +74,7 @@ wideBandDiffusiveRadiationMixedFvPatchScalarField
     const dictionary& dict
 )
 :
-    mixedFvPatchScalarField(p, iF),
-    //radiationCoupledBase(p, dict),
-    TName_(dict.lookupOrDefault<word>("T", "T")),
-    solarLoad_(dict.lookupOrDefault<bool>("solarLoad", false)),
-    solarLoadFieldName_
-    (
-        dict.lookupOrDefault<word>
-        (
-            "solarLoadFieldName", "solarLoadField"
-        )
-    )
+    mixedFvPatchScalarField(p, iF)
 {
     if (dict.found("value"))
     {
@@ -126,16 +103,7 @@ wideBandDiffusiveRadiationMixedFvPatchScalarField
     const wideBandDiffusiveRadiationMixedFvPatchScalarField& ptf
 )
 :
-    mixedFvPatchScalarField(ptf),
-//     radiationCoupledBase
-//     (
-//         ptf.patch(),
-//         ptf.emissivityMethod(),
-//         ptf.emissivity_
-//     ),
-    TName_(ptf.TName_),
-    solarLoad_(ptf.solarLoad_),
-    solarLoadFieldName_(ptf.solarLoadFieldName_)
+    mixedFvPatchScalarField(ptf)
 {}
 
 
@@ -146,16 +114,7 @@ wideBandDiffusiveRadiationMixedFvPatchScalarField
     const DimensionedField<scalar, volMesh>& iF
 )
 :
-    mixedFvPatchScalarField(ptf, iF),
-//     radiationCoupledBase
-//     (
-//         ptf.patch(),
-//         ptf.emissivityMethod(),
-//         ptf.emissivity_
-//     ),
-    TName_(ptf.TName_),
-    solarLoad_(ptf.solarLoad_),
-    solarLoadFieldName_(ptf.solarLoadFieldName_)
+    mixedFvPatchScalarField(ptf, iF)
 {}
 
 
@@ -213,19 +172,13 @@ updateCoeffs()
     const boundaryRadiationProperties& boundaryRadiation =
         boundaryRadiationProperties::New(dimensionedInternalField().mesh());
 
-//     const scalarField temissivity
-//     (
-//         boundaryRadiation.emissivity(patchI, lambdaId)
-//     );
 
     const tmp<scalarField> temissivity
     (
-        boundaryRadiation.emissivity(patch().index())
+        boundaryRadiation.emissivity(patch().index(), lambdaId)
     );
 
     const scalarField& emissivity = temissivity();
-
-    //scalarField temissivity = emissivity();
 
     scalarField& Qem = ray.Qem().boundaryField()[patchI];
     scalarField& Qin = ray.Qin().boundaryField()[patchI];
@@ -237,14 +190,6 @@ updateCoeffs()
     for (label rayI=1; rayI < dom.nRay(); rayI++)
     {
         Ir += dom.IRay(rayI).Qin().boundaryField()[patchI];
-    }
-
-    if (solarLoad_)
-    {
-        Ir += patch().lookupPatchField<volScalarField,scalar>
-        (
-            solarLoadFieldName_
-        );
     }
 
     forAll(Iw, faceI)
@@ -290,16 +235,6 @@ void Foam::radiation::wideBandDiffusiveRadiationMixedFvPatchScalarField::write
 ) const
 {
     mixedFvPatchScalarField::write(os);
-    //radiationCoupledBase::write(os);
-    writeEntryIfDifferent<word>(os, "T", "T", TName_);
-    os.writeKeyword("solarLoad") << solarLoad_ << token::END_STATEMENT << nl;
-    writeEntryIfDifferent<word>
-    (
-        os,
-        "solarLoadFieldName",
-        "solarLoadFieldName",
-        solarLoadFieldName_
-    );
 }
 
 

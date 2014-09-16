@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -101,6 +101,13 @@ public:
 
         //- Return scatter coefficient
         virtual tmp<volScalarField> tauEff(const label bandI = 0) const = 0;
+
+        //- Is Grey
+        virtual bool isGrey() const = 0;
+
+        //- Number of bands
+        virtual label nBands() const = 0;
+
 };
 
 

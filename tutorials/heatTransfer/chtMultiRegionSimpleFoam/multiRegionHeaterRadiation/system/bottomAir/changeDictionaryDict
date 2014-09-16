@@ -18,13 +18,21 @@ dictionaryReplacement
 {
     boundary
     {
+        /*
         minX
         {
             type            wall;
+            inGroups        2(wall viewFactorWall);
         }
         maxX
         {
             type            wall;
+            inGroups        2(wall viewFactorWall);
+        }
+        */
+         ".*"
+        {
+            inGroups        2(wall viewFactorWall);
         }
     }
 
@@ -124,12 +132,10 @@ dictionaryReplacement
             ".*"
             {
                 type            greyDiffusiveRadiationViewFactor;
-                emissivityMode  lookup;
                 Qro             uniform 0;
-                emissivity      uniform 1.0;
                 value           uniform 0;
             }
-
+/*
             "bottomAir_to_.*"
             {
                 type            greyDiffusiveRadiationViewFactor;
@@ -137,6 +143,7 @@ dictionaryReplacement
                 Qro             uniform 0;
                 value           uniform 0;
             }
+*/
         }
     }
 
@@ -148,12 +155,12 @@ dictionaryReplacement
             ".*"
             {
                 type            MarshakRadiation;
-                T               T;
-                emissivityMode  lookup;
-                emissivity      uniform 1.0;
+                //T               T;
+                //emissivityMode  lookup;
+                //emissivity      uniform 1.0;
                 value           uniform 0;
             }
-
+/*
             "bottomAir_to_.*"
             {
                 type            MarshakRadiation;
@@ -161,6 +168,7 @@ dictionaryReplacement
                 emissivityMode  solidRadiation;
                 value           uniform 0;
             }
+*/
         }
     }
 
@@ -172,12 +180,12 @@ dictionaryReplacement
             ".*"
             {
                 type            greyDiffusiveRadiation;
-                T               T;
-                emissivityMode  lookup;
-                emissivity      uniform 1.0;
+                //T               T;
+                //emissivityMode  lookup;
+                //emissivity      uniform 1.0;
                 value           uniform 0;
             }
-
+/*
             "bottomAir_to_.*"
             {
                 type            greyDiffusiveRadiation;
@@ -185,6 +193,7 @@ dictionaryReplacement
                 emissivityMode  solidRadiation;
                 value           uniform 0;
             }
+*/
         }
     }
 

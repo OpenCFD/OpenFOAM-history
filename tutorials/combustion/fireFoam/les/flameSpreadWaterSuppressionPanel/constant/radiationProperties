@@ -41,17 +41,11 @@ constantAbsorptionEmissionCoeffs
     E               E [ 1 -1 -3 0 0 0 0 ] 0;
 }
 
-greyMeanAbsorptionEmissionSootCoeffs
-{
-
-    lookUpTableFileName     none;
-    EhrrCoeff                0.4;
-}
 
 scatterModel    none;
 
-
 sootModel       none;
 
+transmissivityModel none;
 
 // ************************************************************************* //

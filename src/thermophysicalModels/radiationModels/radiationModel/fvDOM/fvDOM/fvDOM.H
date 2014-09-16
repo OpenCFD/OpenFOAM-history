@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -69,6 +69,7 @@ SourceFiles
 #include "radiativeIntensityRay.H"
 #include "radiationModel.H"
 #include "fvMatrices.H"
+#include "solarLoad.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,6 +86,7 @@ class fvDOM
 :
     public radiationModel
 {
+
     // Private data
 
 
@@ -138,6 +140,12 @@ class fvDOM
 
         //- Maximum omega weight
         scalar omegaMax_;
+
+        //- Use Solar Load model
+        bool useSolarLoad_;
+
+        //- Solar load radiation model
+        autoPtr<solarLoad> solarLoad_;
 
 
     // Private Member Functions

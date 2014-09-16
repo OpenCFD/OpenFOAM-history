@@ -9,6 +9,8 @@ radiationModel/fvDOM/blackBodyEmission/blackBodyEmission.C
 radiationModel/fvDOM/absorptionCoeffs/absorptionCoeffs.C
 radiationModel/viewFactor/viewFactor.C
 radiationModel/opaqueSolid/opaqueSolid.C
+radiationModel/solarLoad/solarLoad.C
+radiationModel/solarLoad/faceShading/faceShading.C
 
 /* Scatter model */
 submodels/scatterModel/scatterModel/scatterModel.C
@@ -26,7 +28,9 @@ submodels/absorptionEmissionModel/binaryAbsorptionEmission/binaryAbsorptionEmiss
 submodels/absorptionEmissionModel/greyMeanAbsorptionEmission/greyMeanAbsorptionEmission.C
 submodels/absorptionEmissionModel/wideBandAbsorptionEmission/wideBandAbsorptionEmission.C
 submodels/absorptionEmissionModel/greyMeanSolidAbsorptionEmission/greyMeanSolidAbsorptionEmission.C
+submodels/absorptionEmissionModel/multiBandSolidAbsorptionEmission/multiBandSolidAbsorptionEmission.C
 submodels/boundaryRadiationProperties/boundaryRadiationProperties.C
+
 
 /* Soot model */
 submodels/sootModel/sootModel/sootModel.C
@@ -39,6 +43,10 @@ submodels/transmissivityModel/transmissivityModel/transmissivityModel.C
 submodels/transmissivityModel/transmissivityModel/transmissivityModelNew.C
 submodels/transmissivityModel/noTransmissivity/noTransmissivity.C
 submodels/transmissivityModel/constantTransmissivity/constantTransmissivity.C
+submodels/transmissivityModel/multiBandSolidTransmissivity/multiBandSolidTransmissivity.C
+
+/* Solar calculator model */
+submodels/solarCalculator/solarCalculator.C
 
 /* Boundary conditions */
 derivedFvPatchFields/MarshakRadiation/MarshakRadiationFvPatchScalarField.C

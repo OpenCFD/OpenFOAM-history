@@ -75,7 +75,16 @@ class radiationModel
 :
     public IOdictionary
 {
+public:
+
+    // Static data
+
+        //- Static name external radiative fluxes
+        static const word externalRadHeatFieldName_;
+
 protected:
+
+
 
     // Protected data
 

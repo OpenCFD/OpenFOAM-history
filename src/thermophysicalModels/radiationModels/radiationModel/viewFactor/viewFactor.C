@@ -44,31 +44,16 @@ namespace Foam
     }
 }
 
+const Foam::word Foam::radiation::viewFactor::viewFactorWalls
+    = "viewFactorWall";
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 void Foam::radiation::viewFactor::initialise()
 {
     const polyBoundaryMesh& coarsePatches = coarseMesh_.boundaryMesh();
-//  const volScalarField::GeometricBoundaryField& Qrp = Qr_.boundaryField();
 
-//     label count = 0;
-//     forAll(Qrp, patchI)
-//     {
-//         //const polyPatch& pp = mesh_.boundaryMesh()[patchI];
-//         const fvPatchScalarField& QrPatchI = Qrp[patchI];
-//
-//         if ((isA<fixedValueFvPatchScalarField>(QrPatchI)))
-//         {
-//             selectedPatches_[count] = QrPatchI.patch().index();
-//             nLocalCoarseFaces_ += coarsePatches[patchI].size();
-//             count++;
-//         }
-//     }
-//
-//     selectedPatches_.resize(count--);
-
-    selectedPatches_ = mesh_.boundaryMesh().findIndices("radiativeWall");
+    selectedPatches_ = mesh_.boundaryMesh().findIndices(viewFactorWalls);
     forAll(selectedPatches_, i)
     {
         const label patchI = selectedPatches_[i];
@@ -89,52 +74,19 @@ void Foam::radiation::viewFactor::initialise()
         Info<< "Total number of clusters : " << totalNCoarseFaces_ << endl;
     }
 
-    labelListIOList subMap
-    (
-        IOobject
-        (
-            "subMap",
-            mesh_.facesInstance(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE,
-            false
-        )
-    );
-
-    labelListIOList constructMap
-    (
-        IOobject
-        (
-            "constructMap",
-            mesh_.facesInstance(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE,
-            false
-        )
-    );
-
-    IOList<label> consMapDim
-    (
-        IOobject
-        (
-            "constructMapDim",
-            mesh_.facesInstance(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE,
-            false
-        )
-    );
-
     map_.reset
     (
-        new mapDistribute
+        new IOmapDistribute
         (
-            consMapDim[0],
-            Xfer<labelListList>(subMap),
-            Xfer<labelListList>(constructMap)
+            IOobject
+            (
+                "mapDist",
+                mesh_.facesInstance(),
+                mesh_,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE,
+                false
+            )
         )
     );
 
@@ -232,6 +184,33 @@ void Foam::radiation::viewFactor::initialise()
             pivotIndices_.setSize(CLU_().n());
         }
     }
+
+    if (this->found("useSolarLoad"))
+    {
+        this->lookup("useSolarLoad") >> useSolarLoad_;
+    }
+
+    if (useSolarLoad_)
+    {
+        const dictionary& solarDict = this->subDict("solarLoarCoeffs");
+        solarLoad_.reset
+        (
+            new solarLoad(solarDict, T_, externalRadHeatFieldName_)
+        );
+
+        if (solarLoad_->nBands() > 1)
+        {
+            FatalErrorIn
+            (
+                "const Foam::radiation::viewFactor::initialise()"
+            )
+                << "Requested solar radiation with fvDOM. Using "
+                << "more thant one band for the solar load is not allowed"
+                << abort(FatalError);
+            }
+
+        Info<< "Creating Solar Load Model " << nl;
+    }
 }
 
 
@@ -285,7 +264,9 @@ Foam::radiation::viewFactor::viewFactor(const volScalarField& T)
     nLocalCoarseFaces_(0),
     constEmissivity_(false),
     iterCounter_(0),
-    pivotIndices_(0)
+    pivotIndices_(0),
+    useSolarLoad_(false),
+    solarLoad_()
 {
     initialise();
 }
@@ -343,7 +324,9 @@ Foam::radiation::viewFactor::viewFactor
     nLocalCoarseFaces_(0),
     constEmissivity_(false),
     iterCounter_(0),
-    pivotIndices_(0)
+    pivotIndices_(0),
+    useSolarLoad_(false),
+    solarLoad_()
 {
     initialise();
 }
@@ -397,6 +380,11 @@ void Foam::radiation::viewFactor::calculate()
 {
     // Store previous iteration
     Qr_.storePrevIter();
+
+    if (useSolarLoad_)
+    {
+        solarLoad_->calculate();
+    }
 
     scalarField compactCoarseT(map_->constructSize(), 0.0);
     scalarField compactCoarseE(map_->constructSize(), 0.0);

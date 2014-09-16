@@ -27,7 +27,7 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
-
+#include "radiationModel.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -39,10 +39,8 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(p, iF),
-    //radiationCoupledBase(patch(), "undefined", scalarField::null()),
     Qro_(),
-    solarLoad_(false),
-    solarLoadFieldName_("none")
+    solarLoad_(false)
 {}
 
 
@@ -56,15 +54,8 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(ptf, p, iF, mapper),
-//     radiationCoupledBase
-//     (
-//         patch(),
-//         ptf.emissivityMethod(),
-//         ptf.emissivity_
-//     ),
     Qro_(ptf.Qro_, mapper),
-    solarLoad_(ptf.solarLoad_),
-    solarLoadFieldName_(ptf.solarLoadFieldName_)
+    solarLoad_(ptf.solarLoad_)
 {}
 
 
@@ -77,16 +68,8 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(p, iF),
-    //radiationCoupledBase(p, dict),
     Qro_("Qro", dict, p.size()),
-    solarLoad_(dict.lookupOrDefault<bool>("solarLoad", false)),
-    solarLoadFieldName_
-    (
-        dict.lookupOrDefault<word>
-        (
-            "solarLoadFieldName", "solarLoadField"
-        )
-    )
+    solarLoad_(dict.lookupOrDefault<bool>("solarLoad", false))
 {
     if (dict.found("value"))
     {
@@ -110,15 +93,8 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(ptf),
-//     radiationCoupledBase
-//     (
-//         ptf.patch(),
-//         ptf.emissivityMethod(),
-//         ptf.emissivity_
-//     ),
     Qro_(ptf.Qro_),
-    solarLoad_(ptf.solarLoad_),
-    solarLoadFieldName_(ptf.solarLoadFieldName_)
+    solarLoad_(ptf.solarLoad_)
 {}
 
 
@@ -130,15 +106,8 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField
 )
 :
     fixedValueFvPatchScalarField(ptf, iF),
-//     radiationCoupledBase
-//     (
-//         ptf.patch(),
-//         ptf.emissivityMethod(),
-//         ptf.emissivity_
-//     ),
     Qro_(ptf.Qro_),
-    solarLoad_(ptf.solarLoad_),
-    solarLoadFieldName_(ptf.solarLoadFieldName_)
+    solarLoad_(ptf.solarLoad_)
 {}
 
 
@@ -179,9 +148,12 @@ greyDiffusiveViewFactorFixedValueFvPatchScalarField::Qro() const
 
     if (solarLoad_)
     {
+        const radiationModel& radiation =
+            db().lookupObject<radiationModel>("radiationProperties");
+
         tQrt() += patch().lookupPatchField<volScalarField,scalar>
         (
-            solarLoadFieldName_
+            radiation.externalRadHeatFieldName_
         );
     }
 
@@ -196,16 +168,8 @@ write
 ) const
 {
     fixedValueFvPatchScalarField::write(os);
-    //radiationCoupledBase::write(os);
     Qro_.writeEntry("Qro", os);
     os.writeKeyword("solarLoad") << solarLoad_ << token::END_STATEMENT << nl;
-    writeEntryIfDifferent<word>
-    (
-        os,
-        "solarLoadFieldName",
-        "solarLoadFieldName",
-        solarLoadFieldName_
-    );
 }
 
 
