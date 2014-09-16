@@ -157,8 +157,8 @@ void Foam::polyLineSet::calcSamples
         oldPoint = sampleCoords_[sampleI];
     }
 
-    // Force calculation of minimum-tet decomposition.
-    (void) mesh().tetBasePtIs();
+    // Force calculation of cloud addressing on all processors
+    const bool oldMoving = const_cast<polyMesh&>(mesh()).moving(false);
     passiveParticleCloud particleCloud(mesh());
 
     // current segment number
@@ -308,6 +308,8 @@ void Foam::polyLineSet::calcSamples
 
         startSegmentI = samplingPts.size();
     }
+
+    const_cast<polyMesh&>(mesh()).moving(oldMoving);
 }
 
 
