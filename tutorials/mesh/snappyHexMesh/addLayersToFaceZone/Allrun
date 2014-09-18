@@ -9,8 +9,10 @@ runApplication blockMesh
 
 runApplication topoSet
 
-runApplication snappyHexMesh
+runApplication snappyHexMesh -overwrite
 
 runApplication checkMesh
+
+runApplication simpleFoam
 
 # ----------------------------------------------------------------- end-of-file

@@ -177,16 +177,13 @@ addLayersControls
     // Expansion factor for layer mesh
     expansionRatio 1.0;
 
-    // Wanted thickness of the layer furthest away from the wall.
-    // If relativeSizes this is relative to undistorted size of cell
-    // outside layer.
-    finalLayerThickness 0.3;
+    firstLayerThickness 0.2e-3;
 
     // Minimum overall thickness of total layers. If for any reason layer
     // cannot be above minThickness do not add layer.
     // If relativeSizes this is relative to undistorted size of cell
     // outside layer..
-    minThickness 0.1;
+    minThickness 0.1e-3;
 
 
     // Per final patch (so not geometry!) the layer information
@@ -198,9 +195,13 @@ addLayersControls
         }
         minY
         {
-            nSurfaceLayers 1;
+            nSurfaceLayers 2;
         }
         A
+        {
+            nSurfaceLayers 2;
+        }
+        A_slave
         {
             nSurfaceLayers 2;
         }
