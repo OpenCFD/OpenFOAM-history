@@ -24,7 +24,7 @@ runApplication topoSet -dict system/fBurner.topoSetDict
 
 runApplication createPatch -overwrite
 
-decomposePar -force > log.decomposePar.log 2>&1
+decomposePar -force -constant > log.decomposePar.log 2>&1
 
 decomposePar -region panelRegion > log.decomposeParPanelRegion.log 2>&1
 

@@ -197,4 +197,7 @@ mixtureFractionSootCoeffs
     nuSoot              0.055;
     Wsoot               12;
 }
+
+transmissivityModel       none;
+
 // ************************************************************************* //

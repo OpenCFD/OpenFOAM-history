@@ -22,7 +22,7 @@ dict.add
     ]
 );
 dict.add("mergeDistance", SMALL);
-
+/*
 labelHashSet includePatches;
 forAll(patches, patchI)
 {
@@ -32,7 +32,7 @@ forAll(patches, patchI)
         includePatches.insert(patchI);
     }
 }
-
+*/
 labelList triSurfaceToAgglom(5*nFineFaces);
 
 const triSurface localSurface = triangulate
@@ -44,7 +44,6 @@ const triSurface localSurface = triangulate
     globalNumbering,
     coarsePatches
 );
-
 
 distributedTriSurfaceMesh surfacesMesh
 (
@@ -61,9 +60,7 @@ distributedTriSurfaceMesh surfacesMesh
     dict
 );
 
-
 triSurfaceToAgglom.resize(surfacesMesh.size());
-
 //surfacesMesh.searchableSurface::write();
 
 surfacesMesh.setField(triSurfaceToAgglom);

@@ -16,6 +16,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+radiation       on;
+
 radiationModel  opaqueSolid;
 
 absorptionEmissionModel greyMeanSolidAbsorptionEmission;
@@ -38,5 +40,6 @@ greyMeanSolidAbsorptionEmissionCoeffs
 
 scatterModel    none;
 
+transmissivityModel none;
 
 // ************************************************************************* //
