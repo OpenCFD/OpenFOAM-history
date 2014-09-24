@@ -1265,7 +1265,15 @@ void Foam::autoSnapDriver::detectNearSurfaces
     }
 
 
-    const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
+    const PackedBoolList isPatchMasterPoint
+    (
+        meshRefinement::getMasterPoints
+        (
+            mesh,
+            meshPoints
+        )
+    );
+
     label nOverride = 0;
 
     // 1. All points to non-interface surfaces
@@ -1378,7 +1386,7 @@ void Foam::autoSnapDriver::detectNearSurfaces
                 }
             }
 
-            if (override && isMasterPoint[meshPoints[pointI]])
+            if (override && isPatchMasterPoint[pointI])
             {
                 nOverride++;
             }
@@ -1516,7 +1524,7 @@ void Foam::autoSnapDriver::detectNearSurfaces
                     }
                 }
 
-                if (override && isMasterPoint[meshPoints[pointI]])
+                if (override && isPatchMasterPoint[pointI])
                 {
                     nOverride++;
                 }
@@ -1879,16 +1887,19 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurface
         }
 
         {
+            const PackedBoolList isPatchMasterPoint
+            (
+                meshRefinement::getMasterPoints
+                (
+                    mesh,
+                    pp.meshPoints()
+                )
+            );
+
             scalarField magDisp(mag(patchDisp));
 
             Info<< "Wanted displacement : average:"
-                <<  meshRefinement::gAverage
-                    (
-                        mesh,
-                        syncTools::getMasterPoints(mesh),
-                        pp.meshPoints(),
-                        magDisp
-                    )
+                <<  meshRefinement::gAverage(isPatchMasterPoint, magDisp)
                 << " min:" << gMin(magDisp)
                 << " max:" << gMax(magDisp) << endl;
         }
