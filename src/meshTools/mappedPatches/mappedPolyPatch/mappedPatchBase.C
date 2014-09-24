@@ -52,14 +52,15 @@ namespace Foam
     const char* Foam::NamedEnum
     <
         Foam::mappedPatchBase::sampleMode,
-        5
+        6
     >::names[] =
     {
         "nearestCell",
         "nearestPatchFace",
         "nearestPatchFaceAMI",
         "nearestPatchPoint",
-        "nearestFace"
+        "nearestFace",
+        "nearestOnlyCell"
     };
 
     template<>
@@ -76,7 +77,7 @@ namespace Foam
 }
 
 
-const Foam::NamedEnum<Foam::mappedPatchBase::sampleMode, 5>
+const Foam::NamedEnum<Foam::mappedPatchBase::sampleMode, 6>
     Foam::mappedPatchBase::sampleModeNames_;
 
 const Foam::NamedEnum<Foam::mappedPatchBase::offsetMode, 3>
@@ -187,6 +188,7 @@ void Foam::mappedPatchBase::collectSamples
 // for samples being found in two processors.
 void Foam::mappedPatchBase::findSamples
 (
+    const sampleMode mode,
     const pointField& samples,
     labelList& sampleProcs,
     labelList& sampleIndices,
@@ -199,7 +201,7 @@ void Foam::mappedPatchBase::findSamples
     // All the info for nearest. Construct to miss
     List<nearInfo> nearest(samples.size());
 
-    switch (mode_)
+    switch (mode)
     {
         case NEARESTCELL:
         {
@@ -210,7 +212,7 @@ void Foam::mappedPatchBase::findSamples
                     "mappedPatchBase::findSamples(const pointField&,"
                     " labelList&, labelList&, pointField&) const"
                 )   << "No need to supply a patch name when in "
-                    << sampleModeNames_[mode_] << " mode." << exit(FatalError);
+                    << sampleModeNames_[mode] << " mode." << exit(FatalError);
             }
 
             //- Note: face-diagonal decomposition
@@ -240,6 +242,36 @@ void Foam::mappedPatchBase::findSamples
                     nearest[sampleI].second().first() = magSqr(cc-sample);
                     nearest[sampleI].second().second() = Pstream::myProcNo();
                 }
+            }
+            break;
+        }
+
+        case NEARESTONLYCELL:
+        {
+            if (samplePatch_.size() && samplePatch_ != "none")
+            {
+                FatalErrorIn
+                (
+                    "mappedPatchBase::findSamples(const pointField&,"
+                    " labelList&, labelList&, pointField&) const"
+                )   << "No need to supply a patch name when in "
+                    << sampleModeNames_[mode] << " mode." << exit(FatalError);
+            }
+
+            //- Note: face-diagonal decomposition
+            const indexedOctree<Foam::treeDataCell>& tree = mesh.cellTree();
+
+            forAll(samples, sampleI)
+            {
+                const point& sample = samples[sampleI];
+
+                nearest[sampleI].first() = tree.findNearest(sample, sqr(GREAT));
+                nearest[sampleI].second().first() = magSqr
+                (
+                    nearest[sampleI].first().hitPoint()
+                   -sample
+                );
+                nearest[sampleI].second().second() = Pstream::myProcNo();
             }
             break;
         }
@@ -398,7 +430,7 @@ void Foam::mappedPatchBase::findSamples
                     "mappedPatchBase::findSamples(const pointField&,"
                     " labelList&, labelList&, pointField&) const"
                 )   << "No need to supply a patch name when in "
-                    << sampleModeNames_[mode_] << " mode." << exit(FatalError);
+                    << sampleModeNames_[mode] << " mode." << exit(FatalError);
             }
 
             //- Note: face-diagonal decomposition
@@ -523,8 +555,17 @@ void Foam::mappedPatchBase::calcMapping() const
 
     if (sampleMyself && coincident)
     {
-        WarningIn("mappedPatchBase::calcMapping() const")
-            << "Invalid offset " << d << endl
+        WarningIn
+        (
+            "mappedPatchBase::mappedPatchBase\n"
+            "(\n"
+            "    const polyPatch& pp,\n"
+            "    const word& sampleRegion,\n"
+            "    const sampleMode mode,\n"
+            "    const word& samplePatch,\n"
+            "    const vector& offset\n"
+            ")\n"
+        )   << "Invalid offset " << d << endl
             << "Offset is the vector added to the patch face centres to"
             << " find the patch face supplying the data." << endl
             << "Setting it to " << d
@@ -556,7 +597,7 @@ void Foam::mappedPatchBase::calcMapping() const
     labelList sampleProcs;
     labelList sampleIndices;
     pointField sampleLocations;
-    findSamples(samples, sampleProcs, sampleIndices, sampleLocations);
+    findSamples(mode_, samples, sampleProcs, sampleIndices, sampleLocations);
 
     // Check for samples that were not found. This will only happen for
     // NEARESTCELL since finds cell containing a location
@@ -576,8 +617,17 @@ void Foam::mappedPatchBase::calcMapping() const
         {
             if (!hasWarned)
             {
-                WarningIn("mappedPatchBase::calcMapping() const")
-                    << "Did not find " << nNotFound
+                WarningIn
+                (
+                    "mappedPatchBase::mappedPatchBase\n"
+                    "(\n"
+                    "    const polyPatch& pp,\n"
+                    "    const word& sampleRegion,\n"
+                    "    const sampleMode mode,\n"
+                    "    const word& samplePatch,\n"
+                    "    const vector& offset\n"
+                    ")\n"
+                )   << "Did not find " << nNotFound
                     << " out of " << sampleProcs.size() << " total samples."
                     << " Sampling these on owner cell centre instead." << endl
                     << "On patch " << patch_.name()
@@ -614,7 +664,14 @@ void Foam::mappedPatchBase::calcMapping() const
 
             // And re-search. Note: could be optimised to only search missing
             // points.
-            findSamples(samples, sampleProcs, sampleIndices, sampleLocations);
+            findSamples
+            (
+                NEARESTONLYCELL,
+                samples,
+                sampleProcs,
+                sampleIndices,
+                sampleLocations
+            );
         }
     }
 
@@ -1363,16 +1420,8 @@ Foam::pointIndexHit Foam::mappedPatchBase::facePoint
 
         default:
         {
-            FatalErrorIn
-            (
-                "mappedPatchBase::facePoint"
-                "("
-                    "const polyMesh&, "
-                    "const label, "
-                    "const polyMesh::cellRepresentation"
-                ")"
-            )   << "problem" << abort(FatalError);
-
+            FatalErrorIn("mappedPatchBase::facePoint()")
+                << "problem" << abort(FatalError);
             return pointIndexHit();
         }
     }
