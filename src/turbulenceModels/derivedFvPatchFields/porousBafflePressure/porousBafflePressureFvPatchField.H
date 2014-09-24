@@ -85,6 +85,7 @@ SourceFiles
 #define porousBafflePressureFvPatchField_H
 
 #include "fixedJumpFvPatchField.H"
+#include "DataEntry.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -103,10 +104,10 @@ class porousBafflePressureFvPatchField
     // Private data
 
         //- Darcy pressure loss coefficient
-        scalar D_;
+        autoPtr<DataEntry<scalar> > D_;
 
         //- Inertia pressure lost coefficient
-        scalar I_;
+        autoPtr<DataEntry<scalar> > I_;
 
         //- Porous media length
         scalar length_;
