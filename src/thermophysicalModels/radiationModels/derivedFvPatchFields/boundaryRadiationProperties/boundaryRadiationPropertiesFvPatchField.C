@@ -322,7 +322,7 @@ boundaryRadiationPropertiesFvPatchField::absorptivity
                     "radiationProperties"
                 );
 
-            scalarField absorptivity
+            scalarField absorp
             (
                 radiation.absorptionEmission().a(bandI)().boundaryField()
                 [
@@ -333,9 +333,9 @@ boundaryRadiationPropertiesFvPatchField::absorptivity
             const mappedPatchBase& mpp =
                 refCast<const mappedPatchBase>(patch().patch());
 
-            mpp.distribute(absorptivity);
+            mpp.distribute(absorp);
 
-            const tmp<scalarField> ta(new scalarField(absorptivity));
+            const tmp<scalarField> ta(new scalarField(absorp));
 
             return ta;
 
@@ -399,7 +399,7 @@ transmissivity(const label bandI) const
                     "radiationProperties"
                 );
 
-            scalarField transmissivity
+            scalarField trans
             (
                 radiation.transmissivity().tauEff(bandI)().boundaryField()
                 [
@@ -410,9 +410,9 @@ transmissivity(const label bandI) const
             const mappedPatchBase& mpp =
                 refCast<const mappedPatchBase>(patch().patch());
 
-            mpp.distribute(transmissivity);
+            mpp.distribute(trans);
 
-            const tmp<scalarField> tt(new scalarField(transmissivity));
+            const tmp<scalarField> tt(new scalarField(trans));
 
             return tt;
 

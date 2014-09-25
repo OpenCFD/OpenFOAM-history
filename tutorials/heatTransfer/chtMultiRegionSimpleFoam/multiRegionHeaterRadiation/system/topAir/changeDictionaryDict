@@ -179,20 +179,9 @@ dictionaryReplacement
             ".*"
             {
                 type            greyDiffusiveRadiationViewFactor;
-                //emissivityMode  lookup;
-                Qro             uniform 0;
-                //emissivity      uniform 1.0;
-                value           uniform 0;
-            }
-/*
-            "topAir_to_.*"
-            {
-                type            greyDiffusiveRadiationViewFactor;
-                emissivityMode  solidRadiation;
                 Qro             uniform 0;
                 value           uniform 0;
             }
-*/
         }
     }
 
@@ -204,9 +193,6 @@ dictionaryReplacement
             ".*"
             {
                 type            MarshakRadiation;
-                //T               T;
-                //emissivityMode  lookup;
-                //emissivity      uniform 1.0;
                 value           uniform 0;
             }
 
@@ -221,9 +207,6 @@ dictionaryReplacement
             ".*"
             {
                 type            greyDiffusiveRadiation;
-                //T               T;
-                //emissivityMode  lookup;
-                //emissivity      uniform 1.0;
                 value           uniform 0;
             }
 

@@ -18,18 +18,6 @@ dictionaryReplacement
 {
     boundary
     {
-        /*
-        minX
-        {
-            type            wall;
-            inGroups        2(wall viewFactorWall);
-        }
-        maxX
-        {
-            type            wall;
-            inGroups        2(wall viewFactorWall);
-        }
-        */
          ".*"
         {
             inGroups        2(wall viewFactorWall);
@@ -135,15 +123,6 @@ dictionaryReplacement
                 Qro             uniform 0;
                 value           uniform 0;
             }
-/*
-            "bottomAir_to_.*"
-            {
-                type            greyDiffusiveRadiationViewFactor;
-                emissivityMode  solidRadiation;
-                Qro             uniform 0;
-                value           uniform 0;
-            }
-*/
         }
     }
 
@@ -155,20 +134,9 @@ dictionaryReplacement
             ".*"
             {
                 type            MarshakRadiation;
-                //T               T;
-                //emissivityMode  lookup;
-                //emissivity      uniform 1.0;
                 value           uniform 0;
             }
-/*
-            "bottomAir_to_.*"
-            {
-                type            MarshakRadiation;
-                T               T;
-                emissivityMode  solidRadiation;
-                value           uniform 0;
-            }
-*/
+
         }
     }
 
@@ -180,20 +148,8 @@ dictionaryReplacement
             ".*"
             {
                 type            greyDiffusiveRadiation;
-                //T               T;
-                //emissivityMode  lookup;
-                //emissivity      uniform 1.0;
                 value           uniform 0;
             }
-/*
-            "bottomAir_to_.*"
-            {
-                type            greyDiffusiveRadiation;
-                T               T;
-                emissivityMode  solidRadiation;
-                value           uniform 0;
-            }
-*/
         }
     }
 
