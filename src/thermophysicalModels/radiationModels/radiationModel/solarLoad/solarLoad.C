@@ -512,7 +512,7 @@ void Foam::radiation::solarLoad::calculateQdiff
         {
             const tmp<scalarField> ta =
                 spectralDistribution_[bandI]
-              * boundaryRadiation.absorptivity(patchID, bandI);
+              * absorptivity_[patchID][bandI]();
             a += ta();
         }
 

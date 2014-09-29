@@ -2,7 +2,7 @@
 // Pre-size by assuming a certain percentage is visible.
 
 // Maximum lenght for dynamicList
-const label maxDynListLength = 100000;
+const label maxDynListLength = 1000000;
 
 for (label procI = 0; procI < Pstream::nProcs(); procI++)
 {
