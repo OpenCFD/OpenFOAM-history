@@ -10,36 +10,25 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    location    "0";
-    object      G;
+    object      boundaryRadiationProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 0 -3 0 0 0 0];
+dimensions      [0 0 0 0 0 0 0];
 
 internalField   uniform 0;
 
 boundaryField
 {
-    top
+    ".*"
     {
-        type            MarshakRadiation;
-        T               T;
-        value           uniform 0;
+        type            boundaryRadiation;
+        mode            lookup;
+        emissivity      uniform 1.0;
+        absorptivity    uniform 0.0;
+        value           uniform 0.0;
     }
-    bottom
-    {
-        type            MarshakRadiation;
-        T               T;
-        value           uniform 0;
-    }
-    walls
-    {
-        type            MarshakRadiation;
-        T               T;
-        value           uniform 0;
-    }
-    symmetry
+     symmetry
     {
         type            symmetryPlane;
     }
@@ -48,6 +37,5 @@ boundaryField
         type            empty;
     }
 }
-
 
 // ************************************************************************* //
