@@ -407,6 +407,9 @@ addLayersControls
     // - overall thickness and firstLayerThickness
     // - overall thickness and finalLayerThickness
     // - overall thickness and expansionRatio
+    //
+    // Note: the mode thus selected is global, i.e. one cannot override the
+    //       mode on a per-patch basis (only the values can be overridden)
 
         // Expansion factor for layer mesh
         expansionRatio 1.0;
@@ -434,7 +437,7 @@ addLayersControls
     minThickness 0.1;
 
 
-    // Per final patch (so not geometry!) the layer information
+    // Per final patch or faceZone (so not geometry!) the layer information
     // Note: This behaviour changed after 21x. Any non-mentioned patches
     //       now slide unless:
     //          - nSurfaceLayers is explicitly mentioned to be 0.
