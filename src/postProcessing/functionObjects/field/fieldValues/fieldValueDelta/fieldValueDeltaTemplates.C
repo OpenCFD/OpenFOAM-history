@@ -23,20 +23,30 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "GeometricField.H"
-#include "volMesh.H"
-#include "surfaceMesh.H"
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-Type Foam::fieldValues::fieldValueDelta::applyOperation
+void Foam::fieldValues::fieldValueDelta::apply
 (
-    const Type& value1,
-    const Type& value2
-) const
+    const word& resultType,
+    const word& name1,
+    const word& name2,
+    const word& entryName1,
+    const word& entryName2,
+    bool& found
+)
 {
+    if (pTraits<Type>::typeName != resultType)
+    {
+        return;
+    }
+
     Type result = pTraits<Type>::zero;
+
+    Type value1 = this->getObjectResult<Type>(name1, entryName1);
+    Type value2 = this->getObjectResult<Type>(name2, entryName2);
+
+    const word& opName = operationTypeNames_[operation_];
 
     switch (operation_)
     {
@@ -69,83 +79,43 @@ Type Foam::fieldValues::fieldValueDelta::applyOperation
         {
             FatalErrorIn
             (
-                "Type Foam::fieldValues::fieldValueDelta::applyOperation"
+                "void Foam::fieldValues::fieldValueDelta::applyOperation"
                 "("
-                    "const Type&, "
-                    "const Type&"
+                    "const word&, "
+                    "const word&, "
+                    "const word&, "
+                    "const word&, "
+                    "const word&"
+                    "bool&"
                 ") const"
             )
-                << "Unable to process operation "
-                << operationTypeNames_[operation_]
+                << "Operation not supported: "
+                << opName
                 << abort(FatalError);
         }
     }
 
-    return result;
-}
-
-
-template<class Type>
-void Foam::fieldValues::fieldValueDelta::processFields(bool& found)
-{
-    typedef GeometricField<Type, fvPatchField, volMesh> vf;
-    typedef GeometricField<Type, fvsPatchField, surfaceMesh> sf;
-
-    const wordList& fields1 = source1Ptr_->fields();
-
-    if
+    const word resultName
     (
-        (foundProperty(source1Ptr_->name()))
-     && (foundProperty(source2Ptr_->name()))
-    )
+        opName
+      + '('
+      + entryName1
+      + ','
+      + entryName2
+      + ')'
+    );
+
+    Info(log_)<< "    " << resultName << " = " << result << endl;
+
+    if (Pstream::master())
     {
-        dictionary results1;
-        getProperty(source1Ptr_->name(), results1);
-
-        dictionary results2;
-        getProperty(source2Ptr_->name(), results2);
-
-        Type r1(pTraits<Type>::zero);
-        Type r2(pTraits<Type>::zero);
-
-        forAll(fields1, i)
-        {
-            const word& fieldName = fields1[i];
-
-            if
-            (
-                (
-                    obr_.foundObject<vf>(fieldName)
-                 || obr_.foundObject<sf>(fieldName)
-                )
-             && results2.found(fieldName)
-            )
-            {
-                results1.subDict(fieldName).lookup("value") >> r1;
-                results2.subDict(fieldName).lookup("value") >> r2;
-
-                Type result = applyOperation(r1, r2);
-
-                Info(log_)<< "    " << operationTypeNames_[operation_]
-                    << "(" << fieldName << ") = " << result
-                    << endl;
-
-                if (Pstream::master())
-                {
-                    file()<< tab << result;
-                }
-
-                // write state information
-                {
-                    dictionary propsDict;
-                    propsDict.add("value", result);
-                    setProperty("fieldName", propsDict);
-                }
-
-                found = true;
-            }
-        }
+        this->file()<< tab << result;
     }
+
+    // write state/results information
+    this->setResult(resultName, result);
+
+    found = true;
 }
 
 

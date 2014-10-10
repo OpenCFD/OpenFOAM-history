@@ -967,21 +967,14 @@ void Foam::forces::execute()
         Info(log_)<< endl;
     }
 
-    // write state information
-    {
-        dictionary propsDict;
-        propsDict.add("pressure", sum(force_[0]));
-        propsDict.add("viscous", sum(force_[1]));
-        propsDict.add("moment", sum(force_[2]));
-        setProperty("force", propsDict);
-    }
-    {
-        dictionary propsDict;
-        propsDict.add("pressure", sum(moment_[0]));
-        propsDict.add("viscous", sum(moment_[1]));
-        propsDict.add("moment", sum(moment_[2]));
-        setProperty("moment", propsDict);
-    }
+    // write state/results information
+    setResult("normalForce", sum(force_[0]));
+    setResult("tangentialForce", sum(force_[1]));
+    setResult("porousForce", sum(force_[2]));
+
+    setResult("normalMoment", sum(moment_[0]));
+    setResult("tangentialMoment", sum(moment_[1]));
+    setResult("porousMoment", sum(moment_[2]));
 }
 
 
