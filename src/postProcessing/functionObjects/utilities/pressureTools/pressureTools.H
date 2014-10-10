@@ -98,6 +98,7 @@ Description
         pInf         | Freestream pressure for coefficient calculation | no |
         UInf         | Freestream velocity for coefficient calculation | no |
         rhoInf       | Freestream density for coefficient calculation | no |
+        resultName   | Name of derived pressure field | no   | auto generated
     \endtable
 
 SourceFiles
@@ -175,6 +176,9 @@ class pressureTools
 
             //- Flag to show whether rhoInf has been initialised
             bool rhoInfInitialised_;
+
+            //- Result name
+            word resultName_;
 
 
     // Private Member Functions

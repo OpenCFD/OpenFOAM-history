@@ -39,6 +39,11 @@ namespace Foam
 
 Foam::word Foam::pressureTools::pName() const
 {
+    if (resultName_ != word::null)
+    {
+        return resultName_;
+    }
+
     word fieldName = pName_;
 
     if (calcTotal_)
@@ -215,7 +220,8 @@ Foam::pressureTools::pressureTools
     pInf_(0.0),
     UInf_(vector::zero),
     rhoInf_(0.0),
-    rhoInfInitialised_(false)
+    rhoInfInitialised_(false),
+    resultName_(word::null)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -253,7 +259,7 @@ Foam::pressureTools::pressureTools
             (
                 IOobject
                 (
-                    pName(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -319,6 +325,9 @@ void Foam::pressureTools::read(const dictionary& dict)
 
             rhoInfInitialised_ = true;
         }
+
+        dict.readIfPresent("resultName_", resultName_);
+        resultName_ = pName();
     }
 }
 
@@ -332,7 +341,7 @@ void Foam::pressureTools::execute()
         volScalarField& pResult =
             const_cast<volScalarField&>
             (
-                obr_.lookupObject<volScalarField>(pName())
+                obr_.lookupObject<volScalarField>(resultName_)
             );
 
         pResult == convertToCoeff(rhoScale(p)*p + pDyn(p) + pRef());
@@ -360,7 +369,7 @@ void Foam::pressureTools::write()
     if (active_)
     {
         const volScalarField& pResult =
-            obr_.lookupObject<volScalarField>(pName());
+            obr_.lookupObject<volScalarField>(resultName_);
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << pResult.name() << nl
