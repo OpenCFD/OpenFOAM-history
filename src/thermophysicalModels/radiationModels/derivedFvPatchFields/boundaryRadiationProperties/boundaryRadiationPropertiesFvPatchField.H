@@ -176,6 +176,12 @@ public:
         }
 
 
+        //- Return absorptionEmissionModel
+        const absorptionEmissionModel& absorptionEmission() const;
+
+        //- Return transmissivityModel
+        const transmissivityModel& transmissiveModel() const;
+
         //- Calculate corresponding emissivity field for bandI
         tmp<scalarField> emissivity(const label bandI = 0) const;
 

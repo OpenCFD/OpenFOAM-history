@@ -36,8 +36,9 @@ Description
     Conditions Method from the ASHRAE Handbook.
 
     By default the energy is included in cells adjacent to the patches into
-    the energy Equation. On coupled patches the flux is added to the wall and
-    considered into the solid.
+    the energy Equation. On coupled patches the flux is by default added
+    to the wall and considered into the solid. This default bahaviour can be
+    modified in the radiativeProperties dictionary
 
     The reflected fluxes uses a grey absoprtion/emission model wich is weighted
     by the spectral distribution.
@@ -136,8 +137,11 @@ private:
         //- Face-compact map
         labelListIOList visibleFaceFaces_;
 
-        //- Couple solids through mapped boundary patch
+        //- Couple solids through mapped boundary patch using Qr (default:true)
         bool solidCoupled_;
+
+        //- Couple wall patches using Qr (default:false)
+        bool wallCoupled_;
 
         //- Absorptivity list
         List<List<tmp<scalarField> > > absorptivity_;
@@ -147,6 +151,9 @@ private:
 
         //- First iteration
         bool firstIter_;
+
+        //- Update Sun position index
+        label updateTimeIndex_;
 
 
     // Private Member Functions
