@@ -214,7 +214,17 @@ bool Foam::functionObjectList::execute(const bool forceWrite)
     // force writing of state dictionary after function object execution
     if (time_.outputTime())
     {
-        stateDictPtr_->regIOobject::write();
+        label oldPrecision = IOstream::precision_;
+        IOstream::precision_ = 16;
+
+        stateDictPtr_->writeObject
+        (
+            IOstream::ASCII,
+            IOstream::currentVersion,
+            time_.writeCompression()
+        );
+
+        IOstream::precision_ = oldPrecision;
     }
 
     return ok;
