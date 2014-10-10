@@ -41,6 +41,7 @@ License
 #include "triPointRef.H"
 #include "syncTools.H"
 #include "treeDataCell.H"
+#include "DynamicField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -639,39 +640,36 @@ void Foam::mappedPatchBase::calcMapping() const
                 hasWarned = true;
             }
 
-            // Reset the samples that cannot be found to the cell centres.
-            pointField patchCc;
-            {
-                List<pointField> globalCc(Pstream::nProcs());
-                globalCc[Pstream::myProcNo()] = patch_.faceCellCentres();
-                Pstream::gatherList(globalCc);
-                Pstream::scatterList(globalCc);
-                patchCc = ListListOps::combine<pointField>
-                (
-                    globalCc,
-                    accessOp<pointField>()
-                );
-            }
+            // Collect the samples that cannot be found
+            DynamicList<label> subMap;
+            DynamicField<point> subSamples;
 
             forAll(sampleProcs, sampleI)
             {
                 if (sampleProcs[sampleI] == -1)
                 {
-                    // Reset to cell centres
-                    samples[sampleI] = patchCc[sampleI];
+                    subMap.append(sampleI);
+                    subSamples.append(samples[sampleI]);
                 }
             }
 
-            // And re-search. Note: could be optimised to only search missing
-            // points.
+            // And re-search for pure nearest (should not fail)
+            labelList subSampleProcs;
+            labelList subSampleIndices;
+            pointField subSampleLocations;
             findSamples
             (
                 NEARESTONLYCELL,
-                samples,
-                sampleProcs,
-                sampleIndices,
-                sampleLocations
+                subSamples,
+                subSampleProcs,
+                subSampleIndices,
+                subSampleLocations
             );
+
+            // Insert
+            UIndirectList<label>(sampleProcs, subMap) = subSampleProcs;
+            UIndirectList<label>(sampleIndices, subMap) = subSampleIndices;
+            UIndirectList<point>(sampleLocations, subMap) = subSampleLocations;
         }
     }
 

@@ -84,7 +84,7 @@ public:
 
     // Member Functions
 
-        label size() const
+        virtual label size() const
         {
             return
             (
@@ -94,27 +94,27 @@ public:
             );
         }
 
-        bool direct() const
+        virtual bool direct() const
         {
             return true;
         }
 
-        bool distributed() const
+        virtual bool distributed() const
         {
             return true;
         }
 
-        const mapDistributeBase& distributeMap() const
+        virtual const mapDistributeBase& distributeMap() const
         {
             return distMap_;
         }
 
-        bool hasUnmapped() const
+        virtual bool hasUnmapped() const
         {
             return hasUnmapped_;
         }
 
-        const labelUList& directAddressing() const
+        virtual const labelUList& directAddressing() const
         {
             return directAddressing_;
         }
