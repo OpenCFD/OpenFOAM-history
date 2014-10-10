@@ -25,7 +25,7 @@ actions
         source  boxToCell;
         sourceInfo
         {
-            box (-100 -100 -100) (2 100 100);
+            box (-100e-3 -100e-3 -100e-3) (2e-3 100e-3 100e-3);
         }
     }
     {
@@ -35,7 +35,7 @@ actions
         source  boxToFace;
         sourceInfo
         {
-            box (1.999 -100 -100) (2.001 100 100);
+            box (1.999e-3 -100e-3 -100e-3) (2.001e-3 100e-3 100e-3);
         }
     }
     {
@@ -59,7 +59,7 @@ actions
         source  boxToCell;
         sourceInfo
         {
-            box (-100 -100 -100) (8 100 100);
+            box (-100e-3 -100e-3 -100e-3) (8e-3 100e-3 100e-3);
         }
     }
     {
@@ -69,7 +69,7 @@ actions
         source  boxToFace;
         sourceInfo
         {
-            box (7.999 -100 -100) (8.001 100 100);
+            box (7.999e-3 -100e-3 -100e-3) (8.001e-3 100e-3 100e-3);
         }
     }
     {

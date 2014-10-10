@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,7 +36,6 @@ Description
     \table
         Property     | Description             | Required    | Default value
         Qro          | external radiative heat flux | yes    |
-        emissivityMode | emissivity mode: solidThermo or lookup | yes |
     \endtable
 
     Example of the boundary condition specification:
@@ -45,7 +44,6 @@ Description
     {
         type            greyDiffusiveRadiationViewFactor;
         Qro             uniform 0;
-        emissivityMode  solidThermo;
         value           uniform 0;
     }
     \endverbatim
@@ -64,7 +62,6 @@ SourceFiles
 #ifndef greyDiffusiveViewFactorFixedValueFvPatchScalarField_H
 #define greyDiffusiveViewFactorFixedValueFvPatchScalarField_H
 
-#include "radiationCoupledBase.H"
 #include "fixedValueFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -79,13 +76,15 @@ namespace radiation
 
 class greyDiffusiveViewFactorFixedValueFvPatchScalarField
 :
-    public fixedValueFvPatchScalarField,
-    public radiationCoupledBase
+    public fixedValueFvPatchScalarField
 {
     // Private data
 
         //- External radiative heat flux
         scalarField Qro_;
+
+        //- Activate solar load
+        bool solarLoad_;
 
 
 public:
@@ -164,11 +163,8 @@ public:
 
         // Access
 
-            //- Return external radiative heat flux
-            const scalarList& Qro()
-            {
-                return Qro_;
-            }
+            //- Return external + solar load radiative heat flux
+            tmp<scalarField> Qro() const;
 
 
         // Evaluation functions

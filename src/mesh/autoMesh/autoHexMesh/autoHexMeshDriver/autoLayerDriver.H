@@ -29,7 +29,6 @@ Description
 
 SourceFiles
     autoLayerDriver.C
-    autoLayerDriverShrink.C
 
 \*---------------------------------------------------------------------------*/
 

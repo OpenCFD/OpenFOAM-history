@@ -17,7 +17,7 @@ FoamFile
 
 solvers
 {
-    p
+    "(p|Phi)"
     {
         solver          PCG;
         preconditioner  DIC;
@@ -34,6 +34,12 @@ solvers
     }
 }
 
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+}
+
 PISO
 {
     nCorrectors     2;
@@ -42,5 +48,23 @@ PISO
     pRefValue       0;
 }
 
+potentialFlow
+{
+    nNonOrthogonalCorrectors 3;
+}
+
+relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.7;
+        k               0.7;
+        omega           0.7;
+    }
+}
 
 // ************************************************************************* //

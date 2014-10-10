@@ -1092,7 +1092,10 @@ void Foam::addPatchCellLayer::setRefinement
                     << e.line(pp.localPoints())
                     << " which is non-manifold (has "
                     << globalEdgeFaces[edgeI].size()
-                    << " faces using it)"
+                    << " local or coupled faces using it)"
+                    << " of which "
+                    << pp.edgeFaces()[edgeI].size()
+                    << " local"
                     << abort(FatalError);
             }
         }
