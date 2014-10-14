@@ -49,7 +49,8 @@ Foam::Q::Q
     name_(name),
     obr_(obr),
     active_(true),
-    UName_("U")
+    UName_("U"),
+    resultName_()
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -80,7 +81,7 @@ Foam::Q::Q
             (
                 IOobject
                 (
-                    type(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -109,6 +110,15 @@ void Foam::Q::read(const dictionary& dict)
     if (active_)
     {
         UName_ = dict.lookupOrDefault<word>("UName", "U");
+
+        if (!dict.readIfPresent("resultName", resultName_))
+        {
+            resultName_ = typeName;
+            if (UName_ != "U")
+            {
+                resultName_ = resultName_ + "(" + UName_ + ")";
+            }
+        }
     }
 }
 
@@ -127,7 +137,7 @@ void Foam::Q::execute()
         volScalarField& Q =
             const_cast<volScalarField&>
             (
-                mesh.lookupObject<volScalarField>(type())
+                mesh.lookupObject<volScalarField>(resultName_)
             );
 
         Q = 0.5*(sqr(tr(gradU)) - tr(((gradU) & (gradU))));
@@ -155,7 +165,7 @@ void Foam::Q::write()
     if (active_)
     {
         const volScalarField& Q =
-            obr_.lookupObject<volScalarField>(type());
+            obr_.lookupObject<volScalarField>(resultName_);
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << Q.name() << nl

@@ -37,33 +37,6 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-Foam::word Foam::pressureTools::pName() const
-{
-    if (resultName_ != word::null)
-    {
-        return resultName_;
-    }
-
-    word fieldName = pName_;
-
-    if (calcTotal_)
-    {
-        fieldName = "total(" + fieldName + ")";
-    }
-    else
-    {
-        fieldName = "static(" + fieldName + ")";
-    }
-
-    if (calcCoeff_)
-    {
-        fieldName = fieldName + "_coeff";
-    }
-
-    return fieldName;
-}
-
-
 Foam::dimensionedScalar Foam::pressureTools::rhoScale
 (
     const volScalarField& p
@@ -326,8 +299,24 @@ void Foam::pressureTools::read(const dictionary& dict)
             rhoInfInitialised_ = true;
         }
 
-        dict.readIfPresent("resultName_", resultName_);
-        resultName_ = pName();
+        if (!dict.readIfPresent("resultName_", resultName_))
+        {
+            resultName_ = pName_;
+
+            if (calcTotal_)
+            {
+                resultName_ = "total(" + resultName_ + ")";
+            }
+            else
+            {
+                resultName_ = "static(" + resultName_ + ")";
+            }
+
+            if (calcCoeff_)
+            {
+                resultName_ = resultName_ + "_coeff";
+            }
+        }
     }
 }
 

@@ -183,10 +183,7 @@ class pressureTools
 
     // Private Member Functions
 
-        //- Return the name of the derived pressure field
-        word pName() const;
-
-        //- Return the density scaling if supplied with kinematic pressure
+        //- Return the density scale
         dimensionedScalar rhoScale(const volScalarField& p) const;
 
         //- Return the density field

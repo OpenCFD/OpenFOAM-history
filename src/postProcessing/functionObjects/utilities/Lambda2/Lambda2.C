@@ -50,7 +50,8 @@ Foam::Lambda2::Lambda2
     name_(name),
     obr_(obr),
     active_(true),
-    UName_("U")
+    UName_("U"),
+    resultName_()
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -81,7 +82,7 @@ Foam::Lambda2::Lambda2
             (
                 IOobject
                 (
-                    type(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -110,6 +111,15 @@ void Foam::Lambda2::read(const dictionary& dict)
     if (active_)
     {
         UName_ = dict.lookupOrDefault<word>("UName", "U");
+
+        if (!dict.readIfPresent("resultName", resultName_))
+        {
+            resultName_ = typeName;
+            if (UName_ != "U")
+            {
+                resultName_ = resultName_ + "(" + UName_ + ")";
+            }
+        }
     }
 }
 
@@ -134,7 +144,7 @@ void Foam::Lambda2::execute()
         volScalarField& Lambda2 =
             const_cast<volScalarField&>
             (
-                mesh.lookupObject<volScalarField>(type())
+                mesh.lookupObject<volScalarField>(resultName_)
             );
 
         Lambda2 = -eigenValues(SSplusWW)().component(vector::Y);
@@ -162,7 +172,7 @@ void Foam::Lambda2::write()
     if (active_)
     {
         const volScalarField& Lambda2 =
-            obr_.lookupObject<volScalarField>(type());
+            obr_.lookupObject<volScalarField>(resultName_);
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << Lambda2.name() << nl

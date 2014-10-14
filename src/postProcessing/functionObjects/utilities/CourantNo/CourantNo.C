@@ -87,7 +87,8 @@ Foam::CourantNo::CourantNo
     obr_(obr),
     active_(true),
     phiName_("phi"),
-    rhoName_("rho")
+    rhoName_("rho"),
+    resultName_()
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -118,7 +119,7 @@ Foam::CourantNo::CourantNo
             (
                 IOobject
                 (
-                    type(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -149,6 +150,11 @@ void Foam::CourantNo::read(const dictionary& dict)
     {
         phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
         rhoName_ = dict.lookupOrDefault<word>("rhoName", "rho");
+
+        if (!dict.readIfPresent("resultName", resultName_))
+        {
+            resultName_ = typeName;
+        }
     }
 }
 
@@ -165,7 +171,7 @@ void Foam::CourantNo::execute()
         volScalarField& CourantNo =
             const_cast<volScalarField&>
             (
-                mesh.lookupObject<volScalarField>(type())
+                mesh.lookupObject<volScalarField>(resultName_)
             );
 
         scalarField& iField = CourantNo.internalField();
@@ -203,7 +209,7 @@ void Foam::CourantNo::write()
     if (active_)
     {
         const volScalarField& CourantNo =
-            obr_.lookupObject<volScalarField>(type());
+            obr_.lookupObject<volScalarField>(resultName_);
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << CourantNo.name() << nl
