@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,8 +35,8 @@ Foam::porousBafflePressureFvPatchField<Type>::porousBafflePressureFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(p, iF),
-    D_(0),
-    I_(0),
+    D_(),
+    I_(),
     length_(0)
 {}
 
@@ -51,8 +51,8 @@ Foam::porousBafflePressureFvPatchField<Type>::porousBafflePressureFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(ptf, p, iF, mapper),
-    D_(ptf.D_),
-    I_(ptf.I_),
+    D_(ptf.D_().clone().ptr()),
+    I_(ptf.I_().clone().ptr()),
     length_(ptf.length_)
 {}
 
@@ -66,8 +66,8 @@ Foam::porousBafflePressureFvPatchField<Type>::porousBafflePressureFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(p, iF),
-    D_(readScalar(dict.lookup("D"))),
-    I_(readScalar(dict.lookup("I"))),
+    D_(DataEntry<scalar>::New("D", dict)),
+    I_(DataEntry<scalar>::New("I", dict)),
     length_(readScalar(dict.lookup("length")))
 {
     fvPatchField<Type>::operator=
@@ -85,8 +85,8 @@ Foam::porousBafflePressureFvPatchField<Type>::porousBafflePressureFvPatchField
 :
     cyclicLduInterfaceField(),
     fixedJumpFvPatchField<Type>(ptf),
-    D_(ptf.D_),
-    I_(ptf.I_),
+    D_(ptf.D_().clone().ptr()),
+    I_(ptf.I_().clone().ptr()),
     length_(ptf.length_)
 {}
 
@@ -99,8 +99,8 @@ Foam::porousBafflePressureFvPatchField<Type>::porousBafflePressureFvPatchField
 )
 :
     fixedJumpFvPatchField<Type>(ptf, iF),
-    D_(ptf.D_),
-    I_(ptf.I_),
+    D_(ptf.D_().clone().ptr()),
+    I_(ptf.I_().clone().ptr()),
     length_(ptf.length_)
 {}
 
@@ -112,8 +112,8 @@ template<class Type>
 void Foam::porousBafflePressureFvPatchField<Type>::write(Ostream& os) const
 {
     fixedJumpFvPatchField<Type>::write(os);
-    os.writeKeyword("D") << D_ << token::END_STATEMENT << nl;
-    os.writeKeyword("I") << I_ << token::END_STATEMENT << nl;
+    D_->writeData(os);
+    I_->writeData(os);
     os.writeKeyword("length") << length_ << token::END_STATEMENT << nl;
 }
 
