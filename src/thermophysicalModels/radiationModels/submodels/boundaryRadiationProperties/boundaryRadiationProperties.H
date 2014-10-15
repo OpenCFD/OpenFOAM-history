@@ -27,8 +27,6 @@ Class
 Description
     Boundary radiation properties holder
 
-See Also
-
 
 SourceFiles
     boundaryRadiationProperties.C

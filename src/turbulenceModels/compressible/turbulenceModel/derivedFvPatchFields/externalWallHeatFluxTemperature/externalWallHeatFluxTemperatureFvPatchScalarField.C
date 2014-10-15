@@ -332,9 +332,9 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::write
     mixedFvPatchScalarField::write(os);
     temperatureCoupledBase::write(os);
 
+    os.writeKeyword("Qr")<< QrName_ << token::END_STATEMENT << nl;
     switch (mode_)
     {
-        os.writeKeyword("Qr")<< QrName_ << token::END_STATEMENT << nl;
         case fixedHeatFlux:
         {
             q_.writeEntry("q", os);

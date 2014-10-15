@@ -30,6 +30,7 @@ Description
 
     - 'lookup' : lookup volScalarField with name
     - 'solidThermo' : use solidThermo
+    - 'model' : use a model
 
 SourceFiles
     boundaryRadiationPropertiesFvPatchField.C

@@ -393,11 +393,6 @@ void Foam::radiation::solarLoad::calculateQdiff
                 finalAgglom_
             )
         );
-
-        if (debug)
-        {
-            coarseMesh_->write();
-        }
     }
 
     label nLocalVFCoarseFaces = 0;
@@ -443,26 +438,7 @@ void Foam::radiation::solarLoad::calculateQdiff
             label nAgglom = max(agglom) + 1;
             coarseToFine_[i] = invertOneToMany(nAgglom, agglom);
         }
-/*
-        if
-        (
-            nBands_ != boundaryRadiation.transmissiveModel().nBands()
-         || nBands_ != boundaryRadiation.absorptionEmission().nBands()
-        )
-        {
-            FatalErrorIn
-            (
-                "Foam::radiation::solarLoad::calculateQdiff"
-                "("
-                "const labelHashSet& includePatches,"
-                "const labelHashSet& includeMappedPatchBasePatches"
-                ")"
-            )   << " nBands_ : " << nBands_
-                << " is different from the nBands specified in the " << nl
-                << " transmissivityModel or absorptionEmissionModel " << nl
-                << exit(FatalError);
-        }
-*/
+
         scalarField r(pp.size(), 0.0);
         for (label bandI = 0; bandI < nBands_; bandI++)
         {
@@ -524,7 +500,6 @@ void Foam::radiation::solarLoad::calculateQdiff
             startI
         ).assign(coarseNSf);
         startI += cpp.size();
-        //}
     }
 
 

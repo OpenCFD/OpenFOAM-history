@@ -172,7 +172,6 @@ calc(const label propertyId) const
             ),
             mesh(),
             dimensionedScalar("a", dimless/dimLength, 0.0)
-            //zeroGradientFvPatchVectorField::typeName
         )
     );
 
@@ -186,7 +185,6 @@ calc(const label propertyId) const
         }
     }
 
-    //ta().correctBoundaryConditions();
     return ta;
 }
 

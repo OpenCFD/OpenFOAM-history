@@ -36,16 +36,19 @@ Description
     Conditions Method from the ASHRAE Handbook.
 
     By default the energy is included in cells adjacent to the patches into
-    the energy Equation. On coupled patches the flux is by default added
-    to the wall and considered into the solid. This default bahaviour can be
-    modified in the radiativeProperties dictionary
+    the energy Equation (wallCoupled = false). On coupled patches the flux is
+    by default added to the wall and considered into the solid
+    (solidCoupled = true).
 
     The reflected fluxes uses a grey absoprtion/emission model wich is weighted
-    by the spectral distribution.
+    by the spectral distribution. The flag useVFbeamToDiffuse should be
+    switched on and the view factors should be calculated using the
+    'viewFactorsGen' application.
 
     The solarLoad model can be used in conjuntion with fvDOM and viewFactor
-    radiation models but only using a single band spectrum. On the corresponding
-    BC's for these models the flag "solarLoad" must be set to true.
+    radiation models but only using a single band spectrum. On the
+    corresponding BC's for these models the flag "solarLoad" must be set to
+    true.
 
 
 SourceFiles
