@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,6 +37,7 @@ SourceFiles
 #ifndef sampledSurfaces_H
 #define sampledSurfaces_H
 
+#include "functionObjectState.H"
 #include "sampledSurface.H"
 #include "surfaceWriter.H"
 #include "volFieldsFwd.H"
@@ -58,6 +59,7 @@ class dictionary;
 
 class sampledSurfaces
 :
+    public functionObjectState,
     public PtrList<sampledSurface>
 {
     // Private classes
@@ -92,12 +94,8 @@ class sampledSurfaces
 
     // Private data
 
-        //- Name of this set of surfaces,
-        //  Also used as the name of the sampledSurfaces directory.
-        const word name_;
-
-        //- Const reference to fvMesh
-        const fvMesh& mesh_;
+        //- Const reference to database
+        const objectRegistry& obr_;
 
         //- Load fields from files (not from objectRegistry)
         const bool loadFromFiles_;
