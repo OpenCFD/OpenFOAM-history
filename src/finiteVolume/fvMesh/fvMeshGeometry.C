@@ -44,7 +44,8 @@ void fvMesh::makeSf() const
 {
     if (debug)
     {
-        Info<< "void fvMesh::makeSf() : "
+        Pout<< "void fvMesh::makeSf() : "
+            << name() << " : "
             << "assembling face areas"
             << endl;
     }
@@ -81,7 +82,8 @@ void fvMesh::makeMagSf() const
 {
     if (debug)
     {
-        Info<< "void fvMesh::makeMagSf() : "
+        Pout<< "void fvMesh::makeMagSf() : "
+            << name() << " : "
             << "assembling mag face areas"
             << endl;
     }
@@ -119,7 +121,8 @@ void fvMesh::makeC() const
 {
     if (debug)
     {
-        Info<< "void fvMesh::makeC() : "
+        Pout<< "void fvMesh::makeC() : "
+            << name() << " : "
             << "assembling cell centres"
             << endl;
     }
@@ -161,7 +164,8 @@ void fvMesh::makeCf() const
 {
     if (debug)
     {
-        Info<< "void fvMesh::makeCf() : "
+        Pout<< "void fvMesh::makeCf() : "
+            << name() << " : "
             << "assembling face centres"
             << endl;
     }
@@ -202,7 +206,8 @@ const volScalarField::DimensionedInternalField& fvMesh::V() const
     {
         if (debug)
         {
-            Info<< "fvMesh::V() const: "
+            Pout<< "fvMesh::V() const: "
+                << name() << " : "
                 << "constructing from primitiveMesh::cellVolumes()"
                 << endl;
         }
@@ -260,7 +265,8 @@ const volScalarField::DimensionedInternalField& fvMesh::V00() const
     {
         if (debug)
         {
-            Info<< "fvMesh::V00() const: "
+            Pout<< "fvMesh::V00() const: "
+                << name() << " : "
                 << "constructing from V0"
                 << endl;
         }
@@ -392,7 +398,8 @@ tmp<surfaceVectorField> fvMesh::delta() const
 {
     if (debug)
     {
-        Info<< "void fvMesh::delta() : "
+        Pout<< "void fvMesh::delta() : "
+            << name() << " : "
             << "calculating face deltas"
             << endl;
     }
