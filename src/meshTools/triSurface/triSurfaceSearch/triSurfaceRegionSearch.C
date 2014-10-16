@@ -211,6 +211,7 @@ void Foam::triSurfaceRegionSearch::findNearest
             }
 
             const treeType& octree = octrees[treeI];
+            const treeDataIndirectTriSurface::findNearestOp nearOp(octree);
 
             forAll(samples, i)
             {
@@ -223,7 +224,7 @@ void Foam::triSurfaceRegionSearch::findNearest
                 (
                     samples[i],
                     nearestDistSqr[i],
-                    treeDataIndirectTriSurface::findNearestOp(octree)
+                    nearOp
                 );
 
                 if
