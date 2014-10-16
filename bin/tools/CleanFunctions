@@ -137,12 +137,6 @@ cleanCase()
     then
         rm -f constant/polyMesh/blockMeshDict > /dev/null 2>&1
     fi
-
-    for f in `find . -name "*Dict"`
-    do
-        sed -e /arguments/d $f > temp.$$
-        mv temp.$$ $f
-    done
 }
 
 removeCase()
