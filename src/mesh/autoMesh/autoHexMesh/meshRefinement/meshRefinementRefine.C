@@ -980,6 +980,7 @@ Foam::label Foam::meshRefinement::markSurfaceRefinement
     labelList surfaceMinLevel;
     surfaces_.findHigherIntersection
     (
+        shells_,
         start,
         end,
         minLevel,
