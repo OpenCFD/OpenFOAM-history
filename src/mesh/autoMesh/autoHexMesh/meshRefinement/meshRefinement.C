@@ -291,6 +291,7 @@ void Foam::meshRefinement::updateIntersections(const labelList& changedFaces)
         labelList surfaceLevel;
         surfaces_.findHigherIntersection
         (
+            shells_,
             start,
             end,
             labelList(start.size(), -1),    // accept any intersection
@@ -502,6 +503,7 @@ void Foam::meshRefinement::checkData()
             labelList surfaceLevel;
             surfaces_.findHigherIntersection
             (
+                shells_,
                 start,
                 end,
                 labelList(start.size(), -1),    // accept any intersection

@@ -290,15 +290,17 @@ void Foam::triSurfaceSearch::findNearest
 
     const indexedOctree<treeDataTriSurface>& octree = tree();
 
+    const treeDataTriSurface::findNearestOp fOp(octree);
+
     info.setSize(samples.size());
 
     forAll(samples, i)
     {
-        static_cast<pointIndexHit&>(info[i]) = octree.findNearest
+        info[i] = octree.findNearest
         (
             samples[i],
             nearestDistSqr[i],
-            treeDataTriSurface::findNearestOp(octree)
+            fOp
         );
     }
 
@@ -335,11 +337,7 @@ void Foam::triSurfaceSearch::findLine
 
     forAll(start, i)
     {
-        static_cast<pointIndexHit&>(info[i]) = octree.findLine
-        (
-            start[i],
-            end[i]
-        );
+        info[i] = octree.findLine(start[i], end[i]);
     }
 
     indexedOctree<treeDataTriSurface>::perturbTol() = oldTol;
@@ -362,11 +360,7 @@ void Foam::triSurfaceSearch::findLineAny
 
     forAll(start, i)
     {
-        static_cast<pointIndexHit&>(info[i]) = octree.findLineAny
-        (
-            start[i],
-            end[i]
-        );
+        info[i] = octree.findLineAny(start[i], end[i]);
     }
 
     indexedOctree<treeDataTriSurface>::perturbTol() = oldTol;
