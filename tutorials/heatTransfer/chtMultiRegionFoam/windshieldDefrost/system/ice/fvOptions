@@ -17,12 +17,12 @@ FoamFile
 
 iceZone
 {
-    type            enthalpyPorositySource;
+    type            solidificationMeltingSource;
     active          on;
     selectionMode   all;
 //    cellZone        iceZone;
 
-    enthalpyPorositySourceCoeffs
+    solidificationMeltingSourceCoeffs
     {
         Tmelt           273;
         L               334000; // enthalpy of fusion for water [J/kg]

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,18 +23,18 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "enthalpyPorositySource.H"
+#include "solidificationMeltingSource.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::fv::enthalpyPorositySource::writeData(Ostream& os) const
+void Foam::fv::solidificationMeltingSource::writeData(Ostream& os) const
 {
     os  << indent << name_ << endl;
     dict_.write(os);
 }
 
 
-bool Foam::fv::enthalpyPorositySource::read(const dictionary& dict)
+bool Foam::fv::solidificationMeltingSource::read(const dictionary& dict)
 {
     if (option::read(dict))
     {
