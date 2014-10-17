@@ -304,13 +304,14 @@ void Foam::fieldVisualisationBase::addGlyphs
     label nComponents =
         data->GetPointData()->GetArray(scaleFieldName.c_str())
             ->GetNumberOfComponents();
-Debug(nComponents);
+
     if (nComponents == 1)
     {
         vtkSmartPointer<vtkSphereSource> sphere =
             vtkSmartPointer<vtkSphereSource>::New();
         sphere->SetCenter(0, 0, 0);
         sphere->SetRadius(0.5);
+// setting higher resolution slows the rendering significantly
 //        sphere->SetPhiResolution(20);
 //        sphere->SetThetaResolution(20);
 
@@ -318,11 +319,14 @@ Debug(nComponents);
 
         if (maxGlyphLength > 0)
         {
+            double range[2];
+
+// can use values to find range
 //            vtkDataArray* values =
 //                data->GetPointData()->GetScalars(scaleFieldName.c_str());
-
-            double range[2];
 //            values->GetRange(range);
+
+            // set range accoding to user-supplied limits
             range[0] = range_.first();
             range[1] = range_.second();
             glyph->ClampingOn();
@@ -368,6 +372,7 @@ Debug(nComponents);
             values->GetRange(range);
 
 /*
+            // attempt to set range for vectors...
             scalar x0 = sqrt(sqr(range_.first())/3.0);
             scalar x1 = sqrt(sqr(range_.second())/3.0);
             range[0] = x0;
