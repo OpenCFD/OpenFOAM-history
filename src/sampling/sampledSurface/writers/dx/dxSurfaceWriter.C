@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -234,7 +234,7 @@ inline void Foam::dxSurfaceWriter::writeData
 
 
 template<class Type>
-void Foam::dxSurfaceWriter::writeTemplate
+Foam::fileName Foam::dxSurfaceWriter::writeTemplate
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -251,10 +251,7 @@ void Foam::dxSurfaceWriter::writeTemplate
         mkDir(outputDir);
     }
 
-    OFstream os
-    (
-        outputDir/fieldName + '_' + surfaceName + ".dx"
-    );
+    OFstream os(outputDir/fieldName + '_' + surfaceName + ".dx");
 
     if (verbose)
     {
@@ -264,6 +261,8 @@ void Foam::dxSurfaceWriter::writeTemplate
     writeGeometry(os, points, faces);
     writeData(os, values);
     writeTrailer(os, isNodeValues);
+
+    return os.name();
 }
 
 

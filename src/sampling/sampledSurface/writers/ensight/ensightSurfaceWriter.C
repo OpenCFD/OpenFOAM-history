@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -45,7 +45,7 @@ namespace Foam
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 template<class Type>
-void Foam::ensightSurfaceWriter::writeTemplate
+Foam::fileName Foam::ensightSurfaceWriter::writeTemplate
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -110,6 +110,8 @@ void Foam::ensightSurfaceWriter::writeTemplate
     // Write field
     osField.writeKeyword(ensightPTraits<Type>::typeName);
     ensPart.writeField(osField, values, isNodeValues);
+
+    return osCase.name();
 }
 
 
@@ -143,7 +145,7 @@ Foam::ensightSurfaceWriter::~ensightSurfaceWriter()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::ensightSurfaceWriter::write
+Foam::fileName Foam::ensightSurfaceWriter::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -190,6 +192,8 @@ void Foam::ensightSurfaceWriter::write
 
     ensightPartFaces ensPart(0, osGeom.name().name(), points, faces, true);
     osGeom << ensPart;
+
+    return osCase.name();
 }
 
 

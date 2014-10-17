@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -41,7 +41,7 @@ namespace Foam
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 template<class Type>
-void Foam::foamFileSurfaceWriter::writeTemplate
+Foam::fileName Foam::foamFileSurfaceWriter::writeTemplate
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -69,7 +69,7 @@ void Foam::foamFileSurfaceWriter::writeTemplate
     // Values to separate directory (e.g. "scalarField/p")
 
     fileName foamName(pTraits<Type>::typeName);
-    fileName valuesDir(surfaceDir  / (foamName + Field<Type>::typeName));
+    fileName valuesDir(surfaceDir/(foamName + Field<Type>::typeName));
 
     if (!isDir(valuesDir))
     {
@@ -78,6 +78,8 @@ void Foam::foamFileSurfaceWriter::writeTemplate
 
     // values
     OFstream(valuesDir/fieldName)()  << values;
+
+    return valuesDir/fieldName;
 }
 
 
@@ -97,7 +99,7 @@ Foam::foamFileSurfaceWriter::~foamFileSurfaceWriter()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::foamFileSurfaceWriter::write
+Foam::fileName Foam::foamFileSurfaceWriter::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -135,6 +137,8 @@ void Foam::foamFileSurfaceWriter::write
     }
 
     OFstream(surfaceDir/"faceCentres")() << faceCentres;
+
+    return surfaceDir;
 }
 
 

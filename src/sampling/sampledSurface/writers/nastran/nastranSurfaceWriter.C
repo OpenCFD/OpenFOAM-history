@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -167,6 +167,7 @@ void Foam::nastranSurfaceWriter::writeCoord
         }
     }
 }
+
 
 void Foam::nastranSurfaceWriter::writeFace
 (
@@ -370,7 +371,7 @@ Foam::nastranSurfaceWriter::~nastranSurfaceWriter()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::nastranSurfaceWriter::write
+Foam::fileName Foam::nastranSurfaceWriter::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -406,6 +407,8 @@ void Foam::nastranSurfaceWriter::write
     }
 
     os  << "ENDDATA" << endl;
+
+    return os.name();
 }
 
 

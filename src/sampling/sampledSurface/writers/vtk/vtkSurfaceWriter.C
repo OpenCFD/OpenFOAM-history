@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -220,7 +220,7 @@ void Foam::vtkSurfaceWriter::writeData
 
 
 template<class Type>
-void Foam::vtkSurfaceWriter::writeTemplate
+Foam::fileName Foam::vtkSurfaceWriter::writeTemplate
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -262,6 +262,8 @@ void Foam::vtkSurfaceWriter::writeTemplate
 
     // Write data
     writeData(os, values);
+
+    return os.name();
 }
 
 
@@ -281,7 +283,7 @@ Foam::vtkSurfaceWriter::~vtkSurfaceWriter()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::vtkSurfaceWriter::write
+Foam::fileName Foam::vtkSurfaceWriter::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -303,6 +305,8 @@ void Foam::vtkSurfaceWriter::write
     }
 
     writeGeometry(os, points, faces);
+
+    return os.name();
 }
 
 

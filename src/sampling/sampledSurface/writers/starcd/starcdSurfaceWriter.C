@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -88,7 +88,7 @@ inline void Foam::starcdSurfaceWriter::writeData
 
 
 template<class Type>
-void Foam::starcdSurfaceWriter::writeTemplate
+Foam::fileName Foam::starcdSurfaceWriter::writeTemplate
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -118,8 +118,9 @@ void Foam::starcdSurfaceWriter::writeTemplate
         os  << elemI+1 << ' ';
         writeData(os, values[elemI]);
     }
-}
 
+    return os.name();
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -138,7 +139,7 @@ Foam::starcdSurfaceWriter::~starcdSurfaceWriter()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::starcdSurfaceWriter::write
+Foam::fileName Foam::starcdSurfaceWriter::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -160,6 +161,8 @@ void Foam::starcdSurfaceWriter::write
     }
 
     MeshedSurfaceProxy<face>(points, faces).write(outName);
+
+    return outName;
 }
 
 

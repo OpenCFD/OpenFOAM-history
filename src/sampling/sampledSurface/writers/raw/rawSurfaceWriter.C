@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -209,7 +209,7 @@ namespace Foam
 
 
 template<class Type>
-void Foam::rawSurfaceWriter::writeTemplate
+Foam::fileName Foam::rawSurfaceWriter::writeTemplate
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -264,8 +264,9 @@ void Foam::rawSurfaceWriter::writeTemplate
             writeData(os, values[elemI]);
         }
     }
-}
 
+    return os.name();
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -284,7 +285,7 @@ Foam::rawSurfaceWriter::~rawSurfaceWriter()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::rawSurfaceWriter::write
+Foam::fileName Foam::rawSurfaceWriter::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -318,6 +319,8 @@ void Foam::rawSurfaceWriter::write
     }
 
     os  << nl;
+
+    return os.name();
 }
 
 
