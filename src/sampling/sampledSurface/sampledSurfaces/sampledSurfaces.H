@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -238,6 +238,12 @@ public:
 
         //- Update for changes of mesh due to readUpdate - expires the surfaces
         virtual void readUpdate(const polyMesh::readUpdateState state);
+
+        //- Get merge tolerance
+        static scalar mergeTol();
+
+        //- Set tolerance (and return old tolerance)
+        static scalar mergeTol(const scalar);
 };
 
 

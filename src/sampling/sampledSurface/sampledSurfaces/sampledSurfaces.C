@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -373,6 +373,20 @@ bool Foam::sampledSurfaces::update()
     }
 
     return updated;
+}
+
+
+Foam::scalar Foam::sampledSurfaces::mergeTol()
+{
+    return mergeTol_;
+}
+
+
+Foam::scalar Foam::sampledSurfaces::mergeTol(const scalar tol)
+{
+    scalar oldTol = mergeTol_;
+    mergeTol_ = tol;
+    return oldTol;
 }
 
 
