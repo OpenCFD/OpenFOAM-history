@@ -24,11 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "starcdSurfaceWriter.H"
-
 #include "MeshedSurfaceProxy.H"
-#include "OFstream.H"
-#include "OSspecific.H"
-
 #include "makeSurfaceWriterMethods.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -75,51 +71,6 @@ namespace Foam
         os  << v[0] << nl;
     }
 
-}
-
-
-template<class Type>
-inline void Foam::starcdSurfaceWriter::writeData
-(
-    Ostream& os,
-    const Type& v
-)
-{}
-
-
-template<class Type>
-Foam::fileName Foam::starcdSurfaceWriter::writeTemplate
-(
-    const fileName& outputDir,
-    const fileName& surfaceName,
-    const pointField& points,
-    const faceList& faces,
-    const word& fieldName,
-    const Field<Type>& values,
-    const bool isNodeValues,
-    const bool verbose
-) const
-{
-    if (!isDir(outputDir))
-    {
-        mkDir(outputDir);
-    }
-
-    OFstream os(outputDir/fieldName + '_' + surfaceName + ".usr");
-
-    if (verbose)
-    {
-        Info<< "Writing field " << fieldName << " to " << os.name() << endl;
-    }
-
-    // no header, just write values
-    forAll(values, elemI)
-    {
-        os  << elemI+1 << ' ';
-        writeData(os, values[elemI]);
-    }
-
-    return os.name();
 }
 
 

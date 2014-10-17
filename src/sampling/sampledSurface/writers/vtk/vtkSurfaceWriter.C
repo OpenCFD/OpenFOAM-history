@@ -24,10 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "vtkSurfaceWriter.H"
-
-#include "OFstream.H"
-#include "OSspecific.H"
-
 #include "makeSurfaceWriterMethods.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -199,71 +195,6 @@ namespace Foam
         }
     }
 
-}
-
-
-// Write generic field in vtk format
-template<class Type>
-void Foam::vtkSurfaceWriter::writeData
-(
-    Ostream& os,
-    const Field<Type>& values
-)
-{
-    os  << "1 " << values.size() << " float" << nl;
-
-    forAll(values, elemI)
-    {
-        os  << float(0) << nl;
-    }
-}
-
-
-template<class Type>
-Foam::fileName Foam::vtkSurfaceWriter::writeTemplate
-(
-    const fileName& outputDir,
-    const fileName& surfaceName,
-    const pointField& points,
-    const faceList& faces,
-    const word& fieldName,
-    const Field<Type>& values,
-    const bool isNodeValues,
-    const bool verbose
-) const
-{
-    if (!isDir(outputDir))
-    {
-        mkDir(outputDir);
-    }
-
-    OFstream os(outputDir/fieldName + '_' + surfaceName + ".vtk");
-
-    if (verbose)
-    {
-        Info<< "Writing field " << fieldName << " to " << os.name() << endl;
-    }
-
-    writeGeometry(os, points, faces);
-
-    // start writing data
-    if (isNodeValues)
-    {
-        os  << "POINT_DATA ";
-    }
-    else
-    {
-        os  << "CELL_DATA ";
-    }
-
-    os  << values.size() << nl
-        << "FIELD attributes 1" << nl
-        << fieldName << " ";
-
-    // Write data
-    writeData(os, values);
-
-    return os.name();
 }
 
 

@@ -24,10 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "dxSurfaceWriter.H"
-
-#include "OFstream.H"
-#include "OSspecific.H"
-
 #include "makeSurfaceWriterMethods.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -212,57 +208,6 @@ namespace Foam
                 << nl;
         }
     }
-}
-
-
-// arbitrary field
-template<class Type>
-inline void Foam::dxSurfaceWriter::writeData
-(
-    Ostream& os,
-    const Field<Type>& values
-)
-{
-    os  << "object 3 class array type float rank 0 items "
-        << values.size() << " data follows" << nl;
-
-    forAll(values, elemI)
-    {
-        os << float(0.0) << nl;
-    }
-}
-
-
-template<class Type>
-Foam::fileName Foam::dxSurfaceWriter::writeTemplate
-(
-    const fileName& outputDir,
-    const fileName& surfaceName,
-    const pointField& points,
-    const faceList& faces,
-    const word& fieldName,
-    const Field<Type>& values,
-    const bool isNodeValues,
-    const bool verbose
-) const
-{
-    if (!isDir(outputDir))
-    {
-        mkDir(outputDir);
-    }
-
-    OFstream os(outputDir/fieldName + '_' + surfaceName + ".dx");
-
-    if (verbose)
-    {
-        Info<< "Writing field " << fieldName << " to " << os.name() << endl;
-    }
-
-    writeGeometry(os, points, faces);
-    writeData(os, values);
-    writeTrailer(os, isNodeValues);
-
-    return os.name();
 }
 
 
