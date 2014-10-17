@@ -33,6 +33,8 @@ License
 #include "IOmanip.H"
 #include "emptyPolyPatch.H"
 #include "processorPolyPatch.H"
+#include "surfaceWriter.H"
+#include "checkTools.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -40,7 +42,8 @@ Foam::label Foam::checkTopology
 (
     const polyMesh& mesh,
     const bool allTopology,
-    const bool allGeometry
+    const bool allGeometry,
+    const autoPtr<surfaceWriter>& writer
 )
 {
     label noFailedChecks = 0;
@@ -126,6 +129,11 @@ Foam::label Foam::checkTopology
                 << " illegal cells to set " << cells.name() << endl;
             cells.instance() = mesh.pointsInstance();
             cells.write();
+            if (writer.valid())
+            {
+                mergeAndWrite(writer(), cells);
+            }
+
         }
         else
         {
@@ -164,6 +172,10 @@ Foam::label Foam::checkTopology
                 << " unordered faces to set " << faces.name() << endl;
             faces.instance() = mesh.pointsInstance();
             faces.write();
+            if (writer.valid())
+            {
+                mergeAndWrite(writer(), faces);
+            }
         }
     }
 
@@ -180,6 +192,10 @@ Foam::label Foam::checkTopology
                 << faces.name() << endl;
             faces.instance() = mesh.pointsInstance();
             faces.write();
+            if (writer.valid())
+            {
+                mergeAndWrite(writer(), faces);
+            }
         }
     }
 
@@ -197,6 +213,11 @@ Foam::label Foam::checkTopology
                 << endl;
             cells.instance() = mesh.pointsInstance();
             cells.write();
+            if (writer.valid())
+            {
+                mergeAndWrite(writer(), cells);
+            }
+
         }
     }
 
@@ -216,6 +237,10 @@ Foam::label Foam::checkTopology
                 << faces.name() << endl;
             faces.instance() = mesh.pointsInstance();
             faces.write();
+            if (writer.valid())
+            {
+                mergeAndWrite(writer(), faces);
+            }
         }
     }
 
@@ -267,6 +292,10 @@ Foam::label Foam::checkTopology
                 << endl;
             oneCells.instance() = mesh.pointsInstance();
             oneCells.write();
+            if (writer.valid())
+            {
+                mergeAndWrite(writer(), oneCells);
+            }
         }
 
         label nTwoCells = returnReduce(twoCells.size(), sumOp<label>());
@@ -279,6 +308,10 @@ Foam::label Foam::checkTopology
                 << endl;
             twoCells.instance() = mesh.pointsInstance();
             twoCells.write();
+            if (writer.valid())
+            {
+                mergeAndWrite(writer(), twoCells);
+            }
         }
     }
 
