@@ -24,15 +24,18 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "IOmanip.H"
+#include "IFstream.H"
 #include "OFstream.H"
 #include "OSspecific.H"
 #include "ensightPartFaces.H"
 #include "ensightPTraits.H"
+#include "OStringStream.H"
+#include "regExp.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 template<class Type>
-Foam::fileName Foam::ensightSurfaceWriter::writeTemplate
+Foam::fileName Foam::ensightSurfaceWriter::writeUncollated
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -55,12 +58,12 @@ Foam::fileName Foam::ensightSurfaceWriter::writeTemplate
     OFstream osCase(outputDir/fieldName/surfaceName + ".case");
     ensightGeoFile osGeom
     (
-        outputDir/fieldName/surfaceName + ".000.mesh",
+        outputDir/fieldName/surfaceName + ".0000.mesh",
         writeFormat_
     );
     ensightFile osField
     (
-        outputDir/fieldName/surfaceName + ".000." + fieldName,
+        outputDir/fieldName/surfaceName + ".0000." + fieldName,
         writeFormat_
     );
 
@@ -80,7 +83,7 @@ Foam::fileName Foam::ensightSurfaceWriter::writeTemplate
         << ensightPTraits<Type>::typeName << " per "
         << word(isNodeValues ? "node:" : "element:") << setw(10) << 1
         << "       " << fieldName
-        << "       " << surfaceName.c_str() << ".***." << fieldName << nl
+        << "       " << surfaceName.c_str() << ".****." << fieldName << nl
         << nl
         << "TIME" << nl
         << "time set:                      1" << nl
@@ -99,6 +102,237 @@ Foam::fileName Foam::ensightSurfaceWriter::writeTemplate
     ensPart.writeField(osField, values, isNodeValues);
 
     return osCase.name();
+}
+
+
+template<class Type>
+Foam::fileName Foam::ensightSurfaceWriter::writeCollated
+(
+    const fileName& outputDir,
+    const fileName& surfaceName,
+    const pointField& points,
+    const faceList& faces,
+    const word& fieldName,
+    const Field<Type>& values,
+    const bool isNodeValues,
+    const bool verbose
+) const
+{
+
+    const fileName baseDir = outputDir.path()/surfaceName;
+    const fileName timeDir = outputDir.name();
+
+    if (!isDir(baseDir))
+    {
+        mkDir(baseDir);
+    }
+
+    const fileName meshFile(baseDir/surfaceName + ".0000.mesh");
+    const scalar timeValue = readScalar(IStringStream(timeDir)());
+    label timeIndex = 0;
+
+
+    // Do case file
+    {
+        dictionary dict;
+        scalarList times;
+        bool stateChanged = false;
+
+        if (isFile(baseDir/"fieldsDict"))
+        {
+            IFstream is(baseDir/"fieldsDict");
+            if (is.good() && dict.read(is))
+            {
+                dict.lookup("times") >> times;
+                const scalar timeValue = readScalar(IStringStream(timeDir)());
+                label index = findLower(times, timeValue);
+                timeIndex = index+1;
+            }
+        }
+
+
+        // Update stored times list
+        times.setSize(timeIndex+1, -1);
+
+        if (times[timeIndex] != timeValue)
+        {
+            stateChanged = true;
+        }
+        times[timeIndex] = timeValue;
+
+
+        // Add my information to dictionary
+        {
+            dict.set("times", times);
+            if (dict.found("fields"))
+            {
+                dictionary& fieldsDict = dict.subDict("fields");
+                if (!fieldsDict.found(fieldName))
+                {
+                    dictionary fieldDict;
+                    fieldDict.set("type", ensightPTraits<Type>::typeName);
+                    fieldsDict.set(fieldName, fieldDict);
+
+                    stateChanged = true;
+                }
+            }
+            else
+            {
+                dictionary fieldDict;
+                fieldDict.set("type", ensightPTraits<Type>::typeName);
+
+                dictionary fieldsDict;
+                fieldsDict.set(fieldName, fieldDict);
+
+                dict.set("fields", fieldsDict);
+
+                stateChanged = true;
+            }
+        }
+
+
+        if (stateChanged)
+        {
+            if (verbose)
+            {
+                Info<< "Writing state file to fieldsDict" << endl;
+            }
+            OFstream os(baseDir/"fieldsDict");
+            os << dict;
+
+
+            OFstream osCase(baseDir/surfaceName + ".case");
+
+            if (verbose)
+            {
+                Info<< "Writing case file to " << osCase.name() << endl;
+            }
+
+            osCase
+                << "FORMAT" << nl
+                << "type: ensight gold" << nl
+                << nl
+                << "GEOMETRY" << nl
+                << "model:        1     " << meshFile.name() << nl
+                << nl
+                << "VARIABLE" << nl;
+            const dictionary& fieldsDict = dict.subDict("fields");
+            forAllConstIter(dictionary, fieldsDict, iter)
+            {
+                const word& fieldName = iter().keyword();
+                const word fieldType(iter().dict().lookup("type"));
+
+                osCase
+                    << fieldType << " per "
+                    << word(isNodeValues ? "node:" : "element:")
+                    << setw(10) << 1
+                    << setw(15) << fieldName
+                    << "       " << surfaceName.c_str() << ".****." << fieldName
+                    << nl;
+            }
+            osCase << nl;
+
+            osCase
+                << "TIME" << nl
+                << "time set:                      1" << nl
+                << "number of steps:               " << timeIndex+1 << nl
+                << "filename start number:         0" << nl
+                << "filename increment:            1" << nl
+                << "time values:" << nl;
+            forAll(times, timeI)
+            {
+                osCase << setw(12) << times[timeI] << " ";
+
+                if (timeI != 0 && (timeI % 6) == 0)
+                {
+                    osCase << nl;
+                }
+            }
+            osCase << nl;
+        }
+    }
+
+
+    // Write geometry
+    ensightPartFaces ensPart(0, meshFile.name(), points, faces, true);
+    if (!exists(meshFile))
+    {
+        if (verbose)
+        {
+            Info<< "Writing mesh file to " << meshFile.name() << endl;
+        }
+        ensightGeoFile osGeom(meshFile, writeFormat_);
+        osGeom << ensPart;
+    }
+
+
+    // Get string representation
+    string timeString;
+    {
+        OStringStream os;
+        os.stdStream().fill('0');
+        os << setw(4) << timeIndex;
+        timeString = os.str();
+    }
+
+    // Write field
+    ensightFile osField
+    (
+        baseDir/surfaceName + "." + timeString + "." + fieldName,
+        writeFormat_
+    );
+    if (verbose)
+    {
+        Info<< "Writing field file to " << osField.name() << endl;
+    }
+    osField.writeKeyword(ensightPTraits<Type>::typeName);
+    ensPart.writeField(osField, values, isNodeValues);
+
+    return baseDir/surfaceName + ".case";
+}
+
+
+template<class Type>
+Foam::fileName Foam::ensightSurfaceWriter::writeTemplate
+(
+    const fileName& outputDir,
+    const fileName& surfaceName,
+    const pointField& points,
+    const faceList& faces,
+    const word& fieldName,
+    const Field<Type>& values,
+    const bool isNodeValues,
+    const bool verbose
+) const
+{
+    if (collateTimes_)
+    {
+        return writeCollated
+        (
+            outputDir,
+            surfaceName,
+            points,
+            faces,
+            fieldName,
+            values,
+            isNodeValues,
+            verbose
+        );
+    }
+    else
+    {
+        return writeUncollated
+        (
+            outputDir,
+            surfaceName,
+            points,
+            faces,
+            fieldName,
+            values,
+            isNodeValues,
+            verbose
+        );
+    }
 }
 
 
