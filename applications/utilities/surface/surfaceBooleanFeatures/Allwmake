@@ -1,0 +1,15 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+set -x
+
+if [ -z "$CGAL_ARCH_PATH" ]
+then
+    export COMPILE_FLAGS="-DNO_CGAL"
+else
+    wmake PolyhedronReader
+    export COMPILE_FLAGS='-IPolyhedronReader'
+    export LINK_FLAGS='-lgmp -lCGAL -L$(FOAM_USER_LIBBIN) -lPolyhedronReader'
+fi
+wmake
+
+# ----------------------------------------------------------------- end-of-file
