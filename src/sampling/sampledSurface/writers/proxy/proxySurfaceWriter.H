@@ -85,7 +85,7 @@ public:
 
 
         //- Write single surface geometry to file.
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,
             const fileName& surfaceName,
@@ -93,7 +93,6 @@ public:
             const faceList& faces,
             const bool verbose = false
         ) const;
-
 };
 
 

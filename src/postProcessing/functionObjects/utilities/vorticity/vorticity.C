@@ -110,9 +110,14 @@ void Foam::vorticity::read(const dictionary& dict)
     if (active_)
     {
         UName_ = dict.lookupOrDefault<word>("UName", "U");
-        if (UName_ != "U")
+
+        if (!dict.readIfPresent("outputName", outputName_))
         {
-            outputName_ = typeName + "(" + UName_ + ")";
+            outputName_ = typeName;
+            if (UName_ != "U")
+            {
+                outputName_ = outputName_ + "(" + UName_ + ")";
+            }
         }
     }
 }

@@ -116,7 +116,7 @@ public:
         }
 
         //- Write single surface geometry to file.
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,      // <case>/surface/TIME
             const fileName& surfaceName,    // name of surface
@@ -124,11 +124,13 @@ public:
             const faceList& faces,
             const bool verbose = false
         ) const
-        {}
+        {
+            return fileName::null;
+        }
 
         //- Write scalarField for a single surface to file.
         //  One value per face or vertex (isNodeValues = true)
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,      // <case>/surface/TIME
             const fileName& surfaceName,    // name of surface
@@ -139,11 +141,13 @@ public:
             const bool isNodeValues,
             const bool verbose = false
         ) const
-        {}
+        {
+            return fileName::null;
+        }
 
         //- Write vectorField for a single surface to file.
         //  One value per face or vertex (isNodeValues = true)
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,      // <case>/surface/TIME
             const fileName& surfaceName,    // name of surface
@@ -154,11 +158,13 @@ public:
             const bool isNodeValues,
             const bool verbose = false
         ) const
-        {}
+        {
+            return fileName::null;
+        }
 
         //- Write sphericalTensorField for a single surface to file.
         //  One value per face or vertex (isNodeValues = true)
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,      // <case>/surface/TIME
             const fileName& surfaceName,    // name of surface
@@ -169,11 +175,13 @@ public:
             const bool isNodeValues,
             const bool verbose = false
         ) const
-        {}
+        {
+            return fileName::null;
+        }
 
         //- Write symmTensorField for a single surface to file.
         //  One value per face or vertex (isNodeValues = true)
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,      // <case>/surface/TIME
             const fileName& surfaceName,    // name of surface
@@ -184,11 +192,13 @@ public:
             const bool isNodeValues,
             const bool verbose = false
         ) const
-        {}
+        {
+            return fileName::null;
+        }
 
         //- Write tensorField for a single surface to file.
         //  One value per face or vertex (isNodeValues = true)
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,      // <case>/surface/TIME
             const fileName& surfaceName,    // name of surface
@@ -199,7 +209,9 @@ public:
             const bool isNodeValues,
             const bool verbose = false
         ) const
-        {}
+        {
+            return fileName::null;
+        }
 };
 
 

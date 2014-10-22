@@ -51,7 +51,7 @@ void Foam::sampledSurfaces::writeGeometry() const
     // Write to time directory under outputPath_
     // skip surface without faces (eg, a failed cut-plane)
 
-    const fileName outputDir = outputPath_/mesh_.time().timeName();
+    const fileName outputDir = outputPath_/obr_.time().timeName();
 
     forAll(*this, surfI)
     {
@@ -94,9 +94,9 @@ Foam::sampledSurfaces::sampledSurfaces
     const bool loadFromFiles
 )
 :
+    functionObjectState(obr, name),
     PtrList<sampledSurface>(),
-    name_(name),
-    mesh_(refCast<const fvMesh>(obr)),
+    obr_(obr),
     loadFromFiles_(loadFromFiles),
     outputPath_(fileName::null),
     fieldSelection_(),
@@ -104,16 +104,20 @@ Foam::sampledSurfaces::sampledSurfaces
     mergeList_(),
     formatter_(NULL)
 {
+    // Only active if a fvMesh is available
+    if (setActive<fvMesh>())
+    {
+        read(dict);
+    }
+
     if (Pstream::parRun())
     {
-        outputPath_ = mesh_.time().path()/".."/"postProcessing"/name_;
+        outputPath_ = obr_.time().path()/".."/"postProcessing"/name_;
     }
     else
     {
-        outputPath_ = mesh_.time().path()/"postProcessing"/name_;
+        outputPath_ = obr_.time().path()/"postProcessing"/name_;
     }
-
-    read(dict);
 }
 
 
@@ -165,7 +169,7 @@ void Foam::sampledSurfaces::write()
             writeGeometry();
         }
 
-        const IOobjectList objects(mesh_, mesh_.time().timeName());
+        const IOobjectList objects(obr_, obr_.time().timeName());
 
         sampleAndWrite<volScalarField>(objects);
         sampleAndWrite<volVectorField>(objects);
@@ -201,10 +205,12 @@ void Foam::sampledSurfaces::read(const dictionary& dict)
             dict.subOrEmptyDict("formatOptions").subOrEmptyDict(writeType)
         );
 
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
         PtrList<sampledSurface> newList
         (
             dict.lookup("surfaces"),
-            sampledSurface::iNew(mesh_)
+            sampledSurface::iNew(mesh)
         );
         transfer(newList);
 
@@ -324,8 +330,10 @@ bool Foam::sampledSurfaces::update()
         return updated;
     }
 
+    const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
     // dimension as fraction of mesh bounding box
-    scalar mergeDim = mergeTol_ * mesh_.bounds().mag();
+    scalar mergeDim = mergeTol_*mesh.bounds().mag();
 
     if (Pstream::master() && debug)
     {

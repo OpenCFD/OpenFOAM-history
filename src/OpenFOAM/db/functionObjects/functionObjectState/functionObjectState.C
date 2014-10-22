@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,6 +25,9 @@ License
 
 #include "functionObjectState.H"
 #include "Time.H"
+
+const Foam::word Foam::functionObjectState::resultsName_ = "results";
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -64,9 +67,20 @@ bool Foam::functionObjectState::active() const
 }
 
 
-const Foam::dictionary& Foam::functionObjectState::stateDict() const
+const Foam::IOdictionary& Foam::functionObjectState::stateDict() const
 {
     return stateDict_;
+}
+
+
+Foam::dictionary& Foam::functionObjectState::propertyDict()
+{
+    if (!stateDict_.found(name_))
+    {
+        stateDict_.add(name_, dictionary());
+    }
+
+    return stateDict_.subDict(name_);
 }
 
 
@@ -79,6 +93,80 @@ bool Foam::functionObjectState::foundProperty(const word& entryName) const
     }
 
     return false;
+}
+
+
+Foam::word Foam::functionObjectState::resultType(const word& entryName) const
+{
+    return objectResultType(name_, entryName);
+}
+
+
+Foam::word Foam::functionObjectState::objectResultType
+(
+    const word& objectName,
+    const word& entryName
+) const
+{
+    word result = word::null;
+
+    if (stateDict_.found(resultsName_))
+    {
+        const dictionary& resultsDict = stateDict_.subDict(resultsName_);
+
+        if (resultsDict.found(objectName))
+        {
+            const dictionary& objectDict = resultsDict.subDict(objectName);
+
+            forAllConstIter(dictionary, objectDict, iter)
+            {
+                const dictionary& dict = iter().dict();
+
+                if (dict.found(entryName))
+                {
+                    return dict.dictName();
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+
+Foam::List<Foam::word> Foam::functionObjectState::objectResultEntries() const
+{
+    return objectResultEntries(name_);
+}
+
+
+Foam::List<Foam::word> Foam::functionObjectState::objectResultEntries
+(
+    const word& objectName
+) const
+{
+    DynamicList<word> result(2);
+
+    if (stateDict_.found(resultsName_))
+    {
+        const dictionary& resultsDict = stateDict_.subDict(resultsName_);
+
+        if (resultsDict.found(objectName))
+        {
+            const dictionary& objectDict = resultsDict.subDict(objectName);
+
+            forAllConstIter(dictionary, objectDict, iter)
+            {
+                const dictionary& dict = iter().dict();
+                result.append(dict.toc());
+            }
+        }
+    }
+
+    wordList entries;
+    entries.transfer(result);
+
+    return entries;
 }
 
 
