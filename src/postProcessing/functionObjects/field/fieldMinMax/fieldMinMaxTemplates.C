@@ -88,23 +88,14 @@ void Foam::fieldMinMax::output
         Info(log_)<< endl;
     }
 
-    // write state information
-    dictionary propsDict;
-    {
-        dictionary dict;
-        dict.add("value", minValue);
-        dict.add("position", minC);
-        dict.add("processor", minProcI);
-        propsDict.add("minimum", dict);
-    }
-    {
-        dictionary dict;
-        dict.add("value", maxValue);
-        dict.add("position", maxC);
-        dict.add("processor", maxProcI);
-        propsDict.add("maximum", dict);
-    }
-    setProperty(fieldName, propsDict);
+    // write state/results information
+    word nameStr('(' + outputName + ')');
+    this->setResult("min" + nameStr, minValue);
+    this->setResult("min" + nameStr + "_position", minC);
+    this->setResult("min" + nameStr + "_processor", minProcI);
+    this->setResult("max" + nameStr, maxValue);
+    this->setResult("max" + nameStr + "_position", maxC);
+    this->setResult("max" + nameStr + "_processor", maxProcI);
 }
 
 

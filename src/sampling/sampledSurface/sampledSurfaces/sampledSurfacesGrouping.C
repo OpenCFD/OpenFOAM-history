@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,14 +35,14 @@ Foam::label Foam::sampledSurfaces::classifyFields()
      // check files for a particular time
     if (loadFromFiles_)
     {
-        IOobjectList objects(mesh_, mesh_.time().timeName());
+        IOobjectList objects(obr_, obr_.time().timeName());
         wordList allFields = objects.sortedNames();
         labelList indices = findStrings(fieldSelection_, allFields);
         return indices.size();
     }
     else
     {
-        wordList allFields = mesh_.sortedNames();
+        wordList allFields = obr_.sortedNames();
         labelList indices = findStrings(fieldSelection_, allFields);
         return indices.size();
     }

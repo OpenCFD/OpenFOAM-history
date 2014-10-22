@@ -202,10 +202,10 @@ bool Foam::fieldValues::cellSource::writeValues(const word& fieldName)
                 <<  " = " << result << endl;
         }
 
-        // write state information
-        dictionary propsDict;
-        propsDict.add("value", result);
-        setProperty(fieldName, propsDict);
+        // write state/results information
+        const word& opName = operationTypeNames_[operation_];
+        word resultName = opName + '(' + sourceName_ + ',' + fieldName + ')';
+        this->setResult(resultName, result);
     }
 
     return ok;

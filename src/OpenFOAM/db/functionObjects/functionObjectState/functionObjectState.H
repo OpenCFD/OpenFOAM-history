@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -57,6 +57,9 @@ private:
 
     // Private data
 
+        //- Name of the results dictionary
+        static const word resultsName_;
+
         //- Reference to the database
         const objectRegistry& obr_;
 
@@ -78,7 +81,6 @@ protected:
 protected:
 
     // Protected Member Functions
-
 
         //- Disallow default bitwise copy construct
         functionObjectState(const functionObjectState&);
@@ -112,7 +114,10 @@ public:
         bool active() const;
 
         //- Return access to the state dictionary
-        const dictionary& stateDict() const;
+        const IOdictionary& stateDict() const;
+
+        //- Return access to the property dictionary
+        dictionary& propertyDict();
 
         //- Set the active status by querying objectRegistry type
         //  returns new active status
@@ -164,6 +169,60 @@ public:
             const word& entryName,
             const Type& value
         );
+
+        template<class Type>
+        void setResult
+        (
+            const word& entryName,
+            const Type& value
+        );
+
+        //- Add result
+        template<class Type>
+        void setObjectResult
+        (
+            const word& objectName,
+            const word& entryName,
+            const Type& value
+        );
+
+        template<class Type>
+        Type getResult
+        (
+            const word& entryName,
+            const Type& defaultValue = pTraits<Type>::zero
+        ) const;
+
+        //- Retrieve result
+        template<class Type>
+        Type getObjectResult
+        (
+            const word& objectName,
+            const word& entryName,
+            const Type& defaultValue = pTraits<Type>::zero
+        ) const;
+
+        template<class Type>
+        void getObjectResult
+        (
+            const word& objectName,
+            const word& entryName,
+            Type& value
+        ) const;
+
+        //- Retrieve the result type
+        word resultType(const word& entryName) const;
+
+        word objectResultType
+        (
+            const word& objectName,
+            const word& entryName
+        ) const;
+
+        //- Retrieve the result entries
+        List<word> objectResultEntries() const;
+
+        List<word> objectResultEntries(const word& objectName) const;
 };
 
 

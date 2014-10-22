@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -128,15 +128,113 @@ void Foam::functionObjectState::setObjectProperty
     const Type& value
 )
 {
-    if (stateDict_.found(objectName))
-    {
-        dictionary& baseDict = stateDict_.subDict(objectName);
-        baseDict.add(entryName, value, true);
-    }
-    else
+    if (!stateDict_.found(objectName))
     {
         stateDict_.add(objectName, dictionary());
-        stateDict_.subDict(objectName).add(entryName, value);
+    }
+
+    dictionary& baseDict = stateDict_.subDict(objectName);
+    baseDict.add(entryName, value, true);
+}
+
+
+template<class Type>
+void Foam::functionObjectState::setResult
+(
+    const word& entryName,
+    const Type& value
+)
+{
+    setObjectResult(name_, entryName, value);
+}
+
+
+template<class Type>
+void Foam::functionObjectState::setObjectResult
+(
+    const word& objectName,
+    const word& entryName,
+    const Type& value
+)
+{
+    if (!stateDict_.found(resultsName_))
+    {
+        stateDict_.add(resultsName_, dictionary());
+    }
+
+    dictionary& resultsDict = stateDict_.subDict(resultsName_);
+
+    if (!resultsDict.found(objectName))
+    {
+        resultsDict.add(name_, dictionary());
+    }
+
+    dictionary& objectDict = resultsDict.subDict(objectName);
+
+    const word& dictTypeName = pTraits<Type>::typeName;
+
+    if (!objectDict.found(dictTypeName))
+    {
+        objectDict.add(dictTypeName, dictionary());
+    }
+
+    dictionary& resultTypeDict = objectDict.subDict(dictTypeName);
+
+    resultTypeDict.add(entryName, value, true);
+}
+
+
+template<class Type>
+Type Foam::functionObjectState::getResult
+(
+    const word& entryName,
+    const Type& defaultValue
+) const
+{
+    return getObjectResult(name_, entryName, defaultValue);
+}
+
+
+template<class Type>
+Type Foam::functionObjectState::getObjectResult
+(
+    const word& objectName,
+    const word& entryName,
+    const Type& defaultValue
+) const
+{
+    Type result = defaultValue;
+    getObjectResult(objectName, entryName, result);
+    return result;
+}
+
+
+template<class Type>
+void Foam::functionObjectState::getObjectResult
+(
+    const word& objectName,
+    const word& entryName,
+    Type& value
+) const
+{
+    if (stateDict_.found(resultsName_))
+    {
+        const dictionary& resultsDict = stateDict_.subDict(resultsName_);
+
+        if (resultsDict.found(objectName))
+        {
+            const dictionary& objectDict = resultsDict.subDict(objectName);
+
+            const word& dictTypeName = pTraits<Type>::typeName;
+
+            if (objectDict.found(dictTypeName))
+            {
+                const dictionary& resultTypeDict =
+                    objectDict.subDict(dictTypeName);
+
+                resultTypeDict.readIfPresent<Type>(entryName, value);
+            }
+        }
     }
 }
 

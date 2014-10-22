@@ -66,7 +66,11 @@ void calc
     functionObjectList& fol
 )
 {
-    if (args.optionFound("noFlow"))
+    if (args.optionFound("noRead"))
+    {
+        fol.execute(true);
+    }
+    else if (args.optionFound("noFlow"))
     {
         Info<< "    Operating in no-flow mode; no models will be loaded."
             << " All vol, surface and point fields will be loaded." << endl;
@@ -374,6 +378,11 @@ int main(int argc, char *argv[])
     (
         "noFlow",
         "suppress creating flow models"
+    );
+    Foam::argList::addBoolOption
+    (
+        "noRead",
+        "do not read any field data"
     );
     #include "addDictOption.H"
 

@@ -53,7 +53,8 @@ Foam::Peclet::Peclet
     obr_(obr),
     active_(true),
     phiName_("phi"),
-    rhoName_("rho")
+    rhoName_("rho"),
+    resultName_()
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -84,7 +85,7 @@ Foam::Peclet::Peclet
             (
                 IOobject
                 (
-                    type(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -114,6 +115,11 @@ void Foam::Peclet::read(const dictionary& dict)
     {
         phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
         rhoName_ = dict.lookupOrDefault<word>("rhoName", "rho");
+
+        if (!dict.readIfPresent("resultName", resultName_))
+        {
+            resultName_ = typeName;
+        }
     }
 }
 
@@ -170,7 +176,7 @@ void Foam::Peclet::execute()
         }
         else
         {
-            FatalErrorIn("void Foam::Peclet::write()")
+            FatalErrorIn("void Foam::Peclet::execute()")
                 << "Unable to determine the viscosity"
                 << exit(FatalError);
         }
@@ -181,7 +187,7 @@ void Foam::Peclet::execute()
         surfaceScalarField& Peclet =
             const_cast<surfaceScalarField&>
             (
-                mesh.lookupObject<surfaceScalarField>(type())
+                mesh.lookupObject<surfaceScalarField>(resultName_)
             );
 
         Peclet =
@@ -203,6 +209,7 @@ void Foam::Peclet::end()
     }
 }
 
+
 void Foam::Peclet::timeSet()
 {
     // Do nothing
@@ -214,7 +221,7 @@ void Foam::Peclet::write()
     if (active_)
     {
         const surfaceScalarField& Peclet =
-            obr_.lookupObject<surfaceScalarField>(type());
+            obr_.lookupObject<surfaceScalarField>(resultName_);
 
         Info<< type() << " " << name_ << " output:" << nl
             << "    writing field " << Peclet.name() << nl
