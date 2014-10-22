@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -163,7 +163,7 @@ Foam::triSurfaceRegionSearch::treeByRegion() const
                 (
                     treeDataIndirectTriSurface
                     (
-                        true,
+                        false,              //true,
                         indirectRegionPatches_[regionI],
                         tolerance()
                     ),
@@ -211,6 +211,7 @@ void Foam::triSurfaceRegionSearch::findNearest
             }
 
             const treeType& octree = octrees[treeI];
+            const treeDataIndirectTriSurface::findNearestOp nearOp(octree);
 
             forAll(samples, i)
             {
@@ -223,7 +224,7 @@ void Foam::triSurfaceRegionSearch::findNearest
                 (
                     samples[i],
                     nearestDistSqr[i],
-                    treeDataIndirectTriSurface::findNearestOp(octree)
+                    nearOp
                 );
 
                 if

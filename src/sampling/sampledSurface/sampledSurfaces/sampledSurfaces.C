@@ -384,4 +384,18 @@ bool Foam::sampledSurfaces::update()
 }
 
 
+Foam::scalar Foam::sampledSurfaces::mergeTol()
+{
+    return mergeTol_;
+}
+
+
+Foam::scalar Foam::sampledSurfaces::mergeTol(const scalar tol)
+{
+    scalar oldTol = mergeTol_;
+    mergeTol_ = tol;
+    return oldTol;
+}
+
+
 // ************************************************************************* //

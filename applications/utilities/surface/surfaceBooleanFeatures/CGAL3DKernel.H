@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,48 +21,35 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Typedefs
+    CGAL3DKernel
+
+Description
+
 \*---------------------------------------------------------------------------*/
 
-#include "enthalpyPorositySource.H"
+#ifndef CGAL3DKernel_H
+#define CGAL3DKernel_H
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-void Foam::fv::enthalpyPorositySource::writeData(Ostream& os) const
-{
-    os  << indent << name_ << endl;
-    dict_.write(os);
-}
+#ifdef CGAL_INEXACT
+
+    // Fast kernel using a double as the storage type
+    #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
+    typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+
+#else
+
+    // Very robust but expensive kernel
+    #include "CGAL/Exact_predicates_exact_constructions_kernel.h"
+    typedef CGAL::Exact_predicates_exact_constructions_kernel K;
+
+#endif
 
 
-bool Foam::fv::enthalpyPorositySource::read(const dictionary& dict)
-{
-    if (option::read(dict))
-    {
-        coeffs_.lookup("Tmelt") >> Tmelt_;
-        coeffs_.lookup("L") >> L_;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-        coeffs_.readIfPresent("relax", relax_);
-
-        mode_ = thermoModeTypeNames_.read(coeffs_.lookup("thermoMode"));
-
-        coeffs_.lookup("rhoRef") >> rhoRef_;
-        coeffs_.readIfPresent("TName", TName_);
-        coeffs_.readIfPresent("UName", UName_);
-
-        coeffs_.readIfPresent("Cu", Cu_);
-        coeffs_.readIfPresent("q", q_);
-
-        coeffs_.readIfPresent("beta", beta_);
-
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-
-    return false;
-}
-
+#endif
 
 // ************************************************************************* //

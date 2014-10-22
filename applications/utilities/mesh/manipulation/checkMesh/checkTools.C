@@ -1,7 +1,6 @@
-#include "printMeshStats.H"
+#include "checkTools.H"
 #include "polyMesh.H"
 #include "globalMeshData.H"
-
 #include "hexMatcher.H"
 #include "wedgeMatcher.H"
 #include "prismMatcher.H"
@@ -9,6 +8,13 @@
 #include "tetWedgeMatcher.H"
 #include "tetMatcher.H"
 #include "IOmanip.H"
+#include "faceSet.H"
+#include "cellSet.H"
+#include "PatchTools.H"
+#include "Time.H"
+#include "surfaceWriter.H"
+#include "sampledSurfaces.H"
+#include "syncTools.H"
 
 
 void Foam::printMeshStats(const polyMesh& mesh, const bool allTopology)
@@ -167,4 +173,197 @@ void Foam::printMeshStats(const polyMesh& mesh, const bool allTopology)
     }
 
     Info<< endl;
+}
+
+
+void Foam::mergeAndWrite
+(
+    const surfaceWriter& writer,
+    const faceSet& set
+)
+{
+    const polyMesh& mesh = refCast<const polyMesh>(set.db());
+
+    const indirectPrimitivePatch setPatch
+    (
+        IndirectList<face>(mesh.faces(), set.sortedToc()),
+        mesh.points()
+    );
+
+    const fileName outputDir
+    (
+        Pstream::parRun()
+      ? set.time().path()/".."/"postProcessing"/set.name()
+      : set.time().path()/"postProcessing"/set.name()
+    );
+
+
+    if (Pstream::parRun())
+    {
+        // Use tolerance from sampling (since we're doing exactly the same
+        // when parallel merging)
+        const scalar tol = sampledSurfaces::mergeTol();
+        // dimension as fraction of mesh bounding box
+        scalar mergeDim = tol * mesh.bounds().mag();
+
+        pointField mergedPoints;
+        faceList mergedFaces;
+        labelList pointMergeMap;
+
+        PatchTools::gatherAndMerge
+        (
+            mergeDim,
+            setPatch,
+            mergedPoints,
+            mergedFaces,
+            pointMergeMap
+        );
+        writer.write
+        (
+            outputDir,
+            set.name(),
+            mergedPoints,
+            mergedFaces
+        );
+    }
+    else
+    {
+        writer.write
+        (
+            outputDir,
+            set.name(),
+            setPatch.localPoints(),
+            setPatch.localFaces()
+        );
+    }
+}
+
+
+void Foam::mergeAndWrite
+(
+    const surfaceWriter& writer,
+    const cellSet& set
+)
+{
+    const polyMesh& mesh = refCast<const polyMesh>(set.db());
+    const polyBoundaryMesh& pbm = mesh.boundaryMesh();
+
+
+    // Determine faces on outside of cellSet
+    PackedBoolList isInSet(mesh.nCells());
+    forAllConstIter(cellSet, set, iter)
+    {
+        isInSet[iter.key()] = true;
+    }
+
+
+    boolList bndInSet(mesh.nFaces()-mesh.nInternalFaces());
+    forAll(pbm, patchI)
+    {
+        const polyPatch& pp = pbm[patchI];
+        const labelList& fc = pp.faceCells();
+        forAll(fc, i)
+        {
+            bndInSet[pp.start()+i-mesh.nInternalFaces()] = isInSet[fc[i]];
+        }
+    }
+    syncTools::swapBoundaryFaceList(mesh, bndInSet);
+
+
+    DynamicList<label> outsideFaces(3*set.size());
+    for (label faceI = 0; faceI < mesh.nInternalFaces(); faceI++)
+    {
+        bool ownVal = isInSet[mesh.faceOwner()[faceI]];
+        bool neiVal = isInSet[mesh.faceNeighbour()[faceI]];
+
+        if (ownVal != neiVal)
+        {
+            outsideFaces.append(faceI);
+        }
+    }
+
+
+    forAll(pbm, patchI)
+    {
+        const polyPatch& pp = pbm[patchI];
+        const labelList& fc = pp.faceCells();
+        if (pp.coupled())
+        {
+            forAll(fc, i)
+            {
+                label faceI = pp.start()+i;
+
+                bool neiVal = bndInSet[faceI-mesh.nInternalFaces()];
+                if (isInSet[fc[i]] && !neiVal)
+                {
+                    outsideFaces.append(faceI);
+                }
+            }
+        }
+        else
+        {
+            forAll(fc, i)
+            {
+                if (isInSet[fc[i]])
+                {
+                    outsideFaces.append(pp.start()+i);
+                }
+            }
+        }
+    }
+
+
+    const indirectPrimitivePatch setPatch
+    (
+        IndirectList<face>(mesh.faces(), outsideFaces),
+        mesh.points()
+    );
+
+
+    const fileName outputDir
+    (
+        Pstream::parRun()
+      ? set.time().path()/".."/"postProcessing"/set.name()
+      : set.time().path()/"postProcessing"/set.name()
+    );
+
+
+    if (Pstream::parRun())
+    {
+        // Use tolerance from sampling (since we're doing exactly the same
+        // when parallel merging)
+        const scalar tol = sampledSurfaces::mergeTol();
+        // dimension as fraction of mesh bounding box
+        scalar mergeDim = tol * mesh.bounds().mag();
+
+        pointField mergedPoints;
+        faceList mergedFaces;
+        labelList pointMergeMap;
+
+        PatchTools::gatherAndMerge
+        (
+            mergeDim,
+            setPatch,
+            mergedPoints,
+            mergedFaces,
+            pointMergeMap
+        );
+        writer.write
+        (
+            outputDir,
+            set.name(),
+            mergedPoints,
+            mergedFaces
+        );
+    }
+    else
+    {
+        writer.write
+        (
+            outputDir,
+            set.name(),
+            setPatch.localPoints(),
+            setPatch.localFaces()
+        );
+    }
 }

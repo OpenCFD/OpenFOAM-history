@@ -236,6 +236,12 @@ public:
 
         //- Update for changes of mesh due to readUpdate - expires the surfaces
         virtual void readUpdate(const polyMesh::readUpdateState state);
+
+        //- Get merge tolerance
+        static scalar mergeTol();
+
+        //- Set tolerance (and return old tolerance)
+        static scalar mergeTol(const scalar);
 };
 
 

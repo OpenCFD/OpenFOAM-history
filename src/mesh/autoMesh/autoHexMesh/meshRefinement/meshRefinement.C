@@ -291,6 +291,7 @@ void Foam::meshRefinement::updateIntersections(const labelList& changedFaces)
         labelList surfaceLevel;
         surfaces_.findHigherIntersection
         (
+            shells_,
             start,
             end,
             labelList(start.size(), -1),    // accept any intersection
@@ -502,6 +503,7 @@ void Foam::meshRefinement::checkData()
             labelList surfaceLevel;
             surfaces_.findHigherIntersection
             (
+                shells_,
                 start,
                 end,
                 labelList(start.size(), -1),    // accept any intersection
@@ -1786,7 +1788,6 @@ void Foam::meshRefinement::calculateEdgeWeights
 (
     const polyMesh& mesh,
     const PackedBoolList& isMasterEdge,
-    const labelList& meshEdges,
     const labelList& meshPoints,
     const edgeList& edges,
     scalarField& edgeWeights,
@@ -1796,7 +1797,7 @@ void Foam::meshRefinement::calculateEdgeWeights
     const pointField& pts = mesh.points();
 
     // Calculate edgeWeights and inverse sum of edge weights
-    edgeWeights.setSize(meshEdges.size());
+    edgeWeights.setSize(isMasterEdge.size());
     invSumWeight.setSize(meshPoints.size());
 
     forAll(edges, edgeI)
@@ -1819,7 +1820,6 @@ void Foam::meshRefinement::calculateEdgeWeights
     (
         mesh,
         isMasterEdge,
-        meshEdges,
         meshPoints,
         edges,
         edgeWeights,
@@ -2664,8 +2664,82 @@ bool Foam::meshRefinement::write() const
 }
 
 
+Foam::PackedBoolList Foam::meshRefinement::getMasterPoints
+(
+    const polyMesh& mesh,
+    const labelList& meshPoints
+)
+{
+    const globalIndex globalPoints(meshPoints.size());
+
+    labelList myPoints(meshPoints.size());
+    forAll(meshPoints, pointI)
+    {
+        myPoints[pointI] = globalPoints.toGlobal(pointI);
+    }
+
+    syncTools::syncPointList
+    (
+        mesh,
+        meshPoints,
+        myPoints,
+        minEqOp<label>(),
+        labelMax
+    );
+
+
+    PackedBoolList isPatchMasterPoint(meshPoints.size());
+    forAll(meshPoints, pointI)
+    {
+        if (myPoints[pointI] == globalPoints.toGlobal(pointI))
+        {
+            isPatchMasterPoint[pointI] = true;
+        }
+    }
+
+    return isPatchMasterPoint;
+}
+
+
+Foam::PackedBoolList Foam::meshRefinement::getMasterEdges
+(
+    const polyMesh& mesh,
+    const labelList& meshEdges
+)
+{
+    const globalIndex globalEdges(meshEdges.size());
+
+    labelList myEdges(meshEdges.size());
+    forAll(meshEdges, edgeI)
+    {
+        myEdges[edgeI] = globalEdges.toGlobal(edgeI);
+    }
+
+    syncTools::syncEdgeList
+    (
+        mesh,
+        meshEdges,
+        myEdges,
+        minEqOp<label>(),
+        labelMax
+    );
+
+
+    PackedBoolList isMasterEdge(meshEdges.size());
+    forAll(meshEdges, edgeI)
+    {
+        if (myEdges[edgeI] == globalEdges.toGlobal(edgeI))
+        {
+            isMasterEdge[edgeI] = true;
+        }
+    }
+
+    return isMasterEdge;
+}
+
+
 void Foam::meshRefinement::printMeshInfo(const bool debug, const string& msg)
- const
+const
 {
     const globalMeshData& pData = mesh_.globalData();
 
@@ -2689,11 +2763,11 @@ void Foam::meshRefinement::printMeshInfo(const bool debug, const string& msg)
             }
         }
 
-        PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh_));
+        PackedBoolList isMeshMasterPoint(syncTools::getMasterPoints(mesh_));
         label nMasterPoints = 0;
-        forAll(isMasterPoint, i)
+        forAll(isMeshMasterPoint, i)
         {
-            if (isMasterPoint[i])
+            if (isMeshMasterPoint[i])
             {
                 nMasterPoints++;
             }

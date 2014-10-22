@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -697,6 +697,85 @@ Foam::label Foam::edgeIntersections::removeDegenerates
     }
 
     return iter;
+}
+
+
+void Foam::edgeIntersections::merge
+(
+    const edgeIntersections& subInfo,
+    const labelList& edgeMap,
+    const labelList& faceMap,
+    const bool merge
+)
+{
+    forAll(subInfo, subI)
+    {
+        const List<pointIndexHit>& subHits = subInfo[subI];
+        const labelList& subClass = subInfo.classification()[subI];
+
+        label edgeI = edgeMap[subI];
+        List<pointIndexHit>& intersections = operator[](edgeI);
+        labelList& intersectionTypes = classification_[edgeI];
+
+        // Count unique hits. Assume edge can hit face only once
+        label sz = 0;
+        if (merge)
+        {
+            sz = intersections.size();
+        }
+
+        label nNew = 0;
+        forAll(subHits, i)
+        {
+            const pointIndexHit& subHit = subHits[i];
+
+            bool foundFace = false;
+            for (label interI = 0; interI < sz; interI++)
+            {
+                if (intersections[interI].index() == faceMap[subHit.index()])
+                {
+                    foundFace = true;
+                    break;
+                }
+            }
+            if (!foundFace)
+            {
+                nNew++;
+            }
+        }
+
+
+        intersections.setSize(sz+nNew);
+        intersectionTypes.setSize(sz+nNew);
+        nNew = sz;
+
+        forAll(subHits, i)
+        {
+            const pointIndexHit& subHit = subHits[i];
+
+            bool foundFace = false;
+            for (label interI = 0; interI < sz; interI++)
+            {
+                if (intersections[interI].index() == faceMap[subHit.index()])
+                {
+                    foundFace = true;
+                    break;
+                }
+            }
+
+            if (!foundFace)
+            {
+                intersections[nNew] = pointIndexHit
+                (
+                    subHit.hit(),
+                    subHit.rawPoint(),
+                    faceMap[subHit.index()]
+                );
+                intersectionTypes[nNew] = subClass[i];
+                nNew++;
+            }
+        }
+    }
 }
 
 

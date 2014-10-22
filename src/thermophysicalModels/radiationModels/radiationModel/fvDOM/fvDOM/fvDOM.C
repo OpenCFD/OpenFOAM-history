@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,7 +43,6 @@ namespace Foam
         addToRadiationRunTimeSelectionTables(fvDOM);
     }
 }
-
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -210,6 +209,33 @@ void Foam::radiation::fvDOM::initialise()
     }
 
     Info<< endl;
+
+    if (this->found("useSolarLoad"))
+    {
+        this->lookup("useSolarLoad") >> useSolarLoad_;
+    }
+
+    if (useSolarLoad_)
+    {
+        const dictionary& solarDict = this->subDict("solarLoarCoeffs");
+        solarLoad_.reset
+        (
+            new solarLoad(solarDict, T_, externalRadHeatFieldName_)
+        );
+
+        if (solarLoad_->nBands() > 1)
+        {
+            FatalErrorIn
+            (
+                "const Foam::radiation::fvDOM::initialise()"
+            )
+                << "Requested solar radiation with fvDOM. Using "
+                << "more thant one band for the solar load is not allowed"
+                << abort(FatalError);
+            }
+
+        Info<< "Creating Solar Load Model " << nl;
+    }
 }
 
 
@@ -294,7 +320,9 @@ Foam::radiation::fvDOM::fvDOM(const volScalarField& T)
     maxIter_(coeffs_.lookupOrDefault<label>("maxIter", 50)),
     fvRayDiv_(nLambda_),
     cacheDiv_(coeffs_.lookupOrDefault<bool>("cacheDiv", false)),
-    omegaMax_(0)
+    omegaMax_(0),
+    useSolarLoad_(false),
+    solarLoad_()
 {
     initialise();
 }
@@ -383,7 +411,9 @@ Foam::radiation::fvDOM::fvDOM
     maxIter_(coeffs_.lookupOrDefault<label>("maxIter", 50)),
     fvRayDiv_(nLambda_),
     cacheDiv_(coeffs_.lookupOrDefault<bool>("cacheDiv", false)),
-    omegaMax_(0)
+    omegaMax_(0),
+    useSolarLoad_(false),
+    solarLoad_()
 {
     initialise();
 }
@@ -418,6 +448,11 @@ void Foam::radiation::fvDOM::calculate()
     absorptionEmission_->correct(a_, aLambda_);
 
     updateBlackBodyEmission();
+
+    if (useSolarLoad_)
+    {
+        solarLoad_->calculate();
+    }
 
     // Set rays convergence false
     List<bool> rayIdConv(nRay_, false);

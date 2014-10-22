@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters 1;
+convertToMeters 0.001;
 
 vertices
 (
@@ -30,7 +30,7 @@ vertices
 
 blocks
 (
-    hex (0 1 2 3 4 5 6 7) (10 6 1) simpleGrading (1 1 1)
+    hex (0 1 2 3 4 5 6 7) (20 12 1) simpleGrading (1 1 1)
 );
 
 edges
@@ -41,7 +41,7 @@ boundary
 (
     maxY
     {
-        type patch;
+        type wall;
         faces
         (
             (3 7 6 2)
@@ -49,7 +49,7 @@ boundary
     }
     minY
     {
-        type patch;
+        type wall;
         faces
         (
             (1 5 4 0)
@@ -73,7 +73,7 @@ boundary
     }
     frontAndBack
     {
-        type patch;
+        type empty;
         faces
         (
             (0 3 2 1)

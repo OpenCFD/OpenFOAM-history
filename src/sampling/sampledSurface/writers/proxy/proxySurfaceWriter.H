@@ -78,7 +78,7 @@ public:
 
         //- True if the surface format supports geometry in a separate file.
         //  False if geometry and field must be in a single file
-        virtual bool separateGeometry()
+        virtual bool separateGeometry() const
         {
             return true;
         }

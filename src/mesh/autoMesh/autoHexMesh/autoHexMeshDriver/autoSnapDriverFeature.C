@@ -39,6 +39,7 @@ License
 #include "snapParameters.H"
 #include "PatchTools.H"
 #include "pyramidPointFaceRef.H"
+#include "localPointRegion.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -127,7 +128,7 @@ bool Foam::autoSnapDriver::isFeaturePoint
 
 void Foam::autoSnapDriver::smoothAndConstrain
 (
-    const PackedBoolList& isMasterEdge,
+    const PackedBoolList& isPatchMasterEdge,
     const indirectPrimitivePatch& pp,
     const labelList& meshEdges,
     const List<pointConstraint>& constraints,
@@ -169,7 +170,7 @@ void Foam::autoSnapDriver::smoothAndConstrain
                 {
                     label edgeI = pEdges[i];
 
-                    if (isMasterEdge[meshEdges[edgeI]])
+                    if (isPatchMasterEdge[edgeI])
                     {
                         label nbrPointI = edges[edgeI].otherVertex(pointI);
                         if (constraints[nbrPointI].first() >= nConstraints)
@@ -554,16 +555,49 @@ void Foam::autoSnapDriver::calcNearestFacePointProperties
             patchID[meshFaceI-mesh.nInternalFaces()] = -1;
         }
 
-        // See if pp point uses any non-meshed boundary faces
-        // Note that we cannot use pp.boundaryPoints/pp.InternalEdges
-        // since we also want to pick up outside edges of faceZones
-        // (which have all been converted into baffles so all edges have
-        //  at least two faces)
 
-        labelList patchToMeshPoint(mesh.nPoints(), -1);
+
+        // See if edge of pp uses any non-meshed boundary faces. If so add the
+        // boundary face as additional constraint. Note that we account for
+        // both 'real' boundary edges and boundary edge of baffles
+
+        const labelList bafflePair
+        (
+            localPointRegion::findDuplicateFaces(mesh, pp.addressing())
+        );
+
+
+        // Mark all points on 'boundary' edges
+        PackedBoolList isBoundaryPoint(pp.nPoints());
+
+        const labelListList& edgeFaces = pp.edgeFaces();
+        const edgeList& edges = pp.edges();
+
+        forAll(edgeFaces, edgeI)
+        {
+            const edge& e = edges[edgeI];
+            const labelList& eFaces = edgeFaces[edgeI];
+
+            if (eFaces.size() == 1)
+            {
+                // 'real' boundary edge
+                isBoundaryPoint[e[0]] = true;
+                isBoundaryPoint[e[1]] = true;
+            }
+            else if (eFaces.size() == 2 && bafflePair[eFaces[0]] == eFaces[1])
+            {
+                // 'baffle' boundary edge
+                isBoundaryPoint[e[0]] = true;
+                isBoundaryPoint[e[1]] = true;
+            }
+        }
+
+
+        // Construct labelList equivalent of meshPointMap
+        labelList meshToPatchPoint(mesh.nPoints(), -1);
         forAll(pp.meshPoints(), pointI)
         {
-            patchToMeshPoint[pp.meshPoints()[pointI]] = pointI;
+            meshToPatchPoint[pp.meshPoints()[pointI]] = pointI;
         }
 
         forAll(patchID, bFaceI)
@@ -577,9 +611,9 @@ void Foam::autoSnapDriver::calcNearestFacePointProperties
 
                 forAll(f, fp)
                 {
-                    label pointI = patchToMeshPoint[f[fp]];
+                    label pointI = meshToPatchPoint[f[fp]];
 
-                    if (pointI != -1)
+                    if (pointI != -1 && isBoundaryPoint[pointI])
                     {
                         List<point>& pNormals = pointFaceSurfNormals[pointI];
                         List<point>& pDisp = pointFaceDisp[pointI];
@@ -837,12 +871,10 @@ Foam::pointIndexHit Foam::autoSnapDriver::findMultiPatchPoint
 void Foam::autoSnapDriver::writeStats
 (
     const indirectPrimitivePatch& pp,
-    const PackedBoolList& isMasterPoint,
+    const PackedBoolList& isPatchMasterPoint,
     const List<pointConstraint>& patchConstraints
 ) const
 {
-    const labelList& meshPoints = pp.meshPoints();
-
     label nMasterPoints = 0;
     label nPlanar = 0;
     label nEdge = 0;
@@ -850,7 +882,7 @@ void Foam::autoSnapDriver::writeStats
 
     forAll(patchConstraints, pointI)
     {
-        if (isMasterPoint[meshPoints[pointI]])
+        if (isPatchMasterPoint[pointI])
         {
             nMasterPoints++;
 
@@ -2638,6 +2670,7 @@ void Foam::autoSnapDriver::determineFeatures
 void Foam::autoSnapDriver::determineBaffleFeatures
 (
     const label iter,
+    const bool baffleFeaturePoints,
     const scalar featureCos,
 
     const indirectPrimitivePatch& pp,
@@ -2742,33 +2775,49 @@ void Foam::autoSnapDriver::determineBaffleFeatures
         }
     }
 
-    Info<< "Detected "
-        << returnReduce(nBaffleEdges, sumOp<label>())
+    reduce(nBaffleEdges, sumOp<label>());
+
+    Info<< "Detected " << nBaffleEdges
         << " baffle edges out of "
         << returnReduce(pp.nEdges(), sumOp<label>())
         << " edges." << endl;
 
 
-    forAll(pp.pointEdges(), pointI)
+    //- Baffle edges will be too ragged to sensibly determine feature points
+    //forAll(pp.pointEdges(), pointI)
+    //{
+    //    if
+    //    (
+    //        isFeaturePoint
+    //        (
+    //            featureCos,
+    //            pp,
+    //            isBaffleEdge,
+    //            pointI
+    //        )
+    //    )
+    //    {
+    //        //Pout<< "Detected feature point:" << pp.localPoints()[pointI]
+    //        //    << endl;
+    //        //-TEMPORARILY DISABLED:
+    //        //pointStatus[pointI] = 1;
+    //    }
+    //}
+
+
+    label nBafflePoints = 0;
+    forAll(pointStatus, pointI)
     {
-        if
-        (
-            isFeaturePoint
-            (
-                featureCos,
-                pp,
-                isBaffleEdge,
-                pointI
-            )
-        )
+        if (pointStatus[pointI] != -1)
         {
-            //Pout<< "Detected feature point:" << pp.localPoints()[pointI]
-            //    << endl;
-            //-TEMPORARILY DISABLED:
-            //pointStatus[pointI] = 1;
+            nBafflePoints++;
         }
     }
+    reduce(nBafflePoints, sumOp<label>());
 
+
+    label nPointAttract = 0;
+    label nEdgeAttract = 0;
 
     forAll(pointStatus, pointI)
     {
@@ -2776,6 +2825,8 @@ void Foam::autoSnapDriver::determineBaffleFeatures
 
         if (pointStatus[pointI] == 0)   // baffle edge
         {
+            // 1: attract to near feature edge first
+
             Tuple2<label, pointIndexHit> nearInfo = findNearFeatureEdge
             (
                 false,          // isRegionPoint?
@@ -2790,10 +2841,43 @@ void Foam::autoSnapDriver::determineBaffleFeatures
                 patchConstraints
             );
 
-            if (!nearInfo.second().hit())
+
+            //- MEJ:
+            // 2: optionally override with nearest feature point.
+            //    On baffles we don't have enough normals to construct a feature
+            //    point so assume all feature edges are close to feature points
+            if (nearInfo.second().hit())
             {
-                //Pout<< "*** Failed to find close edge to point " << pt
-                //    << endl;
+                nEdgeAttract++;
+
+                if (baffleFeaturePoints)
+                {
+                    nearInfo = findNearFeaturePoint
+                    (
+                        false,          // isRegionPoint,
+
+                        pp,
+                        snapDist,
+                        pointI,
+                        pt,             // estimatedPt,
+
+                        // Feature-point to pp point
+                        pointAttractor,
+                        pointConstraints,
+                        // Feature-edge to pp point
+                        edgeAttractors,
+                        edgeConstraints,
+                        // pp point to nearest feature
+                        patchAttraction,
+                        patchConstraints
+                    );
+
+                    if (nearInfo.first() != -1)
+                    {
+                        nEdgeAttract--;
+                        nPointAttract++;
+                    }
+                }
             }
         }
         else if (pointStatus[pointI] == 1)   // baffle point
@@ -2812,6 +2896,8 @@ void Foam::autoSnapDriver::determineBaffleFeatures
 
             if (featI != -1)
             {
+                nPointAttract++;
+
                 label featPointI = nearInfo[0].index();
                 const point& featPt = nearInfo[0].hitPoint();
                 scalar distSqr = magSqr(featPt-pt);
@@ -2874,7 +2960,7 @@ void Foam::autoSnapDriver::determineBaffleFeatures
                 //    << " for baffle-feature-point " << pt
                 //    << endl;
 
-                findNearFeatureEdge
+                Tuple2<label, pointIndexHit> nearInfo = findNearFeatureEdge
                 (
                     false,                  // isRegionPoint
                     pp,
@@ -2887,9 +2973,25 @@ void Foam::autoSnapDriver::determineBaffleFeatures
                     patchAttraction,
                     patchConstraints
                 );
+
+                if (nearInfo.first() != -1)
+                {
+                    nEdgeAttract++;
+                }
             }
         }
     }
+
+    reduce(nPointAttract, sumOp<label>());
+    reduce(nEdgeAttract, sumOp<label>());
+
+    Info<< "Baffle points     : " << nBafflePoints
+        << " of which attracted to :" << nl
+        << "    feature point : " << nPointAttract << nl
+        << "    feature edge  : " << nEdgeAttract << nl
+        << "    rest          : " << nBafflePoints-nPointAttract-nEdgeAttract
+        << nl
+        << endl;
 }
 
 
@@ -3163,6 +3265,8 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
     const bool multiRegionFeatureSnap,
 
     const bool detectBaffles,
+    const bool baffleFeaturePoints,
+
     const bool releasePoints,
     const bool stringFeatures,
     const bool avoidDiagonal,
@@ -3184,6 +3288,17 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
 ) const
 {
     const refinementFeatures& features = meshRefiner_.features();
+    const fvMesh& mesh = meshRefiner_.mesh();
+
+    const PackedBoolList isPatchMasterPoint
+    (
+        meshRefinement::getMasterPoints
+        (
+            mesh,
+            pp.meshPoints()
+        )
+    );
+
 
     // Collect ordered attractions on feature edges
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3247,10 +3362,8 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
     // Print a bit about the attraction from patch point to feature
     if (debug)
     {
-        const polyMesh& mesh = meshRefiner_.mesh();
-        const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
         Info<< "Raw geometric feature analysis : ";
-        writeStats(pp, isMasterPoint, rawPatchConstraints);
+        writeStats(pp, isPatchMasterPoint, rawPatchConstraints);
     }
 
     // Baffle handling
@@ -3269,6 +3382,7 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
         determineBaffleFeatures
         (
             iter,
+            baffleFeaturePoints,
             featureCos,
 
             pp,
@@ -3289,10 +3403,8 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
     // Print a bit about the attraction from patch point to feature
     if (debug)
     {
-        const polyMesh& mesh = meshRefiner_.mesh();
-        const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
         Info<< "After baffle feature analysis : ";
-        writeStats(pp, isMasterPoint, rawPatchConstraints);
+        writeStats(pp, isPatchMasterPoint, rawPatchConstraints);
     }
 
 
@@ -3326,10 +3438,8 @@ void Foam::autoSnapDriver::featureAttractionUsingFeatureEdges
     // Print a bit about the attraction from patch point to feature
     if (debug)
     {
-        const polyMesh& mesh = meshRefiner_.mesh();
-        const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
         Info<< "Reverse attract feature analysis : ";
-        writeStats(pp, isMasterPoint, patchConstraints);
+        writeStats(pp, isPatchMasterPoint, patchConstraints);
     }
 
     // Dump
@@ -3618,7 +3728,15 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
     const fvMesh& mesh = meshRefiner_.mesh();
 
 
-    const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
+    //const PackedBoolList isMasterPoint(syncTools::getMasterPoints(mesh));
+    const PackedBoolList isPatchMasterPoint
+    (
+        meshRefinement::getMasterPoints
+        (
+            mesh,
+            pp.meshPoints()
+        )
+    );
 
     // Per point, per surrounding face:
     // - faceSurfaceNormal
@@ -3754,6 +3872,9 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
             multiRegionFeatureSnap,
 
             snapParams.detectBaffles(),
+            snapParams.baffleFeaturePoints(),   // all points on baffle edges
+                                                // are attracted to feature pts
+
             releasePoints,
             stringFeatures,
             avoidDiagonal,
@@ -3810,7 +3931,7 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
         if (debug)
         {
             Info<< "Diagonal attraction feature correction : ";
-            writeStats(pp, isMasterPoint, patchConstraints);
+            writeStats(pp, isPatchMasterPoint, patchConstraints);
         }
     }
 
@@ -3831,23 +3952,19 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
     {
         vector avgPatchDisp = meshRefinement::gAverage
         (
-            mesh,
-            isMasterPoint,
-            pp.meshPoints(),
+            isPatchMasterPoint,
             patchDisp
         );
         vector avgPatchAttr = meshRefinement::gAverage
         (
-            mesh,
-            isMasterPoint,
-            pp.meshPoints(),
+            isPatchMasterPoint,
             patchAttraction
         );
 
         Info<< "Attraction:" << endl
-            << "     linear   : max:" << gMaxMagSqr(patchDisp)
+            << "    linear   : max:" << gMaxMagSqr(patchDisp)
             << " avg:" << avgPatchDisp << endl
-            << "     feature  : max:" << gMaxMagSqr(patchAttraction)
+            << "    feature  : max:" << gMaxMagSqr(patchAttraction)
             << " avg:" << avgPatchAttr << endl;
     }
 
@@ -3877,7 +3994,7 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
     // Count
     {
         Info<< "Feature analysis : ";
-        writeStats(pp, isMasterPoint, patchConstraints);
+        writeStats(pp, isPatchMasterPoint, patchConstraints);
     }
 
 
@@ -3894,7 +4011,19 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
 
     if (featureAttract < 1-0.001)
     {
-        const PackedBoolList isMasterEdge(syncTools::getMasterEdges(mesh));
+        //const PackedBoolList isMasterEdge(syncTools::getMasterEdges(mesh));
+        const labelList meshEdges
+        (
+            pp.meshEdges(mesh.edges(), mesh.pointEdges())
+        );
+        const PackedBoolList isPatchMasterEdge
+        (
+            meshRefinement::getMasterEdges
+            (
+                mesh,
+                meshEdges
+            )
+        );
 
         const vectorField pointNormals
         (
@@ -3904,17 +4033,12 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
                 pp
             )
         );
-        const labelList meshEdges
-        (
-            pp.meshEdges(mesh.edges(), mesh.pointEdges())
-        );
-
 
         // 1. Smoothed all displacement
         vectorField smoothedPatchDisp = patchDisp;
         smoothAndConstrain
         (
-            isMasterEdge,
+            isPatchMasterEdge,
             pp,
             meshEdges,
             patchConstraints,
@@ -3927,7 +4051,7 @@ Foam::vectorField Foam::autoSnapDriver::calcNearestSurfaceFeature
         tangPatchDisp -= (pointNormals & patchDisp) * pointNormals;
         smoothAndConstrain
         (
-            isMasterEdge,
+            isPatchMasterEdge,
             pp,
             meshEdges,
             patchConstraints,

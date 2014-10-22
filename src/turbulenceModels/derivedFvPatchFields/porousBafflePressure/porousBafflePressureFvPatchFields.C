@@ -56,6 +56,10 @@ void Foam::porousBafflePressureFvPatchField<Foam::scalar>::updateCoeffs()
         return;
     }
 
+    const scalar t = db().time().timeOutputValue();
+    const scalar D = D_->value(t);
+    const scalar I = I_->value(t);
+
     const label patchI = patch().index();
 
     const surfaceScalarField& phi =
@@ -70,32 +74,57 @@ void Foam::porousBafflePressureFvPatchField<Foam::scalar>::updateCoeffs()
 
     if (phi.dimensions() == dimensionSet(0, 3, -1, 0, 0))
     {
-        const incompressible::turbulenceModel& turbModel =
-            db().lookupObject<incompressible::turbulenceModel>
-            (
-                "turbulenceModel"
-            );
+        typedef incompressible::turbulenceModel icoTurbModel;
 
-        const scalarField nu = turbModel.nu()().boundaryField()[patchI];
+        if (db().foundObject<icoTurbModel>("turbulenceModel"))
+        {
+            const icoTurbModel& turbModel =
+                db().lookupObject<icoTurbModel>("turbulenceModel");
 
-        jump_ = -sign(Un)*(D_*nu + I_*0.5*magUn)*magUn*length_;
+            const scalarField nu(turbModel.nu()().boundaryField()[patchI]);
+            jump_ = -sign(Un)*(D*nu + I*0.5*magUn)*magUn*length_;
+        }
+        else if (db().foundObject<transportModel>("transportProperties"))
+        {
+            const transportModel& laminarT =
+                db().lookupObject<transportModel>("transportProperties");
+
+            const scalarField nu(laminarT.nu()().boundaryField()[patchI]);
+            jump_ = -sign(Un)*(D*nu + I*0.5*magUn)*magUn*length_;
+        }
+        else
+        {
+            // assume flow is inviscid (e.g. for potentialFoam)
+            if (debug)
+            {
+                Info<< "Foam::porousBafflePressureFvPatchField<Foam::scalar>::"
+                    << "updateCoeffs()" << nl
+                    << "Unable to determine viscosity, proceeding under the "
+                    << "asumption that the flow is inviscid" << nl
+                    << "    on patch " << patch().name()
+                    << " of field " << dimensionedInternalField().name()
+                    << " in file " << dimensionedInternalField().objectPath()
+                    << endl;
+            }
+
+            jump_ = -sign(Un)*(I*0.5*magUn)*magUn*length_;
+        }
     }
     else
     {
-        const compressible::turbulenceModel& turbModel =
-            db().lookupObject<compressible::turbulenceModel>
-            (
-                "turbulenceModel"
-            );
+        typedef compressible::turbulenceModel cmpTurbModel;
+
+        const cmpTurbModel& turbModel =
+            db().lookupObject<cmpTurbModel>("turbulenceModel");
 
         const scalarField& mu = turbModel.mu().boundaryField()[patchI];
 
-        const scalarField rhow =
+        const scalarField& rhow =
             patch().lookupPatchField<volScalarField, scalar>("rho");
 
         Un /= rhow;
 
-        jump_ = -sign(Un)*(D_*mu + I_*0.5*rhow*magUn)*magUn*length_;
+        jump_ = -sign(Un)*(D*mu + I*0.5*rhow*magUn)*magUn*length_;
     }
 
     if (debug)

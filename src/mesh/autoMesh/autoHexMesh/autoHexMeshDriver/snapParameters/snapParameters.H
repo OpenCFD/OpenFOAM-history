@@ -72,7 +72,11 @@ class snapParameters
 
         const Switch detectNearSurfacesSnap_;
 
+        const Switch strictRegionSnap_;
+
         const Switch detectBaffles_;
+
+        const Switch baffleFeaturePoints_;
 
         const Switch releasePoints_;
 
@@ -144,9 +148,17 @@ public:
 
             // Surface snapping specific
 
+                //- Override attraction to nearest with intersection location
+                //  at near surfaces
                 Switch detectNearSurfacesSnap() const
                 {
                     return detectNearSurfacesSnap_;
+                }
+
+                //- Attract point to corresponding surface region only
+                Switch strictRegionSnap() const
+                {
+                    return strictRegionSnap_;
                 }
 
 
@@ -175,6 +187,11 @@ public:
                 Switch detectBaffles() const
                 {
                     return detectBaffles_;
+                }
+
+                Switch baffleFeaturePoints() const
+                {
+                    return baffleFeaturePoints_;
                 }
 
                 Switch releasePoints() const

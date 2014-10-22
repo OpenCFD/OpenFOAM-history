@@ -115,8 +115,8 @@ void Foam::faceOnlySet::calcSamples
     const vector smallVec = tol*offset;
     const scalar smallDist = mag(smallVec);
 
-    // Force calculation of minimum-tet decomposition.
-    (void) mesh().tetBasePtIs();
+    // Force calculation of cloud addressing on all processors
+    const bool oldMoving = const_cast<polyMesh&>(mesh()).moving(false);
     passiveParticleCloud particleCloud(mesh());
 
     // Get all boundary intersections
@@ -288,6 +288,8 @@ void Foam::faceOnlySet::calcSamples
 
         startSegmentI = samplingPts.size();
     }
+
+    const_cast<polyMesh&>(mesh()).moving(oldMoving);
 }
 
 

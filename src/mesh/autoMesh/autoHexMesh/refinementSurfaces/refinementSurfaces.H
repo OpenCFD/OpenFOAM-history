@@ -94,6 +94,16 @@ class refinementSurfaces
 
     // Private Member Functions
 
+        //- Given intersection results with geom detect local shell refinement
+        //  level (possibly cached on triangles of geom)
+        labelList findHigherLevel
+        (
+            const searchableSurface& geom,
+            const shellSurfaces& shells,
+            const List<pointIndexHit>& intersectionInfo,
+            const labelList& surfaceLevel
+        ) const;
+
         //- Disallow default bitwise copy construct
         refinementSurfaces(const refinementSurfaces&);
 
@@ -233,6 +243,8 @@ public:
             //  Return surface number and level.
             void findHigherIntersection
             (
+                const shellSurfaces& shells,
+
                 const pointField& start,
                 const pointField& end,
                 const labelList& currentLevel,  // current cell refinement level
@@ -353,6 +365,37 @@ public:
                 const pointField& pt,
                 labelList& insideSurfaces
             ) const;
+
+            // Region wise searching
+
+                //- Find nearest point on selected regions of surfaces.
+                void findNearest
+                (
+                    const labelList& surfacesToTest,
+                    const labelListList& regions,
+
+                    const pointField& samples,
+                    const scalarField& nearestDistSqr,
+
+                    labelList& hitSurface,
+                    List<pointIndexHit>& hitInfo
+                ) const;
+
+                //- Find nearest point on selected regions of surfaces.
+                void findNearestRegion
+                (
+                    const labelList& surfacesToTest,
+                    const labelListList& regions,
+
+                    const pointField& samples,
+                    const scalarField& nearestDistSqr,
+
+                    labelList& hitSurface,
+                    List<pointIndexHit>& hitInfo,
+                    labelList& hitRegion,
+                    vectorField& hitNormal
+                ) const;
+
 };
 
 
