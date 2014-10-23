@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -78,14 +78,14 @@ public:
 
         //- True if the surface format supports geometry in a separate file.
         //  False if geometry and field must be in a single file
-        virtual bool separateGeometry()
+        virtual bool separateGeometry() const
         {
             return true;
         }
 
 
         //- Write single surface geometry to file.
-        virtual void write
+        virtual fileName write
         (
             const fileName& outputDir,
             const fileName& surfaceName,
@@ -93,7 +93,6 @@ public:
             const faceList& faces,
             const bool verbose = false
         ) const;
-
 };
 
 

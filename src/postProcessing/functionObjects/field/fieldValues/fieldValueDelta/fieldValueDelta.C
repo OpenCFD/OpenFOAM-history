@@ -54,28 +54,7 @@ namespace Foam
 }
 
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::fieldValues::fieldValueDelta::fieldValueDelta
-(
-    const word& name,
-    const objectRegistry& obr,
-    const dictionary& dict,
-    const bool loadFromFiles
-)
-:
-    functionObjectState(obr, name),
-    functionObjectFile(obr, name, typeName),
-    obr_(obr),
-    loadFromFiles_(loadFromFiles),
-    log_(true),
-    operation_(opSubtract),
-    source1Ptr_(NULL),
-    source2Ptr_(NULL)
-{
-    read(dict);
-}
-
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
 void Foam::fieldValues::fieldValueDelta::writeFileHeader(const label i)
 {
@@ -108,6 +87,32 @@ void Foam::fieldValues::fieldValueDelta::writeFileHeader(const label i)
 }
 
 
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::fieldValues::fieldValueDelta::fieldValueDelta
+(
+    const word& name,
+    const objectRegistry& obr,
+    const dictionary& dict,
+    const bool loadFromFiles
+)
+:
+    functionObjectState(obr, name),
+    functionObjectFile(obr, name, typeName),
+    obr_(obr),
+    loadFromFiles_(loadFromFiles),
+    log_(true),
+    operation_(opSubtract),
+    source1Ptr_(NULL),
+    source2Ptr_(NULL)
+{
+    if (setActive<fvMesh>())
+    {
+        read(dict);
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 Foam::fieldValues::fieldValueDelta::~fieldValueDelta()
@@ -118,85 +123,139 @@ Foam::fieldValues::fieldValueDelta::~fieldValueDelta()
 
 void Foam::fieldValues::fieldValueDelta::read(const dictionary& dict)
 {
-    functionObjectFile::read(dict);
+    if (active_)
+    {
+        functionObjectFile::read(dict);
 
-    log_ = dict.lookupOrDefault<Switch>("log", true);
-    source1Ptr_.reset
-    (
-        fieldValue::New
+        log_ = dict.lookupOrDefault<Switch>("log", true);
+        source1Ptr_.reset
         (
-            name_ + ".source1",
-            obr_,
-            dict.subDict("source1"),
-            loadFromFiles_,
-            false
-        ).ptr()
-    );
-    source2Ptr_.reset
-    (
-        fieldValue::New
+            fieldValue::New
+            (
+                name_ + ":source1",
+                obr_,
+                dict.subDict("source1"),
+                loadFromFiles_,
+                false
+            ).ptr()
+        );
+        source2Ptr_.reset
         (
-            name_ + ".source2",
-            obr_,
-            dict.subDict("source2"),
-            loadFromFiles_,
-            false
-        ).ptr()
-    );
+            fieldValue::New
+            (
+                name_ + ":source2",
+                obr_,
+                dict.subDict("source2"),
+                loadFromFiles_,
+                false
+            ).ptr()
+        );
 
-    operation_ = operationTypeNames_.read(dict.lookup("operation"));
+        operation_ = operationTypeNames_.read(dict.lookup("operation"));
+    }
 }
 
 
 void Foam::fieldValues::fieldValueDelta::write()
 {
-    functionObjectFile::write();
-
-    source1Ptr_->write();
-    source2Ptr_->write();
-
-    if (Pstream::master())
-    {
-        file()<< obr_.time().value();
-    }
-
-    Info(log_)<< type() << " " << name_ << " output:" << endl;
-
-    bool found = false;
-    processFields<scalar>(found);
-    processFields<vector>(found);
-    processFields<sphericalTensor>(found);
-    processFields<symmTensor>(found);
-    processFields<tensor>(found);
-
-    if (Pstream::master())
-    {
-        file()<< endl;
-    }
-
-    if (log_)
-    {
-        if (!found)
-        {
-            Info<< "    none" << endl;
-        }
-        else
-        {
-            Info<< endl;
-        }
-    }
+    // Do nothing
 }
 
 
 void Foam::fieldValues::fieldValueDelta::execute()
 {
-    // Do nothing
+    if (active_)
+    {
+        functionObjectFile::write();
+
+        source1Ptr_->write();
+        source2Ptr_->write();
+
+        if (Pstream::master())
+        {
+            file()<< obr_.time().value();
+        }
+
+        Info(log_)<< type() << " " << name_ << " output:" << endl;
+
+        const word& name1 = source1Ptr_->name();
+        const word& name2 = source2Ptr_->name();
+
+        const wordList entries1 = objectResultEntries(name1);
+        const wordList entries2 = objectResultEntries(name2);
+
+        if (entries1.size() != entries2.size())
+        {
+            FatalErrorIn("void Foam::fieldValues::fieldValueDelta::execute()")
+                << name_ << ": objects must generate the same number of results"
+                << nl
+                << "    " << name1 << " objects: " << entries1 << nl
+                << "    " << name2 << " objects: " << entries2 << nl
+                << exit(FatalError);
+        }
+
+        forAll(entries1, i)
+        {
+            const word& entry1(entries1[i]);
+            const word& entry2(entries2[i]);
+            const word type1 = objectResultType(name1, entry1);
+            const word type2 = objectResultType(name2, entry2);
+
+            if (type1 != type2)
+            {
+                FatalErrorIn
+                (
+                    "void Foam::fieldValues::fieldValueDelta::execute()"
+                )
+                    << name_
+                    << ": input values for operation must be of the same type"
+                    << nl
+                    << "    " << entry1 << ": " << type1 << nl
+                    << "    " << entry2 << ": " << type2 << nl
+                    << exit(FatalError);
+            }
+
+            bool found = false;
+
+            apply<scalar>(type1, name1, name2, entry1, entry2, found);
+            apply<vector>(type1, name1, name2, entry1, entry2, found);
+            apply<sphericalTensor>(type1, name1, name2, entry1, entry2, found);
+            apply<symmTensor>(type1, name1, name2, entry1, entry2, found);
+            apply<tensor>(type1, name1, name2, entry1, entry2, found);
+
+            if (!found)
+            {
+                Info(log_)
+                    << "Operation between "
+                    << name1 << " with result " << entry1 << " and "
+                    << name2 << " with result " << entry2 << " not applied"
+                    << endl;
+            }
+        }
+
+        if (entries1.empty())
+        {
+            Info(log_) << "    none" << endl;
+        }
+        else
+        {
+            Info(log_) << endl;
+        }
+
+        if (Pstream::master())
+        {
+            file()<< endl;
+        }
+    }
 }
 
 
 void Foam::fieldValues::fieldValueDelta::end()
 {
-    // Do nothing
+    if (active_)
+    {
+        execute();
+    }
 }
 
 

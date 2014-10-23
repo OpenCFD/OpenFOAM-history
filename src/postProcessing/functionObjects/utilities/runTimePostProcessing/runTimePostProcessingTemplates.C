@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,46 +23,41 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "fvMatrices.H"
-#include "fvcDdt.H"
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-template<class RhoFieldType>
-void Foam::fv::enthalpyPorositySource::apply
+template<class Type>
+void Foam::runTimePostProcessing::readObjects
 (
-    const RhoFieldType& rho,
-    fvMatrix<scalar>& eqn
-)
+    const dictionary& dict,
+    PtrList<Type>& objects
+) const
 {
-    if (!solveField(eqn.psi().name()))
+    objects.clear();
+    forAllConstIter(dictionary, dict, iter)
     {
-        return;
-    }
+        if (!iter().isDict())
+        {
+            FatalIOErrorIn
+            (
+                "void Foam::runTimePostProcessing::readObjects"
+                "("
+                    "const dictionary&, "
+                    "PtrList<Type>&"
+                ")",
+                dict
+            )
+                << dict.dictName()
+                << " objects must be specified in dictionary format"
+                << exit(FatalIOError);
+        }
 
-    if (debug)
-    {
-        Info<< type() << ": applying source to " << eqn.psi().name() << endl;
-    }
+        const dictionary& objectDict(iter().dict());
+        word objectType = objectDict.lookup("type");
 
-    const volScalarField Cp(this->Cp());
-
-    update(Cp);
-
-    dimensionedScalar L("L", dimEnergy/dimMass, L_);
-
-    // contributions added to rhs of solver equation
-    if (eqn.psi().dimensions() == dimTemperature)
-    {
-        // isothermal phase change - only include time derivative
-//        eqn -= L/Cp*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
-        eqn -= L/Cp*(fvc::ddt(rho, alpha1_));
-    }
-    else
-    {
-        // isothermal phase change - only include time derivative
-//        eqn -= L*(fvc::ddt(rho, alpha1_) + fvc::div(phi, alpha1_));
-        eqn -= L*(fvc::ddt(rho, alpha1_));
+        objects.append
+        (
+            Type::New(*this, iter().dict(), scene_.colours(), objectType)
+        );
     }
 }
 

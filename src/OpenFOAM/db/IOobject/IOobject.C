@@ -106,7 +106,7 @@ addfileModificationCheckingToOpt addfileModificationCheckingToOpt_
 //    "foo/bar/"          ERROR - no name
 //    "foo/xxx/bar"       ("foo", "xxx", "bar")
 //    "foo/xxx/yyy/bar"   ("foo", "xxx/yyy", "bar")
-bool Foam::IOobject::IOobject::fileNameComponents
+bool Foam::IOobject::fileNameComponents
 (
     const fileName& path,
     fileName& instance,

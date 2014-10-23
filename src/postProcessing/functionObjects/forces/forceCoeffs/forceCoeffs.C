@@ -290,15 +290,13 @@ void Foam::forceCoeffs::execute()
 
     }
 
-    // write state information
+    // write state/results information
     {
-        dictionary propsDict;
-        propsDict.add("Cm", Cm);
-        propsDict.add("Cd", Cd);
-        propsDict.add("Cl", Cl);
-        propsDict.add("Cl(f)", Clf);
-        propsDict.add("Cl(r)", Clr);
-        setProperty("forceCoeffs", propsDict);
+        setResult("Cm", Cm);
+        setResult("Cd", Cd);
+        setResult("Cl", Cl);
+        setResult("Cl(f)", Clf);
+        setResult("Cl(r)", Clr);
     }
 
     if (writeFields_)

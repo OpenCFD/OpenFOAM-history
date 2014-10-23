@@ -28,8 +28,11 @@ Group
     grpFieldFunctionObjects
 
 Description
-    This function object provides a differencing option between two 'field
-    value' function objects.
+    This function object provides applies an operation to the output of two
+    fieldValue function objects.
+
+    The operation is applied to all results of each fieldValue object.
+    Accordingly, each object must generate the same number and type of results.
 
     Example of function object specification:
     \verbatim
@@ -39,11 +42,11 @@ Description
         functionObjectLibs ("libfieldFunctionObjects.so");
         operation       subtract;
 
-        fieldValue1
+        source1
         {
             ...
         }
-        fieldValue2
+        source2
         {
             ...
         }
@@ -65,6 +68,7 @@ Description
        max           | maximum
        average       | average
     \endplaintable
+
 SeeAlso
     Foam::fieldValue
 
@@ -138,13 +142,17 @@ private:
 
     // Private Member Functions
 
-        //- Templated function to process common fields
-        template<class Type>
-        void processFields(bool& found);
-
         //- Templated function to apply the operation
         template<class Type>
-        Type applyOperation(const Type& value1, const Type& value2) const;
+        void apply
+        (
+            const word& resultType,
+            const word& name1,
+            const word& name2,
+            const word& entryName1,
+            const word& entryName2,
+            bool& found
+        );
 
 
 protected:

@@ -35,8 +35,6 @@ License
 
 namespace Foam
 {
-namespace radiation
-{
     template<>
     const char* Foam::NamedEnum
     <
@@ -48,7 +46,6 @@ namespace radiation
         "lookup",
         "model"
     };
-}
 }
 
 const Foam::NamedEnum
