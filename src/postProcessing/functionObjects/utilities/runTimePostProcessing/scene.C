@@ -52,13 +52,47 @@ const Foam::NamedEnum<Foam::scene::modeType, 2> modeTypeNames_;
 
 void Foam::scene::readCamera(const dictionary& dict)
 {
-    nFrameTotal_ = dict.lookupOrDefault("nFrameTotal", 1);
-    position_ = dict.lookupOrDefault<scalar>("startPosition", 0);
+    if (dict.readIfPresent("nFrameTotal", nFrameTotal_))
+    {
+        if (nFrameTotal_ < 1)
+        {
+            FatalIOErrorIn
+            (
+                "void Foam::scene::readCamera(const dictionary&)",
+                dict
+            )   << "nFrameTotal must be 1 or greater"
+                << exit(FatalIOError);
+        }
+    }
+
+    if (dict.readIfPresent("startPosition", position_))
+    {
+        if ((position_ < 0) || (position_ > 1))
+        {
+            FatalIOErrorIn
+            (
+                "void Foam::scene::readCamera(const dictionary&)",
+                dict
+            )   << "startPosition must be in the range 0-1"
+                << exit(FatalIOError);
+        }
+    }
+
+
     dict.lookup("parallelProjection") >> parallelProjection_;
 
     if (nFrameTotal_ > 1)
     {
         scalar endPosition = dict.lookupOrDefault<scalar>("endPosition", 1);
+        if ((endPosition < 0) || (endPosition > 1))
+        {
+            FatalIOErrorIn
+            (
+                "void Foam::scene::readCamera(const dictionary&)",
+                dict
+            )   << "endPosition must be in the range 0-1"
+                << exit(FatalIOError);
+        }
         dPosition_ = (endPosition - position_)/scalar(nFrameTotal_ - 1);
     }
 
@@ -312,7 +346,7 @@ bool Foam::scene::loop(vtkRenderer* renderer)
 
     currentFrameI_++;
 
-    position_ = currentFrameI_*dPosition_;
+    position_ += currentFrameI_*dPosition_;
 
     if (currentFrameI_ < nFrameTotal_)
     {
