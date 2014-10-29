@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "enthalpyPorositySource.H"
+#include "solidificationMeltingSource.H"
 #include "fvMatrices.H"
 #include "basicThermo.H"
 #include "uniformDimensionedFields.H"
@@ -38,7 +38,7 @@ namespace Foam
     template<>
     const char* NamedEnum
     <
-        fv::enthalpyPorositySource::thermoMode,
+        fv::solidificationMeltingSource::thermoMode,
         2
     >::names[] =
     {
@@ -48,24 +48,27 @@ namespace Foam
 
     namespace fv
     {
-        defineTypeNameAndDebug(enthalpyPorositySource, 0);
+        defineTypeNameAndDebug(solidificationMeltingSource, 0);
 
         addToRunTimeSelectionTable
         (
             option,
-            enthalpyPorositySource,
+            solidificationMeltingSource,
             dictionary
         );
     }
 }
 
-const Foam::NamedEnum<Foam::fv::enthalpyPorositySource::thermoMode, 2>
-    Foam::fv::enthalpyPorositySource::thermoModeTypeNames_;
+const Foam::NamedEnum<Foam::fv::solidificationMeltingSource::thermoMode, 2>
+    Foam::fv::solidificationMeltingSource::thermoModeTypeNames_;
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-bool Foam::fv::enthalpyPorositySource::solveField(const word& fieldName) const
+bool Foam::fv::solidificationMeltingSource::solveField
+(
+    const word& fieldName
+) const
 {
     bool result = true;
 
@@ -94,7 +97,7 @@ bool Foam::fv::enthalpyPorositySource::solveField(const word& fieldName) const
         {
             FatalErrorIn
             (
-                "bool Foam::fv::enthalpyPorositySource::solveField"
+                "bool Foam::fv::solidificationMeltingSource::solveField"
                 "("
                     "const word&"
                 ") const"
@@ -107,7 +110,8 @@ bool Foam::fv::enthalpyPorositySource::solveField(const word& fieldName) const
 }
 
 
-Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::Cp() const
+Foam::tmp<Foam::volScalarField>
+Foam::fv::solidificationMeltingSource::Cp() const
 {
     switch (mode_)
     {
@@ -160,7 +164,7 @@ Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::Cp() const
             FatalErrorIn
             (
                 "Foam::tmp<Foam::volScalarField> "
-                "Foam::fv::enthalpyPorositySource::Cp() const"
+                "Foam::fv::solidificationMeltingSource::Cp() const"
             )
                 << "Unhandled thermo mode: " << thermoModeTypeNames_[mode_]
                 << abort(FatalError);
@@ -171,7 +175,7 @@ Foam::tmp<Foam::volScalarField> Foam::fv::enthalpyPorositySource::Cp() const
 }
 
 
-Foam::vector Foam::fv::enthalpyPorositySource::g() const
+Foam::vector Foam::fv::solidificationMeltingSource::g() const
 {
     if (mesh_.foundObject<uniformDimensionedVectorField>("g"))
     {
@@ -186,7 +190,7 @@ Foam::vector Foam::fv::enthalpyPorositySource::g() const
 }
 
 
-void Foam::fv::enthalpyPorositySource::update(const volScalarField& Cp)
+void Foam::fv::solidificationMeltingSource::update(const volScalarField& Cp)
 {
     if (curTimeIndex_ == mesh_.time().timeIndex())
     {
@@ -223,7 +227,7 @@ void Foam::fv::enthalpyPorositySource::update(const volScalarField& Cp)
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::fv::enthalpyPorositySource::enthalpyPorositySource
+Foam::fv::solidificationMeltingSource::solidificationMeltingSource
 (
     const word& sourceName,
     const word& modelType,
@@ -268,13 +272,13 @@ Foam::fv::enthalpyPorositySource::enthalpyPorositySource
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-bool Foam::fv::enthalpyPorositySource::alwaysApply() const
+bool Foam::fv::solidificationMeltingSource::alwaysApply() const
 {
     return true;
 }
 
 
-void Foam::fv::enthalpyPorositySource::addSup
+void Foam::fv::solidificationMeltingSource::addSup
 (
     fvMatrix<scalar>& eqn,
     const label fieldI
@@ -284,7 +288,7 @@ void Foam::fv::enthalpyPorositySource::addSup
 }
 
 
-void Foam::fv::enthalpyPorositySource::addSup
+void Foam::fv::solidificationMeltingSource::addSup
 (
     const volScalarField& rho,
     fvMatrix<scalar>& eqn,
@@ -295,7 +299,7 @@ void Foam::fv::enthalpyPorositySource::addSup
 }
 
 
-void Foam::fv::enthalpyPorositySource::addSup
+void Foam::fv::solidificationMeltingSource::addSup
 (
     fvMatrix<vector>& eqn,
     const label fieldI
@@ -339,7 +343,7 @@ void Foam::fv::enthalpyPorositySource::addSup
 }
 
 
-void Foam::fv::enthalpyPorositySource::addSup
+void Foam::fv::solidificationMeltingSource::addSup
 (
     const volScalarField& rho,
     fvMatrix<vector>& eqn,

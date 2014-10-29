@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -53,6 +53,20 @@ Foam::Constant<Type>::Constant(const word& entryName, const dictionary& dict)
         is  >> value_;
     }
 }
+
+
+template<class Type>
+Foam::Constant<Type>::Constant
+(
+    const word& entryName,
+    const Type& value,
+    const dimensionSet& dimensions
+)
+:
+    DataEntry<Type>(entryName),
+    value_(value),
+    dimensions_(dimensions)
+{}
 
 
 template<class Type>

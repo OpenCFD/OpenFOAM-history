@@ -137,7 +137,7 @@ public:
             }
 
             //- Non-const access to direction
-            vector direction()
+            vector& direction()
             {
                 return direction_;
             }

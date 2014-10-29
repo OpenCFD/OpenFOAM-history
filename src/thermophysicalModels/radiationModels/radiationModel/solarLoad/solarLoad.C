@@ -31,6 +31,7 @@ License
 #include "uniformDimensionedFields.H"
 #include "cyclicAMIPolyPatch.H"
 #include "mappedPatchBase.H"
+#include "wallPolyPatch.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -55,22 +56,33 @@ bool Foam::radiation::solarLoad::updateHitFaces()
          hitFaces_.reset(new faceShading(mesh_, solarCalc_.direction()));
          return true;
     }
-
-    switch (solarCalc_.sunDirectionModel())
+    else
     {
-        case solarCalculator::mSunDirConstant:
+        switch (solarCalc_.sunDirectionModel())
         {
-            return false;
-            break;
-        }
-        case solarCalculator::mSunDirTraking:
-        {
-            solarCalc_.correctSunDirection();
-            hitFaces_->direction() = solarCalc_.direction();
-            hitFaces_->correct();
-            return true;
-            //Not implemented
-            break;
+            case solarCalculator::mSunDirConstant:
+            {
+                return false;
+                break;
+            }
+            case solarCalculator::mSunDirTraking:
+            {
+                label updateIndex = label
+                (
+                    mesh_.time().value()/solarCalc_.sunTrackingUpdateInterval()
+                );
+
+                if (updateIndex > updateTimeIndex_)
+                {
+                    Info << "Updating Sun position..." << endl;
+                    updateTimeIndex_ = updateIndex;
+                    solarCalc_.correctSunDirection();
+                    hitFaces_->direction() = solarCalc_.direction();
+                    hitFaces_->correct();
+                    return true;
+                    break;
+                }
+            }
         }
     }
 
@@ -172,28 +184,46 @@ void Foam::radiation::solarLoad::updateSkyDiffusiveRadiation
 
                 forAll (n, faceI)
                 {
-                    // Diffusive
-                    const scalar cosEpsilon(verticalDir_ & n[faceI]);
-                    scalar Ed(0.0);
-                    if (cosEpsilon == scalar(0.0))
-                    {
-                        // Vertical walls
-                        Ed = solarCalc_.diffuseSolarRad();
-                    }
-                    else
-                    {
-                        Ed =
-                            solarCalc_.C()
-                          * solarCalc_.directSolarRad()
-                          * (1.0 + cosEpsilon)/2.0;
-                    }
+                    const scalar cosEpsilon(verticalDir_ & -n[faceI]);
 
-                    // Ground reflected
-                    scalar Er =
-                        solarCalc_.directSolarRad()
-                      * (solarCalc_.C() + Foam::sin(solarCalc_.beta()))
-                      * solarCalc_.groundReflectivity()
-                      * (1.0 - cosEpsilon)/2.0;
+                    scalar Ed(0.0);
+                    scalar Er(0.0);
+                    const scalar cosTheta(solarCalc_.direction() & -n[faceI]);
+
+                    {
+                        // Above the horizon
+                        if (cosEpsilon == 0.0)
+                        {
+                            // Vertical walls
+                            scalar Y(0);
+
+                            if (cosTheta > -0.2)
+                            {
+                                Y = 0.55+0.437*cosTheta + 0.313*sqr(cosTheta);
+                            }
+                            else
+                            {
+                                Y = 0.45;
+                            }
+
+                            Ed = solarCalc_.C()*Y*solarCalc_.directSolarRad();
+                        }
+                        else
+                        {
+                            //Other than vertical walls
+                            Ed =
+                                solarCalc_.C()
+                              * solarCalc_.directSolarRad()
+                              * (1.0 + cosEpsilon)/2.0;
+                        }
+
+                        // Ground reflected
+                        Er =
+                            solarCalc_.directSolarRad()
+                         * (solarCalc_.C() + Foam::sin(solarCalc_.beta()))
+                         * solarCalc_.groundReflectivity()
+                         * (1.0 - cosEpsilon)/2.0;
+                    }
 
                     const label cellI = cellIds[faceI];
                     if (includeMappedPatchBasePatches[patchID])
@@ -267,9 +297,10 @@ void Foam::radiation::solarLoad::updateSkyDiffusiveRadiation
 void Foam::radiation::solarLoad::initialise(const dictionary& coeffs)
 {
 
-    if (coeffs.found("verticalDir"))
+    if (coeffs.found("gridUp"))
     {
-         coeffs.lookup("verticalDir") >> verticalDir_;
+         coeffs.lookup("gridUp") >> verticalDir_;
+         verticalDir_ /= mag(verticalDir_);
     }
     else if (mesh_.foundObject<uniformDimensionedVectorField>("g"))
     {
@@ -309,6 +340,11 @@ void Foam::radiation::solarLoad::initialise(const dictionary& coeffs)
     if (coeffs.found("solidCoupled"))
     {
          coeffs.lookup("solidCoupled") >> solidCoupled_;
+    }
+
+    if (coeffs.found("wallCoupled"))
+    {
+         coeffs.lookup("wallCoupled") >> wallCoupled_;
     }
 
     if (coeffs.found("updateAbsorptivity"))
@@ -357,11 +393,6 @@ void Foam::radiation::solarLoad::calculateQdiff
                 finalAgglom_
             )
         );
-
-        if (debug)
-        {
-            coarseMesh_->write();
-        }
     }
 
     label nLocalVFCoarseFaces = 0;
@@ -469,7 +500,6 @@ void Foam::radiation::solarLoad::calculateQdiff
             startI
         ).assign(coarseNSf);
         startI += cpp.size();
-        //}
     }
 
 
@@ -691,7 +721,8 @@ Foam::radiation::solarLoad::solarLoad(const volScalarField& T)
     solidCoupled_(true),
     absorptivity_(mesh_.boundaryMesh().size()),
     updateAbsorptivity_(false),
-    firstIter_(true)
+    firstIter_(true),
+    updateTimeIndex_(0)
 {
     initialise(coeffs_);
 }
@@ -778,9 +809,11 @@ Foam::radiation::solarLoad::solarLoad
         )
     ),
     solidCoupled_(true),
+    wallCoupled_(false),
     absorptivity_(mesh_.boundaryMesh().size()),
     updateAbsorptivity_(false),
-    firstIter_(true)
+    firstIter_(true),
+    updateTimeIndex_(0)
 {
     initialise(coeffs_);
 }
@@ -868,6 +901,7 @@ Foam::radiation::solarLoad::solarLoad
         )
     ),
     solidCoupled_(true),
+    wallCoupled_(false),
     absorptivity_(mesh_.boundaryMesh().size()),
     updateAbsorptivity_(false),
     firstIter_(true)
@@ -920,7 +954,11 @@ void Foam::radiation::solarLoad::calculate()
     forAll(patches, patchI)
     {
         const polyPatch& pp = patches[patchI];
-        if (isA<mappedPatchBase>(pp) && pp.size() > 0 && solidCoupled_)
+        if
+        (
+            (isA<mappedPatchBase>(pp) && solidCoupled_)
+         || (isA<wallPolyPatch>(pp) && wallCoupled_)
+        )
         {
             includeMappedPatchBasePatches.insert(patchI);
         }
@@ -932,7 +970,6 @@ void Foam::radiation::solarLoad::calculate()
     }
 
     bool facesChanged = updateHitFaces();
-    const labelList& hitFacesId = hitFaces_->rayStartFaces();
 
     if (facesChanged)
     {
@@ -941,6 +978,7 @@ void Foam::radiation::solarLoad::calculate()
         Qr_.boundaryField() = 0.0;
 
         // Add direct hit radation
+        const labelList& hitFacesId = hitFaces_->rayStartFaces();
         updateDirectHitRadiation(hitFacesId, includeMappedPatchBasePatches);
 
         // Add sky diffusive radiation

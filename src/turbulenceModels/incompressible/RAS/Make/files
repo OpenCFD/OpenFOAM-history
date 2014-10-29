@@ -18,6 +18,7 @@ LienLeschzinerLowRe/LienLeschzinerLowRe.C
 LamBremhorstKE/LamBremhorstKE.C
 kkLOmega/kkLOmega.C
 v2f/v2f.C
+SSGRSM/SSGRSM.C
 
 /* Wall functions */
 wallFunctions = derivedFvPatchFields/wallFunctions

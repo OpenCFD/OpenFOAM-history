@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::enthalpyPorositySource
+    Foam::fv::solidificationMeltingSource
 
 Description
     This source is designed to model the effect of solidification and melting
@@ -48,14 +48,14 @@ Description
     \heading Source usage
     Example usage:
     \verbatim
-    enthalpyPorositySourceCoeffs
+    solidificationMeltingSourceCoeffs
     {
-        type            enthalpyPorositySource;
+        type            solidificationMeltingSource;
         active          on;
         selectionMode   cellZone;
         cellZone        iceZone;
 
-        enthalpyPorositySourceCoeffs
+        solidificationMeltingSourceCoeffs
         {
             Tmelt           273;
             L               334000;
@@ -86,13 +86,13 @@ Description
     \endtable
 
 SourceFiles
-    enthalpyPorositySource.C
-    enthalpyPorositySourceIO.C
+    solidificationMeltingSource.C
+    solidificationMeltingSourceIO.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef enthalpyPorositySource_H
-#define enthalpyPorositySource_H
+#ifndef solidificationMeltingSource_H
+#define solidificationMeltingSource_H
 
 #include "fvMesh.H"
 #include "volFields.H"
@@ -107,10 +107,10 @@ namespace fv
 {
 
 /*---------------------------------------------------------------------------*\
-                   Class enthalpyPorositySource Declaration
+                 Class solidificationMeltingSource Declaration
 \*---------------------------------------------------------------------------*/
 
-class enthalpyPorositySource
+class solidificationMeltingSource
 :
     public option
 {
@@ -194,22 +194,22 @@ private:
         void apply(const RhoFieldType& rho, fvMatrix<scalar>& eqn);
 
         //- Disallow default bitwise copy construct
-        enthalpyPorositySource(const enthalpyPorositySource&);
+        solidificationMeltingSource(const solidificationMeltingSource&);
 
         //- Disallow default bitwise assignment
-        void operator=(const enthalpyPorositySource&);
+        void operator=(const solidificationMeltingSource&);
 
 
 public:
 
     //- Runtime type information
-    TypeName("enthalpyPorositySource");
+    TypeName("solidificationMeltingSource");
 
 
     // Constructors
 
         //- Construct from explicit source name and mesh
-        enthalpyPorositySource
+        solidificationMeltingSource
         (
             const word& sourceName,
             const word& modelType,
@@ -270,7 +270,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "enthalpyPorositySourceTemplates.C"
+    #include "solidificationMeltingSourceTemplates.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -30,6 +30,7 @@ Description
 
     - 'lookup' : lookup volScalarField with name
     - 'solidThermo' : use solidThermo
+    - 'model' : use a model
 
 SourceFiles
     boundaryRadiationPropertiesFvPatchField.C
@@ -175,6 +176,12 @@ public:
             return methodTypeNames_[method_];
         }
 
+
+        //- Return absorptionEmissionModel
+        const absorptionEmissionModel& absorptionEmission() const;
+
+        //- Return transmissivityModel
+        const transmissivityModel& transmissiveModel() const;
 
         //- Calculate corresponding emissivity field for bandI
         tmp<scalarField> emissivity(const label bandI = 0) const;

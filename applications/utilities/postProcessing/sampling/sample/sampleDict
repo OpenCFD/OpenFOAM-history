@@ -43,6 +43,8 @@ formatOptions
     ensight
     {
         format  ascii;
+        //collateTimes true;  // write single file containing multiple timesteps
+                              // (only for static surfaces)
     }
 }
 

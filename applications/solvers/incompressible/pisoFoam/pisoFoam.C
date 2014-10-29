@@ -87,7 +87,9 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        #include "readTimeControls.H"
         #include "CourantNo.H"
+        #include "setDeltaT.H"
 
         // Pressure-velocity PISO corrector
         {

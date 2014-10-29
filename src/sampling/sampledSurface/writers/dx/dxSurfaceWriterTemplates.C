@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,45 +23,58 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "enthalpyPorositySource.H"
+#include "OFstream.H"
+#include "OSspecific.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::fv::enthalpyPorositySource::writeData(Ostream& os) const
+template<class Type>
+inline void Foam::dxSurfaceWriter::writeData
+(
+    Ostream& os,
+    const Field<Type>& values
+)
 {
-    os  << indent << name_ << endl;
-    dict_.write(os);
+    os  << "object 3 class array type float rank 0 items "
+        << values.size() << " data follows" << nl;
+
+    forAll(values, elemI)
+    {
+        os << float(0.0) << nl;
+    }
 }
 
 
-bool Foam::fv::enthalpyPorositySource::read(const dictionary& dict)
+template<class Type>
+Foam::fileName Foam::dxSurfaceWriter::writeTemplate
+(
+    const fileName& outputDir,
+    const fileName& surfaceName,
+    const pointField& points,
+    const faceList& faces,
+    const word& fieldName,
+    const Field<Type>& values,
+    const bool isNodeValues,
+    const bool verbose
+) const
 {
-    if (option::read(dict))
+    if (!isDir(outputDir))
     {
-        coeffs_.lookup("Tmelt") >> Tmelt_;
-        coeffs_.lookup("L") >> L_;
-
-        coeffs_.readIfPresent("relax", relax_);
-
-        mode_ = thermoModeTypeNames_.read(coeffs_.lookup("thermoMode"));
-
-        coeffs_.lookup("rhoRef") >> rhoRef_;
-        coeffs_.readIfPresent("TName", TName_);
-        coeffs_.readIfPresent("UName", UName_);
-
-        coeffs_.readIfPresent("Cu", Cu_);
-        coeffs_.readIfPresent("q", q_);
-
-        coeffs_.readIfPresent("beta", beta_);
-
-        return true;
-    }
-    else
-    {
-        return false;
+        mkDir(outputDir);
     }
 
-    return false;
+    OFstream os(outputDir/fieldName + '_' + surfaceName + ".dx");
+
+    if (verbose)
+    {
+        Info<< "Writing field " << fieldName << " to " << os.name() << endl;
+    }
+
+    writeGeometry(os, points, faces);
+    writeData(os, values);
+    writeTrailer(os, isNodeValues);
+
+    return os.name();
 }
 
 

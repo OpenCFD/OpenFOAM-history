@@ -35,8 +35,6 @@ License
 
 namespace Foam
 {
-namespace radiation
-{
     template<>
     const char* Foam::NamedEnum
     <
@@ -48,7 +46,6 @@ namespace radiation
         "lookup",
         "model"
     };
-}
 }
 
 const Foam::NamedEnum
@@ -224,6 +221,22 @@ boundaryRadiationPropertiesFvPatchField
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+const Foam::radiation::absorptionEmissionModel&
+Foam::radiation::boundaryRadiationPropertiesFvPatchField::
+absorptionEmission() const
+{
+    return absorptionEmission_();
+}
+
+
+const Foam::radiation::transmissivityModel&
+Foam::radiation::boundaryRadiationPropertiesFvPatchField::
+transmissiveModel() const
+{
+    return transmissivity_();
+}
+
 
 Foam::tmp<Foam::scalarField> Foam::radiation::
 boundaryRadiationPropertiesFvPatchField::

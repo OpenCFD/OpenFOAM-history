@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -56,7 +56,7 @@ Foam::proxySurfaceWriter::~proxySurfaceWriter()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::proxySurfaceWriter::write
+Foam::fileName Foam::proxySurfaceWriter::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -68,7 +68,7 @@ void Foam::proxySurfaceWriter::write
     // avoid bad values
     if (ext_.empty())
     {
-        return;
+        return fileName::null;
     }
 
     if (!isDir(outputDir))
@@ -84,6 +84,8 @@ void Foam::proxySurfaceWriter::write
     }
 
     MeshedSurfaceProxy<face>(points, faces).write(outName);
+
+    return outName;
 }
 
 
