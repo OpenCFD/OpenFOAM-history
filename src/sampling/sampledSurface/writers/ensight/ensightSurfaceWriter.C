@@ -41,7 +41,8 @@ namespace Foam
 Foam::ensightSurfaceWriter::ensightSurfaceWriter()
 :
     surfaceWriter(),
-    writeFormat_(IOstream::ASCII)
+    writeFormat_(IOstream::ASCII),
+    collateTimes_(false)
 {}
 
 
@@ -55,6 +56,7 @@ Foam::ensightSurfaceWriter::ensightSurfaceWriter(const dictionary& options)
     {
         writeFormat_ = IOstream::formatEnum(options.lookup("format"));
     }
+    options.readIfPresent("collateTimes", collateTimes_);
 }
 
 
@@ -86,7 +88,7 @@ Foam::fileName Foam::ensightSurfaceWriter::write
     OFstream osCase(outputDir/surfaceName + ".case");
     ensightGeoFile osGeom
     (
-        outputDir/surfaceName + ".000.mesh",
+        outputDir/surfaceName + ".0000.mesh",
         writeFormat_
     );
 

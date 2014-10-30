@@ -162,18 +162,6 @@ void Foam::sampledSurfaces::write()
 
         const label nFields = classifyFields();
 
-        if (Pstream::master())
-        {
-            if (debug)
-            {
-                Pout<< "Creating directory "
-                    << outputPath_/obr_.time().timeName() << nl << endl;
-
-            }
-
-            mkDir(outputPath_/obr_.time().timeName());
-        }
-
         // write geometry first if required,
         // or when no fields would otherwise be written
         if (nFields == 0 || formatter_->separateGeometry())

@@ -25,6 +25,55 @@ Class
     Foam::solarCalculator
 
 Description
+    The solar calculator model provides information about the Sun direction
+    and Sun load model. The available models are:
+
+    For the Sun direction:
+    1) SunDirConstant : the direction is given in 'sunDirection'
+    2) SunDirTraking : the direction is calculated from the following
+       parameters:
+            localStandardMeridian : GMT (Local Zone Meridian) in hours
+            startDay :  day from 1 to 365)
+            startTime:  in hours
+            longitude:  in degrees
+            latitude:   in degrees
+            gridUp:     grid orientation upwards
+            gridEast    grid orientation eastwards
+
+        This model should be use in transient calculations.
+        The keyword 'sunTrackingUpdateInterval' (in hours) specifies on which
+        interval is the Sun direction updated.
+
+
+    Solar Load models available:
+    1) SunLoadConstant: direct and diffusive heat fluxes are provided by the
+       entries 'directSolarRad' and 'diffuseSolarRad'
+
+    2) SunLoadFairWeatherConditions: The solar fluxes are calculated following
+       the Fair Weather Conditions Method from the ASHRAE Handbook. The entries
+       are:
+            A :     Apparent solar irradiation at air mass m = 0
+            B :     Atmospheric extinction coefficient
+            beta:   Solar altitude (in degrees) above the horizontal. This
+            can be read or calculated providing the respective parameters
+            for Sun position explained above.
+            groundReflectivity : ground reflectivity
+
+            In this model the flux is calculated as:
+
+                directSolarRad = A/exp(B/sin(beta));
+
+    3) SunLoadTheoreticalMaximum: The entries are:
+            Setrn
+            SunPrime:
+            groundReflectivity : ground reflectivity
+
+            In this model the flux is calculated as:
+
+                directSolarRad = Setrn*SunPrime;
+
+    The diffuse on vertical/horizontal walls and ground-reflected radiation are
+    calculated following the ASHRAE Handbook.
 
 
 SourceFiles
@@ -39,6 +88,7 @@ SourceFiles
 #include "meshTools.H"
 #include "DynamicField.H"
 #include "HashSet.H"
+#include "coordinateSystem.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -84,8 +134,6 @@ private:
     // Private data
 
 
-
-
         //- Reference to mesh
         const fvMesh& mesh_;
 
@@ -108,6 +156,7 @@ private:
         scalar A_;
         scalar B_;
         scalar beta_;
+        scalar tetha_;
 
 
         //- Maximum theoretical direct solar load model parameters
@@ -117,13 +166,27 @@ private:
 
         //- Diffusive solar load model parameters
         scalar C_;
-        scalar Y_;
 
         //- Sun direction model
         sunDirModel sunDirectionModel_;
 
         //- Sun load model
         sunLModel sunLoadModel_;
+
+        //- Grid coordinate system
+        autoPtr<coordinateSystem> coord_;
+
+        //- East grid orientation
+        vector eastDir_;
+
+        //- Up grid orientation
+        vector gridUp_;
+
+        //- Interval in decimal hours to update Sun direction for SunDirTraking
+        scalar sunTrackingUpdateInterval_;
+
+        //- Start time for the Sun position (decimal hours)
+        scalar startTime_;
 
 
         //- Disallow default bitwise copy construct
@@ -137,6 +200,12 @@ private:
 
         //- Init
         void init();
+
+        //- Calculate beta and tetha angles
+        void calculateBetaTetha();
+
+        //- Calculate Sun direction
+        void calculateSunDirection();
 
 
 public:
@@ -166,7 +235,7 @@ public:
             }
 
             //- Non-const access to direction
-            vector direction()
+            vector& direction()
             {
                 return direction_;
             }
@@ -189,16 +258,16 @@ public:
                 return C_;
             }
 
-            //- Return Y consntat
-            scalar Y()
-            {
-                return Y_;
-            }
-
-            //- Return beta consntat
+            //- Return beta
             scalar beta()
             {
                 return beta_;
+            }
+
+            //- Return tetha
+            scalar tetha()
+            {
+                return tetha_;
             }
 
             //- Return Sun direction model
@@ -213,10 +282,28 @@ public:
                 return sunLoadModel_;
             }
 
-             //- Return groundReflectivity
+            //- Return groundReflectivity
             scalar groundReflectivity()
             {
                 return groundReflectivity_;
+            }
+
+            //- Return coordinateSystem
+            const coordinateSystem& coord()
+            {
+                return coord_();
+            }
+
+            //- Return sunTrackingUpdateInterval
+            scalar sunTrackingUpdateInterval()
+            {
+                return sunTrackingUpdateInterval_;
+            }
+
+            //- Return startTime
+            scalar startTime()
+            {
+                return startTime_;
             }
 
 

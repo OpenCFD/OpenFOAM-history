@@ -55,8 +55,38 @@ class ensightSurfaceWriter
         //- Write option (default is IOstream::ASCII
         IOstream::streamFormat writeFormat_;
 
+        bool collateTimes_;
+
 
     // Private Member Functions
+
+        //- Templated write operation - one file per timestep
+        template<class Type>
+        fileName writeCollated
+        (
+            const fileName& outputDir,
+            const fileName& surfaceName,
+            const pointField& points,
+            const faceList& faces,
+            const word& fieldName,
+            const Field<Type>& values,
+            const bool isNodeValues,
+            const bool verbose
+        ) const;
+
+        //- Templated write operation - all time steps in single file
+        template<class Type>
+        fileName writeUncollated
+        (
+            const fileName& outputDir,
+            const fileName& surfaceName,
+            const pointField& points,
+            const faceList& faces,
+            const word& fieldName,
+            const Field<Type>& values,
+            const bool isNodeValues,
+            const bool verbose
+        ) const;
 
         //- Templated write operation
         template<class Type>
@@ -98,7 +128,7 @@ public:
         //  False if geometry and field must be in a single file
         virtual bool separateGeometry() const
         {
-            return true;
+            return !collateTimes_;
         }
 
 
