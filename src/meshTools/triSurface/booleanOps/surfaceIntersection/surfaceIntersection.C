@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -242,9 +242,9 @@ void Foam::surfaceIntersection::storeIntersection
                 WarningIn
                 (
                     "Foam::surfaceIntersection::storeIntersection"
-                    "(const bool isFirstSurf, const labelList& facesA,"
-                    "const label faceB, DynamicList<edge>& allCutEdges,"
-                    "DynamicList<point>& allCutPoints)"
+                    "(const bool, const labelList&,"
+                    "const label, DynamicList<edge>&,"
+                    "DynamicList<point>&)"
                 )   << "Encountered degenerate edge between face "
                     << twoFaces[0] << " on first surface"
                     << " and face " << twoFaces[1] << " on second surface"
