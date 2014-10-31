@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,7 +68,6 @@ namespace Foam
 {
 
 class surfaceFeatures;
-class objectRegistry;
 
 // Forward declaration of friend functions and operators
 class extendedEdgeMesh;
@@ -262,9 +261,8 @@ public:
             const Xfer<edgeList>&
         );
 
-        //- Construct given a surface with selected edges,point
-        //  (surfaceFeatures), an objectRegistry and a
-        //  fileName to write to.
+        //- Construct given a surface with selected edges,points
+        //  (surfaceFeatures)
         //  Extracts, classifies and reorders the data from surfaceFeatures.
         extendedEdgeMesh
         (
@@ -500,6 +498,15 @@ public:
             //- Flip normals. All concave become convex, all internal external
             //  etc.
             void flipNormals();
+
+            //- Update with derived geometry
+            void autoMap
+            (
+                const pointField&,
+                const edgeList&,
+                const labelList& pointMap,
+                const labelList& edgeMap
+            );
 
 
         // Read

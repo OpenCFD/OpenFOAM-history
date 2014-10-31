@@ -1332,6 +1332,249 @@ void Foam::extendedEdgeMesh::flipNormals()
 }
 
 
+void Foam::extendedEdgeMesh::autoMap
+(
+    const pointField& subPoints,
+    const edgeList& subEdges,
+    const labelList& pointMap,
+    const labelList& edgeMap
+)
+{
+    // Determine slicing for subEdges
+    label subIntStart = edgeMap.size();
+    label subFlatStart = edgeMap.size();
+    label subOpenStart = edgeMap.size();
+    label subMultipleStart = edgeMap.size();
+
+    forAll(edgeMap, subEdgeI)
+    {
+        label edgeI = edgeMap[subEdgeI];
+        if (edgeI >= internalStart() && subIntStart == edgeMap.size())
+        {
+            subIntStart = subEdgeI;
+        }
+        if (edgeI >= flatStart() && subFlatStart == edgeMap.size())
+        {
+            subFlatStart = subEdgeI;
+        }
+        if (edgeI >= openStart() && subOpenStart == edgeMap.size())
+        {
+            subOpenStart = subEdgeI;
+        }
+        if (edgeI >= multipleStart() && subMultipleStart == edgeMap.size())
+        {
+            subMultipleStart = subEdgeI;
+        }
+    }
+
+
+    // Determine slicing for subPoints
+
+    label subConcaveStart = pointMap.size();
+    label subMixedStart = pointMap.size();
+    label subNonFeatStart = pointMap.size();
+
+    forAll(pointMap, subPointI)
+    {
+        label pointI = pointMap[subPointI];
+        if (pointI >= concaveStart() && subConcaveStart == pointMap.size())
+        {
+            subConcaveStart = subPointI;
+        }
+        if (pointI >= mixedStart() && subMixedStart == pointMap.size())
+        {
+            subMixedStart = subPointI;
+        }
+        if
+        (
+            pointI >= nonFeatureStart()
+         && subNonFeatStart == pointMap.size()
+        )
+        {
+            subNonFeatStart = subPointI;
+        }
+    }
+
+
+
+    // Compact region edges
+    labelList subRegionEdges;
+    {
+        PackedBoolList isRegionEdge(edges().size());
+        forAll(regionEdges(), i)
+        {
+            label edgeI = regionEdges()[i];
+            isRegionEdge[edgeI] = true;
+        }
+
+        DynamicList<label> newRegionEdges(regionEdges().size());
+        forAll(edgeMap, subEdgeI)
+        {
+            label edgeI = edgeMap[subEdgeI];
+            if (isRegionEdge[edgeI])
+            {
+                newRegionEdges.append(subEdgeI);
+            }
+        }
+        subRegionEdges.transfer(newRegionEdges);
+    }
+
+
+    labelListList subFeaturePointEdges(subNonFeatStart);
+    for (label subPointI = 0; subPointI < subNonFeatStart; subPointI++)
+    {
+        label pointI = pointMap[subPointI];
+        const labelList& pEdges = featurePointEdges()[pointI];
+
+        labelList& subPEdges = subFeaturePointEdges[subPointI];
+        subPEdges.setSize(pEdges.size());
+        forAll(pEdges, i)
+        {
+            subPEdges[i] = edgeMap[pEdges[i]];
+        }
+    }
+
+
+    vectorField subEdgeDirections(edgeDirections(), edgeMap);
+
+    // Find used normals
+    labelList reverseNormalMap(normals().size(), -1);
+    DynamicList<label> normalMap(normals().size());
+
+    {
+        PackedBoolList isSubNormal(normals().size());
+        for (label subPointI = 0; subPointI < subNonFeatStart; subPointI++)
+        {
+            label pointI = pointMap[subPointI];
+            const labelList& pNormals = featurePointNormals()[pointI];
+
+            forAll(pNormals, i)
+            {
+                isSubNormal[pNormals[i]] = true;
+            }
+        }
+        forAll(edgeMap, subEdgeI)
+        {
+            label edgeI = edgeMap[subEdgeI];
+            const labelList& eNormals = edgeNormals()[edgeI];
+
+            forAll(eNormals, i)
+            {
+                isSubNormal[eNormals[i]] = true;
+            }
+        }
+
+        forAll(isSubNormal, normalI)
+        {
+            if (isSubNormal[normalI])
+            {
+                label subNormalI = normalMap.size();
+                reverseNormalMap[normalI] = subNormalI;
+                normalMap.append(subNormalI);
+            }
+        }
+    }
+
+
+    // Use compaction map on data referencing normals
+    labelListList subNormalDirections(edgeMap.size());
+    forAll(edgeMap, subEdgeI)
+    {
+        label edgeI = edgeMap[subEdgeI];
+        const labelList& eNormals = normalDirections()[edgeI];
+
+        labelList& subNormals = subNormalDirections[subEdgeI];
+        subNormals.setSize(eNormals.size());
+        forAll(eNormals, i)
+        {
+            if (eNormals[i] >= 0)
+            {
+                subNormals[i] = normalMap[eNormals[i]];
+            }
+            else
+            {
+                subNormals[i] = -1;
+            }
+        }
+    }
+
+    labelListList subEdgeNormals(edgeMap.size());
+    forAll(edgeMap, subEdgeI)
+    {
+        label edgeI = edgeMap[subEdgeI];
+        const labelList& eNormals = edgeNormals()[edgeI];
+
+        labelList& subNormals = subEdgeNormals[subEdgeI];
+        subNormals.setSize(eNormals.size());
+        forAll(eNormals, i)
+        {
+            subNormals[i] = normalMap[eNormals[i]];
+        }
+    }
+
+    labelListList subPointNormals(pointMap.size());
+    for (label subPointI = 0; subPointI < subNonFeatStart; subPointI++)
+    {
+        label pointI = pointMap[subPointI];
+        const labelList& pNormals = featurePointNormals()[pointI];
+
+        labelList& subNormals = subPointNormals[subPointI];
+        subNormals.setSize(pNormals.size());
+        forAll(pNormals, i)
+        {
+            subNormals[i] = normalMap[pNormals[i]];
+        }
+    }
+
+    // Use compaction map to compact normal data
+    vectorField subNormals(normals(), normalMap);
+    List<extendedEdgeMesh::sideVolumeType> subNormalVolumeTypes
+    (
+        UIndirectList<extendedEdgeMesh::sideVolumeType>
+        (
+            normalVolumeTypes(),
+            normalMap
+        )
+    );
+
+    extendedEdgeMesh subMesh
+    (
+        subPoints,
+        subEdges,
+
+        // Feature points slices
+        subConcaveStart,
+        subMixedStart,
+        subNonFeatStart,
+
+        // Feature edges slices
+        subIntStart,
+        subFlatStart,
+        subOpenStart,
+        subMultipleStart,
+
+        // All normals
+        subNormals,
+        subNormalVolumeTypes,
+
+        // Per edge edge vector
+        subEdgeDirections,
+
+        // Per edge list of normal indices
+        subNormalDirections,
+        // Per edge list of normal indices
+        subEdgeNormals,
+
+        // Per point list of normal indices
+        subPointNormals,
+        subFeaturePointEdges,
+        subRegionEdges
+    );
+
+    transfer(subMesh);
+}
+
+
 void Foam::extendedEdgeMesh::writeObj
 (
     const fileName& prefix
