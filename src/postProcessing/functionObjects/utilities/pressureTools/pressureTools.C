@@ -187,14 +187,15 @@ Foam::pressureTools::pressureTools
     pName_("p"),
     UName_("U"),
     rhoName_("rho"),
+    resultName_(word::null),
+    log_(true),
     calcTotal_(false),
     pRef_(0.0),
     calcCoeff_(false),
     pInf_(0.0),
     UInf_(vector::zero),
     rhoInf_(0.0),
-    rhoInfInitialised_(false),
-    resultName_(word::null)
+    rhoInfInitialised_(false)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -260,6 +261,8 @@ void Foam::pressureTools::read(const dictionary& dict)
 {
     if (active_)
     {
+        log_.readIfPresent("log", dict);
+
         dict.readIfPresent("pName", pName_);
         dict.readIfPresent("UName", UName_);
         dict.readIfPresent("rhoName", rhoName_);
@@ -360,7 +363,8 @@ void Foam::pressureTools::write()
         const volScalarField& pResult =
             obr_.lookupObject<volScalarField>(resultName_);
 
-        Info<< type() << " " << name_ << " output:" << nl
+        Info(log_)
+            << type() << " " << name_ << " output:" << nl
             << "    writing field " << pResult.name() << nl
             << endl;
 

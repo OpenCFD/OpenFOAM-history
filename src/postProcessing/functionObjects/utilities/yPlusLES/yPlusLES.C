@@ -197,9 +197,10 @@ Foam::yPlusLES::yPlusLES
     name_(name),
     obr_(obr),
     active_(true),
-    log_(true),
     phiName_("phi"),
-    UName_("U")
+    UName_("U"),
+    resultName_(name),
+    log_(true)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -218,6 +219,8 @@ Foam::yPlusLES::yPlusLES
             << endl;
     }
 
+    read(dict);
+
     if (active_)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
@@ -228,7 +231,7 @@ Foam::yPlusLES::yPlusLES
             (
                 IOobject
                 (
-                    type(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -258,8 +261,10 @@ void Foam::yPlusLES::read(const dictionary& dict)
     {
         functionObjectFile::read(dict);
 
-        log_ = dict.lookupOrDefault<Switch>("log", true);
-        phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
+        log_.readIfPresent("log", dict);
+        dict.readIfPresent("resultName", resultName_);
+        dict.readIfPresent("phiName", phiName_);
+        dict.readIfPresent("UName", UName_);
     }
 }
 
@@ -280,7 +285,7 @@ void Foam::yPlusLES::execute()
         volScalarField& yPlusLES =
             const_cast<volScalarField&>
             (
-                mesh.lookupObject<volScalarField>(type())
+                mesh.lookupObject<volScalarField>(resultName_)
             );
 
         Info(log_)<< type() << " " << name_ << " output:" << nl;
@@ -319,9 +324,12 @@ void Foam::yPlusLES::write()
         functionObjectFile::write();
 
         const volScalarField& yPlusLES =
-            obr_.lookupObject<volScalarField>(type());
+            obr_.lookupObject<volScalarField>(resultName_);
 
-        Info(log_)<< "    writing field " << yPlusLES.name() << nl << endl;
+        Info(log_)
+            << type() << " " << name_ << " output:" << nl
+            << "    writing field " << yPlusLES.name() << nl
+            << endl;
 
         yPlusLES.write();
     }

@@ -151,7 +151,7 @@ Foam::scalarTransport::scalarTransport
     userDT_(false),
     resetOnStartUp_(false),
     nCorr_(0),
-    autoSchemes_(false),
+    autoSchemes_(true),
     fvOptions_(mesh_),
     T_
     (
@@ -166,7 +166,8 @@ Foam::scalarTransport::scalarTransport
         mesh_,
         dimensionedScalar("zero", dimless, 0.0),
         boundaryTypes()
-    )
+    ),
+    log_(true)
 {
     read(dict);
 
@@ -189,11 +190,14 @@ void Foam::scalarTransport::read(const dictionary& dict)
 {
     if (active_)
     {
-        Info<< type() << ":" << nl;
+        log_.readIfPresent("log", dict);
 
-        phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
-        UName_ = dict.lookupOrDefault<word>("UName", "U");
-        rhoName_ = dict.lookupOrDefault<word>("rhoName", "rho");
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
+
+        dict.readIfPresent("phiName", phiName_);
+        dict.readIfPresent("UName", UName_);
+        dict.readIfPresent("rhoName", rhoName_);
+        dict.readIfPresent("nCorr", nCorr_);
 
         userDT_ = false;
         if (dict.readIfPresent("DT", DT_))
@@ -202,11 +206,7 @@ void Foam::scalarTransport::read(const dictionary& dict)
         }
 
         dict.lookup("resetOnStartUp") >> resetOnStartUp_;
-
-        dict.readIfPresent("nCorr", nCorr_);
-
-        dict.lookup("autoSchemes") >> autoSchemes_;
-
+        dict.readIfPresent("autoSchemes", autoSchemes_);
         fvOptions_.reset(dict.subDict("fvOptions"));
     }
 }
@@ -216,7 +216,7 @@ void Foam::scalarTransport::execute()
 {
     if (active_)
     {
-        Info<< type() << " output:" << endl;
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
         const surfaceScalarField& phi =
             mesh_.lookupObject<surfaceScalarField>(phiName_);
@@ -294,7 +294,7 @@ void Foam::scalarTransport::execute()
                 << dimVolume/dimTime << endl;
         }
 
-        Info<< endl;
+        Info(log_)<< endl;
     }
 }
 

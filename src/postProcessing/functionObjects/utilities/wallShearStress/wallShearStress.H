@@ -59,8 +59,10 @@ Description
 
     \heading Function object usage
     \table
-        Property | Description               | Required    | Default value
+        Property | Description                | Required   | Default value
         type     | type name: wallShearStress | yes        |
+        resultName | Name of wall shear stress field | no  | <function name>
+        log      | Log to standard output     | no         | yes
         patches  | list of patches to process | no         | all wall patches
     \endtable
 
@@ -109,6 +111,9 @@ protected:
 
         //- on/off switch
         bool active_;
+
+        //- Result name
+        word resultName_;
 
         //- Switch to send output to Info as well as to file
         Switch log_;

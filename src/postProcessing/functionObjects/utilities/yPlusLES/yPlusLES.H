@@ -28,8 +28,30 @@ Group
     grpUtilitiesFunctionObjects
 
 Description
-    Evaluates and outputs turbulence y+ for LES models.  Values written to
-    time directories as field 'yPlusLES'
+    This function object evaluates and outputs turbulence y+ for LES models.
+    The field is stored on the mesh database so that it can be retrieved and
+    used for other applications.
+
+    Example of function object specification to calculate the y+ (LES):
+    \verbatim
+    yPlusLES1
+    {
+        type        yPlusLES;
+        functionObjectLibs ("libutilityFunctionObjects.so");
+        ...
+    }
+    \endverbatim
+
+    \heading Function object usage
+    \table
+        Property     | Description             | Required    | Default value
+        type         | Type name: yPlusLES     | yes         |
+        phiName      | Name of flux field      | no          | phi
+        UName        | Name of velocity field  | no          | U
+        resultName   | Name of y+ field        | no          | <function name>
+        log          | Log to standard output  | no          | yes
+    \endtable
+
 
 SourceFiles
     yPlusLES.C
@@ -44,6 +66,7 @@ SourceFiles
 #include "volFieldsFwd.H"
 #include "Switch.H"
 #include "OFstream.H"
+#include "Switch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,14 +98,17 @@ class yPlusLES
         //- on/off switch
         bool active_;
 
-        //- Switch to send output to Info as well as to file
-        Switch log_;
-
         //- Name of mass/volume flux field (optional, default = phi)
         word phiName_;
 
         //- Name of velocity field
         word UName_;
+
+        //- Result name
+        word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions

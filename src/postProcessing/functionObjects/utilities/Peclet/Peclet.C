@@ -54,7 +54,8 @@ Foam::Peclet::Peclet
     active_(true),
     phiName_("phi"),
     rhoName_("rho"),
-    resultName_()
+    resultName_(name),
+    log_(true)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -113,13 +114,10 @@ void Foam::Peclet::read(const dictionary& dict)
 {
     if (active_)
     {
-        phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
-        rhoName_ = dict.lookupOrDefault<word>("rhoName", "rho");
-
-        if (!dict.readIfPresent("resultName", resultName_))
-        {
-            resultName_ = typeName;
-        }
+        log_.readIfPresent("log", dict);
+        dict.readIfPresent("phiName", phiName_);
+        dict.readIfPresent("rhoName", rhoName_);
+        dict.readIfPresent("resultName", resultName_);
     }
 }
 
@@ -223,7 +221,8 @@ void Foam::Peclet::write()
         const surfaceScalarField& Peclet =
             obr_.lookupObject<surfaceScalarField>(resultName_);
 
-        Info<< type() << " " << name_ << " output:" << nl
+        Info(log_)
+            << type() << " " << name_ << " output:" << nl
             << "    writing field " << Peclet.name() << nl
             << endl;
 
