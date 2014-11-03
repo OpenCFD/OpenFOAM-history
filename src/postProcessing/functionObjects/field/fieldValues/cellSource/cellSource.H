@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -198,7 +198,7 @@ protected:
 
         //- Insert field values into values list
         template<class Type>
-        tmp<Field<Type> > setFieldValues
+        tmp<Field<Type> > getFieldValues
         (
             const word& fieldName,
             const bool mustGet = false
@@ -258,7 +258,11 @@ public:
 
             //- Templated helper function to output field values
             template<class Type>
-            bool writeValues(const word& fieldName);
+            bool writeValues
+            (
+                const word& fieldName,
+                const scalarField& weightField
+            );
 
             //- Filter a field according to cellIds
             template<class Type>

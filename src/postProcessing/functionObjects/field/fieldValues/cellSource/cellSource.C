@@ -220,18 +220,25 @@ void Foam::fieldValues::cellSource::write()
             file() << obr_.time().value() << tab << totalVolume;
         }
 
+        // construct weight field. Note: zero size means weight = 1
+        scalarField weightField;
+        if (weightFieldName_ != "none")
+        {
+            weightField = getFieldValues<scalar>(weightFieldName_, true);
+        }
+
         forAll(fields_, i)
         {
             const word& fieldName = fields_[i];
-            bool processed = false;
+            bool ok = false;
 
-            processed = processed || writeValues<scalar>(fieldName);
-            processed = processed || writeValues<vector>(fieldName);
-            processed = processed || writeValues<sphericalTensor>(fieldName);
-            processed = processed || writeValues<symmTensor>(fieldName);
-            processed = processed || writeValues<tensor>(fieldName);
+            ok = ok || writeValues<scalar>(fieldName, weightField);
+            ok = ok || writeValues<vector>(fieldName, weightField);
+            ok = ok || writeValues<sphericalTensor>(fieldName, weightField);
+            ok = ok || writeValues<symmTensor>(fieldName, weightField);
+            ok = ok || writeValues<tensor>(fieldName, weightField);
 
-            if (!processed)
+            if (!ok)
             {
                 WarningIn("void Foam::fieldValues::cellSource::write()")
                     << "Requested field " << fieldName

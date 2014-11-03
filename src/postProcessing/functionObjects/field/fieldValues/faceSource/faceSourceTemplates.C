@@ -140,12 +140,12 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
     {
         case opSum:
         {
-            result = sum(values);
+            result = gSum(values);
             break;
         }
         case opSumMag:
         {
-            result = sum(cmptMag(values));
+            result = gSum(cmptMag(values));
             break;
         }
         case opSumDirection:
@@ -190,48 +190,54 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
         }
         case opAverage:
         {
-            result = sum(values)/values.size();
+            label n = returnReduce(values.size(), sumOp<label>());
+            result = gSum(values)/(scalar(n) + ROOTVSMALL);
             break;
         }
         case opWeightedAverage:
         {
-            if (weightField.size())
+            label wSize = returnReduce(weightField.size(), sumOp<label>());
+
+            if (wSize > 0)
             {
-                result = sum(values)/(sum(weightField) + ROOTVSMALL);
+                result = gSum(values)/(gSum(weightField) + ROOTVSMALL);
             }
             else
             {
-                result = sum(values)/values.size();
+                label n = returnReduce(values.size(), sumOp<label>());
+                result = gSum(values)/(scalar(n) + ROOTVSMALL);
             }
             break;
         }
         case opAreaAverage:
         {
             const scalarField magSf(mag(Sf));
-            result = sum(values*magSf)/(sum(magSf) + ROOTVSMALL);
+            result = gSum(values*magSf)/(gSum(magSf) + ROOTVSMALL);
             break;
         }
         case opAreaIntegrate:
         {
             const scalarField magSf(mag(Sf));
-            result = sum(values*magSf);
+            result = gSum(values*magSf);
             break;
         }
         case opMin:
         {
-            result = min(values);
+            result = gMin(values);
             break;
         }
         case opMax:
         {
-            result = max(values);
+            result = gMax(values);
             break;
         }
         case opCoV:
         {
             const scalarField magSf(mag(Sf));
 
-            Type meanValue = sum(values*magSf)/sum(magSf);
+            const scalar sumMagSf = gSum(magSf);
+
+            Type meanValue = gSum(values*magSf)/sumMagSf;
 
             const label nComp = pTraits<Type>::nComponents;
 
@@ -241,7 +247,9 @@ Type Foam::fieldValues::faceSource::processSameTypeValues
                 scalar mean = component(meanValue, d);
                 scalar& res = setComponent(result, d);
 
-                res = sqrt(sum(magSf*sqr(vals - mean))/sum(magSf))/mean;
+                res =
+                    sqrt(gSum(magSf*sqr(vals - mean))/sumMagSf)
+                   /(mean + ROOTVSMALL);
             }
 
             break;
@@ -297,13 +305,12 @@ bool Foam::fieldValues::faceSource::writeValues
             Sf = filterField(mesh().Sf(), true);
         }
 
-        // Combine onto master
-        combineFields(values);
-        combineFields(Sf);
-
         // Write raw values on surface if specified
         if (surfaceWriterPtr_.valid())
         {
+            Field<Type> allValues(values);
+            combineFields(allValues);
+
             faceList faces;
             pointField points;
 
@@ -328,7 +335,7 @@ bool Foam::fieldValues::faceSource::writeValues
                     points,
                     faces,
                     fieldName,
-                    values,
+                    allValues,
                     false
                 );
             }

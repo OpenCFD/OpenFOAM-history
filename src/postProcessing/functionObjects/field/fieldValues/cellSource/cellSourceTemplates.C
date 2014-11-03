@@ -43,7 +43,7 @@ bool Foam::fieldValues::cellSource::validField(const word& fieldName) const
 
 
 template<class Type>
-Foam::tmp<Foam::Field<Type> > Foam::fieldValues::cellSource::setFieldValues
+Foam::tmp<Foam::Field<Type> > Foam::fieldValues::cellSource::getFieldValues
 (
     const word& fieldName,
     const bool mustGet
@@ -61,7 +61,7 @@ Foam::tmp<Foam::Field<Type> > Foam::fieldValues::cellSource::setFieldValues
         FatalErrorIn
         (
             "Foam::tmp<Foam::Field<Type> > "
-            "Foam::fieldValues::cellSource::setFieldValues"
+            "Foam::fieldValues::cellSource::getFieldValues"
             "("
                 "const word&, "
                 "const bool"
@@ -87,42 +87,55 @@ Type Foam::fieldValues::cellSource::processValues
     {
         case opSum:
         {
-            result = sum(values);
+            result = gSum(values);
             break;
         }
         case opAverage:
         {
-            result = sum(values)/values.size();
+            label n = returnReduce(values.size(), sumOp<label>());
+            result = gSum(values)/(scalar(n) + ROOTVSMALL);
             break;
         }
         case opWeightedAverage:
         {
-            result = sum(values)/sum(weightField);
+            label wSize = returnReduce(weightField.size(), sumOp<label>());
+
+            if (wSize > 0)
+            {
+                result = gSum(values)/(gSum(weightField) + ROOTVSMALL);
+            }
+            else
+            {
+                label n = returnReduce(values.size(), sumOp<label>());
+                result = gSum(values)/(scalar(n) + ROOTVSMALL);
+            }
             break;
         }
         case opVolAverage:
         {
-            result = sum(values*V)/sum(V);
+            result = gSum(values*V)/(gSum(V) + ROOTVSMALL);
             break;
         }
         case opVolIntegrate:
         {
-            result = sum(values*V);
+            result = gSum(values*V);
             break;
         }
         case opMin:
         {
-            result = min(values);
+            result = gMin(values);
             break;
         }
         case opMax:
         {
-            result = max(values);
+            result = gMax(values);
             break;
         }
         case opCoV:
         {
-            Type meanValue = sum(values*V)/sum(V);
+            const scalar sumV = gSum(V);
+
+            Type meanValue = gSum(values*V)/sumV;
 
             const label nComp = pTraits<Type>::nComponents;
 
@@ -132,7 +145,7 @@ Type Foam::fieldValues::cellSource::processValues
                 scalar mean = component(meanValue, d);
                 scalar& res = setComponent(result, d);
 
-                res = sqrt(sum(V*sqr(vals - mean))/sum(V))/mean;
+                res = sqrt(gSum(V*sqr(vals - mean))/sumV)/(mean + ROOTVSMALL);
             }
 
             break;
@@ -150,34 +163,25 @@ Type Foam::fieldValues::cellSource::processValues
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-bool Foam::fieldValues::cellSource::writeValues(const word& fieldName)
+bool Foam::fieldValues::cellSource::writeValues
+(
+    const word& fieldName,
+    const scalarField& weightField
+)
 {
     const bool ok = validField<Type>(fieldName);
 
     if (ok)
     {
-        Field<Type> values(setFieldValues<Type>(fieldName));
+        Field<Type> values(getFieldValues<Type>(fieldName));
         scalarField V(filterField(mesh().V()));
-        scalarField weightField(values.size(), 1.0);
 
-        if (weightFieldName_ != "none")
+        if (valueOutput_)
         {
-            weightField = setFieldValues<scalar>(weightFieldName_, true);
-        }
+            Field<Type> allValues(values);
+            combineFields(allValues);
 
-        // Combine onto master
-        combineFields(values);
-        combineFields(V);
-        combineFields(weightField);
-
-        // apply weight field
-        values *= weightField;
-
-        Type result = processValues(values, V, weightField);
-
-        if (Pstream::master())
-        {
-            if (valueOutput_)
+            if (Pstream::master())
             {
                 IOField<Type>
                 (
@@ -190,17 +194,29 @@ bool Foam::fieldValues::cellSource::writeValues(const word& fieldName)
                         IOobject::NO_READ,
                         IOobject::NO_WRITE
                     ),
-                    values
+                    allValues
                 ).write();
             }
+        }
 
+        // apply scale factor weight field
+        values *= scaleFactor_;
+        if (weightField.size())
+        {
+            values *= weightField;
+        }
 
+        Type result = processValues(values, V, weightField);
+
+        if (Pstream::master())
+        {
             file()<< tab << result;
 
             Info(log_)<< "    " << operationTypeNames_[operation_]
                 << "(" << sourceName_ << ") for " << fieldName
                 <<  " = " << result << endl;
         }
+
 
         // write state/results information
         const word& opName = operationTypeNames_[operation_];
