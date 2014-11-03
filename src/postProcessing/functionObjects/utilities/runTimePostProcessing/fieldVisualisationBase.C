@@ -94,6 +94,7 @@ void Foam::fieldVisualisationBase::setColourMap(vtkLookupTable* lut) const
         }
         case cmBlueWhiteRed:
         {
+            // Values taken from ParaView settings
             ctf->SetColorSpaceToDiverging();
             ctf->AddRGBPoint(0.0, 0.231373, 0.298039, 0.752941);
             ctf->AddRGBPoint(0.5, 0.865003, 0.865003, 0.865003);
@@ -102,6 +103,7 @@ void Foam::fieldVisualisationBase::setColourMap(vtkLookupTable* lut) const
         }
         case cmFire:
         {
+            // Values taken from ParaView settings
             ctf->SetColorSpaceToRGB();
             ctf->AddRGBPoint(0, 0, 0, 0);
             ctf->AddRGBPoint(0.4, 0.901961, 0, 0);
