@@ -512,16 +512,17 @@ void Foam::fieldValues::faceSource::initialise(const dictionary& dict)
 
 void Foam::fieldValues::faceSource::writeFileHeader(const label i)
 {
-    file()
-        << "# Source : " << sourceTypeNames_[source_] << " "
-        << sourceName_ <<  nl << "# Faces  : " << nFaces_ << nl
-        << "# Time" << tab << "sum(magSf)";
+    writeHeaderValue(file(), "Source", sourceTypeNames_[source_]);
+    writeHeaderValue(file(), "Name", sourceName_);
+    writeHeaderValue(file(), "Faces", nFaces_);
+    writeHeaderValue(file(), "Operation", operationTypeNames_[operation_]);
+    writeHeaderValue(file(), "Scale factor", scaleFactor_);
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "sum(magSf)");
 
-    forAll(fields_, i)
+    forAll(fields_, fieldI)
     {
-        file()
-            << tab << operationTypeNames_[operation_]
-            << "(" << fields_[i] << ")";
+        writeTabbed(file(), fields_[fieldI]);
     }
 
     file() << endl;

@@ -151,16 +151,17 @@ void Foam::fieldValues::cellSource::initialise(const dictionary& dict)
 
 void Foam::fieldValues::cellSource::writeFileHeader(const label i)
 {
-    file()
-        << "# Source : " << sourceTypeNames_[source_] << " "
-        << sourceName_ <<  nl << "# Cells  : " << nCells_ << nl
-        << "# Time" << tab << "sum(V)";
+    writeHeaderValue(file(), "Source", sourceTypeNames_[source_]);
+    writeHeaderValue(file(), "Name", sourceName_);
+    writeHeaderValue(file(), "Cells", nCells_);
+    writeHeaderValue(file(), "Operation", operationTypeNames_[operation_]);
+    writeHeaderValue(file(), "Scale factor", scaleFactor_);
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "sum(V)");
 
-    forAll(fields_, i)
+    forAll(fields_, fieldI)
     {
-        file()
-            << tab << operationTypeNames_[operation_]
-            << "(" << fields_[i] << ")";
+        writeTabbed(file(), fields_[fieldI]);
     }
 
     file() << endl;
