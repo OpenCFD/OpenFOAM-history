@@ -731,7 +731,7 @@ tmp<volScalarField> thermoSingleLayer::primaryMassTrans() const
 }
 
 
-void thermoSingleLayer::info() const
+void thermoSingleLayer::info()
 {
     kinematicSingleLayer::info();
 
