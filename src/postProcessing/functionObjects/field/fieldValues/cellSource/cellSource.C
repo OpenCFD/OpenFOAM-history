@@ -134,7 +134,8 @@ void Foam::fieldValues::cellSource::initialise(const dictionary& dict)
         return;
     }
 
-    Info<< type() << " " << name_ << ":"
+    Info(log_)
+        << type() << " " << name_ << ":"
         << sourceTypeNames_[source_] << "(" << sourceName_ << "):" << nl
         << "    total cells  = " << nCells_ << nl
         << "    total volume = " << gSum(filterField(mesh().V()))
@@ -142,10 +143,10 @@ void Foam::fieldValues::cellSource::initialise(const dictionary& dict)
 
     if (dict.readIfPresent("weightField", weightFieldName_))
     {
-        Info<< "    weight field = " << weightFieldName_;
+        Info(log_)<< "    weight field = " << weightFieldName_;
     }
 
-    Info<< nl << endl;
+    Info(log_)<< nl << endl;
 }
 
 

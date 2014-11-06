@@ -67,7 +67,7 @@ void Foam::fieldCoordinateSystemTransform::transformField
 
     Foam::transform(transField, R, transField);
 
-    Info<< "    writing field " << transField.name() << nl << endl;
+    Info(log_)<< "    writing field " << transField.name() << nl << endl;
 
     transField.write();
 }

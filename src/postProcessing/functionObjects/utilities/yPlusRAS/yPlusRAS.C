@@ -90,7 +90,8 @@ void Foam::yPlusRAS::calcIncompressibleYPlus
 
             if (Pstream::master())
             {
-                Info(log_)<< "    patch " << nutPw.patch().name()
+                Info(log_)
+                    << "    patch " << nutPw.patch().name()
                     << " y+ : min = " << minYp << ", max = " << maxYp
                     << ", average = " << avgYp << nl;
 
@@ -147,7 +148,8 @@ void Foam::yPlusRAS::calcCompressibleYPlus
 
             if (Pstream::master())
             {
-                Info(log_)<< "    patch " << mutPw.patch().name()
+                Info(log_)
+                    << "    patch " << mutPw.patch().name()
                     << " y+ : min = " << minYp << ", max = " << maxYp
                     << ", average = " << avgYp << nl;
 

@@ -62,8 +62,8 @@ Description
         Property | Description                | Required   | Default value
         type     | type name: wallShearStress | yes        |
         resultName | Name of wall shear stress field | no  | <function name>
-        log      | Log to standard output     | no         | yes
         patches  | list of patches to process | no         | all wall patches
+        log      | Log to standard output     | no         | yes
     \endtable
 
 SourceFiles
@@ -107,6 +107,7 @@ protected:
         //- Name of this set of wallShearStress object
         word name_;
 
+        //- Refefence to the database
         const objectRegistry& obr_;
 
         //- on/off switch

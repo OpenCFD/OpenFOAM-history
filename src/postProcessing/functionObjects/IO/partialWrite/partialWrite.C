@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,8 @@ Foam::partialWrite::partialWrite
 )
 :
     name_(name),
-    obr_(obr)
+    obr_(obr),
+    log_(true)
 {
     read(dict);
 }
@@ -65,20 +66,40 @@ Foam::partialWrite::~partialWrite()
 
 void Foam::partialWrite::read(const dictionary& dict)
 {
+    log_.readIfPresent("log", dict);
     dict.lookup("objectNames") >> objectNames_;
     dict.lookup("writeInterval") >> writeInterval_;
     writeInstance_ = 0;
 
-    Info<< type() << " " << name() << ":" << nl
-        << "    dumping every outputTime :";
-    forAllConstIter(HashSet<word>, objectNames_, iter)
+    if (log_)
     {
-        Info<< ' ' << iter.key();
+        Info<< type() << " " << name() << ":" << nl
+            << "    dumping every outputTime :";
+
+        forAllConstIter(HashSet<word>, objectNames_, iter)
+        {
+            Info<< ' ' << iter.key();
+        }
+
+        word postStr = "";
+        if (writeInterval_ == 2)
+        {
+            postStr = "nd ";
+        }
+        else if (writeInterval_ == 3)
+        {
+            postStr = "rd ";
+        }
+        else
+        {
+            postStr = "th ";
+        }
+
+        Info<< nl
+            << "    dumping all other fields every "
+            << writeInterval_ << postStr << " outputTime" << nl
+            << endl;
     }
-    Info<< nl
-        << "    dumping all other fields every "
-        << writeInterval_ << "th outputTime" << nl
-        << endl;
 
     if (writeInterval_ < 1)
     {

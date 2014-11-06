@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -59,7 +59,8 @@ void Foam::surfaceInterpolateFields::interpolateFields
 
             if (obr_.found(sName))
             {
-                Info<< "        surface field " << sName << " already exists"
+                Info(log_)
+                    << "        surface field " << sName << " already exists"
                     << endl;
             }
             else
@@ -68,7 +69,8 @@ void Foam::surfaceInterpolateFields::interpolateFields
                 sflds.setSize(sz+1);
                 sflds.set(sz, new sfType(sName, linearInterpolate(fld)));
 
-                Info<< "        interpolated " << fld.name() << " to create "
+                Info(log_)
+                    << "        interpolated " << fld.name() << " to create "
                     << sflds[sz].name() << endl;
             }
         }

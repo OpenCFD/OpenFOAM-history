@@ -435,7 +435,8 @@ void Foam::fieldValues::faceSource::initialise(const dictionary& dict)
         totalArea = gSum(filterField(mesh().magSf(), false));
     }
 
-    Info<< type() << " " << name_ << ":" << nl
+    Info(log_)
+        << type() << " " << name_ << ":" << nl
         << "    total faces  = " << nFaces_
         << nl
         << "    total area   = " << totalArea
@@ -443,7 +444,7 @@ void Foam::fieldValues::faceSource::initialise(const dictionary& dict)
 
     if (dict.readIfPresent("weightField", weightFieldName_))
     {
-        Info<< "    weight field = " << weightFieldName_ << nl;
+        Info(log_)<< "    weight field = " << weightFieldName_ << nl;
 
         if (source_ == stSampledSurface)
         {
@@ -465,7 +466,7 @@ void Foam::fieldValues::faceSource::initialise(const dictionary& dict)
         if (weightFieldName_ == "none")
         {
             dict.lookup("orientedWeightField") >>  weightFieldName_;
-            Info<< "    weight field = " << weightFieldName_ << nl;
+            Info(log_)<< "    weight field = " << weightFieldName_ << nl;
             orientWeightField_ = true;
         }
         else
@@ -491,7 +492,7 @@ void Foam::fieldValues::faceSource::initialise(const dictionary& dict)
         fields_.append(orientedFields);
     }
 
-    Info<< nl << endl;
+    Info(log_)<< nl << endl;
 
     if (valueOutput_)
     {

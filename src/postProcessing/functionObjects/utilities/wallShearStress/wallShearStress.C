@@ -200,7 +200,7 @@ void Foam::wallShearStress::read(const dictionary& dict)
         }
         else
         {
-            Info<< "    processing wall patches: " << nl;
+            Info(log_)<< "    processing wall patches: " << nl;
             labelHashSet filteredPatchSet;
             forAllConstIter(labelHashSet, patchSet_, iter)
             {
@@ -269,6 +269,8 @@ void Foam::wallShearStress::execute()
         }
 
         calcShearStress(mesh, Reff(), wallShearStress);
+
+        Info(log_)<< endl;
     }
 }
 

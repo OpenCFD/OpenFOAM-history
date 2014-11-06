@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,7 @@ void Foam::fieldAverage::addMeanFieldType(const label fieldI)
     const word& fieldName = faItems_[fieldI].fieldName();
     const word& meanFieldName = faItems_[fieldI].meanFieldName();
 
-    Info<< "    Reading/initialising field " << meanFieldName << endl;
+    Info(log_)<< "    Reading/initialising field " << meanFieldName << endl;
 
     if (obr_.foundObject<Type>(meanFieldName))
     {
@@ -46,7 +46,8 @@ void Foam::fieldAverage::addMeanFieldType(const label fieldI)
     }
     else if (obr_.found(meanFieldName))
     {
-        Info<< "    Cannot allocate average field " << meanFieldName
+        Info(log_)
+            << "    Cannot allocate average field " << meanFieldName
             << " since an object with that name already exists."
             << " Disabling averaging for field." << endl;
 
@@ -105,7 +106,8 @@ void Foam::fieldAverage::addPrime2MeanFieldType(const label fieldI)
     const word& meanFieldName = faItems_[fieldI].meanFieldName();
     const word& prime2MeanFieldName = faItems_[fieldI].prime2MeanFieldName();
 
-    Info<< "    Reading/initialising field " << prime2MeanFieldName << nl;
+    Info(log_)
+        << "    Reading/initialising field " << prime2MeanFieldName << nl;
 
     if (obr_.foundObject<Type2>(prime2MeanFieldName))
     {
@@ -113,7 +115,8 @@ void Foam::fieldAverage::addPrime2MeanFieldType(const label fieldI)
     }
     else if (obr_.found(prime2MeanFieldName))
     {
-        Info<< "    Cannot allocate average field " << prime2MeanFieldName
+        Info(log_)
+            << "    Cannot allocate average field " << prime2MeanFieldName
             << " since an object with that name already exists."
             << " Disabling averaging for field." << nl;
 

@@ -145,8 +145,8 @@ class streamLine
         //- Load fields from files (not from objectRegistry)
         bool loadFromFiles_;
 
-        //- On/off switch
-        bool active_;
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
         //- List of fields to sample
         wordList fields_;

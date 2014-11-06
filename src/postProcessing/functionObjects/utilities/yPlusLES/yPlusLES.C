@@ -96,7 +96,8 @@ void Foam::yPlusLES::calcIncompressibleYPlus
 
             if (Pstream::master())
             {
-                Info(log_)<< "    patch " << currPatch.name()
+                Info(log_)
+                    << "    patch " << currPatch.name()
                     << " y+ : min = " << minYp << ", max = " << maxYp
                     << ", average = " << avgYp << nl;
 
@@ -135,7 +136,7 @@ void Foam::yPlusLES::calcCompressibleYPlus
 
     const volScalarField muLam(model.mu());
 
-    Info<< type() << " output:" << nl;
+    Info(log_)<< type() << " output:" << nl;
 
     bool foundPatch = false;
     forAll(patches, patchi)
@@ -162,7 +163,8 @@ void Foam::yPlusLES::calcCompressibleYPlus
 
             if (Pstream::master())
             {
-                Info(log_)<< "    patch " << currPatch.name()
+                Info(log_)
+                    << "    patch " << currPatch.name()
                     << " y+ : min = " << minYp << ", max = " << maxYp
                     << ", average = " << avgYp << nl;
 
