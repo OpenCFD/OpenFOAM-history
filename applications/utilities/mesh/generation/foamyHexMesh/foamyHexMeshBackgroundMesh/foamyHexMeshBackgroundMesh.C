@@ -521,16 +521,36 @@ int main(int argc, char *argv[])
         Info<< "Loaded mesh:" << endl;
         printMeshData(mesh);
 
+        // Allow override of decomposeParDict location
+        fileName decompDictFile;
+        if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
+        {
+            if (isDir(decompDictFile))
+            {
+                decompDictFile = decompDictFile / "decomposeParDict";
+            }
+        }
+
         // Allocate a decomposer
         IOdictionary decompositionDict
         (
-            IOobject
             (
-                "decomposeParDict",
-                runTime.system(),
-                mesh,
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE
+                decompDictFile.size()
+              ? IOobject
+                (
+                    decompDictFile,
+                    mesh,
+                    IOobject::MUST_READ_IF_MODIFIED,
+                    IOobject::NO_WRITE
+                )
+             :  IOobject
+                (
+                    "decomposeParDict",
+                    runTime.system(),
+                    mesh,
+                    IOobject::MUST_READ_IF_MODIFIED,
+                    IOobject::NO_WRITE
+                )
             )
         );
 

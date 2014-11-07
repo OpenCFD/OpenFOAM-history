@@ -70,7 +70,11 @@ void Foam::domainDecomposition::mark
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 // from components
-Foam::domainDecomposition::domainDecomposition(const IOobject& io)
+Foam::domainDecomposition::domainDecomposition
+(
+    const IOobject& io,
+    const fileName& decompDictFile
+)
 :
     fvMesh(io),
     facesInstancePointsPtr_
@@ -93,13 +97,23 @@ Foam::domainDecomposition::domainDecomposition(const IOobject& io)
     ),
     decompositionDict_
     (
-        IOobject
         (
-            "decomposeParDict",
-            time().system(),
-            *this,
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
+            decompDictFile.size()
+          ? IOobject
+            (
+                decompDictFile,
+                *this,
+                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::NO_WRITE
+            )
+         :  IOobject
+            (
+                "decomposeParDict",
+                time().system(),
+                *this,
+                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::NO_WRITE
+            )
         )
     ),
     nProcs_(readInt(decompositionDict_.lookup("numberOfSubdomains"))),

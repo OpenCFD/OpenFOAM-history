@@ -159,8 +159,13 @@ public:
 
     // Constructors
 
-        //- Construct from IOobject
-        domainDecomposition(const IOobject& io);
+        //- Construct from IOobjects (for mesh and optional non-standard
+        //  decomposeParDict location)
+        domainDecomposition
+        (
+            const IOobject& io,
+            const fileName& decompDictFile = ""
+        );
 
 
     //- Destructor

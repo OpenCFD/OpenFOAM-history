@@ -782,7 +782,8 @@ Foam::backgroundMeshDecomposition::backgroundMeshDecomposition
     const Time& runTime,
     Random& rndGen,
     const conformationSurfaces& geometryToConformTo,
-    const dictionary& coeffsDict
+    const dictionary& coeffsDict,
+    const fileName& decompDictFile
 )
 :
     runTime_(runTime),
@@ -812,13 +813,23 @@ Foam::backgroundMeshDecomposition::backgroundMeshDecomposition
     globalBackgroundBounds_(),
     decomposeDict_
     (
-        IOobject
         (
-            "decomposeParDict",
-            runTime_.system(),
-            runTime_,
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
+            decompDictFile.size()
+          ? IOobject
+            (
+                decompDictFile,
+                runTime_,
+                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::NO_WRITE
+            )
+         :  IOobject
+            (
+                "decomposeParDict",
+                runTime_.system(),
+                runTime_,
+                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::NO_WRITE
+            )
         )
     ),
     decomposerPtr_(decompositionMethod::New(decomposeDict_)),

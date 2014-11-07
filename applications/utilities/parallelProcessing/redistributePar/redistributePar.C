@@ -275,6 +275,7 @@ void writeDecomposition
 void determineDecomposition
 (
     const Time& baseRunTime,
+    const fileName& decompDictFile, // optional location for decomposeParDict
     const bool decompose,       // decompose, i.e. read from undecomposed case
     const fileName& proc0CaseName,
     const fvMesh& mesh,
@@ -287,13 +288,23 @@ void determineDecomposition
     // Read decomposeParDict (on all processors)
     IOdictionary decompositionDict
     (
-        IOobject
         (
-            "decomposeParDict",
-            mesh.time().system(),
-            mesh,
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
+            decompDictFile.size()
+          ? IOobject
+            (
+                decompDictFile,
+                mesh,
+                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::NO_WRITE
+            )
+          : IOobject
+            (
+                "decomposeParDict",
+                mesh.time().system(),
+                mesh,
+                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::NO_WRITE
+            )
         )
     );
 
@@ -2746,6 +2757,16 @@ int main(int argc, char *argv[])
             mesh.bounds()
         );
 
+        // Allow override of decomposeParDict location
+        fileName decompDictFile;
+        if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
+        {
+            if (isDir(decompDictFile))
+            {
+                decompDictFile = decompDictFile / "decomposeParDict";
+            }
+        }
+
 
         // Determine decomposition
         // ~~~~~~~~~~~~~~~~~~~~~~~
@@ -2755,6 +2776,7 @@ int main(int argc, char *argv[])
         determineDecomposition
         (
             baseRunTime,
+            decompDictFile,
             decompose,
             proc0CaseName,
             mesh,

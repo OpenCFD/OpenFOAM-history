@@ -141,6 +141,12 @@ int main(int argc, char *argv[])
     );
 
     argList::noParallel();
+    Foam::argList::addOption
+    (
+        "decomposeParDict",
+        "file",
+        "read decomposePar dictionary from specified location"
+    );
     #include "addRegionOption.H"
     argList::addBoolOption
     (
@@ -196,6 +202,17 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     // Allow override of time
     instantList times = timeSelector::selectIfPresent(runTime, args);
+
+
+    // Allow override of decomposeParDict location
+    fileName decompDictFile;
+    if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
+    {
+        if (isDir(decompDictFile))
+        {
+            decompDictFile = decompDictFile / "decomposeParDict";
+        }
+    }
 
 
     wordList regionNames;
@@ -264,15 +281,24 @@ int main(int argc, char *argv[])
         (
             IOdictionary
             (
-                IOobject
                 (
-                    "decomposeParDict",
-                    runTime.time().system(),
-                    regionDir,          // use region if non-standard
-                    runTime,
-                    IOobject::MUST_READ_IF_MODIFIED,
-                    IOobject::NO_WRITE,
-                    false
+                    decompDictFile.size()
+                  ? IOobject
+                    (
+                        decompDictFile,
+                        runTime,
+                        IOobject::MUST_READ_IF_MODIFIED,
+                        IOobject::NO_WRITE
+                    )
+                 :  IOobject
+                    (
+                        "decomposeParDict",
+                        runTime.time().system(),
+                        regionDir,          // use region if non-standard
+                        runTime,
+                        IOobject::MUST_READ_IF_MODIFIED,
+                        IOobject::NO_WRITE
+                    )
                 )
             ).lookup("numberOfSubdomains")
         );
@@ -350,7 +376,8 @@ int main(int argc, char *argv[])
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 false
-            )
+            ),
+            decompDictFile
         );
 
         // Decompose the mesh

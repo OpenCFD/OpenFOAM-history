@@ -64,6 +64,12 @@ Foam::argList::initValidTables::initValidTables()
     );
     validParOptions.set("roots", "(dir1 .. dirN)");
 
+    validParOptions.set
+    (
+        "decomposeParDict",
+        "read decomposePar dictionary from specified location"
+    );
+
     argList::addBoolOption
     (
         "noFunctionObjects",
@@ -147,6 +153,7 @@ void Foam::argList::noParallel()
 {
     removeOption("parallel");
     removeOption("roots");
+    removeOption("decomposeParDict");
     validParOptions.clear();
 }
 
@@ -602,6 +609,16 @@ void Foam::argList::parse
             else
             {
                 source = rootPath_/globalCase_/"system/decomposeParDict";
+                // Override with -decomposeParDict
+                if (options_.found("decomposeParDict"))
+                {
+                    source = options_["decomposeParDict"];
+                    if (isDir(source))
+                    {
+                        source = source/"decomposeParDict";
+                    }
+                }
+
                 IFstream decompDictStream(source);
 
                 if (!decompDictStream.good())

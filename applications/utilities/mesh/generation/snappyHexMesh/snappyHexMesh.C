@@ -819,15 +819,34 @@ int main(int argc, char *argv[])
     {
         if (Pstream::parRun())
         {
+            fileName decompDictFile;
+            if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
+            {
+                if (isDir(decompDictFile))
+                {
+                    decompDictFile = decompDictFile / "decomposeParDict";
+                }
+            }
+
             decomposeDict = IOdictionary
             (
-                IOobject
                 (
-                    "decomposeParDict",
-                    runTime.system(),
-                    mesh,
-                    IOobject::MUST_READ_IF_MODIFIED,
-                    IOobject::NO_WRITE
+                    decompDictFile.size()
+                  ? IOobject
+                    (
+                        decompDictFile,
+                        mesh,
+                        IOobject::MUST_READ_IF_MODIFIED,
+                        IOobject::NO_WRITE
+                    )
+                 :  IOobject
+                    (
+                        "decomposeParDict",
+                        runTime.system(),
+                        mesh,
+                        IOobject::MUST_READ_IF_MODIFIED,
+                        IOobject::NO_WRITE
+                    )
                 )
             );
         }
