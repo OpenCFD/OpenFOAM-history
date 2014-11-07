@@ -46,7 +46,8 @@ Foam::surfaceInterpolateFields::surfaceInterpolateFields
     name_(name),
     obr_(obr),
     active_(true),
-    fieldSet_()
+    fieldSet_(),
+    log_(true)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
     if (isA<fvMesh>(obr_))
@@ -83,6 +84,7 @@ void Foam::surfaceInterpolateFields::read(const dictionary& dict)
 {
     if (active_)
     {
+        log_.readIfPresent("log", dict);
         dict.lookup("fields") >> fieldSet_;
     }
 }
@@ -92,7 +94,7 @@ void Foam::surfaceInterpolateFields::execute()
 {
     if (active_)
     {
-        Info<< type() << " " << name_ << " output:" << nl;
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
         // Clear out any previously loaded fields
         ssf_.clear();
@@ -107,7 +109,7 @@ void Foam::surfaceInterpolateFields::execute()
         interpolateFields<symmTensor>(sSymmtf_);
         interpolateFields<tensor>(stf_);
 
-        Info<< endl;
+        Info(log_)<< endl;
     }
 }
 
@@ -131,9 +133,8 @@ void Foam::surfaceInterpolateFields::write()
 {
     if (active_)
     {
-        Info<< type() << " " << name_ << " output:" << nl;
-
-        Info<< "    Writing interpolated surface fields to "
+        Info(log_)<< type() << " " << name_ << " output:" << nl
+            << "    Writing interpolated surface fields to "
             << obr_.time().timeName() << endl;
 
         forAll(ssf_, i)

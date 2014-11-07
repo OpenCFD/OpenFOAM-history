@@ -58,6 +58,7 @@ Description
         fields   | list of fields with corresponding output field names | yes |
         patches  | list of patches to sample | yes         |
         distance | distance from patch to sample | yes     |
+        log      | Log to standard output    | no          | yes
     \endtable
 
 SeeAlso
@@ -110,6 +111,9 @@ protected:
 
             //- Fields to process
             List<Tuple2<word, word> > fieldSet_;
+
+            //- Switch to send output to Info as well as to file
+            Switch log_;
 
             //- Patches to sample
             labelHashSet patchSet_;

@@ -55,7 +55,8 @@ Description
         Property     | Description             | Required    | Default value
         type         | type name: Q            | yes         |
         UName        | Name of velocity field  | no          | U
-        resultName   | Name of Q field         | no          | Q
+        resultName   | Name of Q field         | no          | <function name>
+        log          | Log to standard output  | no          | yes
     \endtable
 
 SourceFiles
@@ -105,6 +106,9 @@ class Q
 
         //- Result name
         word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions

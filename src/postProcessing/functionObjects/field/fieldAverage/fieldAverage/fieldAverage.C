@@ -65,7 +65,7 @@ void Foam::fieldAverage::initialize()
 {
     resetFields();
 
-    Info<< type() << " " << name_ << ":" << nl;
+    Info(log_)<< type() << " " << name_ << ":" << nl;
 
 
     // Add mean fields to the field lists
@@ -98,7 +98,7 @@ void Foam::fieldAverage::initialize()
     // ensure first averaging works unconditionally
     prevTimeIndex_ = -1;
 
-    Info<< endl;
+    Info(log_)<< endl;
 
     initialised_ = true;
 }
@@ -123,9 +123,9 @@ void Foam::fieldAverage::calcAverages()
         prevTimeIndex_ = currentTimeIndex;
     }
 
-    Info<< type() << " " << name_ << " output:" << nl;
+    Info(log_)<< type() << " " << name_ << " output:" << nl;
 
-    Info<< "    Calculating averages" << nl;
+    Info(log_)<< "    Calculating averages" << nl;
 
     addMeanSqrToPrime2Mean<scalar, scalar>();
     addMeanSqrToPrime2Mean<vector, symmTensor>();
@@ -149,7 +149,7 @@ void Foam::fieldAverage::calcAverages()
 
 void Foam::fieldAverage::writeAverages() const
 {
-    Info<< "    Writing average fields" << endl;
+    Info(log_)<< "    Writing average fields" << endl;
 
     writeFields<scalar>();
     writeFields<vector>();
@@ -183,12 +183,13 @@ void Foam::fieldAverage::readAveragingProperties()
 
     if (resetOnRestart_)
     {
-        Info<< "    Starting averaging at time " << obr_.time().timeName()
+        Info(log_)
+            << "    Starting averaging at time " << obr_.time().timeName()
             << nl;
     }
     else
     {
-        Info<< "    Restarting averaging for fields:" << nl;
+        Info(log_)<< "    Restarting averaging for fields:" << nl;
         forAll(faItems_, fieldI)
         {
             const word& fieldName = faItems_[fieldI].fieldName();
@@ -199,13 +200,15 @@ void Foam::fieldAverage::readAveragingProperties()
 
                 totalIter_[fieldI] = readLabel(fieldDict.lookup("totalIter"));
                 totalTime_[fieldI] = readScalar(fieldDict.lookup("totalTime"));
-                Info<< "        " << fieldName
+                Info(log_)
+                    << "        " << fieldName
                     << " iters = " << totalIter_[fieldI]
                     << " time = " << totalTime_[fieldI] << nl;
             }
             else
             {
-                Info<< "        " << fieldName
+                Info(log_)
+                    << "        " << fieldName
                     << ": starting averaging at time "
                     << obr_.time().timeName() << endl;
             }
@@ -229,6 +232,7 @@ Foam::fieldAverage::fieldAverage
     prevTimeIndex_(-1),
     resetOnRestart_(false),
     resetOnOutput_(false),
+    log_(true),
     initialised_(false),
     faItems_(),
     totalIter_(),
@@ -256,7 +260,9 @@ void Foam::fieldAverage::read(const dictionary& dict)
     {
         initialised_ = false;
 
-        Info<< type() << " " << name_ << ":" << nl;
+        log_.readIfPresent("log", dict);
+
+        Info(log_)<< type() << " " << name_ << ":" << nl;
 
         dict.readIfPresent("resetOnRestart", resetOnRestart_);
         dict.readIfPresent("resetOnOutput", resetOnOutput_);
@@ -264,7 +270,7 @@ void Foam::fieldAverage::read(const dictionary& dict)
 
         readAveragingProperties();
 
-        Info<< endl;
+        Info(log_)<< endl;
     }
 }
 
@@ -274,7 +280,7 @@ void Foam::fieldAverage::execute()
     if (active_)
     {
         calcAverages();
-        Info<< endl;
+        Info(log_)<< endl;
     }
 }
 
@@ -283,8 +289,7 @@ void Foam::fieldAverage::end()
 {
     if (active_)
     {
-        calcAverages();
-        Info<< endl;
+        execute();
     }
 }
 
@@ -302,7 +307,8 @@ void Foam::fieldAverage::write()
 
         if (resetOnOutput_)
         {
-            Info<< "    Restarting averaging at time " << obr_.time().timeName()
+            Info(log_)
+                << "    Restarting averaging at time " << obr_.time().timeName()
                 << nl << endl;
 
             initialize();
@@ -311,7 +317,7 @@ void Foam::fieldAverage::write()
             prevTimeIndex_ = -1;
         }
 
-        Info<< endl;
+        Info(log_)<< endl;
     }
 }
 

@@ -24,15 +24,6 @@ pressureTools/pressureToolsFunctionObject.C
 Q/Q.C
 Q/QFunctionObject.C
 
-runTimeControl/runTimeControl.C
-runTimeControl/runTimeControlFunctionObject.C
-runTimeControl/runTimeCondition/runTimeCondition/runTimeCondition.C
-runTimeControl/runTimeCondition/runTimeCondition/runTimeConditionNew.C
-runTimeControl/runTimeCondition/minMaxCondition/minMaxCondition.C
-runTimeControl/runTimeCondition/initialResidualDivergenceCondition/initialResidualDivergenceCondition.C
-runTimeControl/runTimeCondition/averageCondition/averageCondition.C
-runTimeControl/runTimeCondition/minTimeStepCondition/minTimeStepCondition.C
-
 scalarTransport/scalarTransport.C
 scalarTransport/scalarTransportFunctionObject.C
 

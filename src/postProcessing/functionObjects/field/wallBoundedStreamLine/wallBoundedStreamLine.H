@@ -74,6 +74,7 @@ Description
         nSubCycle    | number of tracking steps per cell | no|
         cloudName    | cloud name to use       | yes         |
         seedSampleSet| seeding method (see below)| yes       |
+        log          | Log to standard output  | no          | yes
     \endtable
 
     \linebreak
@@ -153,6 +154,8 @@ class wallBoundedStreamLine
         //- On/off switch
         bool active_;
 
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
         //- List of fields to sample
         wordList fields_;

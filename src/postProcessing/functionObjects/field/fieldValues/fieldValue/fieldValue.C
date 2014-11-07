@@ -50,6 +50,7 @@ void Foam::fieldValue::read(const dictionary& dict)
         log_ = dict.lookupOrDefault<Switch>("log", true);
         dict.lookup("fields") >> fields_;
         dict.lookup("valueOutput") >> valueOutput_;
+        dict.readIfPresent("scaleFactor", scaleFactor_);
     }
 }
 
@@ -83,7 +84,8 @@ Foam::fieldValue::fieldValue
     log_(true),
     sourceName_(dict.lookupOrDefault<word>("sourceName", "sampledSurface")),
     fields_(),
-    valueOutput_(false)
+    valueOutput_(false),
+    scaleFactor_(1.0)
 {
     // Only active if obr is an fvMesh
     if (setActive<fvMesh>())

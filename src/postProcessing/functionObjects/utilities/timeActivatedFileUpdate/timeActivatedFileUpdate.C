@@ -52,7 +52,8 @@ void Foam::timeActivatedFileUpdate::updateFile()
 
     if (i > lastIndex_)
     {
-        Info<< nl << type() << ": copying file" << nl << timeVsFile_[i].second()
+        Info(log_)
+            << nl << type() << ": copying file" << nl << timeVsFile_[i].second()
             << nl << "to:" << nl << fileToUpdate_ << nl << endl;
 
         cp(timeVsFile_[i].second(), fileToUpdate_);
@@ -74,9 +75,10 @@ Foam::timeActivatedFileUpdate::timeActivatedFileUpdate
     name_(name),
     obr_(obr),
     active_(true),
-    fileToUpdate_(dict.lookup("fileToUpdate")),
+    fileToUpdate_("unknown-fileToUpdate"),
     timeVsFile_(),
-    lastIndex_(-1)
+    lastIndex_(-1),
+    log_(true)
 {
     read(dict);
 }
@@ -94,13 +96,18 @@ void Foam::timeActivatedFileUpdate::read(const dictionary& dict)
 {
     if (active_)
     {
+        log_.readIfPresent("log", dict);
+
         dict.lookup("fileToUpdate") >> fileToUpdate_;
         dict.lookup("timeVsFile") >> timeVsFile_;
 
         lastIndex_ = -1;
         fileToUpdate_.expand();
 
-        Info<< type() << ": time vs file list:" << nl;
+        Info(log_)
+            << type() << " " << name_ << " output:" << nl
+            << "    time vs file list:" << endl;
+
         forAll(timeVsFile_, i)
         {
             timeVsFile_[i].second() = timeVsFile_[i].second().expand();
@@ -111,10 +118,11 @@ void Foam::timeActivatedFileUpdate::read(const dictionary& dict)
                     << nl << exit(FatalError);
             }
 
-            Info<< "    " << timeVsFile_[i].first() << tab
+            Info(log_)
+                << "    " << timeVsFile_[i].first() << tab
                 << timeVsFile_[i].second() << endl;
         }
-        Info<< endl;
+        Info(log_)<< endl;
 
         updateFile();
     }

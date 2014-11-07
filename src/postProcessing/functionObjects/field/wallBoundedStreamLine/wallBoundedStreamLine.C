@@ -227,14 +227,14 @@ void Foam::wallBoundedStreamLine::track()
             else
             {
                 Pout<< type() << " : ignoring seed " << seedPt
-                    << " since not in wall cell." << endl;
+                    << " since not in wall cell" << endl;
             }
         }
     }
 
     label nSeeds = returnReduce(particles.size(), sumOp<label>());
 
-    Info<< type() << " : seeded " << nSeeds << " particles." << endl;
+    Info(log_)<< type() << " : seeded " << nSeeds << " particles" << endl;
 
 
 
@@ -444,27 +444,13 @@ Foam::wallBoundedStreamLine::wallBoundedStreamLine
     dict_(dict),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
-    active_(true)
+    active_(true),
+    log_(true)
 {
-    // Only active if a fvMesh is available
-    if (isA<fvMesh>(obr_))
+    // Check if the available mesh is an fvMesh otherise deactivate
+    if (setActive<fvMesh>())
     {
         read(dict_);
-    }
-    else
-    {
-        active_ = false;
-        WarningIn
-        (
-            "wallBoundedStreamLine::wallBoundedStreamLine\n"
-            "("
-                "const word&, "
-                "const objectRegistry&, "
-                "const dictionary&, "
-                "const bool "
-            ")"
-        )   << "No fvMesh available, deactivating " << name_
-            << nl << endl;
     }
 }
 
@@ -481,7 +467,8 @@ void Foam::wallBoundedStreamLine::read(const dictionary& dict)
 {
     if (active_)
     {
-        //dict_ = dict;
+        log_.readIfPresent("log", dict);
+
         dict.lookup("fields") >> fields_;
         if (dict.found("UName"))
         {
@@ -528,7 +515,8 @@ void Foam::wallBoundedStreamLine::read(const dictionary& dict)
         {
             dict.lookup("trackLength") >> trackLength_;
 
-            Info<< type() << " : fixed track length specified : "
+            Info(log_)
+                << type() << " : fixed track length specified : "
                 << trackLength_ << nl << endl;
         }
 
@@ -539,7 +527,8 @@ void Foam::wallBoundedStreamLine::read(const dictionary& dict)
             interpolationCellPoint<scalar>::typeName
         );
 
-        //Info<< typeName << " using interpolation " << interpolationScheme_
+        //Info(log_)
+        //    << typeName << " using interpolation " << interpolationScheme_
         //    << endl;
 
         cloudName_ = dict.lookupOrDefault<word>
@@ -765,7 +754,8 @@ void Foam::wallBoundedStreamLine::write()
             n += allTracks_[trackI].size();
         }
 
-        Info<< "    Tracks:" << allTracks_.size() << nl
+        Info(log_)
+            << "    Tracks:" << allTracks_.size() << nl
             << "    Total samples:" << n << endl;
 
 
@@ -836,7 +826,7 @@ void Foam::wallBoundedStreamLine::write()
                     )
                 );
 
-                Info<< "Writing data to " << vtkFile.path() << endl;
+                Info(log_)<< "Writing data to " << vtkFile.path() << endl;
 
                 scalarFormatterPtr_().write
                 (
@@ -885,7 +875,7 @@ void Foam::wallBoundedStreamLine::write()
                     )
                 );
 
-                //Info<< "Writing vector data to " << vtkFile << endl;
+                //Info(log_)<< "Writing vector data to " << vtkFile << endl;
 
                 vectorFormatterPtr_().write
                 (

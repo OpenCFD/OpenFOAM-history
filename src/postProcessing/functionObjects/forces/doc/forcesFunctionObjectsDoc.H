@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,10 +21,13 @@ License
     You should have received a copy of the GNU General Public License along with
     OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-\defgroup grpIOFunctionObjects Input/output function objects
+\defgroup grpForcesFunctionObjects Forces function objects
 @{
     \ingroup grpFunctionObjects
-    This group contains input/output-based function objects
+    This group contains force-based function objects
+
+    Function objects in this group are packaged into the
+    libforcesFunctionObjects.so library.
 @}
 
 \*---------------------------------------------------------------------------*/

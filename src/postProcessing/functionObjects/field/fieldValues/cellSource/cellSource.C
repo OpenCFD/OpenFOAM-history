@@ -134,7 +134,8 @@ void Foam::fieldValues::cellSource::initialise(const dictionary& dict)
         return;
     }
 
-    Info<< type() << " " << name_ << ":"
+    Info(log_)
+        << type() << " " << name_ << ":"
         << sourceTypeNames_[source_] << "(" << sourceName_ << "):" << nl
         << "    total cells  = " << nCells_ << nl
         << "    total volume = " << gSum(filterField(mesh().V()))
@@ -142,25 +143,26 @@ void Foam::fieldValues::cellSource::initialise(const dictionary& dict)
 
     if (dict.readIfPresent("weightField", weightFieldName_))
     {
-        Info<< "    weight field = " << weightFieldName_;
+        Info(log_)<< "    weight field = " << weightFieldName_;
     }
 
-    Info<< nl << endl;
+    Info(log_)<< nl << endl;
 }
 
 
 void Foam::fieldValues::cellSource::writeFileHeader(const label i)
 {
-    file()
-        << "# Source : " << sourceTypeNames_[source_] << " "
-        << sourceName_ <<  nl << "# Cells  : " << nCells_ << nl
-        << "# Time" << tab << "sum(V)";
+    writeHeaderValue(file(), "Source", sourceTypeNames_[source_]);
+    writeHeaderValue(file(), "Name", sourceName_);
+    writeHeaderValue(file(), "Cells", nCells_);
+    writeHeaderValue(file(), "Operation", operationTypeNames_[operation_]);
+    writeHeaderValue(file(), "Scale factor", scaleFactor_);
+    writeCommented(file(), "Time");
+    writeTabbed(file(), "sum(V)");
 
-    forAll(fields_, i)
+    forAll(fields_, fieldI)
     {
-        file()
-            << tab << operationTypeNames_[operation_]
-            << "(" << fields_[i] << ")";
+        writeTabbed(file(), fields_[fieldI]);
     }
 
     file() << endl;
@@ -220,18 +222,25 @@ void Foam::fieldValues::cellSource::write()
             file() << obr_.time().value() << tab << totalVolume;
         }
 
+        // construct weight field. Note: zero size means weight = 1
+        scalarField weightField;
+        if (weightFieldName_ != "none")
+        {
+            weightField = getFieldValues<scalar>(weightFieldName_, true);
+        }
+
         forAll(fields_, i)
         {
             const word& fieldName = fields_[i];
-            bool processed = false;
+            bool ok = false;
 
-            processed = processed || writeValues<scalar>(fieldName);
-            processed = processed || writeValues<vector>(fieldName);
-            processed = processed || writeValues<sphericalTensor>(fieldName);
-            processed = processed || writeValues<symmTensor>(fieldName);
-            processed = processed || writeValues<tensor>(fieldName);
+            ok = ok || writeValues<scalar>(fieldName, weightField);
+            ok = ok || writeValues<vector>(fieldName, weightField);
+            ok = ok || writeValues<sphericalTensor>(fieldName, weightField);
+            ok = ok || writeValues<symmTensor>(fieldName, weightField);
+            ok = ok || writeValues<tensor>(fieldName, weightField);
 
-            if (!processed)
+            if (!ok)
             {
                 WarningIn("void Foam::fieldValues::cellSource::write()")
                     << "Requested field " << fieldName

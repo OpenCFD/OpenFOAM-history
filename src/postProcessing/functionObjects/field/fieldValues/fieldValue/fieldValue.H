@@ -89,6 +89,9 @@ protected:
         //- Output field values flag
         Switch valueOutput_;
 
+        //- Scale factor - optional
+        scalar scaleFactor_;
+
 
 public:
 

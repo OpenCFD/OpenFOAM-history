@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,17 +32,17 @@ Description
     compilation.
 
     The entries are
-        code        : c++; upon functionObject::write()
-        codeInclude : include files
-        codeOptions : include paths; inserted into EXE_INC in Make/options
-        codeLibs    : link line; inserted into LIB_LIBS in Make/options
+    - code        : c++; upon functionObject::write()
+    - codeInclude : include files
+    - codeOptions : include paths; inserted into EXE_INC in Make/options
+    - codeLibs    : link line; inserted into LIB_LIBS in Make/options
 
-        codeExecute : c++;upon functionObject::execute();
-        codeRead    : c++; upon functionObject::read();
-        codeEnd     : c++; upon functionObject::end();
-        codeData    : c++; local member data (null constructed);
-        codeTimeSet : c++; upon functionObject::timeSet();
-        localCode   : c++; local static functions
+    - codeExecute : c++;upon functionObject::execute();
+    - codeRead    : c++; upon functionObject::read();
+    - codeEnd     : c++; upon functionObject::end();
+    - codeData    : c++; local member data (null constructed);
+    - codeTimeSet : c++; upon functionObject::timeSet();
+    - localCode   : c++; local static functions
 
     Example of function object specification:
     \verbatim

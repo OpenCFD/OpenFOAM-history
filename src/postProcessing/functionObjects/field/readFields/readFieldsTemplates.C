@@ -31,12 +31,7 @@ License
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class Type>
-void Foam::readFields::loadField
-(
-    const word& fieldName,
-    PtrList<GeometricField<Type, fvPatchField, volMesh> >& vflds,
-    PtrList<GeometricField<Type, fvsPatchField, surfaceMesh> >& sflds
-) const
+void Foam::readFields::loadField(const word& fieldName) const
 {
     typedef GeometricField<Type, fvPatchField, volMesh> vfType;
     typedef GeometricField<Type, fvsPatchField, surfaceMesh> sfType;
@@ -45,7 +40,8 @@ void Foam::readFields::loadField
     {
         if (debug)
         {
-            Info<< "readFields : Field " << fieldName << " already in database"
+            Info<< "readFields: " << vfType::typeName << " "
+                << fieldName << " already exists in database"
                 << endl;
         }
     }
@@ -53,7 +49,8 @@ void Foam::readFields::loadField
     {
         if (debug)
         {
-            Info<< "readFields : Field " << fieldName << " already in database"
+            Info<< "readFields: " << sfType::typeName << " "
+                << fieldName << " already exists in database"
                 << endl;
         }
     }
@@ -76,11 +73,10 @@ void Foam::readFields::loadField
          && fieldHeader.headerClassName() == vfType::typeName
         )
         {
-            // store field locally
-            Info<< "    Reading " << fieldName << endl;
-            label sz = vflds.size();
-            vflds.setSize(sz+1);
-            vflds.set(sz, new vfType(fieldHeader, mesh));
+            // store field on mesh database
+            Info(log_)<< "    Reading " << fieldName << endl;
+            vfType* vfPtr = new vfType(fieldHeader, mesh);
+            mesh.objectRegistry::store(vfPtr);
         }
         else if
         (
@@ -88,11 +84,10 @@ void Foam::readFields::loadField
          && fieldHeader.headerClassName() == sfType::typeName
         )
         {
-            // store field locally
-            Info<< "    Reading " << fieldName << endl;
-            label sz = sflds.size();
-            sflds.setSize(sz+1);
-            sflds.set(sz, new sfType(fieldHeader, mesh));
+            // store field on mesh database
+            Info(log_)<< "    Reading " << fieldName << endl;
+            sfType* sfPtr = new sfType(fieldHeader, mesh);
+            mesh.objectRegistry::store(sfPtr);
         }
     }
 }

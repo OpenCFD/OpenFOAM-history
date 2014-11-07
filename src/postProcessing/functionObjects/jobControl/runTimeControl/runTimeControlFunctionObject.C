@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,34 +21,22 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Typedef
-    Foam::runTimeControlFunctionObject
-
-Description
-    FunctionObject wrapper around runTimeControl to allow it to be created
-    via the functions entry within controlDict.
-
-SourceFiles
-    runTimeControlFunctionObject.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef runTimeControlFunctionObject_H
-#define runTimeControlFunctionObject_H
+#include "runTimeControlFunctionObject.H"
 
-#include "runTimeControl.H"
-#include "OutputFilterFunctionObject.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef OutputFilterFunctionObject<runTimeControl>
-        runTimeControlFunctionObject;
+    defineNamedTemplateTypeNameAndDebug(runTimeControlFunctionObject, 0);
+
+    addToRunTimeSelectionTable
+    (
+        functionObject,
+        runTimeControlFunctionObject,
+        dictionary
+    );
 }
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

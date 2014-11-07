@@ -47,7 +47,8 @@ Foam::removeRegisteredObject::removeRegisteredObject
 :
     name_(name),
     obr_(obr),
-    objectNames_()
+    objectNames_(),
+    log_(true)
 {
     read(dict);
 }
@@ -78,7 +79,8 @@ void Foam::removeRegisteredObject::execute()
 
             if (obj.ownedByRegistry())
             {
-                Info<< type() << " " << name_ << " output:" << nl
+                Info(log_)
+                    << type() << " " << name_ << " output:" << nl
                     << "    removing object " << obj.name() << nl
                     << endl;
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,9 +30,29 @@ Group
 Description
     This function object writes out an indicator field for DES turbulence
     calculations, that is:
-
     - 0 for RAS regions
     - 1 for LES regions
+
+    The field is stored on the mesh database so that it can be retrieved and
+    used for other applications.
+
+    Example of function object specification to generate DES indicator field:
+    \verbatim
+    DESModelRegions1
+    {
+        type        DESModelRegions;
+        functionObjectLibs ("libutilityFunctionObjects.so");
+        ...
+    }
+    \endverbatim
+
+    \heading Function object usage
+    \table
+        Property     | Description             | Required    | Default value
+        type         | type name: DESModelRegions| yes       |
+        resultName   | Name of DES indicator field | no      | <function name>
+        log          | log to standard output  | no          | yes
+    \endtable
 
 SourceFiles
     DESModelRegions.C
@@ -79,6 +99,9 @@ protected:
 
         //- on/off switch
         bool active_;
+
+        //- Result name
+        word resultName_;
 
         //- Switch to send output to Info as well as to file
         Switch log_;

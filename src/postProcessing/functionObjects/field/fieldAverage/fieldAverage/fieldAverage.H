@@ -94,9 +94,10 @@ Description
     \table
         Property     | Description             | Required    | Default value
         type         | type name: fieldAverage | yes         |
-        resetOnRestart | flag to reset the averaging on restart | yes  |
+        resetOnRestart | flag to reset the averaging on restart | yes |
         resetOnOutput| flag to reset the averaging on output | yes |
         fields       | list of fields and averaging options | yes |
+        log          | Log to standard output  | no          | yes
     \endtable
 
 
@@ -158,6 +159,9 @@ protected:
 
         //- Reset the averaging process on output flag
         Switch resetOnOutput_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
         //- Initialised flag
         bool initialised_;

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -50,7 +50,8 @@ Foam::vorticity::vorticity
     obr_(obr),
     active_(true),
     UName_("U"),
-    outputName_(typeName)
+    resultName_(name),
+    log_(true)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -81,7 +82,7 @@ Foam::vorticity::vorticity
             (
                 IOobject
                 (
-                    outputName_,
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -109,14 +110,15 @@ void Foam::vorticity::read(const dictionary& dict)
 {
     if (active_)
     {
-        UName_ = dict.lookupOrDefault<word>("UName", "U");
+        log_.readIfPresent("log", dict);
+        dict.readIfPresent("UName", UName_);
 
-        if (!dict.readIfPresent("outputName", outputName_))
+        if (!dict.readIfPresent("resultName", resultName_))
         {
-            outputName_ = typeName;
+            resultName_ = name_;
             if (UName_ != "U")
             {
-                outputName_ = outputName_ + "(" + UName_ + ")";
+                resultName_ = resultName_ + "(" + UName_ + ")";
             }
         }
     }
@@ -132,7 +134,7 @@ void Foam::vorticity::execute()
         volVectorField& vorticity =
             const_cast<volVectorField&>
             (
-                obr_.lookupObject<volVectorField>(outputName_)
+                obr_.lookupObject<volVectorField>(resultName_)
             );
 
         vorticity = fvc::curl(U);
@@ -160,9 +162,10 @@ void Foam::vorticity::write()
     if (active_)
     {
         const volVectorField& vorticity =
-            obr_.lookupObject<volVectorField>(outputName_);
+            obr_.lookupObject<volVectorField>(resultName_);
 
-        Info<< type() << " " << name_ << " output:" << nl
+        Info(log_)
+            << type() << " " << name_ << " output:" << nl
             << "    writing field " << vorticity.name() << nl
             << endl;
 

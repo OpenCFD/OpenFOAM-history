@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -92,6 +92,7 @@ Description
         minDiameter  | minimum region equivalent diameter | no  | 0
         setFormat    | writing format          | yes         |
         coordinateSystem | transformation for vector fields | no         |
+        log          | Log to standard output  | no          | yes
     \endtable
 
 SeeAlso
@@ -113,6 +114,7 @@ SourceFiles
 #include "volFieldsFwd.H"
 #include "wordReList.H"
 #include "coordinateSystem.H"
+#include "Switch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -149,6 +151,9 @@ class regionSizeDistribution
 
         //- Patches to walk from
         wordReList patchNames_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
         //- Clip value
         scalar threshold_;

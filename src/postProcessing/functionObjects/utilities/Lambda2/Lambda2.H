@@ -34,7 +34,7 @@ Description
 
     Example of function object specification to calculate Lambda2:
     \verbatim
-    Lambda21
+    Lambda2_1
     {
         type        Lambda2;
         functionObjectLibs ("libutilityFunctionObjects.so");
@@ -45,9 +45,10 @@ Description
     \heading Function object usage
     \table
         Property     | Description             | Required    | Default value
-        type         | type name: Lambda2      | yes         |
+        type         | Type name: Lambda2      | yes         |
         UName        | Name of velocity field  | no          | U
-        resultName   | Name of Lambda2 field   | no          | Lambda2
+        resultName   | Name of Lambda2 field   | no          | <function name>
+        log          | Log to standard output  | no          | yes
     \endtable
 
 SourceFiles
@@ -97,6 +98,9 @@ class Lambda2
 
         //- Result name
         word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions
