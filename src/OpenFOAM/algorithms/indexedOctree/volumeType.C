@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,7 +32,7 @@ namespace Foam
     template<>
     const char* Foam::NamedEnum
     <
-        Foam::volumeType,
+        Foam::volumeType::type,
         4
     >::names[] =
     {
@@ -43,7 +43,7 @@ namespace Foam
     };
 }
 
-const Foam::NamedEnum<Foam::volumeType, 4> Foam::volumeType::names;
+const Foam::NamedEnum<Foam::volumeType::type, 4> Foam::volumeType::names;
 
 
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
