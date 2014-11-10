@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -124,6 +124,12 @@ public:
             const objectRegistry& parent() const
             {
                 return parent_;
+            }
+
+            //- Return the object registry
+            virtual const objectRegistry& thisDb() const
+            {
+                return *this;
             }
 
             //- Local directory path of this objectRegistry relative to the time
