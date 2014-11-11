@@ -5,4 +5,6 @@ cd ${0%/*} || exit 1    # run from this directory
 
 mkdir build
 
+export VTKDIR="$WM_THIRD_PARTY_DIR/build/linux64Clang/VTK-6.1.0"
+
 (cd build && cmake .. && make)
