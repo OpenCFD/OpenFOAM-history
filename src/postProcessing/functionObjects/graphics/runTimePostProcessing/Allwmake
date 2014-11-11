@@ -5,6 +5,21 @@ cd ${0%/*} || exit 1    # run from this directory
 
 mkdir build
 
-export VTKDIR="$WM_THIRD_PARTY_DIR/build/linux64Clang/VTK-6.1.0"
+if [ -d "$VTK_DIR" ];
+then
+    ln -s CMakeLists-VTK.txt CMakeLists.txt
+    (cd build && cmake .. && make)
+elif [ -d "$ParaView_DIR" ];
+then
+    ln -s CMakeLists-ParaView.txt CMakeLists.txt
+    (cd build && cmake .. && make)
+else
+    echo "ERROR: Build of $PWD requires a valid VTK installation which"
+    echo "       can be supplied by ParView by VTK:"
+    echo "       - ParaView : export the ParaView_DIR environment variable"
+    echo "       - VTK      : export the VTK_DIR variable"
+fi
 
-(cd build && cmake .. && make)
+# export VTK_DIR="$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER/VTK-6.1.0"
+
+# ----------------------------------------------------------------- end-of-file
