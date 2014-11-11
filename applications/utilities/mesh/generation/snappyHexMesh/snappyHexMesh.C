@@ -57,6 +57,7 @@ Description
 #include "MeshedSurface.H"
 #include "globalIndex.H"
 #include "IOmanip.H"
+#include "decompositionModel.H"
 
 using namespace Foam;
 
@@ -815,45 +816,12 @@ int main(int argc, char *argv[])
 
 
     // Read decomposePar dictionary
-    dictionary decomposeDict;
+    fileName decompDictFile;
+    if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
     {
-        if (Pstream::parRun())
+        if (isDir(decompDictFile))
         {
-            fileName decompDictFile;
-            if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
-            {
-                if (isDir(decompDictFile))
-                {
-                    decompDictFile = decompDictFile / "decomposeParDict";
-                }
-            }
-
-            decomposeDict = IOdictionary
-            (
-                (
-                    decompDictFile.size()
-                  ? IOobject
-                    (
-                        decompDictFile,
-                        mesh,
-                        IOobject::MUST_READ_IF_MODIFIED,
-                        IOobject::NO_WRITE
-                    )
-                 :  IOobject
-                    (
-                        "decomposeParDict",
-                        runTime.system(),
-                        mesh,
-                        IOobject::MUST_READ_IF_MODIFIED,
-                        IOobject::NO_WRITE
-                    )
-                )
-            );
-        }
-        else
-        {
-            decomposeDict.add("method", "none");
-            decomposeDict.add("numberOfSubdomains", 1);
+            decompDictFile = decompDictFile/"decomposeParDict";
         }
     }
 
@@ -1423,15 +1391,20 @@ int main(int argc, char *argv[])
     // Parallel
     // ~~~~~~~~
 
-    // Decomposition
-    autoPtr<decompositionMethod> decomposerPtr
+    dictionary decomposeDict;
+    if (!Pstream::parRun())
+    {
+        decomposeDict.add("method", "none");
+        decomposeDict.add("numberOfSubdomains", 1);
+    }
+
+    decompositionMethod& decomposer = decompositionModel::New
     (
-        decompositionMethod::New
-        (
-            decomposeDict
-        )
-    );
-    decompositionMethod& decomposer = decomposerPtr();
+        mesh,
+        decomposeDict,
+        decompDictFile
+    ).decomposer();
+
 
     if (Pstream::parRun() && !decomposer.parallelAware())
     {

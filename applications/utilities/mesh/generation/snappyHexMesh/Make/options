@@ -8,6 +8,7 @@ EXE_INC = \
     -I$(LIB_SRC)/surfMesh/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
     -I$(LIB_SRC)/edgeMesh/lnInclude \
+    -I$(LIB_SRC)/parallel/decompose/decompose/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude
 
 EXE_LIBS = \
@@ -20,4 +21,5 @@ EXE_LIBS = \
     -lsurfMesh \
     -lfileFormats \
     -ldynamicMesh \
+    -ldecompose \
     -lautoMesh
