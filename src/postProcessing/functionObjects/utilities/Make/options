@@ -11,7 +11,8 @@ EXE_INC = \
     -I$(LIB_SRC)/turbulenceModels/incompressible/RAS/derivedFvPatchFields/wallFunctions/nutWallFunctions \
     -I$(LIB_SRC)/transportModels/compressible/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
-    -I$(LIB_SRC)/turbulenceModels/LES/LESdeltas/lnInclude
+    -I$(LIB_SRC)/turbulenceModels/LES/LESdeltas/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude
 
 LIB_LIBS = \
     -lfiniteVolume \
@@ -25,4 +26,5 @@ LIB_LIBS = \
     -lincompressibleRASModels \
     -lcompressibleLESModels \
     -lincompressibleLESModels \
-    -lfluidThermophysicalModels
+    -lfluidThermophysicalModels \
+    -lsurfMesh
