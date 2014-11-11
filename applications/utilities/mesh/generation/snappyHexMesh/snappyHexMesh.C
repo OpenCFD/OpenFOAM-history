@@ -816,12 +816,39 @@ int main(int argc, char *argv[])
 
 
     // Read decomposePar dictionary
-    fileName decompDictFile;
-    if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
+    dictionary decomposeDict;
     {
-        if (isDir(decompDictFile))
+        if (Pstream::parRun())
         {
-            decompDictFile = decompDictFile/"decomposeParDict";
+            fileName decompDictFile;
+            if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
+            {
+                if (isDir(decompDictFile))
+                {
+                    decompDictFile = decompDictFile/"decomposeParDict";
+                }
+            }
+
+            decomposeDict = IOdictionary
+            (
+                decompositionModel::selectIO
+                (
+                    IOobject
+                    (
+                        "decomposeParDict",
+                        runTime.system(),
+                        mesh,
+                        IOobject::MUST_READ_IF_MODIFIED,
+                        IOobject::NO_WRITE
+                    ),
+                    decompDictFile
+                )
+            );
+        }
+        else
+        {
+            decomposeDict.add("method", "none");
+            decomposeDict.add("numberOfSubdomains", 1);
         }
     }
 
@@ -1391,20 +1418,16 @@ int main(int argc, char *argv[])
     // Parallel
     // ~~~~~~~~
 
-    dictionary decomposeDict;
-    if (!Pstream::parRun())
-    {
-        decomposeDict.add("method", "none");
-        decomposeDict.add("numberOfSubdomains", 1);
-    }
-
-    decompositionMethod& decomposer = decompositionModel::New
+    // Construct decomposition engine. Note: cannot use decompositionModel
+    // MeshObject since we're clearing out the mesh inside the mesh generation.
+    autoPtr<decompositionMethod> decomposerPtr
     (
-        mesh,
-        decomposeDict,
-        decompDictFile
-    ).decomposer();
-
+        decompositionMethod::New
+        (
+            decomposeDict
+        )
+    );
+    decompositionMethod& decomposer = decomposerPtr();
 
     if (Pstream::parRun() && !decomposer.parallelAware())
     {
