@@ -239,7 +239,8 @@ public:
             const objectRegistry& registry,
             readOption r=NO_READ,
             writeOption w=NO_WRITE,
-            bool registerObject=true
+            bool registerObject=true,
+            bool globalObject = false
         );
 
         //- Construct from copy resetting registry
