@@ -54,7 +54,7 @@ Foam::decompositionModel::decompositionModel
         (
             IOobject
             (
-                typeName,
+                "decomposeParDict",
                 mesh.time().system(),
                 mesh.local(),
                 mesh.db(),
@@ -88,7 +88,7 @@ Foam::decompositionModel::decompositionModel
         (
             IOobject
             (
-                typeName,
+                "decomposeParDict",
                 mesh.time().system(),
                 mesh.local(),
                 mesh.db(),
@@ -150,7 +150,7 @@ Foam::IOobject Foam::decompositionModel::selectIO
     return
     (
         f.size()
-      ? IOobject
+      ? IOobject        // construct from filePath instead
         (
             f,
             io.db(),
