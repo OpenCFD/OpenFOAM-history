@@ -39,6 +39,8 @@ namespace Foam
 defineTypeNameAndDebug(triSurfaceMesh, 0);
 addToRunTimeSelectionTable(searchableSurface, triSurfaceMesh, dict);
 
+word triSurfaceMesh::meshSubDir = "triSurface";
+
 }
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
