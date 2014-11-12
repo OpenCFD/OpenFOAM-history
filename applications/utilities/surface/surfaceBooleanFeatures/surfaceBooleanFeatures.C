@@ -725,12 +725,12 @@ labelPair edgeIntersectionsAndShuffleCGAL
     edgeIntersections& edgeCuts1
 )
 {
-    Info<< "Constructing CGAL surface ..." << endl;
+    //Info<< "Constructing CGAL surface ..." << endl;
     Polyhedron p;
     PolyhedronReader(surf2, p);
 
 
-    Info<< "Constructing CGAL tree ..." << endl;
+    //Info<< "Constructing CGAL tree ..." << endl;
     const Tree tree(p.facets_begin(), p.facets_end(), p);
 
 
