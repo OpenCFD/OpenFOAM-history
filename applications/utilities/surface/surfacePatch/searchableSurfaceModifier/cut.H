@@ -38,6 +38,8 @@ SourceFiles
 
 #include "searchableSurfaceModifier.H"
 #include "wordReList.H"
+#include "faceList.H"
+#include "pointField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -66,13 +68,12 @@ class cut
 
    // Private Member Functions
 
+        //- Triangulate faces around 0th vertex
+        void triangulate(const faceList&, pointField&, triSurface&) const;
+
         //- Triangulate searchableSurface (currently only supported for
         //  searchableBox and triSurfaceMesh)
-        Foam::triSurface& triangulate
-        (
-            const searchableSurface&,
-            triSurface&
-        ) const;
+        triSurface& triangulate(const searchableSurface&, triSurface&) const;
 
         //- Intersect surfaces. Perturb to avoid degenerates.
         bool intersectSurfaces

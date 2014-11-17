@@ -28,6 +28,7 @@ License
 #include "searchableSurfaces.H"
 #include "triSurfaceMesh.H"
 #include "searchableBox.H"
+#include "searchableRotatedBox.H"
 #include "surfaceIntersection.H"
 #include "intersectedSurface.H"
 #include "edgeIntersections.H"
@@ -43,8 +44,45 @@ namespace searchableSurfaceModifiers
 }
 }
 
-
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::searchableSurfaceModifiers::cut::triangulate
+(
+    const faceList& fcs,
+    pointField& pts,
+    triSurface& cutSurf
+) const
+{
+    label nTris = 0;
+    forAll(fcs, i)
+    {
+        nTris += fcs[i].size()-2;
+    }
+
+    DynamicList<labelledTri> tris(nTris);
+
+    forAll(fcs, i)
+    {
+        const face& f = fcs[i];
+        // Triangulate around vertex 0
+        for (label fp = 1; fp < f.size()-1; fp++)
+        {
+            tris.append(labelledTri(f[0], f[fp], f[f.fcIndex(fp)], i));
+        }
+    }
+    geometricSurfacePatchList patches(fcs.size());
+    forAll(patches, patchI)
+    {
+        patches[patchI] = geometricSurfacePatch
+        (
+            "",
+            "patch" + Foam::name(patchI),
+            patchI
+        );
+    }
+    cutSurf = triSurface(tris.xfer(), patches, pts.xfer());
+}
+
 
 Foam::triSurface& Foam::searchableSurfaceModifiers::cut::triangulate
 (
@@ -57,26 +95,18 @@ Foam::triSurface& Foam::searchableSurfaceModifiers::cut::triangulate
         const searchableBox& bb = refCast<const searchableBox>(cutter);
 
         pointField pts(bb.points());
-        List<labelledTri> boxTris(12);
-        const faceList& fcs = bb.faces;
-        forAll(fcs, i)
-        {
-            const face& f = fcs[i];
-            // Triangulate around vertex 0
-            boxTris[i*2] = labelledTri(f[0], f[1], f[2], i);
-            boxTris[i*2+1] = labelledTri(f[2], f[3], f[0], i);
-        }
-        geometricSurfacePatchList patches(6);
-        forAll(patches, patchI)
-        {
-            patches[patchI] = geometricSurfacePatch
-            (
-                "",
-                "patch" + Foam::name(patchI),
-                patchI
-            );
-        }
-        cutSurf = triSurface(boxTris.xfer(), patches, pts.xfer());
+        triangulate(treeBoundBox::faces, pts, cutSurf);
+
+        return cutSurf;
+    }
+    else if (isA<searchableRotatedBox>(cutter))
+    {
+        const searchableRotatedBox& bb =
+            refCast<const searchableRotatedBox>(cutter);
+
+        pointField pts(bb.points());
+        triangulate(treeBoundBox::faces, pts, cutSurf);
+
         return cutSurf;
     }
     else if (isA<triSurfaceMesh>(cutter))
