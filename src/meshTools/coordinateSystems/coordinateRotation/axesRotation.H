@@ -110,10 +110,13 @@ public:
         //- Construct from dictionary and mesh
         axesRotation(const dictionary&, const objectRegistry&);
 
+        //- Construct as copy
+        axesRotation(const axesRotation&);
+
         //- Return clone
-        autoPtr<axesRotation> clone() const
+        autoPtr<coordinateRotation> clone() const
         {
-            return autoPtr<axesRotation>(new axesRotation(*this));
+            return autoPtr<coordinateRotation>(new axesRotation(*this));
         }
 
 
@@ -183,7 +186,7 @@ public:
         virtual vector invTransform(const vector& st) const;
 
         //- Transform tensor field using transformation tensorField
-        virtual tmp<tensorField> transformTensor(const tensorField& st) const;
+        virtual tmp<tensorField> transformTensor(const tensorField&) const;
 
         //- Transform tensor using transformation tensorField
         virtual tensor transformTensor(const tensor& st) const;

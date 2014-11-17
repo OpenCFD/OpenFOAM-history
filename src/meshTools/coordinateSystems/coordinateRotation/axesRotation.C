@@ -57,8 +57,15 @@ void Foam::axesRotation::calcTransform
 
     if (mag(b) < SMALL)
     {
-        FatalErrorIn("axesRotation::calcTransform()")
-            << "axis1, axis2 appear co-linear: "
+        FatalErrorIn
+        (
+            "axesRotation::calcTransform"
+            "("
+                "const vector&,"
+                "const vector&,"
+                "const axisOrder&"
+            ")"
+        )   << "axis1, axis2 appear co-linear: "
             << axis1 << ", " << axis2 << endl
             << abort(FatalError);
     }
@@ -94,8 +101,7 @@ void Foam::axesRotation::calcTransform
                     "const vector&,"
                     "const axisOrder&"
                 ")"
-            )
-                << "Unhandled axes specifictation" << endl
+            )   << "Unhandled axes specifictation" << endl
                 << abort(FatalError);
 
             Rtr = tensor::zero;
@@ -161,6 +167,13 @@ Foam::axesRotation::axesRotation(const tensor& R)
 :
     R_(R),
     Rtr_(R_.T())
+{}
+
+
+Foam::axesRotation::axesRotation(const axesRotation& r)
+:
+    R_(r.R_),
+    Rtr_(r.Rtr_)
 {}
 
 
@@ -271,6 +284,14 @@ Foam::symmTensor Foam::axesRotation::transformVector
 }
 
 
+void Foam::axesRotation::write(Ostream& os) const
+{
+     os.writeKeyword("e1") << e1() << token::END_STATEMENT << nl;
+     os.writeKeyword("e2") << e2() << token::END_STATEMENT << nl;
+     os.writeKeyword("e3") << e3() << token::END_STATEMENT << nl;
+}
+
+
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
 void Foam::axesRotation::operator=(const dictionary& dict)
@@ -298,13 +319,13 @@ void Foam::axesRotation::operator=(const dictionary& dict)
     }
     else if (dict.found("axis") || dict.found("direction"))
     {
-        // let it bomb if only one of axis/direction is defined
         order = e3e1;
         dict.lookup("axis") >> axis1;
         dict.lookup("direction") >> axis2;
     }
     else
     {
+        // let it bomb if only one of axis/direction is defined
         FatalErrorIn
         (
             "axesRotation::operator=(const dictionary&) "
@@ -314,14 +335,6 @@ void Foam::axesRotation::operator=(const dictionary& dict)
     }
 
     calcTransform(axis1, axis2, order);
-}
-
-
-void Foam::axesRotation::write(Ostream& os) const
-{
-     os.writeKeyword("e1") << e1() << token::END_STATEMENT << nl;
-     os.writeKeyword("e2") << e2() << token::END_STATEMENT << nl;
-     os.writeKeyword("e3") << e3() << token::END_STATEMENT << nl;
 }
 
 
