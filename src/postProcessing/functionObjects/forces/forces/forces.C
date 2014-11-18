@@ -737,7 +737,7 @@ Foam::forces::forces
         if (readFields)
         {
             read(dict);
-            Info<< endl;
+            Info(log_)<< endl;
         }
     }
 }

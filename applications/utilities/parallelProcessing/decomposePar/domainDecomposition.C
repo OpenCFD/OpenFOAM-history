@@ -37,7 +37,7 @@ License
 #include "cellSet.H"
 #include "faceSet.H"
 #include "pointSet.H"
-
+#include "decompositionModel.H"
 #include "hexRef8Data.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -70,7 +70,11 @@ void Foam::domainDecomposition::mark
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 // from components
-Foam::domainDecomposition::domainDecomposition(const IOobject& io)
+Foam::domainDecomposition::domainDecomposition
+(
+    const IOobject& io,
+    const fileName& decompDictFile
+)
 :
     fvMesh(io),
     facesInstancePointsPtr_
@@ -91,18 +95,18 @@ Foam::domainDecomposition::domainDecomposition(const IOobject& io)
         )
       : NULL
     ),
-    decompositionDict_
+    decompDictFile_(decompDictFile),
+    nProcs_
     (
-        IOobject
+        readInt
         (
-            "decomposeParDict",
-            time().system(),
-            *this,
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
+            decompositionModel::New
+            (
+                *this,
+                decompDictFile
+            ).lookup("numberOfSubdomains")
         )
     ),
-    nProcs_(readInt(decompositionDict_.lookup("numberOfSubdomains"))),
     distributed_(false),
     cellToProc_(nCells()),
     procPointAddressing_(nProcs_),
@@ -116,7 +120,11 @@ Foam::domainDecomposition::domainDecomposition(const IOobject& io)
     procProcessorPatchSubPatchIDs_(nProcs_),
     procProcessorPatchSubPatchStarts_(nProcs_)
 {
-    decompositionDict_.readIfPresent("distributed", distributed_);
+    decompositionModel::New
+    (
+        *this,
+        decompDictFile
+    ).readIfPresent("distributed", distributed_);
 }
 
 

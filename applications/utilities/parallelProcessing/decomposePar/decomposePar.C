@@ -96,6 +96,7 @@ Usage
 #include "fvFieldDecomposer.H"
 #include "pointFieldDecomposer.H"
 #include "lagrangianFieldDecomposer.H"
+#include "decompositionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -141,6 +142,12 @@ int main(int argc, char *argv[])
     );
 
     argList::noParallel();
+    Foam::argList::addOption
+    (
+        "decomposeParDict",
+        "file",
+        "read decomposePar dictionary from specified location"
+    );
     #include "addRegionOption.H"
     argList::addBoolOption
     (
@@ -196,6 +203,17 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     // Allow override of time
     instantList times = timeSelector::selectIfPresent(runTime, args);
+
+
+    // Allow override of decomposeParDict location
+    fileName decompDictFile;
+    if (args.optionReadIfPresent("decomposeParDict", decompDictFile))
+    {
+        if (isDir(decompDictFile))
+        {
+            decompDictFile = decompDictFile/"decomposeParDict";
+        }
+    }
 
 
     wordList regionNames;
@@ -259,21 +277,26 @@ int main(int argc, char *argv[])
             ++nProcs;
         }
 
-        // get requested numberOfSubdomains
+        // get requested numberOfSubdomains. Note: have no mesh yet so
+        // cannot use decompositionModel::New
         const label nDomains = readLabel
         (
             IOdictionary
             (
-                IOobject
+                decompositionModel::selectIO
                 (
-                    "decomposeParDict",
-                    runTime.time().system(),
-                    regionDir,          // use region if non-standard
-                    runTime,
-                    IOobject::MUST_READ_IF_MODIFIED,
-                    IOobject::NO_WRITE,
-                    false
+                    IOobject
+                    (
+                        "decomposeParDict",
+                        runTime.time().system(),
+                        regionDir,          // use region if non-standard
+                        runTime,
+                        IOobject::MUST_READ_IF_MODIFIED,
+                        IOobject::NO_WRITE
+                    ),
+                    decompDictFile
                 )
+
             ).lookup("numberOfSubdomains")
         );
 
@@ -287,8 +310,7 @@ int main(int argc, char *argv[])
                     << nProcs << " domains"
                     << nl
                     << "instead of " << nDomains
-                    << " domains as specified in decomposeParDict"
-                    << nl
+                    << " domains as specified in decomposeParDict" << nl
                     << exit(FatalError);
             }
         }
@@ -350,7 +372,8 @@ int main(int argc, char *argv[])
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 false
-            )
+            ),
+            decompDictFile
         );
 
         // Decompose the mesh

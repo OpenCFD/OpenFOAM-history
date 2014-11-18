@@ -61,8 +61,8 @@ class domainDecomposition
         //- Optional: points at the facesInstance
         autoPtr<pointIOField> facesInstancePointsPtr_;
 
-        //- Mesh decomposition control dictionary
-        IOdictionary decompositionDict_;
+        //- Optional non-standard file for decomposeParDict
+        const fileName decompDictFile_;
 
         //- Number of processors in decomposition
         label nProcs_;
@@ -159,8 +159,13 @@ public:
 
     // Constructors
 
-        //- Construct from IOobject
-        domainDecomposition(const IOobject& io);
+        //- Construct from IOobjects (for mesh and optional non-standard
+        //  decomposeParDict location)
+        domainDecomposition
+        (
+            const IOobject& io,
+            const fileName& decompDictFile = ""
+        );
 
 
     //- Destructor

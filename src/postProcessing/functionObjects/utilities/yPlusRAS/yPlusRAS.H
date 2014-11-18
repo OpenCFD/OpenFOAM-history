@@ -28,8 +28,28 @@ Group
     grpUtilitiesFunctionObjects
 
 Description
-    Evaluates and outputs turbulence y+ for RAS models.  Values written to
-    time directories as field 'yPlusRAS'
+    This function object evaluates and outputs turbulence y+ for RAS models.
+    The field is stored on the mesh database so that it can be retrieved and
+    used for other applications.
+
+    Example of function object specification to calculate the y+ (RAS):
+    \verbatim
+    yPlusRAS1
+    {
+        type        yPlusRAS;
+        functionObjectLibs ("libutilityFunctionObjects.so");
+        ...
+    }
+    \endverbatim
+
+    \heading Function object usage
+    \table
+        Property     | Description             | Required    | Default value
+        type         | Type name: yPlusRAS     | yes         |
+        phiName      | Name of flux field      | no          | phi
+        resultName   | Name of y+ field        | no          | <function name>
+        log          | Log to standard output  | no          | yes
+    \endtable
 
 SourceFiles
     yPlusRAS.C
@@ -75,11 +95,14 @@ class yPlusRAS
         //- on/off switch
         bool active_;
 
-        //- Switch to send output to Info as well as to file
-        Switch log_;
-
         //- Name of mass/volume flux field (optional, default = phi)
         word phiName_;
+
+        //- Result name
+        word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions

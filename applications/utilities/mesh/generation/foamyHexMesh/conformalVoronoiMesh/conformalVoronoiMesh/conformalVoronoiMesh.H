@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -874,7 +874,8 @@ public:
         conformalVoronoiMesh
         (
             const Time& runTime,
-            const dictionary& foamyHexMeshDict
+            const dictionary& foamyHexMeshDict,
+            const fileName& decompDictFile = ""
         );
 
 

@@ -251,9 +251,6 @@ protected:
         //- Start index of fields that require application of flipMap
         label orientedFieldsStart_;
 
-        //- Scale factor - optional
-        scalar scaleFactor_;
-
         //- Global number of faces
         label nFaces_;
 

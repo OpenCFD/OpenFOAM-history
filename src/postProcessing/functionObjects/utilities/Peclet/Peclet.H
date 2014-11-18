@@ -47,7 +47,8 @@ Description
         type         | type name: Peclet       | yes         |
         phiName      | Name of flux field      | no          | phi
         rhoName      | Name of density field   | no          | rho
-        resultName   | Name of Peclet field    | no          | Peclet
+        resultName   | Name of Peclet field    | no          | <function name>
+        log          | Log to standard output  | no          | yes
     \endtable
 
 SourceFiles
@@ -100,6 +101,9 @@ class Peclet
 
         //- Result name
         word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions

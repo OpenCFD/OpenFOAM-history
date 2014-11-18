@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -127,12 +127,6 @@ class backgroundMeshDecomposition
         //  a point that is not found on any processor is in the domain at all
         treeBoundBox globalBackgroundBounds_;
 
-        //- Decomposition dictionary
-        IOdictionary decomposeDict_;
-
-        //- Decomposition method
-        autoPtr<decompositionMethod> decomposerPtr_;
-
         //- merge distance required by fvMeshDistribute
         scalar mergeDist_;
 
@@ -204,7 +198,8 @@ public:
             const Time& runTime,
             Random& rndGen,
             const conformationSurfaces& geometryToConformTo,
-            const dictionary& coeffsDict
+            const dictionary& coeffsDict,
+            const fileName& decompDictFile = ""
         );
 
 
@@ -324,8 +319,6 @@ public:
             //- Return the point level of the underlying mesh
             inline const labelList& pointLevel() const;
 
-            //- Return the current decomposition method
-            inline const decompositionMethod& decomposer() const;
 };
 
 

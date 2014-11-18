@@ -25,7 +25,7 @@ Class
     Foam::runTimeControl
 
 Group
-    grpUtilitiesFunctionObjects
+    grpJobControlFunctionObjects
 
 Description
     This function object controls when the calculation is terminated based on

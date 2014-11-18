@@ -163,12 +163,18 @@ Foam::localAxesRotation::localAxesRotation(const dictionary& dict)
 
 Foam::localAxesRotation::localAxesRotation(const tensorField& R)
 :
-    Rptr_(),
+    Rptr_(new tensorField(R)),
     origin_(vector::zero),
     e3_(vector::zero)
-{
-    Rptr_() = R;
-}
+{}
+
+
+Foam::localAxesRotation::localAxesRotation(const localAxesRotation& r)
+:
+    Rptr_(r.Rptr_, false),  // clone
+    origin_(r.origin_),
+    e3_(r.e3_)
+{}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //

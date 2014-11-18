@@ -99,6 +99,7 @@ Description
         UInf         | Freestream velocity for coefficient calculation | no |
         rhoInf       | Freestream density for coefficient calculation | no |
         resultName   | Name of derived pressure field | no   | auto generated
+        log          | log to standard output  | no          | yes
     \endtable
 
 SourceFiles
@@ -112,6 +113,7 @@ SourceFiles
 
 #include "volFieldsFwd.H"
 #include "dimensionedScalar.H"
+#include "Switch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -150,6 +152,12 @@ class pressureTools
         //- Name of density field, default is "rho"
         word rhoName_;
 
+        //- Result name
+        word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
+
 
         // Total pressure calculation
 
@@ -176,9 +184,6 @@ class pressureTools
 
             //- Flag to show whether rhoInf has been initialised
             bool rhoInfInitialised_;
-
-            //- Result name
-            word resultName_;
 
 
     // Private Member Functions

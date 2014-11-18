@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "STARCDCoordinateRotation.H"
-
 #include "mathematicalConstants.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -47,125 +46,6 @@ namespace Foam
     );
 }
 
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-Foam::vector Foam::STARCDCoordinateRotation::transform(const vector& st) const
-{
-    return (R_ & st);
-}
-
-
-Foam::vector Foam::STARCDCoordinateRotation::invTransform
-(
-    const vector& st
-) const
-{
-    return (Rtr_ & st);
-}
-
-
-Foam::tmp<Foam::vectorField> Foam::STARCDCoordinateRotation::transform
-(
-    const vectorField& st
-) const
-{
-    notImplemented
-    (
-        "tmp<vectorField> Foam::STARCDCoordinateRotation:: "
-        "transform(const vectorField& st) const"
-    );
-    return tmp<vectorField>(NULL);
-}
-
-
-Foam::tmp<Foam::vectorField> Foam::STARCDCoordinateRotation::invTransform
-(
-    const vectorField& st
-) const
-{
-    notImplemented
-    (
-        "tmp<vectorField>  Foam::STARCDCoordinateRotation::"
-        "invTransform(const vectorField& st) const"
-    );
-    return tmp<vectorField>(NULL);
-}
-
-
-const Foam::tensorField& Foam::STARCDCoordinateRotation::Tr() const
-{
-    notImplemented
-    (
-        "const tensorField& STARCDCoordinateRotatio::Tr() const"
-    );
-     return *reinterpret_cast<const tensorField*>(0);
-}
-
-
-Foam::tmp<Foam::tensorField> Foam::STARCDCoordinateRotation::transformTensor
-(
-    const tensorField& st
-) const
-{
-     notImplemented
-    (
-        "tmp<Foam::tensorField> STARCDCoordinateRotation::transformTensor()"
-    );
-    return tmp<tensorField>(NULL);
-}
-
-
-Foam::tensor Foam::STARCDCoordinateRotation::transformTensor
-(
-    const tensor& st
-) const
-{
-    return (R_ & st & Rtr_);
-}
-
-
-Foam::tmp<Foam::tensorField> Foam::STARCDCoordinateRotation::transformTensor
-(
-    const tensorField& st,
-    const labelList& cellMap
-) const
-{
-    notImplemented
-    (
-        "tmp<Foam::tensorField> STARCDCoordinateRotation::transformTensor "
-        " const tensorField& st,"
-        " const labelList& cellMap "
-        ") const"
-    );
-    return tmp<tensorField>(NULL);
-}
-
-
-Foam::tmp<Foam::symmTensorField> Foam::STARCDCoordinateRotation::
-transformVector
-(
-    const vectorField& st
-) const
-{
-    tmp<symmTensorField> tfld(new symmTensorField(st.size()));
-    symmTensorField& fld = tfld();
-
-    forAll(fld, i)
-    {
-        fld[i] = transformPrincipal(R_, st[i]);
-    }
-    return tfld;
-}
-
-
-Foam::symmTensor Foam::STARCDCoordinateRotation::transformVector
-(
-    const vector& st
-) const
-{
-    return transformPrincipal(R_, st);
-}
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -291,11 +171,142 @@ Foam::STARCDCoordinateRotation::STARCDCoordinateRotation
 }
 
 
+Foam::STARCDCoordinateRotation::STARCDCoordinateRotation
+(
+    const STARCDCoordinateRotation& r
+)
+:
+    R_(r.R_),
+    Rtr_(r.Rtr_)
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::vector Foam::STARCDCoordinateRotation::transform(const vector& st) const
+{
+    return (R_ & st);
+}
+
+
+Foam::vector Foam::STARCDCoordinateRotation::invTransform
+(
+    const vector& st
+) const
+{
+    return (Rtr_ & st);
+}
+
+
+Foam::tmp<Foam::vectorField> Foam::STARCDCoordinateRotation::transform
+(
+    const vectorField& st
+) const
+{
+    notImplemented
+    (
+        "tmp<vectorField> Foam::STARCDCoordinateRotation:: "
+        "transform(const vectorField& st) const"
+    );
+    return tmp<vectorField>(NULL);
+}
+
+
+Foam::tmp<Foam::vectorField> Foam::STARCDCoordinateRotation::invTransform
+(
+    const vectorField& st
+) const
+{
+    notImplemented
+    (
+        "tmp<vectorField>  Foam::STARCDCoordinateRotation::"
+        "invTransform(const vectorField& st) const"
+    );
+    return tmp<vectorField>(NULL);
+}
+
+
+const Foam::tensorField& Foam::STARCDCoordinateRotation::Tr() const
+{
+    notImplemented
+    (
+        "const tensorField& STARCDCoordinateRotatio::Tr() const"
+    );
+     return *reinterpret_cast<const tensorField*>(0);
+}
+
+
+Foam::tmp<Foam::tensorField> Foam::STARCDCoordinateRotation::transformTensor
+(
+    const tensorField& st
+) const
+{
+     notImplemented
+    (
+        "tmp<Foam::tensorField> STARCDCoordinateRotation::transformTensor()"
+    );
+    return tmp<tensorField>(NULL);
+}
+
+
+Foam::tensor Foam::STARCDCoordinateRotation::transformTensor
+(
+    const tensor& st
+) const
+{
+    return (R_ & st & Rtr_);
+}
+
+
+Foam::tmp<Foam::tensorField> Foam::STARCDCoordinateRotation::transformTensor
+(
+    const tensorField& st,
+    const labelList& cellMap
+) const
+{
+    notImplemented
+    (
+        "tmp<Foam::tensorField> STARCDCoordinateRotation::transformTensor "
+        " const tensorField& st,"
+        " const labelList& cellMap "
+        ") const"
+    );
+    return tmp<tensorField>(NULL);
+}
+
+
+Foam::tmp<Foam::symmTensorField> Foam::STARCDCoordinateRotation::
+transformVector
+(
+    const vectorField& st
+) const
+{
+    tmp<symmTensorField> tfld(new symmTensorField(st.size()));
+    symmTensorField& fld = tfld();
+
+    forAll(fld, i)
+    {
+        fld[i] = transformPrincipal(R_, st[i]);
+    }
+    return tfld;
+}
+
+
+Foam::symmTensor Foam::STARCDCoordinateRotation::transformVector
+(
+    const vector& st
+) const
+{
+    return transformPrincipal(R_, st);
+}
+
+
 void Foam::STARCDCoordinateRotation::write(Ostream& os) const
 {
      os.writeKeyword("e1") << e1() << token::END_STATEMENT << nl;
      os.writeKeyword("e2") << e2() << token::END_STATEMENT << nl;
      os.writeKeyword("e3") << e3() << token::END_STATEMENT << nl;
 }
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -45,10 +45,11 @@ Description
     \heading Function object usage
     \table
         Property     | Description             | Required    | Default value
-        type         | type name: CourantNo    | yes         |
+        type         | Type name: CourantNo    | yes         |
         rhoName      | Name of density field   | no          | rho
         phiName      | Name of flux field      | no          | phi
-        resultName   | Name of Courant number field | no          | CourantNo
+        resultName   | Name of Courant number field | no     | <function name>
+        log          | Log to standard output  | no          | yes
     \endtable
 
 
@@ -102,6 +103,9 @@ class CourantNo
 
         //- Result name
         word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions

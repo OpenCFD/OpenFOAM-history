@@ -83,7 +83,8 @@ void Foam::wallShearStress::calcShearStress
                 << endl;
         }
 
-        Info(log_)<< "    min/max(" << pp.name() << ") = "
+        Info(log_)
+            << "    min/max(" << pp.name() << ") = "
             << minSsp << ", " << maxSsp << endl;
     }
 }
@@ -103,6 +104,7 @@ Foam::wallShearStress::wallShearStress
     name_(name),
     obr_(obr),
     active_(true),
+    resultName_(name),
     log_(true),
     patchSet_()
 {
@@ -123,6 +125,8 @@ Foam::wallShearStress::wallShearStress
             << endl;
     }
 
+    read(dict);
+
     if (active_)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
@@ -133,7 +137,7 @@ Foam::wallShearStress::wallShearStress
             (
                 IOobject
                 (
-                    type(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -151,8 +155,6 @@ Foam::wallShearStress::wallShearStress
 
         mesh.objectRegistry::store(wallShearStressPtr);
     }
-
-    read(dict);
 }
 
 
@@ -170,7 +172,8 @@ void Foam::wallShearStress::read(const dictionary& dict)
     {
         functionObjectFile::read(dict);
 
-        log_ = dict.lookupOrDefault<Switch>("log", true);
+        log_.readIfPresent("log", dict);
+        dict.readIfPresent("resultName", resultName_);
 
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
         const polyBoundaryMesh& pbm = mesh.boundaryMesh();
@@ -181,7 +184,7 @@ void Foam::wallShearStress::read(const dictionary& dict)
                 wordReList(dict.lookupOrDefault("patches", wordReList()))
             );
 
-        Info<< type() << " " << name_ << ":" << nl;
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
         if (patchSet_.empty())
         {
@@ -193,11 +196,11 @@ void Foam::wallShearStress::read(const dictionary& dict)
                 }
             }
 
-            Info<< "    processing all wall patches" << nl << endl;
+            Info(log_)<< "    processing all wall patches" << nl << endl;
         }
         else
         {
-            Info<< "    processing wall patches: " << nl;
+            Info(log_)<< "    processing wall patches: " << nl;
             labelHashSet filteredPatchSet;
             forAllConstIter(labelHashSet, patchSet_, iter)
             {
@@ -205,7 +208,7 @@ void Foam::wallShearStress::read(const dictionary& dict)
                 if (isA<wallPolyPatch>(pbm[patchI]))
                 {
                     filteredPatchSet.insert(patchI);
-                    Info<< "        " << pbm[patchI].name() << endl;
+                    Info(log_)<< "        " << pbm[patchI].name() << endl;
                 }
                 else
                 {
@@ -215,7 +218,7 @@ void Foam::wallShearStress::read(const dictionary& dict)
                 }
             }
 
-            Info<< endl;
+            Info(log_)<< endl;
 
             patchSet_ = filteredPatchSet;
         }
@@ -237,7 +240,7 @@ void Foam::wallShearStress::execute()
         volVectorField& wallShearStress =
             const_cast<volVectorField&>
             (
-                mesh.lookupObject<volVectorField>(type())
+                mesh.lookupObject<volVectorField>(resultName_)
             );
 
         Info(log_)<< type() << " " << name_ << " output:" << nl;
@@ -266,6 +269,8 @@ void Foam::wallShearStress::execute()
         }
 
         calcShearStress(mesh, Reff(), wallShearStress);
+
+        Info(log_)<< endl;
     }
 }
 
@@ -292,9 +297,10 @@ void Foam::wallShearStress::write()
         functionObjectFile::write();
 
         const volVectorField& wallShearStress =
-            obr_.lookupObject<volVectorField>(type());
+            obr_.lookupObject<volVectorField>(resultName_);
 
-        Info(log_)<< type() << " " << name_ << " output:" << nl
+        Info(log_)
+            << type() << " " << name_ << " output:" << nl
             << "    writing field " << wallShearStress.name() << nl
             << endl;
 

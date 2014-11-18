@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -47,8 +47,15 @@ void Foam::nearWallFields::createFields
 
             if (obr_.found(sampleFldName))
             {
-                Info<< "    a field " << sampleFldName
-                    << " already exists on the mesh."
+                WarningIn
+                (
+                    "void Foam::nearWallFields::createFields"
+                    "("
+                        "PtrList<GeometricField<Type, fvPatchField, volMesh> >&"
+                    ") const"
+                )
+                    << "    a field named " << sampleFldName
+                    << " already exists on the mesh"
                     << endl;
             }
             else
@@ -63,7 +70,8 @@ void Foam::nearWallFields::createFields
 
                 sflds.set(sz, new vfType(io, fld));
 
-                Info<< "    created " << sflds[sz].name() << " to sample "
+                Info(log_)
+                    << "    created " << sflds[sz].name() << " to sample "
                     << fld.name() << endl;
             }
         }

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -48,7 +48,8 @@ Foam::writeRegisteredObject::writeRegisteredObject
     name_(name),
     exclusiveWriting_(false),
     obr_(obr),
-    objectNames_()
+    objectNames_(),
+    log_(true)
 {
     read(dict);
 }
@@ -64,6 +65,8 @@ Foam::writeRegisteredObject::~writeRegisteredObject()
 
 void Foam::writeRegisteredObject::read(const dictionary& dict)
 {
+    log_.readIfPresent("log", dict);
+
     dict.lookup("objectNames") >> objectNames_;
     dict.readIfPresent("exclusiveWriting", exclusiveWriting_);
 }
@@ -89,7 +92,7 @@ void Foam::writeRegisteredObject::timeSet()
 
 void Foam::writeRegisteredObject::write()
 {
-    Info<< type() << " " << name_ << " output:" << nl;
+    Info(log_)<< type() << " " << name_ << " output:" << nl;
 
     DynamicList<word> allNames(obr_.toc().size());
     forAll(objectNames_, i)
@@ -123,7 +126,7 @@ void Foam::writeRegisteredObject::write()
             obj.writeOpt() = IOobject::NO_WRITE;
         }
 
-        Info<< "    writing object " << obj.name() << nl << endl;
+        Info(log_)<< "    writing object " << obj.name() << nl << endl;
 
         obj.write();
     }

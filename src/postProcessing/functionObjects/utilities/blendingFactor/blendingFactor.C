@@ -47,8 +47,9 @@ Foam::blendingFactor::blendingFactor
     name_(name),
     obr_(obr),
     active_(true),
-    phiName_("unknown-phiName"),
-    fieldName_("unknown-fieldName")
+    phiName_("phi"),
+    fieldName_("unknown-fieldName"),
+    log_(true)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -83,7 +84,9 @@ void Foam::blendingFactor::read(const dictionary& dict)
 {
     if (active_)
     {
-        phiName_ = dict.lookupOrDefault<word>("phiName", "phi");
+        log_.readIfPresent("log", dict);
+
+        dict.readIfPresent("phiName", phiName_);
         dict.lookup("fieldName") >> fieldName_;
     }
 }
@@ -122,7 +125,8 @@ void Foam::blendingFactor::write()
         const volScalarField& blendingFactor =
             obr_.lookupObject<volScalarField>(fieldName);
 
-        Info<< type() << " " << name_ << " output:" << nl
+        Info(log_)
+            << type() << " " << name_ << " output:" << nl
             << "    writing field " << blendingFactor.name() << nl
             << endl;
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,8 +30,26 @@ Group
 Description
     This function object calculates and outputs the blendingFactor as used by
     the bended convection schemes.  The output is a volume field (cells) whose
-    value is calculated via the maximum blending factor for any cell face.
+    value is set to the maximum blending factor for any cell face.
 
+    Example of function object specification to calculate the blending factor:
+    \verbatim
+    blendingFactor1
+    {
+        type        blendingFactor;
+        functionObjectLibs ("libutilityFunctionObjects.so");
+        ...
+    }
+    \endverbatim
+
+    \heading Function object usage
+    \table
+        Property     | Description             | Required    | Default value
+        type         | Type name: blendingFactor | yes       |
+        fieldName    | Name of field to evaluate | yes       |
+        phiName      | Name of flux field      | no          | phi
+        log          | Log to standard output  | no          | yes
+    \endtable
 
 SourceFiles
     blendingFactor.C
@@ -80,6 +98,9 @@ class blendingFactor
 
         //- Field name
         word fieldName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions

@@ -232,7 +232,12 @@ Foam::nearWallFields::nearWallFields
     name_(name),
     obr_(obr),
     active_(true),
-    fieldSet_()
+    fieldSet_(),
+    log_(true),
+    patchSet_(),
+    distance_(0),
+    fieldMap_(),
+    reverseFieldMap_()
 {
     // Check if the available mesh is an fvMesh otherise deactivate
     if (isA<fvMesh>(obr_))
@@ -285,7 +290,7 @@ void Foam::nearWallFields::read(const dictionary& dict)
         dict.lookup("fields") >> fieldSet_;
         patchSet_ =
             mesh.boundaryMesh().patchSet(wordReList(dict.lookup("patches")));
-        distance_ = readScalar(dict.lookup("distance"));
+        dict.lookup("distance") >> distance_;
 
 
         // Clear out any previously loaded fields
@@ -312,7 +317,8 @@ void Foam::nearWallFields::read(const dictionary& dict)
             reverseFieldMap_.insert(sampleFldName, fldName);
         }
 
-        Info<< type() << " " << name_ << ": Sampling " << fieldMap_.size()
+        Info(log_)
+            << type() << " " << name_ << ": Sampling " << fieldMap_.size()
             << " fields" << endl;
 
         // Do analysis
@@ -341,7 +347,8 @@ void Foam::nearWallFields::execute()
          && vtf_.empty()
         )
         {
-            Info<< type() << " " << name_ << ": Creating " << fieldMap_.size()
+            Info(log_)
+                << type() << " " << name_ << ": Creating " << fieldMap_.size()
                 << " fields" << endl;
 
             createFields(vsf_);
@@ -350,12 +357,13 @@ void Foam::nearWallFields::execute()
             createFields(vSymmtf_);
             createFields(vtf_);
 
-            Info<< endl;
+            Info(log_)<< endl;
         }
 
-        Info<< type() << " " << name_ << " output:" << nl;
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
-        Info<< "    Sampling fields to " << obr_.time().timeName()
+        Info(log_)
+            << "    Sampling fields to " << obr_.time().timeName()
             << endl;
 
         sampleFields(vsf_);
@@ -396,7 +404,8 @@ void Foam::nearWallFields::write()
 
     if (active_)
     {
-        Info<< "    Writing sampled fields to " << obr_.time().timeName()
+        Info(log_)
+            << "    Writing sampled fields to " << obr_.time().timeName()
             << endl;
 
         forAll(vsf_, i)
@@ -420,7 +429,7 @@ void Foam::nearWallFields::write()
             vtf_[i].write();
         }
 
-        Info<< endl;
+        Info(log_)<< endl;
     }
 }
 

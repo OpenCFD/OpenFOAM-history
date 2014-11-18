@@ -65,7 +65,8 @@ Foam::DESModelRegions::DESModelRegions
     name_(name),
     obr_(obr),
     active_(true),
-    log_(false)
+    resultName_(name),
+    log_(true)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -84,6 +85,8 @@ Foam::DESModelRegions::DESModelRegions
             << endl;
     }
 
+    read(dict);
+
     if (active_)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
@@ -94,7 +97,7 @@ Foam::DESModelRegions::DESModelRegions
             (
                 IOobject
                 (
-                    type(),
+                    resultName_,
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
@@ -107,8 +110,6 @@ Foam::DESModelRegions::DESModelRegions
 
         mesh.objectRegistry::store(DESModelRegionsPtr);
     }
-
-    read(dict);
 }
 
 
@@ -126,7 +127,8 @@ void Foam::DESModelRegions::read(const dictionary& dict)
     {
         functionObjectFile::read(dict);
 
-        log_ = dict.lookupOrDefault<Switch>("log", false);
+        log_.readIfPresent("log", dict);
+        dict.readIfPresent("resultName", resultName_);
     }
 }
 
@@ -150,7 +152,7 @@ void Foam::DESModelRegions::execute()
         volScalarField& DESModelRegions =
             const_cast<volScalarField&>
             (
-                mesh.lookupObject<volScalarField>(type())
+                mesh.lookupObject<volScalarField>(resultName_)
             );
 
 
@@ -226,13 +228,13 @@ void Foam::DESModelRegions::timeSet()
 
 void Foam::DESModelRegions::write()
 {
-    if (log_)
+    if (active_)
     {
         const volScalarField& DESModelRegions =
-            obr_.lookupObject<volScalarField>(type());
+            obr_.lookupObject<volScalarField>(resultName_);
 
-
-        Info<< type() << " " << name_ <<  " output:" << nl
+        Info(log_)
+            << type() << " " << name_ <<  " output:" << nl
             << "    writing field " << DESModelRegions.name() << nl
             << endl;
 

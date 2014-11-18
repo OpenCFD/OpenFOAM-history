@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -46,126 +46,6 @@ namespace Foam
         objectRegistry
     );
 }
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-Foam::vector Foam::EulerCoordinateRotation::transform(const vector& st) const
-{
-    return (R_ & st);
-}
-
-
-Foam::vector Foam::EulerCoordinateRotation::invTransform
-(
-    const vector& st
-) const
-{
-    return (Rtr_ & st);
-}
-
-
-Foam::tmp<Foam::vectorField> Foam::EulerCoordinateRotation::transform
-(
-    const vectorField& st
-) const
-{
-    notImplemented
-    (
-        "tmp<vectorField> Foam::EulerCoordinateRotation:: "
-        "transform(const vectorField& st) const"
-    );
-    return tmp<vectorField>(NULL);
-}
-
-
-Foam::tmp<Foam::vectorField> Foam::EulerCoordinateRotation::invTransform
-(
-    const vectorField& st
-) const
-{
-    notImplemented
-    (
-        "tmp<vectorField>  Foam::EulerCoordinateRotation::"
-        "invTransform(const vectorField& st) const"
-    );
-    return tmp<vectorField>(NULL);
-}
-
-
-const Foam::tensorField& Foam::EulerCoordinateRotation::Tr() const
-{
-    notImplemented
-    (
-        "const tensorField& EulerCoordinateRotation::Tr() const"
-    );
-    return *reinterpret_cast<const tensorField*>(0);
-}
-
-
-Foam::tmp<Foam::tensorField> Foam::EulerCoordinateRotation::transformTensor
-(
-    const tensorField& st
-) const
-{
-     notImplemented
-    (
-        "const tensorField& EulerCoordinateRotation::transformTensor() const"
-    );
-    return tmp<tensorField>(NULL);
-}
-
-
-Foam::tensor Foam::EulerCoordinateRotation::transformTensor
-(
-    const tensor& st
-) const
-{
-    return (R_ & st & Rtr_);
-}
-
-
-Foam::tmp<Foam::tensorField> Foam::EulerCoordinateRotation::transformTensor
-(
-    const tensorField& st,
-    const labelList& cellMap
-) const
-{
-    notImplemented
-    (
-        "tmp<Foam::tensorField> EulerCoordinateRotation::transformTensor "
-        " const tensorField& st,"
-        " const labelList& cellMap "
-        ") const"
-    );
-    return tmp<tensorField>(NULL);
-}
-
-
-Foam::tmp<Foam::symmTensorField> Foam::EulerCoordinateRotation::
-transformVector
-(
-    const vectorField& st
-) const
-{
-    tmp<symmTensorField> tfld(new symmTensorField(st.size()));
-    symmTensorField& fld = tfld();
-
-    forAll(fld, i)
-    {
-        fld[i] = transformPrincipal(R_, st[i]);
-    }
-    return tfld;
-}
-
-
-Foam::symmTensor Foam::EulerCoordinateRotation::transformVector
-(
-    const vector& st
-) const
-{
-    return transformPrincipal(R_, st);
-}
-
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -291,6 +171,136 @@ Foam::EulerCoordinateRotation::EulerCoordinateRotation
         rotation.component(vector::Z),
         dict.lookupOrDefault("degrees", true)
     );
+}
+
+
+Foam::EulerCoordinateRotation::EulerCoordinateRotation
+(
+    const EulerCoordinateRotation& r
+)
+:
+    R_(r.R_),
+    Rtr_(r.Rtr_)
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::vector Foam::EulerCoordinateRotation::transform(const vector& st) const
+{
+    return (R_ & st);
+}
+
+
+Foam::vector Foam::EulerCoordinateRotation::invTransform
+(
+    const vector& st
+) const
+{
+    return (Rtr_ & st);
+}
+
+
+Foam::tmp<Foam::vectorField> Foam::EulerCoordinateRotation::transform
+(
+    const vectorField& st
+) const
+{
+    notImplemented
+    (
+        "tmp<vectorField> Foam::EulerCoordinateRotation:: "
+        "transform(const vectorField& st) const"
+    );
+    return tmp<vectorField>(NULL);
+}
+
+
+Foam::tmp<Foam::vectorField> Foam::EulerCoordinateRotation::invTransform
+(
+    const vectorField& st
+) const
+{
+    notImplemented
+    (
+        "tmp<vectorField>  Foam::EulerCoordinateRotation::"
+        "invTransform(const vectorField& st) const"
+    );
+    return tmp<vectorField>(NULL);
+}
+
+
+const Foam::tensorField& Foam::EulerCoordinateRotation::Tr() const
+{
+    notImplemented
+    (
+        "const tensorField& EulerCoordinateRotation::Tr() const"
+    );
+    return *reinterpret_cast<const tensorField*>(0);
+}
+
+
+Foam::tmp<Foam::tensorField> Foam::EulerCoordinateRotation::transformTensor
+(
+    const tensorField& st
+) const
+{
+     notImplemented
+    (
+        "const tensorField& EulerCoordinateRotation::transformTensor() const"
+    );
+    return tmp<tensorField>(NULL);
+}
+
+
+Foam::tensor Foam::EulerCoordinateRotation::transformTensor
+(
+    const tensor& st
+) const
+{
+    return (R_ & st & Rtr_);
+}
+
+
+Foam::tmp<Foam::tensorField> Foam::EulerCoordinateRotation::transformTensor
+(
+    const tensorField& st,
+    const labelList& cellMap
+) const
+{
+    notImplemented
+    (
+        "tmp<Foam::tensorField> EulerCoordinateRotation::transformTensor "
+        " const tensorField& st,"
+        " const labelList& cellMap "
+        ") const"
+    );
+    return tmp<tensorField>(NULL);
+}
+
+
+Foam::tmp<Foam::symmTensorField> Foam::EulerCoordinateRotation::
+transformVector
+(
+    const vectorField& st
+) const
+{
+    tmp<symmTensorField> tfld(new symmTensorField(st.size()));
+    symmTensorField& fld = tfld();
+
+    forAll(fld, i)
+    {
+        fld[i] = transformPrincipal(R_, st[i]);
+    }
+    return tfld;
+}
+
+
+Foam::symmTensor Foam::EulerCoordinateRotation::transformVector
+(
+    const vector& st
+) const
+{
+    return transformPrincipal(R_, st);
 }
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,7 +68,7 @@ namespace Foam
 {
 
 class surfaceFeatures;
-class objectRegistry;
+class searchableSurface;
 
 // Forward declaration of friend functions and operators
 class extendedEdgeMesh;
@@ -206,6 +206,19 @@ protected:
         //  data for edges and normals.
         pointStatus classifyFeaturePoint(label ptI) const;
 
+        //- Cut edges with surface. Return map from cut points&edges back
+        //  to original
+        void cut(const searchableSurface&, labelList& pMap, labelList& eMap);
+
+        //- Remove outside/inside edges. volType denotes which side to keep
+        void select
+        (
+            const searchableSurface& surf,
+            const volumeType volType,
+            labelList& pMap,
+            labelList& eMap
+        );
+
         template<class Patch>
         void sortPointsAndEdges
         (
@@ -262,9 +275,8 @@ public:
             const Xfer<edgeList>&
         );
 
-        //- Construct given a surface with selected edges,point
-        //  (surfaceFeatures), an objectRegistry and a
-        //  fileName to write to.
+        //- Construct given a surface with selected edges,points
+        //  (surfaceFeatures)
         //  Extracts, classifies and reorders the data from surfaceFeatures.
         extendedEdgeMesh
         (
@@ -500,6 +512,24 @@ public:
             //- Flip normals. All concave become convex, all internal external
             //  etc.
             void flipNormals();
+
+            //- Update with derived geometry
+            void autoMap
+            (
+                const pointField&,
+                const edgeList&,
+                const labelList& pointMap,
+                const labelList& edgeMap
+            );
+
+            //- Trim to surface. Keep volType side.
+            void trim
+            (
+                const searchableSurface& surf,
+                const volumeType volType,
+                labelList& pointMap,
+                labelList& edgeMap
+            );
 
 
         // Read

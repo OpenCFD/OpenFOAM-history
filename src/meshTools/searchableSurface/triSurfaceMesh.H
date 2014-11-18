@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -136,6 +136,9 @@ public:
 
     //- Runtime type information
     TypeName("triSurfaceMesh");
+
+    //- Return the mesh sub-directory name (usually "triSurface")
+    static word meshSubDir;
 
 
     // Constructors

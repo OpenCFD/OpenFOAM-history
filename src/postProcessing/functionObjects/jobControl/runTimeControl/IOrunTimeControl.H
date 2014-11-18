@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,22 +21,29 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Typedef
+    Foam::IOrunTimeControl
+
+Description
+    Instance of the generic IOOutputFilter for runTimeControl.
+
 \*---------------------------------------------------------------------------*/
 
-#include "runTimeControlFunctionObject.H"
+#ifndef IOrunTimeControl_H
+#define IOrunTimeControl_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "runTimeControl.H"
+#include "IOOutputFilter.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineNamedTemplateTypeNameAndDebug(runTimeControlFunctionObject, 0);
-
-    addToRunTimeSelectionTable
-    (
-        functionObject,
-        runTimeControlFunctionObject,
-        dictionary
-    );
+    typedef IOOutputFilter<runTimeControl> IOrunTimeControl;
 }
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

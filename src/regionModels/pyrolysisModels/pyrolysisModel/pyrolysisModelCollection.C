@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -53,7 +53,6 @@ namespace pyrolysisModels
 pyrolysisModelCollection::pyrolysisModelCollection(const fvMesh& mesh)
 :
     PtrList<pyrolysisModel>()
-
 {
     IOdictionary pyrolysisZonesDict
     (
@@ -148,7 +147,7 @@ void pyrolysisModelCollection::evolve()
 }
 
 
-void pyrolysisModelCollection::info() const
+void pyrolysisModelCollection::info()
 {
     forAll(*this, i)
     {
@@ -162,12 +161,9 @@ scalar pyrolysisModelCollection::maxDiff() const
     scalar maxDiff = 0.0;
     forAll(*this, i)
     {
-        if (maxDiff < this->operator[](i).maxDiff())
-        {
-            maxDiff = this->operator[](i).maxDiff();
-        }
-
+        maxDiff = max(maxDiff, this->operator[](i).maxDiff());
     }
+
     return maxDiff;
 }
 
@@ -175,16 +171,9 @@ scalar pyrolysisModelCollection::maxDiff() const
 scalar pyrolysisModelCollection::solidRegionDiffNo() const
 {
     scalar totalDiNum = GREAT;
-
     forAll(*this, i)
     {
-        if
-        (
-            totalDiNum > this->operator[](i).solidRegionDiffNo()
-        )
-        {
-            totalDiNum = this->operator[](i).solidRegionDiffNo();
-        }
+        totalDiNum = min(totalDiNum, this->operator[](i).solidRegionDiffNo());
     }
 
     return totalDiNum;

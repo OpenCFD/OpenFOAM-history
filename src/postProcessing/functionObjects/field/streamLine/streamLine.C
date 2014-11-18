@@ -128,7 +128,7 @@ void Foam::streamLine::track()
 
     label nSeeds = returnReduce(particles.size(), sumOp<label>());
 
-    Info << "    seeded " << nSeeds << " particles" << endl;
+    Info(log_)<< "    seeded " << nSeeds << " particles" << endl;
 
     // Read or lookup fields
     PtrList<volScalarField> vsFlds;
@@ -334,28 +334,13 @@ Foam::streamLine::streamLine
     dict_(dict),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
-    active_(true),
+    log_(true),
     nSubCycle_(0)
 {
-    // Only active if a fvMesh is available
-    if (isA<fvMesh>(obr_))
+    // Check if the available mesh is an fvMesh otherise deactivate
+    if (setActive<fvMesh>())
     {
         read(dict_);
-    }
-    else
-    {
-        active_ = false;
-        WarningIn
-        (
-            "streamLine::streamLine\n"
-            "(\n"
-                "const word&,\n"
-                "const objectRegistry&,\n"
-                "const dictionary&,\n"
-                "const bool\n"
-            ")"
-        )   << "No fvMesh available, deactivating."
-            << nl << endl;
     }
 }
 
@@ -372,7 +357,9 @@ void Foam::streamLine::read(const dictionary& dict)
 {
     if (active_)
     {
-        Info<< type() << " " << name_ << ":" << nl;
+        log_.readIfPresent("log", dict);
+
+        Info(log_)<< type() << " " << name_ << ":" << nl;
 
         //dict_ = dict;
         dict.lookup("fields") >> fields_;
@@ -433,14 +420,16 @@ void Foam::streamLine::read(const dictionary& dict)
             {
                 nSubCycle_ = 1;
             }
-            Info<< "    automatic track length specified through"
+            Info(log_)
+                << "    automatic track length specified through"
                 << " number of sub cycles : " << nSubCycle_ << nl << endl;
         }
         else
         {
             dict.lookup("trackLength") >> trackLength_;
 
-            Info<< "    fixed track length specified : "
+            Info(log_)
+                << "    fixed track length specified : "
                 << trackLength_ << nl << endl;
         }
 
@@ -451,7 +440,7 @@ void Foam::streamLine::read(const dictionary& dict)
             interpolationCellPoint<scalar>::typeName
         );
 
-        //Info<< "    using interpolation " << interpolationScheme_
+        //Info(log_)<< "    using interpolation " << interpolationScheme_
         //    << endl;
 
         cloudName_ = dict.lookupOrDefault<word>("cloudName", "streamLine");
@@ -525,7 +514,7 @@ void Foam::streamLine::write()
 {
     if (active_)
     {
-        Info<< type() << " " << name_ << " output:" << nl;
+        Info(log_)<< type() << " " << name_ << " output:" << nl;
 
         const Time& runTime = obr_.time();
         const fvMesh& mesh = dynamic_cast<const fvMesh&>(obr_);
@@ -640,7 +629,8 @@ void Foam::streamLine::write()
             n += allTracks_[trackI].size();
         }
 
-        Info<< "    Tracks:" << allTracks_.size() << nl
+        Info(log_)
+            << "    Tracks:" << allTracks_.size() << nl
             << "    Total samples:" << n
             << endl;
 
@@ -712,7 +702,7 @@ void Foam::streamLine::write()
                     )
                 );
 
-                Info<< "    Writing data to " << vtkFile.path() << endl;
+                Info(log_)<< "    Writing data to " << vtkFile.path() << endl;
 
                 scalarFormatterPtr_().write
                 (
@@ -761,7 +751,7 @@ void Foam::streamLine::write()
                     )
                 );
 
-                //Info<< "    Writing vector data to " << vtkFile << endl;
+                //Info(log_)<< "    Writing vector data to " << vtkFile << endl;
 
                 vectorFormatterPtr_().write
                 (
