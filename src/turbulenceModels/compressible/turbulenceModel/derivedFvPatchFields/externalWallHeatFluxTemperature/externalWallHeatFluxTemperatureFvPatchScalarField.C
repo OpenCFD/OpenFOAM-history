@@ -39,8 +39,8 @@ const char*
 NamedEnum
 <externalWallHeatFluxTemperatureFvPatchScalarField::operationMode, 3>::names[]=
 {
-    "fixed_heat_flux",
-    "fixed_heat_transfer_coefficient",
+    "fixedHeatFlux",
+    "fixedHeatTransferCoefficient",
     "unknown"
 };
 
@@ -65,7 +65,7 @@ externalWallHeatFluxTemperatureFvPatchScalarField
 :
     mixedFvPatchScalarField(p, iF),
     temperatureCoupledBase(patch(), "fluidThermo", "undefined", "undefined-K"),
-    mode_(unknown),
+    mode_(omUnknown),
     q_(p.size(), 0.0),
     h_(p.size(), 0.0),
     Ta_(p.size(), 0.0),
@@ -110,7 +110,7 @@ externalWallHeatFluxTemperatureFvPatchScalarField
 :
     mixedFvPatchScalarField(p, iF),
     temperatureCoupledBase(patch(), dict),
-    mode_(unknown),
+    mode_(omUnknown),
     q_(p.size(), 0.0),
     h_(p.size(), 0.0),
     Ta_(p.size(), 0.0),
@@ -120,18 +120,38 @@ externalWallHeatFluxTemperatureFvPatchScalarField
 {
     if (dict.found("q") && !dict.found("h") && !dict.found("Ta"))
     {
-        mode_ = fixedHeatFlux;
+        mode_ = omFixedHeatFlux;
         q_ = scalarField("q", dict, p.size());
     }
     else if (dict.found("h") && dict.found("Ta") && !dict.found("q"))
     {
-        mode_ = fixedHeatTransferCoeff;
+        mode_ = omFixedHeatTransferCoeff;
         h_ = scalarField("h", dict, p.size());
         Ta_ = scalarField("Ta", dict, p.size());
-        if (dict.found("thicknessLayers"))
+
+        if (dict.readIfPresent("thicknessLayers", thicknessLayers_))
         {
-            dict.lookup("thicknessLayers") >> thicknessLayers_;
             dict.lookup("kappaLayers") >> kappaLayers_;
+
+            if (thicknessLayers_.size() != kappaLayers_.size())
+            {
+                FatalIOErrorIn
+                (
+                    "externalWallHeatFluxTemperatureFvPatchScalarField::"
+                    "externalWallHeatFluxTemperatureFvPatchScalarField\n"
+                    "(\n"
+                    "    const fvPatch&,\n"
+                    "    const DimensionedField<scalar, volMesh>&,\n"
+                    "    const dictionary&\n"
+                    ")\n",
+                    dict
+                )   << "\n number of layers for thicknessLayers and "
+                    << "kappaLayers must be the same"
+                    << "\n for patch " << p.name()
+                    << " of field " << dimensionedInternalField().name()
+                    << " in file " << dimensionedInternalField().objectPath()
+                    << exit(FatalIOError);
+            }
         }
     }
     else
@@ -141,9 +161,9 @@ externalWallHeatFluxTemperatureFvPatchScalarField
             "externalWallHeatFluxTemperatureFvPatchScalarField::"
             "externalWallHeatFluxTemperatureFvPatchScalarField\n"
             "(\n"
-            "    const fvPatch& p,\n"
-            "    const DimensionedField<scalar, volMesh>& iF,\n"
-            "    const dictionary& dict\n"
+            "    const fvPatch&,\n"
+            "    const DimensionedField<scalar, volMesh>&,\n"
+            "    const dictionary&\n"
             ")\n"
         )   << "\n patch type '" << p.type()
             << "' either q or h and Ta were not found '"
@@ -248,7 +268,6 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
     }
 
     const scalarField Tp(*this);
-    scalarField hp(patch().size(), 0.0);
 
     scalarField Qr(Tp.size(), 0.0);
     if (QrName_ != "none")
@@ -258,25 +277,27 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
 
     switch (mode_)
     {
-        case fixedHeatFlux:
+        case omFixedHeatFlux:
         {
+            refGrad() =  (q_ + Qr)/kappa(Tp);
+            refValue() =  0.0;
+            valueFraction() = 0.0;
+
             break;
         }
-        case fixedHeatTransferCoeff:
+        case omFixedHeatTransferCoeff:
         {
-            scalar totalSolidRes = 0.0;
-            if (thicknessLayers_.size() > 0)
-            {
-                forAll (thicknessLayers_, iLayer)
-                {
-                    const scalar l = thicknessLayers_[iLayer];
-                    if (kappaLayers_[iLayer] > 0.0)
-                    {
-                        totalSolidRes += l/kappaLayers_[iLayer];
-                    }
-                }
-            }
-            hp = 1.0/(1.0/h_ + totalSolidRes);
+            scalar totalSolidRes =
+                sum(thicknessLayers_/(kappaLayers_ + ROOTVSMALL));
+
+            const scalarField hp(scalar(1)/(scalar(1)/h_ + totalSolidRes));
+            Qr /= Tp;
+
+            refGrad() = 0.0;
+            refValue() = hp*Ta_/(hp - Qr);
+            valueFraction() =
+                (hp - Qr)/((hp - Qr) + kappa(Tp)*patch().deltaCoeffs());
+
             break;
         }
         default:
@@ -290,21 +311,6 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
         }
     }
 
-    if (mode_ == fixedHeatFlux)
-    {
-        refGrad() =  (q_ + Qr)/kappa(Tp);
-        refValue() =  0.0;
-        valueFraction() = 0.0;
-    }
-    else if (mode_ == fixedHeatTransferCoeff)
-    {
-        Qr /= Tp;
-        refGrad() =  0.0;
-        refValue() =  hp*Ta_/(hp - Qr);
-        valueFraction() =
-            (hp - Qr)/((hp - Qr) + kappa(Tp)*patch().deltaCoeffs());
-    }
-
     mixedFvPatchScalarField::updateCoeffs();
 
     if (debug)
@@ -315,7 +321,7 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
             << patch().name() << ':'
             << this->dimensionedInternalField().name() << " :"
             << " heat transfer rate:" << Q
-            << " walltemperature "
+            << " wall temperature "
             << " min:" << gMin(*this)
             << " max:" << gMax(*this)
             << " avg:" << gAverage(*this)
@@ -335,12 +341,12 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::write
     os.writeKeyword("Qr")<< QrName_ << token::END_STATEMENT << nl;
     switch (mode_)
     {
-        case fixedHeatFlux:
+        case omFixedHeatFlux:
         {
             q_.writeEntry("q", os);
             break;
         }
-        case fixedHeatTransferCoeff:
+        case omFixedHeatTransferCoeff:
         {
             h_.writeEntry("h", os);
             Ta_.writeEntry("Ta", os);
@@ -354,7 +360,7 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::write
             (
                 "void externalWallHeatFluxTemperatureFvPatchScalarField::write"
                 "("
-                    "Ostream& os"
+                    "Ostream&s"
                 ") const"
             )   << "Illegal heat flux mode " << operationModeNames[mode_]
                 << abort(FatalError);

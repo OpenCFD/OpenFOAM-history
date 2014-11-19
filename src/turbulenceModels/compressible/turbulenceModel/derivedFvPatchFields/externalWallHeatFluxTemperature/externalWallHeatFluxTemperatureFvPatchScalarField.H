@@ -116,9 +116,9 @@ public:
         //- Operation mode enumeration
         enum operationMode
         {
-            fixedHeatFlux,
-            fixedHeatTransferCoeff,
-            unknown
+            omFixedHeatFlux,
+            omFixedHeatTransferCoeff,
+            omUnknown
         };
         static const NamedEnum<operationMode, 3> operationModeNames;
 

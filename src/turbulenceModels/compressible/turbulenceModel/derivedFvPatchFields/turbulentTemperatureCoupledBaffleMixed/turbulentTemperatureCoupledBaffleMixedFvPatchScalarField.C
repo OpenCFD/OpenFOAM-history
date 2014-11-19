@@ -98,9 +98,9 @@ turbulentTemperatureCoupledBaffleMixedFvPatchScalarField
             "turbulentTemperatureCoupledBaffleMixedFvPatchScalarField::"
             "turbulentTemperatureCoupledBaffleMixedFvPatchScalarField\n"
             "(\n"
-            "    const fvPatch& p,\n"
-            "    const DimensionedField<scalar, volMesh>& iF,\n"
-            "    const dictionary& dict\n"
+            "    const fvPatch&,\n"
+            "    const DimensionedField<scalar, volMesh>&,\n"
+            "    const dictionary&\n"
             ")\n"
         )   << "\n    patch type '" << p.type()
             << "' not type '" << mappedPatchBase::typeName << "'"
@@ -110,22 +110,33 @@ turbulentTemperatureCoupledBaffleMixedFvPatchScalarField
             << exit(FatalError);
     }
 
-    if (dict.found("thicknessLayers"))
+    if (dict.readIfPresent("thicknessLayers", thicknessLayers_))
     {
-        dict.lookup("thicknessLayers") >> thicknessLayers_;
         dict.lookup("kappaLayers") >> kappaLayers_;
 
-        if (thicknessLayers_.size() > 0)
+        if (thicknessLayers_.size() != kappaLayers_.size())
         {
-            forAll (thicknessLayers_, iLayer)
-            {
-                const scalar l = thicknessLayers_[iLayer];
-                if (l > 0.0)
-                {
-                    contactRes_ += kappaLayers_[iLayer]/l;
-                }
-            }
+            FatalIOErrorIn
+            (
+                "turbulentTemperatureRadCoupledMixedFvPatchScalarField::"
+                "turbulentTemperatureRadCoupledMixedFvPatchScalarField\n"
+                "(\n"
+                "    const fvPatch&,\n"
+                "    const DimensionedField<scalar, volMesh>&,\n"
+                "    const dictionary&\n"
+                ")\n",
+                dict
+            )   << "\n number of layers for thicknessLayers and "
+                << "kappaLayers must be the same"
+                << "\n for patch " << p.name()
+                << " of field " << dimensionedInternalField().name()
+                << " in file " << dimensionedInternalField().objectPath()
+                << exit(FatalIOError);
         }
+
+        contactRes_ =
+            scalar(1)
+           /(sum(thicknessLayers_/(kappaLayers_ + ROOTVSMALL)) + ROOTVSMALL);
     }
 
     fvPatchScalarField::operator=(scalarField("value", dict, p.size()));
@@ -204,24 +215,24 @@ void turbulentTemperatureCoupledBaffleMixedFvPatchScalarField::updateCoeffs()
     );
 
     // Swap to obtain full local values of neighbour internal field
-    tmp<scalarField> nbrIntFld(new scalarField(nbrField.size(), 0.0));
-    tmp<scalarField> nbrKDelta(new scalarField(nbrField.size(), 0.0));
+    scalarField nbrIntFld;
+    scalarField nbrKDelta;
 
-    if (contactRes_ == 0.0)
+    if (thicknessLayers_.size())
     {
-        nbrIntFld() = nbrField.patchInternalField();
-        nbrKDelta() = nbrField.kappa(nbrField)*nbrPatch.deltaCoeffs();
+        nbrIntFld = nbrField;
+        nbrKDelta.setSize(nbrField.size(), contactRes_);
     }
     else
     {
-        nbrIntFld() = nbrField;
-        nbrKDelta() = contactRes_;
+        nbrIntFld = nbrField.patchInternalField();
+        nbrKDelta = nbrField.kappa(nbrField)*nbrPatch.deltaCoeffs();
     }
 
-    mpp.distribute(nbrIntFld());
-    mpp.distribute(nbrKDelta());
+    mpp.distribute(nbrIntFld);
+    mpp.distribute(nbrKDelta);
 
-    tmp<scalarField> myKDelta = kappa(*this)*patch().deltaCoeffs();
+    const scalarField myKDelta(kappa(*this)*patch().deltaCoeffs());
 
 
     // Both sides agree on
@@ -240,11 +251,11 @@ void turbulentTemperatureCoupledBaffleMixedFvPatchScalarField::updateCoeffs()
     //    - mixFraction = nbrKDelta / (nbrKDelta + myKDelta())
 
 
-    this->refValue() = nbrIntFld();
+    this->refValue() = nbrIntFld;
 
     this->refGrad() = 0.0;
 
-    this->valueFraction() = nbrKDelta()/(nbrKDelta() + myKDelta());
+    this->valueFraction() = nbrKDelta/(nbrKDelta + myKDelta);
 
     mixedFvPatchScalarField::updateCoeffs();
 
@@ -277,8 +288,7 @@ void turbulentTemperatureCoupledBaffleMixedFvPatchScalarField::write
 ) const
 {
     mixedFvPatchScalarField::write(os);
-    os.writeKeyword("Tnbr")<< TnbrName_
-        << token::END_STATEMENT << nl;
+    os.writeKeyword("Tnbr")<< TnbrName_ << token::END_STATEMENT << nl;
     thicknessLayers_.writeEntry("thicknessLayers", os);
     kappaLayers_.writeEntry("kappaLayers", os);
 
