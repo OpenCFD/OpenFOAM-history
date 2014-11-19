@@ -45,7 +45,7 @@ Foam::decompositionModel::decompositionModel
     MeshObject
     <
         polyMesh,
-        UpdateableMeshObject,
+        Foam::UpdateableMeshObject,
         decompositionModel
     >(mesh),
     IOdictionary
@@ -79,7 +79,7 @@ Foam::decompositionModel::decompositionModel
     MeshObject
     <
         polyMesh,
-        UpdateableMeshObject,
+        Foam::UpdateableMeshObject,
         decompositionModel
     >(mesh),
     IOdictionary
@@ -116,7 +116,7 @@ const Foam::decompositionModel& Foam::decompositionModel::New
         MeshObject
         <
             polyMesh,
-            UpdateableMeshObject,
+            Foam::UpdateableMeshObject,
             decompositionModel
         >::New(mesh, decompDictFile);
 }
@@ -133,7 +133,7 @@ const Foam::decompositionModel& Foam::decompositionModel::New
         MeshObject
         <
             polyMesh,
-            UpdateableMeshObject,
+            Foam::UpdateableMeshObject,
             decompositionModel
         >::New(mesh, dict, decompDictFile);
 }
