@@ -68,6 +68,7 @@ Usage
 #include "loadOrCreateMesh.H"
 #include "processorFvPatchField.H"
 #include "zeroGradientFvPatchFields.H"
+#include "decompositionModel.H"
 
 #include "parFvFieldReconstructor.H"
 #include "parLagrangianRedistributor.H"
@@ -286,43 +287,19 @@ void determineDecomposition
 )
 {
     // Read decomposeParDict (on all processors)
-    IOdictionary decompositionDict
+    const decompositionModel& method = decompositionModel::New
     (
-        (
-            decompDictFile.size()
-          ? IOobject
-            (
-                decompDictFile,
-                mesh,
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE
-            )
-          : IOobject
-            (
-                "decomposeParDict",
-                mesh.time().system(),
-                mesh,
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE
-            )
-        )
+        mesh,
+        decompDictFile
     );
 
+    decompositionMethod& decomposer = method.decomposer();
 
-    // Create decompositionMethod and new decomposition
-    autoPtr<decompositionMethod> decomposer
-    (
-        decompositionMethod::New
-        (
-            decompositionDict
-        )
-    );
-
-    if (!decomposer().parallelAware())
+    if (!decomposer.parallelAware())
     {
         WarningIn("determineDecomposition(..)")
             << "You have selected decomposition method "
-            << decomposer().typeName
+            << decomposer.typeName
             << " which does" << endl
             << "not synchronise the decomposition across"
             << " processor patches." << endl
@@ -340,9 +317,9 @@ void determineDecomposition
     }
 
     scalarField cellWeights;
-    if (decompositionDict.found("weightField"))
+    if (method.found("weightField"))
     {
-        word weightName = decompositionDict.lookup("weightField");
+        word weightName = method.lookup("weightField");
 
         volScalarField weights
         (
@@ -359,8 +336,8 @@ void determineDecomposition
         cellWeights = weights.internalField();
     }
 
-    nDestProcs = decomposer().nDomains();
-    decomp = decomposer().decompose(mesh, cellWeights);
+    nDestProcs = decomposer.nDomains();
+    decomp = decomposer.decompose(mesh, cellWeights);
 
     if (Pstream::master() && decompose)
     {

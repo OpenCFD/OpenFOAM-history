@@ -67,7 +67,7 @@ class localAxesRotation
 {
     // Private data
 
-        //- AutoPtr to transformation tensor
+        //- Transformation tensor
         autoPtr<tensorField> Rptr_;
 
         //- Origin of the coordinate system
@@ -120,10 +120,13 @@ public:
         //- Construct from tensor Field
         localAxesRotation(const tensorField&);
 
+        //- Construct as copy
+        localAxesRotation(const localAxesRotation&);
+
         //- Return clone
-        autoPtr<localAxesRotation> clone() const
+        autoPtr<coordinateRotation> clone() const
         {
-            return autoPtr<localAxesRotation>(new localAxesRotation(*this));
+            return autoPtr<coordinateRotation>(new localAxesRotation(*this));
         }
 
 

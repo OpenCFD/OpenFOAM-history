@@ -815,21 +815,46 @@ Foam::distributedTriSurfaceMesh::independentlyDistributedBbs
 {
     if (!decomposer_.valid())
     {
-        // Use current decomposer.
-        // Note: or always use hierarchical?
-        IOdictionary decomposeDict
+        // Use singleton decomposeParDict. Cannot use decompositionModel
+        // here since we've only got Time and not a mesh.
+        if
         (
-            IOobject
+            searchableSurface::time().foundObject<IOdictionary>
             (
-                "decomposeParDict",
-                searchableSurface::time().system(),
-                searchableSurface::time(),
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE,
-                false
+                "decomposeParDict"
             )
-        );
-        decomposer_ = decompositionMethod::New(decomposeDict);
+        )
+        {
+            decomposer_ = decompositionMethod::New
+            (
+                searchableSurface::time().lookupObject<IOdictionary>
+                (
+                    "decomposeParDict"
+                )
+            );
+        }
+        else
+        {
+            if (!decomposeParDict_.valid())
+            {
+                decomposeParDict_.reset
+                (
+                    new IOdictionary
+                    (
+                        IOobject
+                        (
+                            "decomposeParDict",
+                            searchableSurface::time().system(),
+                            searchableSurface::time(),
+                            IOobject::MUST_READ_IF_MODIFIED,
+                            IOobject::NO_WRITE
+                        )
+                    )
+                );
+            }
+            decomposer_ = decompositionMethod::New(decomposeParDict_());
+        }
+
 
         if (!decomposer_().parallelAware())
         {

@@ -57,6 +57,7 @@ Description
 #include "MeshedSurface.H"
 #include "globalIndex.H"
 #include "IOmanip.H"
+#include "decompositionModel.H"
 
 using namespace Foam;
 
@@ -824,29 +825,23 @@ int main(int argc, char *argv[])
             {
                 if (isDir(decompDictFile))
                 {
-                    decompDictFile = decompDictFile / "decomposeParDict";
+                    decompDictFile = decompDictFile/"decomposeParDict";
                 }
             }
 
             decomposeDict = IOdictionary
             (
+                decompositionModel::selectIO
                 (
-                    decompDictFile.size()
-                  ? IOobject
-                    (
-                        decompDictFile,
-                        mesh,
-                        IOobject::MUST_READ_IF_MODIFIED,
-                        IOobject::NO_WRITE
-                    )
-                 :  IOobject
+                    IOobject
                     (
                         "decomposeParDict",
                         runTime.system(),
                         mesh,
                         IOobject::MUST_READ_IF_MODIFIED,
                         IOobject::NO_WRITE
-                    )
+                    ),
+                    decompDictFile
                 )
             );
         }
@@ -1423,7 +1418,8 @@ int main(int argc, char *argv[])
     // Parallel
     // ~~~~~~~~
 
-    // Decomposition
+    // Construct decomposition engine. Note: cannot use decompositionModel
+    // MeshObject since we're clearing out the mesh inside the mesh generation.
     autoPtr<decompositionMethod> decomposerPtr
     (
         decompositionMethod::New

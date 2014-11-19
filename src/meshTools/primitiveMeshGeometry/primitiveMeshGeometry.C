@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -100,86 +100,53 @@ void Foam::primitiveMeshGeometry::updateCellCentresAndVols
     const labelList& changedFaces
 )
 {
+    const labelList& own = mesh().faceOwner();
+
     // Clear the fields for accumulation
     UIndirectList<vector>(cellCentres_, changedCells) = vector::zero;
     UIndirectList<scalar>(cellVolumes_, changedCells) = 0.0;
 
-    const labelList& own = mesh_.faceOwner();
-    const labelList& nei = mesh_.faceNeighbour();
-
-    // first estimate the approximate cell centre as the average of face centres
-
-    vectorField cEst(mesh_.nCells());
-    UIndirectList<vector>(cEst, changedCells) = vector::zero;
-    scalarField nCellFaces(mesh_.nCells());
-    UIndirectList<scalar>(nCellFaces, changedCells) = 0.0;
-
-    forAll(changedFaces, i)
+    // Re-calculate the changed cell centres and volumes
+    forAll(changedCells, changedCellI)
     {
-        label faceI = changedFaces[i];
-        cEst[own[faceI]] += faceCentres_[faceI];
-        nCellFaces[own[faceI]] += 1;
+        const label cellI(changedCells[changedCellI]);
 
-        if (mesh_.isInternalFace(faceI))
+        const labelList cellFaces(mesh().cells()[cellI]);
+
+        // Esimate the cell centre as the average of face centres
+        vector cEst;
+        forAll(cellFaces, cellFaceI)
         {
-            cEst[nei[faceI]] += faceCentres_[faceI];
-            nCellFaces[nei[faceI]] += 1;
+            cEst += faceCentres_[cellFaces[cellFaceI]];
         }
-    }
+        cEst /= cellFaces.size();
 
-    forAll(changedCells, i)
-    {
-        label cellI = changedCells[i];
-        cEst[cellI] /= nCellFaces[cellI];
-    }
-
-    forAll(changedFaces, i)
-    {
-        label faceI = changedFaces[i];
-
-        // Calculate 3*face-pyramid volume
-        scalar pyr3Vol = max
-        (
-            faceAreas_[faceI] & (faceCentres_[faceI] - cEst[own[faceI]]),
-            VSMALL
-        );
-
-        // Calculate face-pyramid centre
-        vector pc = (3.0/4.0)*faceCentres_[faceI] + (1.0/4.0)*cEst[own[faceI]];
-
-        // Accumulate volume-weighted face-pyramid centre
-        cellCentres_[own[faceI]] += pyr3Vol*pc;
-
-        // Accumulate face-pyramid volume
-        cellVolumes_[own[faceI]] += pyr3Vol;
-
-        if (mesh_.isInternalFace(faceI))
+        // Sum up the face-pyramid contributions
+        forAll(cellFaces, cellFaceI)
         {
-            // Calculate 3*face-pyramid volume
-            scalar pyr3Vol = max
-            (
-                faceAreas_[faceI] & (cEst[nei[faceI]] - faceCentres_[faceI]),
-                VSMALL
-            );
+            const label faceI(cellFaces[cellFaceI]);
 
-            // Calculate face-pyramid centre
-            vector pc =
-                (3.0/4.0)*faceCentres_[faceI]
-              + (1.0/4.0)*cEst[nei[faceI]];
-
-            // Accumulate volume-weighted face-pyramid centre
-            cellCentres_[nei[faceI]] += pyr3Vol*pc;
+            // Calculate 3* the face-pyramid volume
+            const scalar pVol =
+                (own[faceI] == cellI ? +1 : -1)
+               *(
+                    faceAreas_[faceI]
+                  & (faceCentres_[faceI] - cEst)
+                );
 
             // Accumulate face-pyramid volume
-            cellVolumes_[nei[faceI]] += pyr3Vol;
+            cellVolumes_[cellI] += pVol;
+
+            // Calculate the face-pyramid centre
+            const vector pCtr =
+                (3.0/4.0)*faceCentres_[faceI] + (1.0/4.0)*cEst;
+
+            // Accumulate volume-weighted face-pyramid centre
+            cellCentres_[cellI] += pVol*pCtr;
         }
-    }
 
-    forAll(changedCells, i)
-    {
-        label cellI = changedCells[i];
-
-        cellCentres_[cellI] /= cellVolumes_[cellI];
+        // Average the accumulated quantities
+        cellCentres_[cellI] /= max(cellVolumes_[cellI], VSMALL);
         cellVolumes_[cellI] *= (1.0/3.0);
     }
 }

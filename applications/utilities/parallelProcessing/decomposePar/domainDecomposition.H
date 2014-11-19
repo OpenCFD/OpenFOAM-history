@@ -61,8 +61,8 @@ class domainDecomposition
         //- Optional: points at the facesInstance
         autoPtr<pointIOField> facesInstancePointsPtr_;
 
-        //- Mesh decomposition control dictionary
-        IOdictionary decompositionDict_;
+        //- Optional non-standard file for decomposeParDict
+        const fileName decompDictFile_;
 
         //- Number of processors in decomposition
         label nProcs_;

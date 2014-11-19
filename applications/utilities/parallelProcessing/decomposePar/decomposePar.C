@@ -96,6 +96,7 @@ Usage
 #include "fvFieldDecomposer.H"
 #include "pointFieldDecomposer.H"
 #include "lagrangianFieldDecomposer.H"
+#include "decompositionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -210,7 +211,7 @@ int main(int argc, char *argv[])
     {
         if (isDir(decompDictFile))
         {
-            decompDictFile = decompDictFile / "decomposeParDict";
+            decompDictFile = decompDictFile/"decomposeParDict";
         }
     }
 
@@ -276,21 +277,15 @@ int main(int argc, char *argv[])
             ++nProcs;
         }
 
-        // get requested numberOfSubdomains
+        // get requested numberOfSubdomains. Note: have no mesh yet so
+        // cannot use decompositionModel::New
         const label nDomains = readLabel
         (
             IOdictionary
             (
+                decompositionModel::selectIO
                 (
-                    decompDictFile.size()
-                  ? IOobject
-                    (
-                        decompDictFile,
-                        runTime,
-                        IOobject::MUST_READ_IF_MODIFIED,
-                        IOobject::NO_WRITE
-                    )
-                 :  IOobject
+                    IOobject
                     (
                         "decomposeParDict",
                         runTime.time().system(),
@@ -298,8 +293,10 @@ int main(int argc, char *argv[])
                         runTime,
                         IOobject::MUST_READ_IF_MODIFIED,
                         IOobject::NO_WRITE
-                    )
+                    ),
+                    decompDictFile
                 )
+
             ).lookup("numberOfSubdomains")
         );
 
@@ -313,8 +310,7 @@ int main(int argc, char *argv[])
                     << nProcs << " domains"
                     << nl
                     << "instead of " << nDomains
-                    << " domains as specified in decomposeParDict"
-                    << nl
+                    << " domains as specified in decomposeParDict" << nl
                     << exit(FatalError);
             }
         }

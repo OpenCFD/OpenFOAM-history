@@ -44,6 +44,7 @@ Description
 #include "isoSurfaceCell.H"
 #include "vtkSurfaceWriter.H"
 #include "syncTools.H"
+#include "decompositionModel.H"
 
 using namespace Foam;
 
@@ -467,7 +468,7 @@ int main(int argc, char *argv[])
 
         // Determine the number of cells in each direction.
         const vector span = bb.span();
-        vector nScalarCells = span/cellShapeControls().defaultCellSize();
+        vector nScalarCells = span/cellShapeControls.defaultCellSize();
 
         // Calculate initial cell size to be a little bit smaller than the
         // defaultCellSize to avoid initial refinement triggering.
@@ -531,38 +532,11 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Allocate a decomposer
-        IOdictionary decompositionDict
+        labelList decomp = decompositionModel::New
         (
-            (
-                decompDictFile.size()
-              ? IOobject
-                (
-                    decompDictFile,
-                    mesh,
-                    IOobject::MUST_READ_IF_MODIFIED,
-                    IOobject::NO_WRITE
-                )
-             :  IOobject
-                (
-                    "decomposeParDict",
-                    runTime.system(),
-                    mesh,
-                    IOobject::MUST_READ_IF_MODIFIED,
-                    IOobject::NO_WRITE
-                )
-            )
-        );
-
-        autoPtr<decompositionMethod> decomposer
-        (
-            decompositionMethod::New
-            (
-                decompositionDict
-            )
-        );
-
-        labelList decomp = decomposer().decompose(mesh, mesh.cellCentres());
+            mesh,
+            decompDictFile
+        ).decomposer().decompose(mesh, mesh.cellCentres());
 
         // Global matching tolerance
         const scalar tolDim = getMergeDistance
@@ -594,18 +568,15 @@ int main(int argc, char *argv[])
     Info<< "Refining backgroud mesh according to cell size specification" << nl
         << endl;
 
+    const dictionary& backgroundMeshDict =
+        foamyHexMeshDict.subDict("backgroundMeshDecomposition");
+
     backgroundMeshDecomposition backgroundMesh
     (
-        1.0,    //spanScale,ratio of poly cell size v.s. hex cell size
-        0.0,    //minCellSizeLimit
-        0,      //minLevels
-        4,      //volRes, check multiple points per cell
-        20.0,   //maxCellWeightCoeff
         runTime,
-        geometryToConformTo,
-        cellShapeControls(),
         rndGen,
-        foamyHexMeshDict
+        geometryToConformTo,
+        backgroundMeshDict
     );
 
     if (writeMesh)

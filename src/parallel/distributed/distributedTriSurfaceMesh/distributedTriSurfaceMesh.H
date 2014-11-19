@@ -50,6 +50,7 @@ SourceFiles
 
 #include "triSurfaceMesh.H"
 #include "localIOdictionary.H"
+#include "IOdictionary.H"
 #include "Pair.H"
 #include "globalIndex.H"
 
@@ -94,6 +95,8 @@ private:
 
         //- Merging distance
         scalar mergeDist_;
+
+        autoPtr<IOdictionary> decomposeParDict_;
 
         //- Decomposition used when independently decomposing surface.
         autoPtr<decompositionMethod> decomposer_;

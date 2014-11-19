@@ -267,7 +267,8 @@ Foam::IOobject::IOobject
     const objectRegistry& registry,
     readOption ro,
     writeOption wo,
-    bool registerObject
+    bool registerObject,
+    bool globalObject
 )
 :
     name_(),
@@ -279,7 +280,7 @@ Foam::IOobject::IOobject
     rOpt_(ro),
     wOpt_(wo),
     registerObject_(registerObject),
-    globalObject_(false),
+    globalObject_(globalObject),
     objState_(GOOD)
 {
     if (!fileNameComponents(path, instance_, local_, name_))
