@@ -1,24 +1,16 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+include(${VTK_USE_FILE})
 
-PROJECT(runTimePostProcessing)
+if(VTK_LIBRARIES)
+    message("Found VTK LIBRARIES: " ${VTK_USE_FILE})
+endif()
 
-#FIND_PACKAGE(VTK COMPONENTS
-#    vtkCommonCore
-#    vtkFiltersGeneral
-#    vtkRenderingOpenGL
-#)
+if(${VTK_VERSION} VERSION_GREATER "6")
+    message("VTK version: " ${VTK_VERSION})
+else()
+    message(FATAL_ERROR " VTK6 required")
+endif()
 
-FIND_PACKAGE(ParaView REQUIRED)
-
-INCLUDE(${VTK_USE_FILE})
-
-
-LINK_DIRECTORIES(
-    $ENV{FOAM_LIBBIN}
-    $ENV{FOAM_EXT_LIBBIN}
-)
-
-INCLUDE_DIRECTORIES(
+include_directories(
     $ENV{WM_PROJECT_DIR}/src/OpenFOAM/lnInclude
     $ENV{WM_PROJECT_DIR}/src/OSspecific/$ENV{WM_OSTYPE}/lnInclude
     $ENV{WM_PROJECT_DIR}/src/triSurface/lnInclude
@@ -27,23 +19,33 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-ADD_DEFINITIONS(
-    -DWM_$ENV{WM_PRECISION_OPTION}
+link_directories(
+    $ENV{FOAM_LIBBIN}
+    $ENV{FOAM_EXT_LIBBIN}
 )
 
+add_definitions(
+    -DWM_$ENV{WM_PRECISION_OPTION} -DNoRepository
+)
+
+set(CMAKE_BUILD_TYPE Release)
+
+set(CMAKE_CXX_FLAGS_DEBUG
+    "-g -O0 -Wall -Wextra -Wno-unused-parameter -Wnon-virtual-dtor -Wno-overloaded-virtual"
+)
+set(CMAKE_C_FLAGS_DEBUG "-g -O0")
+
+set(CMAKE_CXX_FLAGS_RELEASE
+    "-O3 -Wall -Wextra -Wno-unused-parameter -Wnon-virtual-dtor -Wno-overloaded-virtual")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
+
 # Set output library destination to plugin directory
-SET(
-    LIBRARY_OUTPUT_PATH $ENV{FOAM_USER_LIBBIN}
+set(LIBRARY_OUTPUT_PATH $ENV{FOAM_LIBBIN}
     CACHE INTERNAL
     ""
 )
 
-ADD_DEFINITIONS(
-    -DWM_$ENV{WM_PRECISION_OPTION}
-    -DNoRepository
-)
-
-FILE(GLOB SOURCE_FILES
+file(GLOB SOURCE_FILES
     fieldVisualisationBase.C
     functionObjectCloud.C
     functionObjectLine.C
@@ -59,27 +61,22 @@ FILE(GLOB SOURCE_FILES
     text.C
 )
 
-SET(OPENFOAM_LIBRARIES
+set(OPENFOAM_LIBRARIES
     OpenFOAM
     triSurface
     finiteVolume
 )
 
-ADD_LIBRARY(
+add_library(
     runTimePostProcessing
     SHARED
     ${SOURCE_FILES}
 )
 
-TARGET_LINK_LIBRARIES(
+target_link_libraries(
     runTimePostProcessing
     ${VTK_LIBRARIES}
     ${OPENFOAM_LIBRARIES}
-)
-
-SET(CMAKE_BUILD_TYPE Debug)
-SET(CMAKE_CXX_FLAGS_DEBUG
-     "-g -O0 -Wall -Wextra -Wno-unused-parameter -Wnon-virtual-dtor -Wno-overloaded-virtual -Wno-unused-comparison"
 )
 
 

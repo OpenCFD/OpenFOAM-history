@@ -104,9 +104,9 @@ turbulentTemperatureRadCoupledMixedFvPatchScalarField
             "turbulentTemperatureRadCoupledMixedFvPatchScalarField::"
             "turbulentTemperatureRadCoupledMixedFvPatchScalarField\n"
             "(\n"
-            "    const fvPatch& p,\n"
-            "    const DimensionedField<scalar, volMesh>& iF,\n"
-            "    const dictionary& dict\n"
+            "    const fvPatch&,\n"
+            "    const DimensionedField<scalar, volMesh>&,\n"
+            "    const dictionary&\n"
             ")\n"
         )   << "\n    patch type '" << p.type()
             << "' not type '" << mappedPatchBase::typeName << "'"
@@ -116,24 +116,33 @@ turbulentTemperatureRadCoupledMixedFvPatchScalarField
             << exit(FatalError);
     }
 
-    if (dict.found("thicknessLayers"))
+    if (dict.readIfPresent("thicknessLayers", thicknessLayers_))
     {
-        dict.lookup("thicknessLayers") >> thicknessLayers_;
         dict.lookup("kappaLayers") >> kappaLayers_;
 
-        if (thicknessLayers_.size() > 0)
+        if (thicknessLayers_.size() != kappaLayers_.size())
         {
-            // total thermal transmittance by harmonic averaging
-            forAll (thicknessLayers_, iLayer)
-            {
-                const scalar l = thicknessLayers_[iLayer];
-                if (l > 0.0)
-                {
-                    contactRes_ += l/kappaLayers_[iLayer]; // inverse sum
-                }
-            }
-            contactRes_ = 1.0/contactRes_; // new total inverse
+            FatalIOErrorIn
+            (
+                "turbulentTemperatureRadCoupledMixedFvPatchScalarField::"
+                "turbulentTemperatureRadCoupledMixedFvPatchScalarField\n"
+                "(\n"
+                "    const fvPatch&,\n"
+                "    const DimensionedField<scalar, volMesh>&,\n"
+                "    const dictionary&\n"
+                ")\n",
+                dict
+            )   << "\n number of layers for thicknessLayers and "
+                << "kappaLayers must be the same"
+                << "\n for patch " << p.name()
+                << " of field " << dimensionedInternalField().name()
+                << " in file " << dimensionedInternalField().objectPath()
+                << exit(FatalIOError);
         }
+
+        contactRes_ =
+            scalar(1)
+           /(sum(thicknessLayers_/(kappaLayers_ + ROOTVSMALL)) + ROOTVSMALL);
     }
 
     fvPatchScalarField::operator=(scalarField("value", dict, p.size()));
@@ -213,13 +222,13 @@ void turbulentTemperatureRadCoupledMixedFvPatchScalarField::updateCoeffs()
 
     // Swap to obtain full local values of neighbour K*delta
     scalarField KDeltaNbr;
-    if (contactRes_ == 0.0)
+    if (thicknessLayers_.size())
     {
-        KDeltaNbr = nbrField.kappa(nbrField)*nbrPatch.deltaCoeffs();
+        KDeltaNbr.setSize(nbrField.size(), contactRes_);
     }
     else
     {
-        KDeltaNbr.setSize(nbrField.size(), contactRes_);
+        KDeltaNbr = nbrField.kappa(nbrField)*nbrPatch.deltaCoeffs();
     }
     mpp.distribute(KDeltaNbr);
 

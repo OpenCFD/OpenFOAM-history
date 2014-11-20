@@ -30,13 +30,13 @@ Group
 Description
     This function object allows specification of different writing frequency
     of objects registered to the database. It has similar functionality
-    as the main time database through the outputControl setting:
-        timeStep
-        outputTime
-        adjustableTime
-        runTime
-        clockTime
-        cpuTime
+    as the main time database through the \c outputControl setting:
+    - timeStep
+    - outputTime
+    - adjustableTime
+    - runTime
+    - clockTime
+    - cpuTime
 
     Example of function object specification:
     \verbatim

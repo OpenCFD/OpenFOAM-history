@@ -176,21 +176,27 @@ void Foam::scene::initialise(vtkRenderer* renderer, const word& outputName)
     outputName_ = outputName;
 
     // set the background
-    renderer->GradientBackgroundOn();
     const vector backgroundColour = colours_["background"]->value(position());
-    const vector backgroundColour2 = colours_["background2"]->value(position());
     renderer->SetBackground
     (
         backgroundColour.x(),
         backgroundColour.y(),
         backgroundColour.z()
     );
-    renderer->SetBackground2
-    (
-        backgroundColour2.x(),
-        backgroundColour2.y(),
-        backgroundColour2.z()
-    );
+
+    // apply gradient background if "background2" defined
+    if (colours_.found("background2"))
+    {
+        renderer->GradientBackgroundOn();
+        vector backgroundColour2 = colours_["background2"]->value(position());
+
+        renderer->SetBackground2
+        (
+            backgroundColour2.x(),
+            backgroundColour2.y(),
+            backgroundColour2.z()
+        );
+    }
 
     // depth peeling
     renderer->SetUseDepthPeeling(true);

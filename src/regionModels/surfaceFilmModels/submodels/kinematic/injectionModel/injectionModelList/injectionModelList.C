@@ -136,27 +136,32 @@ void injectionModelList::info(Ostream& os)
 
     os  << indent << "injected mass      = " << injectedMass << nl;
 
-    scalarList mass0(massInjected_.size(), 0.0);
-    this->getModelProperty("massInjected", mass0);
-
-    scalarList mass(massInjected_);
-    Pstream::listCombineGather(mass, plusEqOp<scalar>());
-    mass = mass + mass0;
-
-    const polyBoundaryMesh& pbm = owner().regionMesh().boundaryMesh();
-    const labelList& patchIDs = owner().intCoupledPatchIDs();
-
-    forAll(patchIDs, i)
+    if (this->size())
     {
-        label patchI = patchIDs[i];
-        Info<< indent << "  - patch: " << pbm[patchI].name() << ": "
-            << mass[i] << endl;
-    }
+        // only output per-patch info if injection models are supplied
 
-    if (owner().time().outputTime())
-    {
-        setModelProperty("massInjected", mass);
-        massInjected_ = 0.0;
+        scalarList mass0(massInjected_.size(), 0.0);
+        this->getModelProperty("massInjected", mass0);
+
+        scalarList mass(massInjected_);
+        Pstream::listCombineGather(mass, plusEqOp<scalar>());
+        mass = mass + mass0;
+
+        const polyBoundaryMesh& pbm = owner().regionMesh().boundaryMesh();
+        const labelList& patchIDs = owner().intCoupledPatchIDs();
+
+        forAll(patchIDs, i)
+        {
+            label patchI = patchIDs[i];
+            Info<< indent << "  - patch: " << pbm[patchI].name() << ": "
+                << mass[i] << endl;
+        }
+
+        if (owner().time().outputTime())
+        {
+            setModelProperty("massInjected", mass);
+            massInjected_ = 0.0;
+        }
     }
 }
 

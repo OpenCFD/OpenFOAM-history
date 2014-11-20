@@ -12,6 +12,9 @@ DESModelRegions/DESModelRegionsFunctionObject.C
 dsmcFields/dsmcFields.C
 dsmcFields/dsmcFieldsFunctionObject.C
 
+fluxSummary/fluxSummary.C
+fluxSummary/fluxSummaryFunctionObject.C
+
 Lambda2/Lambda2.C
 Lambda2/Lambda2FunctionObject.C
 
