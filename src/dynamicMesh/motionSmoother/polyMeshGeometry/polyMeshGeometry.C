@@ -106,52 +106,61 @@ void Foam::polyMeshGeometry::updateCellCentresAndVols
 )
 {
     const labelList& own = mesh().faceOwner();
+    const cellList& cells = mesh().cells();
 
     // Clear the fields for accumulation
     UIndirectList<vector>(cellCentres_, changedCells) = vector::zero;
     UIndirectList<scalar>(cellVolumes_, changedCells) = 0.0;
+
 
     // Re-calculate the changed cell centres and volumes
     forAll(changedCells, changedCellI)
     {
         const label cellI(changedCells[changedCellI]);
 
-        const labelList cellFaces(mesh().cells()[cellI]);
+        const labelList& cFaces(cells[cellI]);
 
         // Esimate the cell centre as the average of face centres
-        vector cEst;
-        forAll(cellFaces, cellFaceI)
+        vector cEst = vector::zero;
+        forAll(cFaces, cFaceI)
         {
-            cEst += faceCentres_[cellFaces[cellFaceI]];
+            cEst += faceCentres_[cFaces[cFaceI]];
         }
-        cEst /= cellFaces.size();
+        cEst /= cFaces.size();
 
         // Sum up the face-pyramid contributions
-        forAll(cellFaces, cellFaceI)
+        forAll(cFaces, cFaceI)
         {
-            const label faceI(cellFaces[cellFaceI]);
+            const label faceI(cFaces[cFaceI]);
 
             // Calculate 3* the face-pyramid volume
-            const scalar pVol =
-                (own[faceI] == cellI ? +1 : -1)
-               *(
-                    faceAreas_[faceI]
-                  & (faceCentres_[faceI] - cEst)
-                );
+            scalar pyr3Vol = faceAreas_[faceI] & (faceCentres_[faceI] - cEst);
+
+            if (own[faceI] != cellI)
+            {
+                pyr3Vol = -pyr3Vol;
+            }
 
             // Accumulate face-pyramid volume
-            cellVolumes_[cellI] += pVol;
+            cellVolumes_[cellI] += pyr3Vol;
 
             // Calculate the face-pyramid centre
-            const vector pCtr =
-                (3.0/4.0)*faceCentres_[faceI] + (1.0/4.0)*cEst;
+            const vector pCtr = (3.0/4.0)*faceCentres_[faceI] + (1.0/4.0)*cEst;
 
             // Accumulate volume-weighted face-pyramid centre
-            cellCentres_[cellI] += pVol*pCtr;
+            cellCentres_[cellI] += pyr3Vol*pCtr;
         }
 
         // Average the accumulated quantities
-        cellCentres_[cellI] /= max(cellVolumes_[cellI], VSMALL);
+        if (mag(cellVolumes_[cellI]) > VSMALL)
+        {
+            cellCentres_[cellI] /= cellVolumes_[cellI];
+        }
+        else
+        {
+            cellCentres_[cellI] = cEst;
+        }
+
         cellVolumes_[cellI] *= (1.0/3.0);
     }
 }
