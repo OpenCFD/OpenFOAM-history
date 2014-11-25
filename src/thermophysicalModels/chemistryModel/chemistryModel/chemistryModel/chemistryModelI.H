@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,22 +49,6 @@ inline const Foam::PtrList<ThermoType>&
 Foam::chemistryModel<CompType, ThermoType>::specieThermo() const
 {
     return specieThermo_;
-}
-
-
-template<class CompType, class ThermoType>
-inline Foam::label
-Foam::chemistryModel<CompType, ThermoType>::nSpecie() const
-{
-    return nSpecie_;
-}
-
-
-template<class CompType, class ThermoType>
-inline Foam::label
-Foam::chemistryModel<CompType, ThermoType>::nReaction() const
-{
-    return nReaction_;
 }
 
 

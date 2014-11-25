@@ -101,6 +101,12 @@ protected:
         //- Write access to source terms for solids
         inline PtrList<DimensionedField<scalar, volMesh> >& RRs();
 
+         //- The number of reactions
+        virtual label nReaction() const;
+
+        //- The number of reactions
+        virtual label nSpecie() const;
+
         //- Set reacting status of cell, cellI
         void setCellReacting(const label cellI, const bool active);
 
@@ -125,9 +131,6 @@ public:
 
         //- The reactions
         inline const PtrList<Reaction<SolidThermo> >& reactions() const;
-
-        //- The number of reactions
-        inline label nReaction() const;
 
 
         //- dc/dt = omega, rate of change in concentration, for each species

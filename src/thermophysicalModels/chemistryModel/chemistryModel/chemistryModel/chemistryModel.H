@@ -133,10 +133,10 @@ public:
         inline const PtrList<ThermoType>& specieThermo() const;
 
         //- The number of species
-        inline label nSpecie() const;
+        virtual label nSpecie() const;
 
         //- The number of reactions
-        inline label nReaction() const;
+        virtual label nReaction() const;
 
         //- dc/dt = omega, rate of change in concentration, for each species
         virtual tmp<scalarField> omega
