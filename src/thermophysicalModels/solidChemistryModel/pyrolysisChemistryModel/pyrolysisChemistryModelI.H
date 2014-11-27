@@ -55,15 +55,6 @@ gasTable() const
 
 
 template<class CompType, class SolidThermo, class GasThermo>
-inline Foam::label
-Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::
-nSpecie() const
-{
-    return nSpecie_;
-}
-
-
-template<class CompType, class SolidThermo, class GasThermo>
 inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
 Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::RRg
 (
