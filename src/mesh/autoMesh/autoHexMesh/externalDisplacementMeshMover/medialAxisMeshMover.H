@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -95,18 +95,8 @@ class medialAxisMeshMover
 
     // Private Member Functions
 
-        //- Extract fixed-value patchfields
-        static labelList getFixedValueBCs(const pointVectorField&);
-
         //- Extract bc types. Replace fixedValue derivatives with fixedValue
         wordList getPatchFieldTypes(const pointVectorField& fld);
-
-        //- Construct patch on selected patches
-        static autoPtr<indirectPrimitivePatch> getPatch
-        (
-            const polyMesh&,
-            const labelList&
-        );
 
 
         // Calculation of medial axis information

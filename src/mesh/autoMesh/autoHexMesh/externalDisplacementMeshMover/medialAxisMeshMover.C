@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,80 +51,6 @@ namespace Foam
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-Foam::labelList Foam::medialAxisMeshMover::getFixedValueBCs
-(
-    const pointVectorField& fld
-)
-{
-    DynamicList<label> adaptPatchIDs;
-    forAll(fld.boundaryField(), patchI)
-    {
-        const pointPatchField<vector>& patchFld =
-            fld.boundaryField()[patchI];
-
-        if (isA<valuePointPatchField<vector> >(patchFld))
-        {
-            if (isA<zeroFixedValuePointPatchField<vector> >(patchFld))
-            {
-                // Special condition of fixed boundary condition. Does not
-                // get adapted
-            }
-            else
-            {
-                adaptPatchIDs.append(patchI);
-            }
-        }
-    }
-    return adaptPatchIDs;
-}
-
-
-Foam::autoPtr<Foam::indirectPrimitivePatch>
-Foam::medialAxisMeshMover::getPatch
-(
-    const polyMesh& mesh,
-    const labelList& patchIDs
-)
-{
-    const polyBoundaryMesh& patches = mesh.boundaryMesh();
-
-    // Count faces.
-    label nFaces = 0;
-
-    forAll(patchIDs, i)
-    {
-        const polyPatch& pp = patches[patchIDs[i]];
-
-        nFaces += pp.size();
-    }
-
-    // Collect faces.
-    labelList addressing(nFaces);
-    nFaces = 0;
-
-    forAll(patchIDs, i)
-    {
-        const polyPatch& pp = patches[patchIDs[i]];
-
-        label meshFaceI = pp.start();
-
-        forAll(pp, i)
-        {
-            addressing[nFaces++] = meshFaceI++;
-        }
-    }
-
-    return autoPtr<indirectPrimitivePatch>
-    (
-        new indirectPrimitivePatch
-        (
-            IndirectList<face>(mesh.faces(), addressing),
-            mesh.points()
-        )
-    );
-}
-
 
 void Foam::medialAxisMeshMover::smoothPatchNormals
 (
