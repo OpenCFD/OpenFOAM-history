@@ -243,7 +243,8 @@ Foam::triSurfaceMesh::triSurfaceMesh(const IOobject& io, const triSurface& s)
     triSurface(s),
     triSurfaceRegionSearch(s),
     minQuality_(-1),
-    surfaceClosed_(-1)
+    surfaceClosed_(-1),
+    outsideVolType_(volumeType::UNKNOWN)
 {
     const pointField& pts = triSurface::points();
 
@@ -294,7 +295,8 @@ Foam::triSurfaceMesh::triSurfaceMesh(const IOobject& io)
     ),
     triSurfaceRegionSearch(static_cast<const triSurface&>(*this)),
     minQuality_(-1),
-    surfaceClosed_(-1)
+    surfaceClosed_(-1),
+    outsideVolType_(volumeType::UNKNOWN)
 {
     const pointField& pts = triSurface::points();
 
@@ -348,7 +350,8 @@ Foam::triSurfaceMesh::triSurfaceMesh
     ),
     triSurfaceRegionSearch(static_cast<const triSurface&>(*this), dict),
     minQuality_(-1),
-    surfaceClosed_(-1)
+    surfaceClosed_(-1),
+    outsideVolType_(volumeType::UNKNOWN)
 {
     scalar scaleFactor = 0;
 
@@ -385,6 +388,7 @@ Foam::triSurfaceMesh::~triSurfaceMesh()
 
 void Foam::triSurfaceMesh::clearOut()
 {
+    outsideVolType_ = volumeType::UNKNOWN;
     triSurfaceRegionSearch::clearOut();
     edgeTree_.clear();
     triSurface::clearOut();
@@ -455,6 +459,8 @@ bool Foam::triSurfaceMesh::overlaps(const boundBox& bb) const
 
 void Foam::triSurfaceMesh::movePoints(const pointField& newPoints)
 {
+    outsideVolType_ = volumeType::UNKNOWN;
+
     // Update local information (instance, event number)
     searchableSurface::instance() = objectRegistry::time().timeName();
     objectRegistry::instance() = searchableSurface::instance();
@@ -741,7 +747,7 @@ void Foam::triSurfaceMesh::setField(const labelList& values)
             (
                 "values",
                 objectRegistry::time().timeName(),  // instance
-                "triSurface",   // "" for triSurfaceFields   // local
+                meshSubDir,                         // local
                 *this,
                 IOobject::NO_READ,
                 IOobject::AUTO_WRITE
@@ -800,8 +806,20 @@ void Foam::triSurfaceMesh::getVolumeType
 
         if (!tree().bb().contains(pt))
         {
-            // Have to calculate directly as outside the octree
-            volType[pointI] = tree().shapes().getVolumeType(tree(), pt);
+            if (hasVolumeType())
+            {
+                // Precalculate and cache value for this outside point
+                if (outsideVolType_ == volumeType::UNKNOWN)
+                {
+                    outsideVolType_ = tree().shapes().getVolumeType(tree(), pt);
+                }
+                volType[pointI] = outsideVolType_;
+            }
+            else
+            {
+                // Have to calculate directly as outside the octree
+                volType[pointI] = tree().shapes().getVolumeType(tree(), pt);
+            }
         }
         else
         {
