@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,89 +22,89 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::refinementHistoryConstraint
+    Foam::extrudeModels::offsetSurface
 
 Description
-    Constraint to keep all cells originating from refining the same cell
-    onto the same processor. Reads polyMesh/refinementHistory.
-
-SourceFiles
-    refinementHistoryConstraint.C
+    Extrudes by interpolating points from one surface to the other. Surfaces
+    have to be topologically identical i.e. one has to be an offsetted version
+    of the other.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef refinementHistoryConstraint_H
-#define refinementHistoryConstraint_H
+#ifndef offsetSurface_H
+#define offsetSurface_H
 
-#include "decompositionConstraint.H"
+#include "point.H"
+#include "extrudeModel.H"
+#include "Switch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+class triSurface;
+class triSurfaceSearch;
+
+
+namespace extrudeModels
+{
 
 /*---------------------------------------------------------------------------*\
-                Class refinementHistoryConstraint Declaration
+                    Class offsetSurface Declaration
 \*---------------------------------------------------------------------------*/
 
-class refinementHistoryConstraint
+class offsetSurface
 :
-    public decompositionConstraint
+    public extrudeModel
 {
     // Private data
+
+        //- surface
+        autoPtr<triSurface> baseSurfPtr_;
+
+        //- search engine
+        autoPtr<triSurfaceSearch> baseSearchPtr_;
+
+        //- offsets
+        autoPtr<triSurface> offsetSurfPtr_;
+
+        //- search engine
+        autoPtr<triSurfaceSearch> offsetSearchPtr_;
+
+        // Whether to re-project onto offsetted surface
+        const Switch project_;
 
 public:
 
     //- Runtime type information
-    TypeName("refinementHistory");
-
+    TypeName("offsetSurface");
 
     // Constructors
 
-        //- Construct with generic dictionary with optional entry for type
-        refinementHistoryConstraint
-        (
-            const dictionary& constraintsDict,
-            const word& type
-        );
-
-        //- Construct from components
-        refinementHistoryConstraint();
+        //- Construct from dictionary
+        offsetSurface(const dictionary& dict);
 
 
     //- Destructor
-    virtual ~refinementHistoryConstraint()
-    {}
+    virtual ~offsetSurface();
 
 
-    // Member Functions
+    // Member Operators
 
-        //- Add my constraints to list of constraints
-        virtual void add
+        //- Return point
+        point operator()
         (
-            const polyMesh& mesh,
-            boolList& blockedFace,
-            PtrList<labelList>& specifiedProcessorFaces,
-            labelList& specifiedProcessor,
-            List<labelPair>& explicitConnections
-        ) const;
-
-        //- Apply any additional post-decomposition constraints
-        virtual void apply
-        (
-            const polyMesh& mesh,
-            const boolList& blockedFace,
-            const PtrList<labelList>& specifiedProcessorFaces,
-            const labelList& specifiedProcessor,
-            const List<labelPair>& explicitConnections,
-            labelList& decomposition
+            const point& surfacePoint,
+            const vector& surfaceNormal,
+            const label layer
         ) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace extrudeModels
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

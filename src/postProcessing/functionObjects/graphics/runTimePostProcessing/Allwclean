@@ -1,4 +1,4 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
 
-rm -rf build CMakeLists.txt > /dev/null 2>&1
+rm -rf Make/$WM_OPTIONS CMakeLists.txt > /dev/null 2>&1

@@ -145,9 +145,17 @@ sets
         type        patchSeed;
         axis        xyz;
         patches     (".*Wall.*");
-        // Number of points to seed. Divided amongst all processors according
-        // to fraction of patches they hold.
+
+        // Subset patch faces by:
+
+        // 1. Number of points to seed. Divided amongst all processors
+        //   according to fraction of patches they hold.
         maxPoints   100;
+
+        // 2. Specified set of locations. The difference with patchCloud
+        //    is that this selects patch face centres, not an arbitrary
+        //    location on the face.
+        selectedLocations   ((0.049 0.099 0.005)(0.051 0.054 0.005));
     }
 
 );
