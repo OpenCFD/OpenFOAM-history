@@ -683,7 +683,6 @@ Foam::chemistryModel<CompType, ThermoType>::calculateRR
         if (R.lhs()[s].index == specieI)
         {
             consumed = true;
-            speciePresent = true;
             sIndex = s;
         }
     }
@@ -692,7 +691,6 @@ Foam::chemistryModel<CompType, ThermoType>::calculateRR
     {
         if (R.rhs()[s].index == specieI)
         {
-            speciePresent = true;
             sIndex = s;
         }
     }
