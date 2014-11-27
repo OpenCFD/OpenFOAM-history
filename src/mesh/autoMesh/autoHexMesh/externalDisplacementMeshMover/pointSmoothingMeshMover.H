@@ -91,7 +91,7 @@ class pointSmoothingMeshMover
 public:
 
     //- Runtime type information
-    TypeName("pointSmoothing");
+    TypeName("displacementPointSmoothing");
 
 
     // Constructors
