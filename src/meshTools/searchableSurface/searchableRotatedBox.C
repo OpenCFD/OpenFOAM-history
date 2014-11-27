@@ -67,7 +67,9 @@ Foam::searchableRotatedBox::searchableRotatedBox
         dict.lookup("e3"),
         dict.lookup("e1")
     )
-{}
+{
+    points_ = transform_.globalPosition(box_.points());
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

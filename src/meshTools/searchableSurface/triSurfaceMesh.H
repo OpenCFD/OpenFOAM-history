@@ -85,6 +85,9 @@ private:
         //- Is surface closed
         mutable label surfaceClosed_;
 
+        //- If surface is closed, what is type of outside points
+        mutable volumeType outsideVolType_;
+
 
     // Private Member Functions
 
