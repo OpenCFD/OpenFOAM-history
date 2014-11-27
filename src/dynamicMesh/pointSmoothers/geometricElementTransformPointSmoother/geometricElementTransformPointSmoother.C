@@ -55,7 +55,10 @@ geometricElementTransformPointSmoother
     pointSmoother(dict, mesh),
     cellPointConnectivity_
     (
-        cellPointConnectivity::get(mesh)
+        MeshObject<polyMesh, MoveableMeshObject, cellPointConnectivity>::New
+        (
+            mesh
+        )
     ),
     transformationParameter_
     (
@@ -110,17 +113,17 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
     {
         const label cellI(iter.key());
 
-        const labelList cellFaceLabels
+        const cell& cFaces
         (
             mesh().cells()[cellI]
         );
         const labelList cellPoints
         (
-            mesh().cells()[cellI].labels(mesh().faces())
+            cFaces.labels(mesh().faces())
         );
         const edgeList cellEdges
         (
-            mesh().cells()[cellI].edges(mesh().faces())
+            cFaces.edges(mesh().faces())
         );
 
         // Calculate a transformed point for each cell point
@@ -130,49 +133,49 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
             if (counts[pointI] == -1) continue;
 
-            const labelList& pointPoints
+            const labelList& pPoints
             (
                 cellPointConnectivity_.cellPointPoints()[cellI][cellPointI]
             );
-            const labelList& pointFaces
+            const labelList& pFaces
             (
                 cellPointConnectivity_.cellPointFaces()[cellI][cellPointI]
             );
-            const label nPointPoints(pointPoints.size());
+            const label nPPoints(pPoints.size());
 
             // Initial guess of the dual face centre
             vector dualAverage(vector::zero);
-            forAll(pointPoints, pointPointI)
+            forAll(pPoints, pointPointI)
             {
                 dualAverage +=
-                    currentPoints[pointPoints[pointPointI]]
-                  + meshGeometry.faceCentres()[pointFaces[pointPointI]];
+                    currentPoints[pPoints[pointPointI]]
+                  + meshGeometry.faceCentres()[pFaces[pointPointI]];
             }
-            dualAverage /= 2*nPointPoints;
+            dualAverage /= 2*nPPoints;
 
             // Calculate the dual face centre and normal
             vector dualNormal(vector::zero);
-            forAll(pointPoints, pointPointI)
+            forAll(pPoints, pointPointI)
             {
-                const label nextPointPointI((pointPointI + 1) % nPointPoints);
+                const label nextPPointI((pointPointI + 1) % nPPoints);
 
                 point edgeCentre
                 (
                     0.5
                    *(
-                        currentPoints[pointPoints[pointPointI]]
+                        currentPoints[pPoints[pointPointI]]
                       + currentPoints[pointI]
                     )
                 );
                 point nextFaceCentre
                 (
-                    meshGeometry.faceCentres()[pointFaces[nextPointPointI]]
+                    meshGeometry.faceCentres()[pFaces[nextPPointI]]
                 );
                 point nextEdgeCentre
                 (
                     0.5
                    *(
-                        currentPoints[pointPoints[nextPointPointI]]
+                        currentPoints[pPoints[nextPPointI]]
                       + currentPoints[pointI]
                     )
                 );
@@ -188,27 +191,27 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
             scalar sumA(0);
             vector sumAc(vector::zero);
-            forAll(pointPoints, pointPointI)
+            forAll(pPoints, pointPointI)
             {
-                const label nextPointPointI((pointPointI + 1) % nPointPoints);
+                const label nextPPointI((pointPointI + 1) % nPPoints);
 
                 point edgeCentre
                 (
                     0.5
                    *(
-                        currentPoints[pointPoints[pointPointI]]
+                        currentPoints[pPoints[pointPointI]]
                       + currentPoints[pointI]
                     )
                 );
                 point nextFaceCentre
                 (
-                    meshGeometry.faceCentres()[pointFaces[nextPointPointI]]
+                    meshGeometry.faceCentres()[pFaces[nextPPointI]]
                 );
                 point nextEdgeCentre
                 (
                     0.5
                    *(
-                        currentPoints[pointPoints[nextPointPointI]]
+                        currentPoints[pPoints[nextPPointI]]
                       + currentPoints[pointI]
                     )
                 );
@@ -285,39 +288,39 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
         if (!isInternalOrProcessorFace(faceI))
         {
-            const labelList& facePoints(mesh().faces()[faceI]);
+            const labelList& fPoints(mesh().faces()[faceI]);
 
             // Face normal
             vector faceNormalHat(meshGeometry.faceAreas()[faceI]);
             faceNormalHat /= max(SMALL, mag(faceNormalHat));
 
             // Calculate a transformed point for each face point
-            forAll(facePoints, facePointI)
+            forAll(fPoints, fPointI)
             {
-                const label pointI(facePoints[facePointI]);
+                const label pointI(fPoints[fPointI]);
 
-                const label facePointIPrev
+                const label fPointIPrev
                 (
-                    (facePointI - 1 + facePoints.size()) % facePoints.size()
+                    (fPointI - 1 + fPoints.size()) % fPoints.size()
                 );
-                const label facePointINext
+                const label fPointINext
                 (
-                    (facePointI + 1) % facePoints.size()
+                    (fPointI + 1) % fPoints.size()
                 );
 
                 const vector dualCentre
                 (
                     currentPoints[pointI]/2
                   + (
-                        currentPoints[facePoints[facePointINext]]
-                      + currentPoints[facePoints[facePointIPrev]]
+                        currentPoints[fPoints[fPointINext]]
+                      + currentPoints[fPoints[fPointIPrev]]
                     )/4
                 );
                 const vector dualNormal
                 (
                     (
-                        currentPoints[facePoints[facePointINext]]
-                      - currentPoints[facePoints[facePointIPrev]]
+                        currentPoints[fPoints[fPointINext]]
+                      - currentPoints[fPoints[fPointIPrev]]
                     )/2
                    ^faceNormalHat
                 );
@@ -330,12 +333,12 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
             // Length scale
             scalar lengthScale(0), transformedLengthScale(0), lengthScaleRatio;
-            forAll(facePoints, facePointI)
+            forAll(fPoints, fPointI)
             {
-                const label facePointINext((facePointI + 1)%facePoints.size());
+                const label fPointINext((fPointI + 1)%fPoints.size());
 
-                const label pointI(facePoints[facePointI]);
-                const label pointINext(facePoints[facePointINext]);
+                const label pointI(fPoints[fPointI]);
+                const label pointINext(fPoints[fPointINext]);
 
                 lengthScale += mag
                 (
@@ -346,14 +349,14 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
                     transformedPoints[pointINext] - transformedPoints[pointI]
                 );
             }
-            lengthScale /= facePoints.size();
-            transformedLengthScale /= facePoints.size();
+            lengthScale /= fPoints.size();
+            transformedLengthScale /= fPoints.size();
             lengthScaleRatio = lengthScale/transformedLengthScale;
 
             // Add the displacement to the average
-            forAll(facePoints, facePointI)
+            forAll(fPoints, fPointI)
             {
-                const label pointI(facePoints[facePointI]);
+                const label pointI(fPoints[fPointI]);
 
                 const vector newPoint
                 (

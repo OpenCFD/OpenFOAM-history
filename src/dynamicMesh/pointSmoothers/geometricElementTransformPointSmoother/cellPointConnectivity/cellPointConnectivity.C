@@ -24,32 +24,12 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "cellPointConnectivity.H"
-#include "Time.H"
 
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-const Foam::cellPointConnectivity& Foam::cellPointConnectivity::get
-(
-    const polyMesh& mesh
-)
+namespace Foam
 {
-    if (!mesh.foundObject<cellPointConnectivity>("cellPointConnectivity"))
-    {
-        cellPointConnectivity* ptr =
-            new cellPointConnectivity
-            (
-                IOobject
-                (
-                    "cellPointConnectivity",
-                    mesh.time().timeName(),
-                    mesh
-                ),
-                mesh
-          );
-        ptr->store();
-    }
-
-    return mesh.lookupObject<cellPointConnectivity>("cellPointConnectivity");
+    defineTypeNameAndDebug(cellPointConnectivity, 0);
 }
 
 
@@ -57,54 +37,52 @@ const Foam::cellPointConnectivity& Foam::cellPointConnectivity::get
 
 void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
 {
-    const cell& thisCell(mesh_.cells()[cellI]);
-
-    const labelList cellPoints(thisCell.labels(mesh_.faces()));
-    const labelList cellFaces(thisCell);
-    const edgeList cellEdges(thisCell.edges(mesh_.faces()));
+    const cell& cFaceLabels(mesh_.cells()[cellI]);
+    const labelList cPointLabels(cFaceLabels.labels(mesh_.faces()));
+    const edgeList cEdges(cFaceLabels.edges(mesh_.faces()));
 
     // Generate a sorted list of points and corresponding point indices
-    labelPairList pointLabelPointIndices(cellPoints.size());
-    forAll(cellPoints, pointI)
+    labelPairList pointLabelPointIndices(cPointLabels.size());
+    forAll(cPointLabels, pointI)
     {
         pointLabelPointIndices[pointI] =
-            labelPair(cellPoints[pointI], pointI);
+            labelPair(cPointLabels[pointI], pointI);
     }
     sort(pointLabelPointIndices);
 
     // Generate a sorted list of edge labels and corresponding edge indices
     // Negative values indicate an edge which runs in an opposite direction to
     // the face node listing
-    labelListList edgeLabelsEdgeIndices(2*cellEdges.size(), labelList(3,-1));
-    forAll(cellEdges, cellEdgeI)
+    labelListList edgeLabelsEdgeIndices(2*cEdges.size(), labelList(3,-1));
+    forAll(cEdges, cEdgeI)
     {
-        edgeLabelsEdgeIndices[2*cellEdgeI][0] = cellEdges[cellEdgeI][0];
-        edgeLabelsEdgeIndices[2*cellEdgeI][1] = cellEdges[cellEdgeI][1];
-        edgeLabelsEdgeIndices[2*cellEdgeI][2] = cellEdgeI;
+        edgeLabelsEdgeIndices[2*cEdgeI][0] = cEdges[cEdgeI][0];
+        edgeLabelsEdgeIndices[2*cEdgeI][1] = cEdges[cEdgeI][1];
+        edgeLabelsEdgeIndices[2*cEdgeI][2] = cEdgeI;
 
-        edgeLabelsEdgeIndices[2*cellEdgeI+1][0] = cellEdges[cellEdgeI][1];
-        edgeLabelsEdgeIndices[2*cellEdgeI+1][1] = cellEdges[cellEdgeI][0];
-        edgeLabelsEdgeIndices[2*cellEdgeI+1][2] = - cellEdgeI - 1;
+        edgeLabelsEdgeIndices[2*cEdgeI+1][0] = cEdges[cEdgeI][1];
+        edgeLabelsEdgeIndices[2*cEdgeI+1][1] = cEdges[cEdgeI][0];
+        edgeLabelsEdgeIndices[2*cEdgeI+1][2] = - cEdgeI - 1;
     }
     sort(edgeLabelsEdgeIndices);
 
     // Generate a sorted list of edge labels and correspoinding face indices
     labelListList edgeLabelsFaceIndices;
-    forAll(cellFaces, cellFaceI)
+    forAll(cFaceLabels, cFaceI)
     {
-        const face& cellFace(mesh_.faces()[cellFaces[cellFaceI]]);
+        const face& cFace(mesh_.faces()[cFaceLabels[cFaceI]]);
 
-        const bool owner(mesh_.faceOwner()[cellFaces[cellFaceI]] == cellI);
+        const bool owner(mesh_.faceOwner()[cFaceLabels[cFaceI]] == cellI);
 
-        const label& cellFaceNEdges(cellFace.size());
-        forAll(cellFace, cellFaceEdgeI)
+        const label cFaceNEdges(cFace.size());
+        forAll(cFace, cFaceEdgeI)
         {
             edgeLabelsFaceIndices.append(labelList(3, -1));
             edgeLabelsFaceIndices.last()[0] =
-                cellFace[(cellFaceEdgeI + owner) % cellFaceNEdges];
+                cFace[(cFaceEdgeI + owner) % cFaceNEdges];
             edgeLabelsFaceIndices.last()[1] =
-                cellFace[(cellFaceEdgeI + !owner) % cellFaceNEdges];
-            edgeLabelsFaceIndices.last()[2] = cellFaceI;
+                cFace[(cFaceEdgeI + !owner) % cFaceNEdges];
+            edgeLabelsFaceIndices.last()[2] = cFaceI;
         }
     }
     sort(edgeLabelsFaceIndices);
@@ -112,8 +90,8 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
     // Assemble lists of edge-face and cell-face connectivities
     // Negative values indicate an edge which runs in an opposite direction to
     // the face node listing
-    labelListList edgeFaceIndices(cellEdges.size());
-    labelListList faceEdgeIndices(cellFaces.size());
+    labelListList edgeFaceIndices(cEdges.size());
+    labelListList faceEdgeIndices(cFaceLabels.size());
     forAll(edgeLabelsFaceIndices, I)
     {
         const label edgeLabelsEdgeIndex(edgeLabelsEdgeIndices[I][2]);
@@ -137,9 +115,9 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
 
     // Generate a list of point labels and face index pairs
     labelListList pointLabelEdgeIndexFaceIndexPairs;
-    forAll(cellEdges, edgeI)
+    forAll(cEdges, edgeI)
     {
-        const labelPair pointIndices(cellEdges[edgeI]);
+        const labelPair pointIndices(cEdges[edgeI]);
 
         const labelPair faceIndices
         (
@@ -169,8 +147,8 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
     sort(pointLabelEdgeIndexFaceIndexPairs);
 
     // Assemble a list of point face pairs from the sorted lists
-    labelListList pointEdgeIndices(cellPoints.size());
-    List<List<Pair<label> > > pointFaceIndexPairs(cellPoints.size());
+    labelListList pointEdgeIndices(cPointLabels.size());
+    List<List<Pair<label> > > pointFaceIndexPairs(cPointLabels.size());
     {
         label I(0);
         label pointLabelOld(pointLabelEdgeIndexFaceIndexPairs[0][0]);
@@ -213,7 +191,7 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
     }
 
     // Order the point face pairs and assemble a list of point face indices
-    labelListList pointFaceIndices(cellPoints.size());
+    labelListList pointFaceIndices(cPointLabels.size());
     forAll(pointFaceIndexPairs, pointI)
     {
         labelPairList& faceIndexPairs(pointFaceIndexPairs[pointI]);
@@ -246,7 +224,7 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
     }
 
     // convert to global indices
-    forAll(cellPoints, pointI)
+    forAll(cPointLabels, pointI)
     {
         labelList& edgeIndices(pointEdgeIndices[pointI]);
         labelList& faceIndices(pointFaceIndices[pointI]);
@@ -258,9 +236,9 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
         forAll(edgeIndices, edgeI)
         {
             cellPointPoints_[cellI][pointI][edgeI] =
-                cellEdges[edgeIndices[edgeI]]
+                cEdges[edgeIndices[edgeI]]
                 [
-                    cellEdges[edgeIndices[edgeI]][0] == cellPoints[pointI]
+                    cEdges[edgeIndices[edgeI]][0] == cPointLabels[pointI]
                 ];
         }
 
@@ -269,7 +247,7 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
         forAll(faceIndices, faceI)
         {
             cellPointFaces_[cellI][pointI][faceI] =
-                cellFaces
+                cFaceLabels
                 [
                     faceIndices[faceI]
                 ];
@@ -280,13 +258,9 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::cellPointConnectivity::cellPointConnectivity
-(
-    const IOobject& io,
-    const polyMesh& mesh
-)
+Foam::cellPointConnectivity::cellPointConnectivity(const polyMesh& mesh)
 :
-    regIOobject(io),
+    MoveableMeshObject<polyMesh>(typeName, mesh),
     mesh_(mesh),
     cellPointPoints_(mesh.nCells()),
     cellPointFaces_(mesh.nCells())

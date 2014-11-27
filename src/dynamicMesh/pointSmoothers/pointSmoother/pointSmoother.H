@@ -71,6 +71,40 @@ private:
         void operator=(const pointSmoother&);
 
 
+protected:
+
+    // Protected Member Functions
+
+        //- Test if the given face is internal or on a processor boundary
+        bool isInternalOrProcessorFace(const label faceI) const;
+
+        //- Get a boolean list of the points to be moved
+        autoPtr<PackedBoolList> pointsToMove
+        (
+            const labelList& facesToMove,
+            const bool moveInternalFaces
+        ) const;
+
+        //- Reset the relevant weights and displacements to zero
+        template <class weightType>
+        void reset
+        (
+            const labelList& facesToMove,
+            Field<weightType>& weights,
+            vectorField& displacements,
+            const bool resetInternalFaces = true
+        ) const;
+
+        //- Average the displacements using the weights provided
+        template <class weightType>
+        void average
+        (
+            const labelList& facesToMove,
+            Field<weightType>& weights,
+            vectorField& displacements
+        ) const;
+
+
 public:
 
     //- Runtime type information
@@ -117,28 +151,6 @@ public:
                 return mesh_;
             }
 
-
-        //- Test if the given face is internal or on a processor boundary
-        bool isInternalOrProcessorFace(const label& faceI) const;
-
-        //- Reset the relevant weights and displacements to zero
-        template <class weightType>
-        void reset
-        (
-            const labelList& facesToMove,
-            Field<weightType>& weights,
-            vectorField& displacements,
-            const bool resetInternalFaces = true
-        ) const;
-
-        //- Average the displacements using the weights provided
-        template <class weightType>
-        void average
-        (
-            const labelList& facesToMove,
-            Field<weightType>& weights,
-            vectorField& displacements
-        ) const;
 
         //- Calculate the end point locations
         virtual void update

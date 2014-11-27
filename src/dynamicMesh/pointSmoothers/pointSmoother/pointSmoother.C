@@ -34,6 +34,66 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * *  Protected Member Functions * * * * * * * * * * * //
+
+bool Foam::pointSmoother::isInternalOrProcessorFace(const label faceI) const
+{
+    if (mesh().isInternalFace(faceI))
+    {
+        return true;
+    }
+
+    if (processorPatchIDs_[mesh().boundaryMesh().patchID()[faceI]])
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
+Foam::autoPtr<Foam::PackedBoolList> Foam::pointSmoother::pointsToMove
+(
+    const labelList& facesToMove,
+    const bool moveInternalFaces
+) const
+{
+    autoPtr<PackedBoolList> markerPtr
+    (
+        new PackedBoolList(mesh().nPoints(), false)
+    );
+
+    PackedBoolList& marker(markerPtr());
+
+    forAll(facesToMove, faceToMoveI)
+    {
+        const label faceI(facesToMove[faceToMoveI]);
+
+        if (moveInternalFaces || !isInternalOrProcessorFace(faceI))
+        {
+            const face& fPoints(mesh().faces()[faceI]);
+
+            forAll(fPoints, fPointI)
+            {
+                const label pointI(fPoints[fPointI]);
+
+                marker[pointI] = true;
+            }
+        }
+    }
+
+    syncTools::syncPointList
+    (
+        mesh(),
+        marker,
+        orEqOp<unsigned int>(),
+        0U
+    );
+
+    return markerPtr;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::pointSmoother::pointSmoother
@@ -90,25 +150,6 @@ Foam::pointSmoother::New
 
 Foam::pointSmoother::~pointSmoother()
 {}
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-bool Foam::pointSmoother::isInternalOrProcessorFace(const label& faceI) const
-{
-    if (mesh().isInternalFace(faceI))
-    {
-        return true;
-    }
-
-    if (processorPatchIDs_[mesh().boundaryMesh().whichPatch(faceI)])
-    {
-        return true;
-    }
-
-    return false;
-}
-
 
 
 // ************************************************************************* //

@@ -37,32 +37,12 @@ void Foam::pointSmoother::reset
     const bool resetInternalFaces
 ) const
 {
-    PackedBoolList resetPoints(mesh().nPoints(), false);
-
-    forAll(facesToMove, faceToMoveI)
-    {
-        const label faceI(facesToMove[faceToMoveI]);
-
-        if (resetInternalFaces || !isInternalOrProcessorFace(faceI))
-        {
-            const face& facePoints(mesh().faces()[faceI]);
-
-            forAll(facePoints, facePointI)
-            {
-                const label pointI(facePoints[facePointI]);
-
-                resetPoints[pointI] = true;
-            }
-        }
-    }
-
-    syncTools::syncPointList
+    autoPtr<PackedBoolList> resetPointsPtr
     (
-        mesh(),
-        resetPoints,
-        orEqOp<unsigned int>(),
-        0U
+        pointsToMove(facesToMove, resetInternalFaces)
     );
+
+    const PackedBoolList& resetPoints(resetPointsPtr);
 
     forAll(resetPoints, pointI)
     {
@@ -99,29 +79,12 @@ void Foam::pointSmoother::average
         vector::zero
     );
 
-    PackedBoolList averagePoints(mesh().nPoints(), false);
-
-    forAll(facesToMove, faceToMoveI)
-    {
-        const label faceI(facesToMove[faceToMoveI]);
-
-        const face& facePoints(mesh().faces()[faceI]);
-
-        forAll(facePoints, facePointI)
-        {
-            const label pointI(facePoints[facePointI]);
-
-            averagePoints[pointI] = true;
-        }
-    }
-
-    syncTools::syncPointList
+    autoPtr<PackedBoolList> averagePointsPtr
     (
-        mesh(),
-        averagePoints,
-        orEqOp<unsigned int>(),
-        0U
+        pointsToMove(facesToMove, true)
     );
+
+    const PackedBoolList& averagePoints(averagePointsPtr);
 
     forAll(averagePoints, pointI)
     {

@@ -39,6 +39,7 @@ SourceFiles
 #define cellPointConnectivity_H
 
 #include "polyMesh.H"
+#include "MeshObject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -51,7 +52,7 @@ namespace Foam
 
 class cellPointConnectivity
 :
-    public regIOobject
+    public MoveableMeshObject<polyMesh>
 {
     // Private data
 
@@ -79,16 +80,14 @@ class cellPointConnectivity
 
 public:
 
-    // Static Member Functions
-
-        //- Lookup or construct and return the connectivity
-        static const cellPointConnectivity& get(const polyMesh&);
+    // Run-time type information
+    TypeName("cellPointConnectivity");
 
 
     // Constructors
 
         //- Construct an IOobject and a polymesh
-        cellPointConnectivity(const IOobject& io, const polyMesh&);
+        cellPointConnectivity(const polyMesh&);
 
 
     //- Destructor
@@ -111,9 +110,15 @@ public:
                 return cellPointFaces_;
             }
 
-        // Write
+        // Edit
 
-            //- Dummy write function for regIOobject
+            //- No action required on move points
+            virtual bool movePoints()
+            {
+                return true;
+            }
+
+            //- Dummy write for regIOobject
             virtual bool writeData(Ostream&) const
             {
                 return true;

@@ -85,11 +85,11 @@ void Foam::pointSmoothers::laplacianPointSmoother::update
 
         if (!isInternalOrProcessorFace(faceI))
         {
-            const face& thisFace(mesh().faces()[faceI]);
+            const face& fPoints(mesh().faces()[faceI]);
 
-            forAll(thisFace, thisFacePointI)
+            forAll(fPoints, fPointI)
             {
-                const label pointI(thisFace[thisFacePointI]);
+                const label pointI(fPoints[fPointI]);
 
                 displacements[pointI] +=
                     meshGeometry.faceCentres()[faceI]
@@ -107,15 +107,15 @@ void Foam::pointSmoothers::laplacianPointSmoother::update
 
         if (isInternalOrProcessorFace(faceI))
         {
-            const face& thisFace(mesh().faces()[faceI]);
+            const face& fPoints(mesh().faces()[faceI]);
 
-            forAll(thisFace, thisFacePointI)
+            forAll(fPoints, fPointI)
             {
-                const label pointI(thisFace[thisFacePointI]);
+                const label pointI(fPoints[fPointI]);
 
                 if (counts[pointI] == 0)
                 {
-                    const labelList pointCells(mesh().pointCells()[pointI]);
+                    const labelList& pointCells(mesh().pointCells()[pointI]);
 
                     forAll(pointCells, pointCellI)
                     {
