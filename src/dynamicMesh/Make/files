@@ -110,4 +110,10 @@ extrudePatchMesh/extrudePatchMesh.C
 polyMeshFilter/polyMeshFilterSettings.C
 polyMeshFilter/polyMeshFilter.C
 
+pointSmoothers/pointSmoother/pointSmoother.C
+pointSmoothers/laplacianPointSmoother/laplacianPointSmoother.C
+pointSmoothers/equipotentialPointSmoother/equipotentialPointSmoother.C
+pointSmoothers/geometricElementTransformPointSmoother/cellPointConnectivity/cellPointConnectivity.C
+pointSmoothers/geometricElementTransformPointSmoother/geometricElementTransformPointSmoother.C
+
 LIB = $(FOAM_LIBBIN)/libdynamicMesh
