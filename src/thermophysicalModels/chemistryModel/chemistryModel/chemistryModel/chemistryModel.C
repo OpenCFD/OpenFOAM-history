@@ -672,9 +672,8 @@ Foam::chemistryModel<CompType, ThermoType>::calculateRR
 
     DimensionedField<scalar, volMesh>& RR = tRR();
 
-     const Reaction<ThermoType>& R = reactions_[reactionI];
+    const Reaction<ThermoType>& R = reactions_[reactionI];
 
-    bool speciePresent = false;
     bool consumed = false;
 
     label sIndex = -1;
@@ -684,7 +683,6 @@ Foam::chemistryModel<CompType, ThermoType>::calculateRR
         if (R.lhs()[s].index == specieI)
         {
             consumed = true;
-            speciePresent = true;
             sIndex = s;
         }
     }
@@ -693,12 +691,11 @@ Foam::chemistryModel<CompType, ThermoType>::calculateRR
     {
         if (R.rhs()[s].index == specieI)
         {
-            speciePresent = true;
             sIndex = s;
         }
     }
 
-    if (speciePresent)
+    if (sIndex != -1)
     {
         const scalarField& T = this->thermo().T();
         const scalarField& p = this->thermo().p();
@@ -730,21 +727,18 @@ Foam::chemistryModel<CompType, ThermoType>::calculateRR
                 rRef
             );
 
-            if (w > 0.0)
+            if (consumed)
             {
-                if (consumed)
-                {
-                    const scalar sl = R.lhs()[sIndex].stoichCoeff;
-                    RR[celli] = -sl*w;
-                }
-                else
-                {
-                    const scalar sr = R.rhs()[sIndex].stoichCoeff;
-                    RR[celli] = sr*w;
-                }
-
-                RR[celli] *= specieThermo_[specieI].W();
+                const scalar sl = R.lhs()[sIndex].stoichCoeff;
+                RR[celli] = -sl*w;
             }
+            else
+            {
+                const scalar sr = R.rhs()[sIndex].stoichCoeff;
+                RR[celli] = sr*w;
+            }
+
+            RR[celli] *= specieThermo_[specieI].W();
         }
     }
 

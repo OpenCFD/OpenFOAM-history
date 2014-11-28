@@ -213,6 +213,17 @@ makeThermo
     specie
 );
 
+makeThermo
+(
+    rhoThermo,
+    heRhoThermo,
+    pureMixture,
+    sutherlandTransport,
+    sensibleEnthalpy,
+    janafThermo,
+    PengRobinsonGas,
+    specie
+);
 
 makeThermo
 (
@@ -249,6 +260,7 @@ makeThermo
     Boussinesq,
     specie
 );
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
