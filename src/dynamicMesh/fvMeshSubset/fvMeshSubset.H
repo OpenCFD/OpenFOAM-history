@@ -128,6 +128,13 @@ private:
         //- Create zones for submesh
         void subsetZones();
 
+        //- Helper: extract cells-to-remove from cells-to-keep
+        labelList getCellsToRemove
+        (
+            const labelList& region,
+            const label currentRegion
+        ) const;
+
         //- Disallow default bitwise copy construct
         fvMeshSubset(const fvMeshSubset&);
 
@@ -176,6 +183,32 @@ public:
                 const label patchID = -1,
                 const bool syncPar = true
             );
+
+
+            //- Two step subsetting
+
+                //- Get labels of exposed faces.
+                //  These are
+                //  - internal faces that become boundary faces
+                //  - coupled faces that become uncoupled (since one of the
+                //    sides gets deleted)
+                labelList getExposedFaces
+                (
+                    const labelList& region,
+                    const label currentRegion,
+                    const bool syncCouples = true
+                ) const;
+
+                //- For every exposed face (from above getExposedFaces)
+                //  used supplied (existing!) patch
+                void setLargeCellSubset
+                (
+                    const labelList& region,
+                    const label currentRegion,
+                    const labelList& exposedFaces,
+                    const labelList& patchIDs,
+                    const bool syncCouples = true
+                );
 
 
         // Access

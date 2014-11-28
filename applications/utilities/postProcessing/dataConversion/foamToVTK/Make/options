@@ -8,5 +8,6 @@ EXE_LIBS = \
     -lfiniteVolume \
     -llagrangian \
     -lgenericPatchFields \
+    -ldynamicMesh \
     -lmeshTools
 

@@ -37,6 +37,7 @@ LIB_LIBS = \
     -lincompressibleTransportModels \
     -lregionModels \
     -lsurfaceFilmModels \
+    -ldynamicMesh \
     -ldynamicFvMesh \
     -lsampling
 
