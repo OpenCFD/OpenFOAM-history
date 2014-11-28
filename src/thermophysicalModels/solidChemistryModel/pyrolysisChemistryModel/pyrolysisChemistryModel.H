@@ -76,7 +76,7 @@ protected:
         label nGases_;
 
         //- Number of components being solved by ODE
-        label nSpecie_;
+        label nComponents_;
 
         //- List of reaction rate per gas [kg/m3/s]
         PtrList<DimensionedField<scalar, volMesh> > RRg_;
@@ -120,13 +120,6 @@ public:
 
         //- Gases table
         inline const speciesTable& gasTable() const;
-
-        //- The number of solids
-        inline label nSpecie() const;
-
-        //- The number of solids
-        inline label nGases() const;
-
 
         //- dc/dt = omega, rate of change in concentration, for each species
         virtual scalarField omega

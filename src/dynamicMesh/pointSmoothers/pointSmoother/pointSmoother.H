@@ -1,0 +1,181 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Class
+    Foam::pointSmoother
+
+Description
+    Abstract base class for point smoothing methods. Handles parallel
+    communication via reset and average functions.
+
+SourceFiles
+    pointSmoother.C
+    pointSmootherTemplates.C
+
+\*---------------------------------------------------------------------------*/
+
+#ifndef pointSmoother_H
+#define pointSmoother_H
+
+#include "polyMeshGeometry.H"
+#include "runTimeSelectionTables.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+
+/*---------------------------------------------------------------------------*\
+                         Class pointSmoother Declaration
+\*---------------------------------------------------------------------------*/
+
+class pointSmoother
+{
+private:
+
+    // Private data
+
+        //- Reference to the polyMesh
+        const polyMesh& mesh_;
+
+        //- Set of the processor patch indices
+        labelHashSet processorPatchIDs_;
+
+
+    // Private Member Functions
+
+        //- Disallow default bitwise copy construct
+        pointSmoother(const pointSmoother&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const pointSmoother&);
+
+
+protected:
+
+    // Protected Member Functions
+
+        //- Test if the given face is internal or on a processor boundary
+        bool isInternalOrProcessorFace(const label faceI) const;
+
+        //- Get a boolean list of the points to be moved
+        autoPtr<PackedBoolList> pointsToMove
+        (
+            const labelList& facesToMove,
+            const bool moveInternalFaces
+        ) const;
+
+        //- Reset the relevant weights and displacements to zero
+        template <class weightType>
+        void reset
+        (
+            const labelList& facesToMove,
+            Field<weightType>& weights,
+            vectorField& displacements,
+            const bool resetInternalFaces = true
+        ) const;
+
+        //- Average the displacements using the weights provided
+        template <class weightType>
+        void average
+        (
+            const labelList& facesToMove,
+            Field<weightType>& weights,
+            vectorField& displacements
+        ) const;
+
+
+public:
+
+    //- Runtime type information
+    TypeName("pointSmoother");
+
+
+    // Declare run-time constructor selection table
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        pointSmoother,
+        dictionary,
+        (const dictionary& dict, const polyMesh& mesh),
+        (dict, mesh)
+    );
+
+
+    // Constructors
+
+        //- Construct from a mesh and a dictionary
+        pointSmoother(const dictionary& dict, const polyMesh& mesh);
+
+
+    // Selector
+
+        static autoPtr<pointSmoother> New
+        (
+            const dictionary& dict,
+            const polyMesh& mesh
+        );
+
+
+    //- Destructor
+    virtual ~pointSmoother();
+
+
+    // Member Functions
+
+        //- Access
+
+            // Access the mesh
+            const polyMesh& mesh() const
+            {
+                return mesh_;
+            }
+
+
+        //- Calculate the end point locations
+        virtual void update
+        (
+            const labelList& facesToMove,
+            const polyMeshGeometry& meshGeometry,
+            const pointField& oldPoints,
+            const pointField& currentPoints,
+            vectorField& displacements
+        ) const = 0;
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "pointSmootherTemplates.C"
+#endif
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
+
+// ************************************************************************* //

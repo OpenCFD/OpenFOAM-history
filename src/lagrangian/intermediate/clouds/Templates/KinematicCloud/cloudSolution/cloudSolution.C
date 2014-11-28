@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,11 +28,7 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::cloudSolution::cloudSolution
-(
-    const fvMesh& mesh,
-    const dictionary& dict
-)
+Foam::cloudSolution::cloudSolution(const fvMesh& mesh, const dictionary& dict)
 :
     mesh_(mesh),
     dict_(dict),
@@ -52,13 +48,25 @@ Foam::cloudSolution::cloudSolution
     {
         read();
     }
+    else
+    {
+        // see if existing source terms should be reset
+        const dictionary sourceTerms(dict_.subOrEmptyDict("sourceTerms"));
+        sourceTerms.readIfPresent("resetOnStartup", resetSourcesOnStartup_);
+
+        if (resetSourcesOnStartup_)
+        {
+            Info<< "Cloud source terms will be reset" << endl;
+        }
+        else
+        {
+            Info<< "Cloud source terms will be held constant" << endl;
+        }
+    }
 }
 
 
-Foam::cloudSolution::cloudSolution
-(
-    const cloudSolution& cs
-)
+Foam::cloudSolution::cloudSolution(const cloudSolution& cs)
 :
     mesh_(cs.mesh_),
     dict_(cs.dict_),
@@ -76,10 +84,7 @@ Foam::cloudSolution::cloudSolution
 {}
 
 
-Foam::cloudSolution::cloudSolution
-(
-    const fvMesh& mesh
-)
+Foam::cloudSolution::cloudSolution(const fvMesh& mesh)
 :
     mesh_(mesh),
     dict_(dictionary::null),

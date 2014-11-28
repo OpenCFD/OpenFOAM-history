@@ -1,0 +1,367 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+\*---------------------------------------------------------------------------*/
+
+#include "displacementPointSmoothingMotionSolver.H"
+#include "addToRunTimeSelectionTable.H"
+#include "syncTools.H"
+#include "pointConstraints.H"
+#include "motionSmootherAlgo.H"
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam
+{
+    defineTypeNameAndDebug(displacementPointSmoothingMotionSolver, 0);
+
+    addToRunTimeSelectionTable
+    (
+        motionSolver,
+        displacementPointSmoothingMotionSolver,
+        dictionary
+    );
+}
+
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::displacementPointSmoothingMotionSolver::markAffectedFaces
+(
+    const labelHashSet& changedFaces,
+    labelHashSet& affectedFaces
+)
+{
+    PackedBoolList affectedPoints(mesh().nPoints(), false);
+
+    forAllConstIter(labelHashSet, changedFaces, iter)
+    {
+        const label faceI(iter.key());
+
+        const face& fPoints(mesh().faces()[faceI]);
+
+        forAll(fPoints, fPointI)
+        {
+            const label pointI(fPoints[fPointI]);
+
+            affectedPoints[pointI] = true;
+        }
+    }
+
+    syncTools::syncPointList
+    (
+        mesh(),
+        affectedPoints,
+        orEqOp<unsigned int>(),
+        0U
+    );
+
+    forAll(affectedPoints, pointI)
+    {
+        if (affectedPoints[pointI])
+        {
+            const labelList& pCells(mesh().pointCells()[pointI]);
+
+            forAll(pCells, pointCellI)
+            {
+                const label cellI(pCells[pointCellI]);
+
+                const labelList& cFaces(mesh().cells()[cellI]);
+
+                affectedFaces.insert(cFaces);
+            }
+        }
+    }
+}
+
+
+bool Foam::displacementPointSmoothingMotionSolver::relax()
+{
+    const pointField oldRelaxedPoints(relaxedPoints_);
+
+    labelHashSet affectedFaces(facesToMove_);
+
+    // Create a list of relaxation levels
+    // -1 indicates a point which is not to be moved
+    //  0 is the starting value for a moving point
+    labelList relaxationLevel(mesh().nPoints(), -1);
+    forAllConstIter(labelHashSet, affectedFaces, iter)
+    {
+        const label faceI(iter.key());
+
+        const face& fPoints(mesh().faces()[faceI]);
+
+        forAll(fPoints, fPointI)
+        {
+            const label pointI(fPoints[fPointI]);
+
+            relaxationLevel[pointI] = 0;
+        }
+    }
+
+    syncTools::syncPointList
+    (
+        mesh(),
+        relaxationLevel,
+        maxEqOp<label>(),
+        label(-1)
+    );
+
+    // Loop whilst relaxation levels are being incremented
+    bool complete(false);
+    while (!complete)
+    {
+        scalar nAffectedFaces(affectedFaces.size());
+        reduce(nAffectedFaces, sumOp<scalar>());
+        Info << "    Moving " << nAffectedFaces << " faces" << endl;
+
+        // Move the points
+        forAll(relaxationLevel, pointI)
+        {
+            if (relaxationLevel[pointI] >= 0)
+            {
+                const scalar x
+                (
+                    relaxationFactors_[relaxationLevel[pointI]]
+                );
+
+                relaxedPoints_[pointI] =
+                    (1 - x)*oldRelaxedPoints[pointI]
+                  + x*(points0()[pointI] + pointDisplacement()[pointI]);
+            }
+        }
+
+        // Get a list of changed faces
+        labelHashSet markedFaces;
+        markAffectedFaces(affectedFaces, markedFaces);
+        labelList markedFacesList(markedFaces.toc());
+
+        // Update the geometry
+        meshGeometry_.correct(relaxedPoints_, markedFacesList);
+
+        // Check the modified face quality
+        markedFaces.clear();
+        motionSmootherAlgo::checkMesh
+        (
+            false,
+            meshQualityDict_,
+            meshGeometry_,
+            relaxedPoints_,
+            markedFacesList,
+            markedFaces
+        );
+
+        // Mark the affected faces
+        affectedFaces.clear();
+        markAffectedFaces(markedFaces, affectedFaces);
+
+        // Increase relaxation and check convergence
+        PackedBoolList pointsToRelax(mesh().nPoints(), false);
+        complete = true;
+        forAllConstIter(labelHashSet, affectedFaces, iter)
+        {
+            const label faceI(iter.key());
+
+            const face& fPoints(mesh().faces()[faceI]);
+
+            forAll(fPoints, fPointI)
+            {
+                const label pointI(fPoints[fPointI]);
+
+                pointsToRelax[pointI] = true;
+            }
+        }
+
+        forAll(pointsToRelax, pointI)
+        {
+            if
+            (
+                pointsToRelax[pointI]
+             && (relaxationLevel[pointI] < relaxationFactors_.size() - 1)
+            )
+            {
+                ++ relaxationLevel[pointI];
+
+                complete = false;
+            }
+        }
+
+        // Synchronise relaxation levels
+        syncTools::syncPointList
+        (
+            mesh(),
+            relaxationLevel,
+            maxEqOp<label>(),
+            label(0)
+        );
+
+        // Synchronise completion
+        reduce(complete, andOp<bool>());
+    }
+
+    // Check for convergence
+    bool converged(true);
+    forAll(mesh().faces(), faceI)
+    {
+        const face& fPoints(mesh().faces()[faceI]);
+
+        forAll(fPoints, fPointI)
+        {
+            const label pointI(fPoints[fPointI]);
+
+            if (relaxationLevel[pointI] > 0)
+            {
+                facesToMove_.insert(faceI);
+
+                converged = false;
+
+                break;
+            }
+        }
+    }
+
+    // Syncronise convergence
+    reduce(converged, andOp<bool>());
+
+    if (converged)
+    {
+        Info<< "... Converged" << endl << endl;
+    }
+    else
+    {
+        Info<< "... Not converged" << endl << endl;
+    }
+
+    return converged;
+}
+
+
+void Foam::displacementPointSmoothingMotionSolver::setAllFacesToMove()
+{
+    facesToMove_.resize(2*mesh().nFaces());
+    forAll(mesh().faces(), faceI)
+    {
+        facesToMove_.insert(faceI);
+    }
+}
+
+
+void Foam::displacementPointSmoothingMotionSolver::setBoundaryFacesToMove()
+{
+    facesToMove_.resize(2*(mesh().nFaces() - mesh().nInternalFaces()));
+    for
+    (
+        label faceI = mesh().nInternalFaces();
+        faceI < mesh().nFaces();
+        ++ faceI
+    )
+    {
+        facesToMove_.insert(faceI);
+    }
+}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::displacementPointSmoothingMotionSolver::
+displacementPointSmoothingMotionSolver
+(
+    const polyMesh& mesh,
+    const IOdictionary& dict
+)
+:
+    displacementMotionSolver(mesh, dict, dict.lookup("solver")),
+    meshGeometry_(mesh),
+    pointSmoother_(pointSmoother::New(coeffDict(), mesh)),
+    relaxationFactors_(coeffDict().lookup("relaxationFactors")),
+    relaxedPoints_(mesh.points()),
+    facesToMove_(),
+    meshQualityDict_(coeffDict().subDict("meshQuality"))
+{
+    const Switch moveInternalFaces(coeffDict().lookup("moveInternalFaces"));
+
+    if (moveInternalFaces)
+    {
+        setAllFacesToMove();
+    }
+    else
+    {
+        setBoundaryFacesToMove();
+    }
+}
+
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::displacementPointSmoothingMotionSolver::
+~displacementPointSmoothingMotionSolver()
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::pointField>
+Foam::displacementPointSmoothingMotionSolver::curPoints() const
+{
+    tmp<pointField> tcurPoints(relaxedPoints_);
+
+    twoDCorrectPoints(tcurPoints());
+
+    return tcurPoints;
+}
+
+
+void Foam::displacementPointSmoothingMotionSolver::solve()
+{
+    movePoints(curPoints());
+
+    labelHashSet affectedFaces;
+    markAffectedFaces(facesToMove_, affectedFaces);
+
+    meshGeometry_.correct
+    (
+        points0() + pointDisplacement().internalField(),
+        affectedFaces.toc()
+    );
+
+    pointSmoother_->update
+    (
+        affectedFaces.toc(),
+        meshGeometry_,
+        points0(),
+        points0() + pointDisplacement().internalField(),
+        pointDisplacement()
+    );
+
+    pointDisplacement().correctBoundaryConditions();
+
+    pointConstraints::New
+    (
+        pointDisplacement().mesh()
+    ).constrainDisplacement(pointDisplacement());
+
+    relax();
+}
+
+
+// ************************************************************************* //

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -471,6 +471,7 @@ public:
                 const bool report,
                 const dictionary& dict,
                 const polyMeshGeometry&,
+                const pointField&,
                 const labelList& checkFaces,
                 labelHashSet& wrongFaces
             );
@@ -483,6 +484,7 @@ public:
                 const bool report,
                 const dictionary& dict,
                 const polyMeshGeometry&,
+                const pointField&,
                 const labelList& checkFaces,
                 const List<labelPair>& baffles,
                 labelHashSet& wrongFaces

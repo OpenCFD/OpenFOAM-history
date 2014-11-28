@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,15 +51,6 @@ Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::
 gasTable() const
 {
     return pyrolisisGases_;
-}
-
-
-template<class CompType, class SolidThermo, class GasThermo>
-inline Foam::label
-Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::
-nSpecie() const
-{
-    return nSpecie_;
 }
 
 

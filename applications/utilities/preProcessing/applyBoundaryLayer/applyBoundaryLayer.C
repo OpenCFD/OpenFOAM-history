@@ -39,12 +39,43 @@ Description
 #include "singlePhaseTransportModel.H"
 #include "RASModel.H"
 #include "wallDist.H"
+#include "processorFvPatchField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // turbulence constants - file-scope
 static const scalar Cmu(0.09);
 static const scalar kappa(0.41);
+
+void correctProcessorPatches(volScalarField& vf)
+{
+    if (!Pstream::parRun())
+    {
+        return;
+    }
+
+    // Not possible to use correctBoundaryConditions on fields as they may
+    // use local info as opposed to the constraint values employed here,
+    // but still need to update processor patches
+
+    volScalarField::GeometricBoundaryField& bf = vf.boundaryField();
+
+    forAll(bf, patchI)
+    {
+        if (isA<processorFvPatchField<scalar> >(bf[patchI]))
+        {
+            bf[patchI].initEvaluate();
+        }
+    }
+
+    forAll(bf, patchI)
+    {
+        if (isA<processorFvPatchField<scalar> >(bf[patchI]))
+        {
+            bf[patchI].evaluate();
+        }
+    }
+}
 
 
 int main(int argc, char *argv[])
@@ -137,8 +168,9 @@ int main(int argc, char *argv[])
         volScalarField S(mag(dev(symm(fvc::grad(U)))));
         nut = (1 - mask)*nut + mask*sqr(kappa*min(y, ybl))*::sqrt(2)*S;
 
-        // do not correct BC - wall functions will 'undo' manipulation above
+        // Do not correct BC - wall functions will 'undo' manipulation above
         // by using nut from turbulence model
+        correctProcessorPatches(nut);
 
         if (args.optionFound("writenut"))
         {
@@ -155,9 +187,10 @@ int main(int argc, char *argv[])
         scalar ck0 = pow025(Cmu)*kappa;
         k = (1 - mask)*k + mask*sqr(nut/(ck0*min(y, ybl)));
 
-        // do not correct BC - operation may use inconsistent fields wrt these
-        // local manipulations
+        // Do not correct BC
+        // - operation may use inconsistent fields wrt these local manipulations
         // k.correctBoundaryConditions();
+        correctProcessorPatches(k);
 
         Info<< "Writing k\n" << endl;
         k.write();
@@ -168,10 +201,12 @@ int main(int argc, char *argv[])
         volScalarField& epsilon = tepsilon();
         scalar ce0 = ::pow(Cmu, 0.75)/kappa;
         epsilon = (1 - mask)*epsilon + mask*ce0*k*sqrt(k)/min(y, ybl);
+        epsilon.max(SMALL);
 
-        // do not correct BC - wall functions will use non-updated k from
-        // turbulence model
+        // Do not correct BC
+        // - operation may use inconsistent fields wrt these local manipulations
         // epsilon.correctBoundaryConditions();
+        correctProcessorPatches(epsilon);
 
         Info<< "Writing epsilon\n" << endl;
         epsilon.write();
@@ -190,12 +225,16 @@ int main(int argc, char *argv[])
         if (omegaHeader.typeHeaderOk<volScalarField>(true))
         {
             volScalarField omega(omegaHeader, mesh);
-            dimensionedScalar k0("VSMALL", k.dimensions(), VSMALL);
-            omega = (1 - mask)*omega + mask*epsilon/(Cmu*k + k0);
+            dimensionedScalar k0("SMALL", k.dimensions(), SMALL);
 
-            // do not correct BC - wall functions will use non-updated k from
-            // turbulence model
+            omega = (1 - mask)*omega + mask*epsilon/(Cmu*k + k0);
+            omega.max(SMALL);
+
+            // Do not correct BC
+            // - operation may use inconsistent fields wrt these local
+            //   manipulations
             // omega.correctBoundaryConditions();
+            correctProcessorPatches(omega);
 
             Info<< "Writing omega\n" << endl;
             omega.write();
@@ -217,8 +256,11 @@ int main(int argc, char *argv[])
             volScalarField nuTilda(nuTildaHeader, mesh);
             nuTilda = nut;
 
-            // do not correct BC
+            // Do not correct BC
+            // - operation may use inconsistent fields wrt these local
+            //   manipulations
             // nuTilda.correctBoundaryConditions();
+            correctProcessorPatches(nuTilda);
 
             Info<< "Writing nuTilda\n" << endl;
             nuTilda.write();

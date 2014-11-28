@@ -1518,7 +1518,7 @@ void Foam::autoLayerDriver::getPatchDisplacement
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // Start off from same thickness everywhere (except where no extrusion)
-    patchDisp = thickness*pointNormals;
+    patchDisp = - thickness*pointNormals;
 
 
     label nNoVisNormal = 0;
