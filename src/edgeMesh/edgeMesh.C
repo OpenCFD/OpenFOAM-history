@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -286,7 +286,12 @@ void Foam::edgeMesh::scalePoints(const scalar scaleFactor)
 }
 
 
-void Foam::edgeMesh::mergePoints(const scalar mergeDist)
+void Foam::edgeMesh::mergePoints
+(
+    const scalar mergeDist,
+    labelList& reversePointMap
+    //labelList& edgeMap
+)
 {
     pointField newPoints;
     labelList pointMap;
@@ -306,6 +311,9 @@ void Foam::edgeMesh::mergePoints(const scalar mergeDist)
         pointEdgesPtr_.clear();
 
         points_.transfer(newPoints);
+
+        // connectivity changed
+        pointEdgesPtr_.clear();
 
         // Renumber and make sure e[0] < e[1] (not really necessary)
         forAll(edges_, edgeI)
@@ -383,6 +391,9 @@ void Foam::edgeMesh::mergeEdges()
     {
         edges_[iter()] = iter.key();
     }
+
+    // connectivity changed
+    pointEdgesPtr_.clear();
 }
 
 
