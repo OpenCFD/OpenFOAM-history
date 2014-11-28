@@ -7,9 +7,13 @@ then
     wmake libso vtkPV4Foam
     (
         cd PV4FoamReader
-        mkdir -p Make/$WM_OPTIONS > /dev/null 2>&1
-        cd Make/$WM_OPTIONS
-        cmake ../..
+        sourceDir=$PWD
+
+        # Where are the generated files stored?
+        depFile=`wdep dummy.C`
+        depDir=`dirname $depFile`
+
+        (mkdir -p $depDir && cd $depDir && cmake $sourceDir)
         make
     )
 fi

@@ -5,7 +5,12 @@ set -x
 # deal with client/server vs combined plugins
 rm -f $FOAM_LIBBIN/libPV4FoamReader* 2>/dev/null
 
-rm -rf PV4FoamReader/Make
+(
+    # Where are the generated files stored?
+    depFile=`wdep dummy.C` && \
+    depDir=`dirname $depFile` && \
+    rm -rf "$depDir"
+)
 wclean libso vtkPV4Foam
 
 # ----------------------------------------------------------------- end-of-file
