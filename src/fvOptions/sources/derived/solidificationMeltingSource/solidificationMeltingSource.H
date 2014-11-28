@@ -48,7 +48,7 @@ Description
     \heading Source usage
     Example usage:
     \verbatim
-    solidificationMeltingSourceCoeffs
+    solidificationMeltingSource1
     {
         type            solidificationMeltingSource;
         active          on;

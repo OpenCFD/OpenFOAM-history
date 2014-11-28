@@ -769,22 +769,27 @@ void Foam::meshToMesh::constructFromCuttingPatches
     const wordList& cuttingPatches
 )
 {
-    srcPatchID_.setSize(patchMap.size());
-    tgtPatchID_.setSize(patchMap.size());
+    DynamicList<label> srcIDs(patchMap.size());
+    DynamicList<label> tgtIDs(patchMap.size());
 
-    label i = 0;
     forAllConstIter(HashTable<word>, patchMap, iter)
     {
         const word& tgtPatchName = iter.key();
         const word& srcPatchName = iter();
 
         const polyPatch& srcPatch = srcRegion_.boundaryMesh()[srcPatchName];
-        const polyPatch& tgtPatch = tgtRegion_.boundaryMesh()[tgtPatchName];
 
-        srcPatchID_[i] = srcPatch.index();
-        tgtPatchID_[i] = tgtPatch.index();
-        i++;
+        if (!polyPatch::constraintType(srcPatch.type()))
+        {
+            const polyPatch& tgtPatch = tgtRegion_.boundaryMesh()[tgtPatchName];
+
+            srcIDs.append(srcPatch.index());
+            tgtIDs.append(tgtPatch.index());
+        }
     }
+
+    srcPatchID_.transfer(srcIDs);
+    tgtPatchID_.transfer(tgtIDs);
 
     // calculate volume addressing and weights
     calculate(methodName);
