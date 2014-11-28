@@ -58,11 +58,11 @@ void Foam::displacementPointSmoothingMotionSolver::markAffectedFaces
     {
         const label faceI(iter.key());
 
-        const labelList& facePoints(mesh().faces()[faceI]);
+        const face& fPoints(mesh().faces()[faceI]);
 
-        forAll(facePoints, thisFacePointI)
+        forAll(fPoints, fPointI)
         {
-            const label pointI(facePoints[thisFacePointI]);
+            const label pointI(fPoints[fPointI]);
 
             affectedPoints[pointI] = true;
         }
@@ -80,15 +80,15 @@ void Foam::displacementPointSmoothingMotionSolver::markAffectedFaces
     {
         if (affectedPoints[pointI])
         {
-            const labelList& pointCells(mesh().pointCells()[pointI]);
+            const labelList& pCells(mesh().pointCells()[pointI]);
 
-            forAll(pointCells, pointCellI)
+            forAll(pCells, pointCellI)
             {
-                const label cellI(pointCells[pointCellI]);
+                const label cellI(pCells[pointCellI]);
 
-                const labelList cellFaces(mesh().cells()[cellI]);
+                const labelList& cFaces(mesh().cells()[cellI]);
 
-                affectedFaces.insert(cellFaces);
+                affectedFaces.insert(cFaces);
             }
         }
     }
@@ -109,11 +109,11 @@ bool Foam::displacementPointSmoothingMotionSolver::relax()
     {
         const label faceI(iter.key());
 
-        const face& thisFace(mesh().faces()[faceI]);
+        const face& fPoints(mesh().faces()[faceI]);
 
-        forAll(thisFace, thisFacePointI)
+        forAll(fPoints, fPointI)
         {
-            const label pointI(thisFace[thisFacePointI]);
+            const label pointI(fPoints[fPointI]);
 
             relaxationLevel[pointI] = 0;
         }
@@ -182,11 +182,11 @@ bool Foam::displacementPointSmoothingMotionSolver::relax()
         {
             const label faceI(iter.key());
 
-            const face& facePointLabels(mesh().faces()[faceI]);
+            const face& fPoints(mesh().faces()[faceI]);
 
-            forAll(facePointLabels, facePointLabelI)
+            forAll(fPoints, fPointI)
             {
-                const label pointI(facePointLabels[facePointLabelI]);
+                const label pointI(fPoints[fPointI]);
 
                 pointsToRelax[pointI] = true;
             }
@@ -223,11 +223,11 @@ bool Foam::displacementPointSmoothingMotionSolver::relax()
     bool converged(true);
     forAll(mesh().faces(), faceI)
     {
-        const face& thisFace(mesh().faces()[faceI]);
+        const face& fPoints(mesh().faces()[faceI]);
 
-        forAll(thisFace, thisFacePointI)
+        forAll(fPoints, fPointI)
         {
-            const label pointI(thisFace[thisFacePointI]);
+            const label pointI(fPoints[fPointI]);
 
             if (relaxationLevel[pointI] > 0)
             {
