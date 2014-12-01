@@ -64,7 +64,7 @@ class pointSmoothingMeshMover
         //- IDs of fixedValue patches that we can modify
         const labelList adaptPatchIDs_;
 
-        //- Combined indirect fixedValue patche that we can modify
+        //- Combined indirect fixedValue patches that we can modify
         autoPtr<indirectPrimitivePatch> adaptPatchPtr_;
 
         //- Scale factor for displacement

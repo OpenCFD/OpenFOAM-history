@@ -44,6 +44,7 @@ SourceFiles
 #include "externalDisplacementMeshMover.H"
 #include "motionSmootherAlgo.H"
 #include "autoLayerDriver.H"
+#include "fieldSmoother.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,6 +76,9 @@ class medialAxisMeshMover
         //- Mesh mover algorithm
         motionSmootherAlgo meshMover_;
 
+        //- Field smoothing
+        fieldSmoother fieldSmoother_;
+
 
     // Pre-calculated medial axis information
 
@@ -100,25 +104,6 @@ class medialAxisMeshMover
 
 
         // Calculation of medial axis information
-
-            //- Smooth normals on patch
-            void smoothPatchNormals
-            (
-                const label nSmoothDisp,
-                const PackedBoolList& isMasterPoint,
-                const PackedBoolList& isMasterEdge,
-                pointField& normals
-            ) const;
-
-            //- Smooth normals on interior
-            void smoothNormals
-            (
-                const label nSmoothDisp,
-                const PackedBoolList& isMasterPoint,
-                const PackedBoolList& isMasterEdge,
-                const labelList& fixedPoints,
-                pointVectorField& normals
-            ) const;
 
             //- Is mesh edge on a cusp of displacement
             bool isMaxEdge
@@ -149,23 +134,6 @@ class medialAxisMeshMover
                 const scalarField& minThickness,
                 pointField& patchDisp,
                 List<autoLayerDriver::extrudeMode>& extrudeStatus
-            ) const;
-
-            void smoothLambdaMuDisplacement
-            (
-                const label nSmoothDisp,
-                const PackedBoolList& isMasterPoint,
-                const PackedBoolList& isMasterEdge,
-                vectorField& displacement
-            ) const;
-
-            void minSmoothField
-            (
-                const label nSmoothDisp,
-                const PackedBoolList& isMasterPoint,
-                const PackedBoolList& isMasterEdge,
-                const scalarField& fieldMin,
-                scalarField& field
             ) const;
 
             //- Stop layer growth at feature edges
