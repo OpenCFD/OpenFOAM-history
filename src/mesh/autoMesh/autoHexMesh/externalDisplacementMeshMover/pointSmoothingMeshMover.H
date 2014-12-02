@@ -39,6 +39,7 @@ SourceFiles
 #include "pointSmoother.H"
 #include "polyMeshGeometry.H"
 #include "motionSmootherAlgo.H"
+#include "fieldSmoother.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,6 +76,9 @@ class pointSmoothingMeshMover
 
         //- Mesh mover algorithm
         motionSmootherAlgo meshMover_;
+
+        //- Field smoothing
+        fieldSmoother fieldSmoother_;
 
 
     // Private Member Functions

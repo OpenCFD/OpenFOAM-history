@@ -101,6 +101,7 @@ public:
         ) const;
 
         //- Smooth a scalar field towards, but not beyond, a minimum value
+        template <class Type>
         void minSmoothField
         (
             const label nIter,
@@ -108,7 +109,7 @@ public:
             const PackedBoolList& isPatchMasterEdge,
             const indirectPrimitivePatch& adaptPatch,
             const scalarField& fieldMin,
-            scalarField& field
+            Field<Type>& field
         ) const;
 
         //- Smooth and then un-smooth a displacement
@@ -125,6 +126,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "fieldSmootherTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

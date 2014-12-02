@@ -149,7 +149,9 @@ Foam::pointSmoothingMeshMover::pointSmoothingMeshMover
         oldPoints_,
         adaptPatchIDs_,
         dict
-    )
+    ),
+
+    fieldSmoother_(mesh())
 {}
 
 
@@ -168,29 +170,94 @@ bool Foam::pointSmoothingMeshMover::move
     labelList& checkFaces
 )
 {
-    pointDisplacement().correctBoundaryConditions();
+    // Update the point smoother displacements
+    {
+        meshGeometry_.correct
+        (
+            oldPoints_ + pointDisplacement().internalField(),
+            checkFaces
+        );
 
-    meshGeometry_.correct
-    (
-        oldPoints_ + pointDisplacement().internalField(),
-        checkFaces
-    );
+        pointSmoother_->update
+        (
+            checkFaces,
+            meshGeometry_,
+            oldPoints_,
+            oldPoints_ + pointDisplacement().internalField(),
+            pointDisplacement()
+        );
 
-    pointSmoother_->update
-    (
-        checkFaces,
-        meshGeometry_,
-        oldPoints_,
-        oldPoints_ + pointDisplacement().internalField(),
-        pointDisplacement()
-    );
+        pointConstraints::New
+        (
+            pointDisplacement().mesh()
+        ).constrainDisplacement(pointDisplacement());
+    }
 
-    pointDisplacement().correctBoundaryConditions();
+    // Correct and smooth the patch displacements
+    {
+        const label nSmoothPatchThickness = readLabel
+        (
+            moveDict.lookup("nSmoothThickness")
+        );
 
-    pointConstraints::New
-    (
-        pointDisplacement().mesh()
-    ).constrainDisplacement(pointDisplacement());
+        const word minThicknessName = word(moveDict.lookup("minThicknessName"));
+
+        scalarField zeroMinThickness;
+
+        if (minThicknessName == "none")
+        {
+            zeroMinThickness = scalarField(adaptPatchPtr_().nPoints(), 0.0);
+        }
+
+        const scalarField& minThickness =
+        (
+            (minThicknessName == "none")
+          ? zeroMinThickness
+          : mesh().lookupObject<scalarField>(minThicknessName)
+        );
+
+        const PackedBoolList isPatchMasterPoint
+        (
+            meshRefinement::getMasterPoints
+            (
+                mesh(),
+                adaptPatchPtr_().meshPoints()
+            )
+        );
+
+        const PackedBoolList isPatchMasterEdge
+        (
+            meshRefinement::getMasterEdges
+            (
+                mesh(),
+                adaptPatchPtr_().meshEdges(mesh().edges(), mesh().pointEdges())
+            )
+        );
+
+        pointDisplacement().correctBoundaryConditions();
+
+        vectorField displacement
+        (
+            pointDisplacement().internalField(),
+            adaptPatchPtr_().meshPoints()
+        );
+
+        fieldSmoother_.minSmoothField
+        (
+            nSmoothPatchThickness,
+            isPatchMasterPoint,
+            isPatchMasterEdge,
+            adaptPatchPtr_(),
+            minThickness,
+            displacement
+        );
+
+        forAll(displacement, patchPointI)
+        {
+            const label pointI(adaptPatchPtr_().meshPoints()[patchPointI]);
+            pointDisplacement()[pointI] = displacement[patchPointI];
+        }
+    }
 
     return moveMesh(moveDict, nAllowableErrors, checkFaces);
 }

@@ -33,9 +33,6 @@ namespace Foam
     defineTypeNameAndDebug(fieldSmoother, 0);
 }
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::fieldSmoother::fieldSmoother(const polyMesh& mesh)
@@ -201,80 +198,6 @@ void Foam::fieldSmoother::smoothPatchNormals
             average[pointI] = 0.5*(normals[pointI]+average[pointI]);
             normals[pointI] = average[pointI];
             normals[pointI] /= mag(normals[pointI]) + VSMALL;
-        }
-    }
-}
-
-
-void Foam::fieldSmoother::minSmoothField
-(
-    const label nIter,
-    const PackedBoolList& isPatchMasterPoint,
-    const PackedBoolList& isPatchMasterEdge,
-    const indirectPrimitivePatch& adaptPatch,
-    const scalarField& fieldMin,
-    scalarField& field
-) const
-{
-    const edgeList& edges = adaptPatch.edges();
-    const labelList& meshPoints = adaptPatch.meshPoints();
-
-    scalarField edgeWeights(edges.size());
-    scalarField invSumWeight(meshPoints.size());
-    meshRefinement::calculateEdgeWeights
-    (
-        mesh_,
-        isPatchMasterEdge,
-        meshPoints,
-        edges,
-        edgeWeights,
-        invSumWeight
-    );
-
-    // Get smoothly varying patch field.
-    Info<< typeName << " : Smoothing field ..." << endl;
-
-    for (label iter = 0; iter < nIter; iter++)
-    {
-        scalarField average(adaptPatch.nPoints());
-        meshRefinement::weightedSum
-        (
-            mesh_,
-            isPatchMasterEdge,
-            meshPoints,
-            edges,
-            edgeWeights,
-            field,
-            average
-        );
-        average *= invSumWeight;
-
-        // Transfer to field
-        forAll(field, pointI)
-        {
-            //full smoothing neighbours + point value
-            average[pointI] = 0.5*(field[pointI]+average[pointI]);
-
-            // perform monotonic smoothing
-            if
-            (
-                average[pointI] < field[pointI]
-             && average[pointI] >= fieldMin[pointI]
-            )
-            {
-                field[pointI] = average[pointI];
-            }
-        }
-
-        // Do residual calculation every so often.
-        if ((iter % 10) == 0)
-        {
-            scalar resid = meshRefinement::gAverage
-            (
-                isPatchMasterPoint,
-                mag(field-average)()
-            );
-            Info<< "    Iteration " << iter << "   residual " << resid << endl;
         }
     }
 }
