@@ -118,7 +118,7 @@ Foam::pointSmoothingMeshMover::pointSmoothingMeshMover
 
     meshGeometry_(mesh()),
 
-    pointSmoother_(pointSmoother::New(dict, mesh())),
+    pointSmoother_(pointSmoother::New(dict, pointDisplacement)),
 
     adaptPatchIDs_(getFixedValueBCs(pointDisplacement)),
     adaptPatchPtr_(getPatch(mesh(), adaptPatchIDs_)),
@@ -181,10 +181,9 @@ bool Foam::pointSmoothingMeshMover::move
         pointSmoother_->update
         (
             checkFaces,
-            meshGeometry_,
             oldPoints_,
             oldPoints_ + pointDisplacement().internalField(),
-            pointDisplacement()
+            meshGeometry_
         );
 
         pointConstraints::New

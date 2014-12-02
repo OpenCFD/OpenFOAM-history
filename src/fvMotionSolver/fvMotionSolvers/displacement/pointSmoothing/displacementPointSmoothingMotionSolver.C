@@ -292,7 +292,7 @@ displacementPointSmoothingMotionSolver
 :
     displacementMotionSolver(mesh, dict, dict.lookup("solver")),
     meshGeometry_(mesh),
-    pointSmoother_(pointSmoother::New(coeffDict(), mesh)),
+    pointSmoother_(pointSmoother::New(coeffDict(), pointDisplacement())),
     relaxationFactors_(coeffDict().lookup("relaxationFactors")),
     relaxedPoints_(mesh.points()),
     facesToMove_(),
@@ -347,10 +347,9 @@ void Foam::displacementPointSmoothingMotionSolver::solve()
     pointSmoother_->update
     (
         affectedFaces.toc(),
-        meshGeometry_,
         points0(),
         points0() + pointDisplacement().internalField(),
-        pointDisplacement()
+        meshGeometry_
     );
 
     pointDisplacement().correctBoundaryConditions();

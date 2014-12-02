@@ -33,9 +33,8 @@ void Foam::pointSmoother::reset
 (
     const labelList& facesToMove,
     Field<weightType>& weights,
-    vectorField& displacements,
     const bool resetInternalFaces
-) const
+)
 {
     autoPtr<PackedBoolList> resetPointsPtr
     (
@@ -49,7 +48,7 @@ void Foam::pointSmoother::reset
         if (resetPoints[pointI])
         {
             weights[pointI] = pTraits<weightType>::zero;
-            displacements[pointI] = vector::zero;
+            pointDisplacement()[pointI] = vector::zero;
         }
     }
 }
@@ -59,9 +58,8 @@ template <class weightType>
 void Foam::pointSmoother::average
 (
     const labelList& facesToMove,
-    Field<weightType>& weights,
-    vectorField& displacements
-) const
+    Field<weightType>& weights
+)
 {
     syncTools::syncPointList
     (
@@ -74,7 +72,7 @@ void Foam::pointSmoother::average
     syncTools::syncPointList
     (
         mesh(),
-        displacements,
+        pointDisplacement(),
         plusEqOp<vector>(),
         vector::zero
     );
@@ -90,7 +88,7 @@ void Foam::pointSmoother::average
     {
         if (averagePoints[pointI])
         {
-            displacements[pointI] /= weights[pointI];
+            pointDisplacement()[pointI] /= weights[pointI];
         }
     }
 }

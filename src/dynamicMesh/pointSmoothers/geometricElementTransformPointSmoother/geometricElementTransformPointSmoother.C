@@ -49,15 +49,15 @@ Foam::pointSmoothers::geometricElementTransformPointSmoother::
 geometricElementTransformPointSmoother
 (
     const dictionary& dict,
-    const polyMesh& mesh
+    pointVectorField& pointDisplacement
 )
 :
-    pointSmoother(dict, mesh),
+    pointSmoother(dict, pointDisplacement),
     cellPointConnectivity_
     (
         MeshObject<polyMesh, MoveableMeshObject, cellPointConnectivity>::New
         (
-            mesh
+            mesh()
         )
     ),
     transformationParameter_
@@ -79,17 +79,16 @@ Foam::pointSmoothers::geometricElementTransformPointSmoother::
 void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 (
     const labelList& facesToMove,
-    const polyMeshGeometry& meshGeometry,
     const pointField& oldPoints,
     const pointField& currentPoints,
-    vectorField& displacements
-) const
+    polyMeshGeometry& meshGeometry
+)
 {
     // Number of points used in each average
     labelField counts(mesh().nPoints(), -1);
 
     // Reset the displacements which are about to be calculated
-    reset(facesToMove, counts, displacements);
+    reset(facesToMove, counts);
 
     // Identify the cells which are to be moved
     labelHashSet cellsToMove(facesToMove.size()*2/3);
@@ -274,12 +273,12 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
             ++ counts[pointI];
 
-            displacements[pointI] += newPoint - oldPoints[pointI];
+            pointDisplacement()[pointI] += newPoint - oldPoints[pointI];
         }
     }
 
     // Reset all the boundary faces
-    reset(facesToMove, counts, displacements, false);
+    reset(facesToMove, counts, false);
 
     // Calculate the boundary transformations
     forAll(facesToMove, faceToMoveI)
@@ -370,13 +369,13 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
                 ++ counts[pointI];
 
-                displacements[pointI] += newPoint - oldPoints[pointI];
+                pointDisplacement()[pointI] += newPoint - oldPoints[pointI];
             }
         }
     }
 
     // Average
-    average(facesToMove, counts, displacements);
+    average(facesToMove, counts);
 }
 
 

@@ -48,10 +48,10 @@ namespace pointSmoothers
 Foam::pointSmoothers::laplacianPointSmoother::laplacianPointSmoother
 (
     const dictionary& dict,
-    const polyMesh& mesh
+    pointVectorField& pointDisplacement
 )
 :
-    pointSmoother(dict, mesh)
+    pointSmoother(dict, pointDisplacement)
 {}
 
 
@@ -66,17 +66,16 @@ Foam::pointSmoothers::laplacianPointSmoother::~laplacianPointSmoother()
 void Foam::pointSmoothers::laplacianPointSmoother::update
 (
     const labelList& facesToMove,
-    const polyMeshGeometry& meshGeometry,
     const pointField& oldPoints,
     const pointField& currentPoints,
-    vectorField& displacements
-) const
+    polyMeshGeometry& meshGeometry
+)
 {
     // Number of points used in each average
     labelField counts(mesh().nPoints());
 
     // Reset the displacements which are about to be calculated
-    reset(facesToMove, counts, displacements);
+    reset(facesToMove, counts);
 
     // Sum the non-internal face displacements
     forAll(facesToMove, faceToMoveI)
@@ -91,7 +90,7 @@ void Foam::pointSmoothers::laplacianPointSmoother::update
             {
                 const label pointI(fPoints[fPointI]);
 
-                displacements[pointI] +=
+                pointDisplacement()[pointI] +=
                     meshGeometry.faceCentres()[faceI]
                   - oldPoints[pointI];
 
@@ -121,7 +120,7 @@ void Foam::pointSmoothers::laplacianPointSmoother::update
                     {
                         const label cellI(pointCells[pointCellI]);
 
-                        displacements[pointI] +=
+                        pointDisplacement()[pointI] +=
                             meshGeometry.cellCentres()[cellI]
                           - oldPoints[pointI];
 
@@ -133,7 +132,7 @@ void Foam::pointSmoothers::laplacianPointSmoother::update
     }
 
     // Average
-    average(facesToMove, counts, displacements);
+    average(facesToMove, counts);
 }
 
 

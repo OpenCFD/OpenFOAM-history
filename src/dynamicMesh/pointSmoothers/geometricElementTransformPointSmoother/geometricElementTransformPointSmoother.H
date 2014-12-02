@@ -78,7 +78,7 @@ public:
         geometricElementTransformPointSmoother
         (
             const dictionary& dict,
-            const polyMesh& mesh
+            pointVectorField& pointDisplacement
         );
 
 
@@ -92,11 +92,10 @@ public:
         virtual void update
         (
             const labelList& facesToMove,
-            const polyMeshGeometry& meshGeometry,
             const pointField& oldPoints,
             const pointField& currentPoints,
-            vectorField& displacements
-        ) const;
+            polyMeshGeometry& meshGeometry
+        );
 };
 
 
