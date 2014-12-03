@@ -114,11 +114,11 @@ void Foam::pointSmoothers::laplacianPointSmoother::update
 
                 if (counts[pointI] == 0)
                 {
-                    const labelList& pointCells(mesh().pointCells()[pointI]);
+                    const labelList& pCells(mesh().pointCells()[pointI]);
 
-                    forAll(pointCells, pointCellI)
+                    forAll(pCells, pCellI)
                     {
-                        const label cellI(pointCells[pointCellI]);
+                        const label cellI(pCells[pCellI]);
 
                         pointDisplacement()[pointI] +=
                             meshGeometry.cellCentres()[cellI]

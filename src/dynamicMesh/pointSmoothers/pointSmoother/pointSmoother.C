@@ -43,7 +43,16 @@ bool Foam::pointSmoother::isInternalOrProcessorFace(const label faceI) const
         return true;
     }
 
-    if (processorPatchIDs_[mesh().boundaryMesh().patchID()[faceI]])
+    if
+    (
+        processorPatchIDs_
+        [
+            mesh().boundaryMesh().patchID()
+            [
+                faceI - mesh().nInternalFaces()
+            ]
+        ]
+    )
     {
         return true;
     }

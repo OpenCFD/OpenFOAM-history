@@ -119,11 +119,11 @@ void Foam::pointSmoothers::equipotentialPointSmoother::update
 
                 if (weights[pointI] < SMALL)
                 {
-                    const labelList& pointCells(mesh().pointCells()[pointI]);
+                    const labelList& pCells(mesh().pointCells()[pointI]);
 
-                    forAll(pointCells, pointCellI)
+                    forAll(pCells, pCellI)
                     {
-                        const label cellI(pointCells[pointCellI]);
+                        const label cellI(pCells[pCellI]);
 
                         const scalar volume(mesh().cellVolumes()[cellI]);
 
