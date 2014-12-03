@@ -55,7 +55,7 @@ Ostream& operator<<(Ostream& os, const MRFZoneList& models);
 
 class MRFZoneList
 :
-    PtrList<MRFZone>
+    public PtrList<MRFZone>
 {
 private:
 
