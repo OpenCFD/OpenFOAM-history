@@ -916,10 +916,6 @@ void Foam::autoRefineDriver::baffleAndSplitMesh
         false,                          // perpendicular edge connected cells
         scalarField(0),                 // per region perpendicular angle
 
-        // Free standing baffles
-        !handleSnapProblems,            // merge free standing baffles?
-        refineParams.planarAngle(),
-
         motionDict,
         const_cast<Time&>(mesh.time()),
         globalToMasterPatch_,
@@ -928,6 +924,23 @@ void Foam::autoRefineDriver::baffleAndSplitMesh
         refineParams.zonesInMesh(),
         refineParams.locationsOutsideMesh()
     );
+
+
+    if (!handleSnapProblems) // merge free standing baffles?
+    {
+        meshRefiner_.mergeFreeStandingBaffles
+        (
+            snapParams,
+            refineParams.useTopologicalSnapDetection(),
+            false,                  // perpendicular edge connected cells
+            scalarField(0),         // per region perpendicular angle
+            refineParams.planarAngle(),
+            motionDict,
+            const_cast<Time&>(mesh.time()),
+            globalToMasterPatch_,
+            globalToSlavePatch_
+        );
+    }
 }
 
 
@@ -1027,10 +1040,6 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
         handleSnapProblems,                 // remove perp edge connected cells
         perpAngle,                          // perp angle
 
-        // Free standing baffles
-        true,                               // merge free standing baffles?
-        refineParams.planarAngle(),         // planar angle
-
         motionDict,
         const_cast<Time&>(mesh.time()),
         globalToMasterPatch_,
@@ -1038,6 +1047,20 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
         refineParams.locationsInMesh(),
         refineParams.zonesInMesh(),
         refineParams.locationsOutsideMesh()
+    );
+
+    // Merge free-standing baffles always
+    meshRefiner_.mergeFreeStandingBaffles
+    (
+        snapParams,
+        refineParams.useTopologicalSnapDetection(),
+        handleSnapProblems,
+        perpAngle,
+        refineParams.planarAngle(),
+        motionDict,
+        const_cast<Time&>(mesh.time()),
+        globalToMasterPatch_,
+        globalToSlavePatch_
     );
 
     if (debug)
@@ -1062,7 +1085,7 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
         // Actually merge baffles. Note: not exactly parallellized. Should
         // convert baffle faces into processor faces if they resulted
         // from them.
-        meshRefiner_.mergeBaffles(couples);
+        meshRefiner_.mergeBaffles(couples, Map<label>(0));
 
         if (debug)
         {

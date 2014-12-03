@@ -576,7 +576,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createBaffles
 
     label nBaffles = 0;
 
-    forAll(ownPatch, faceI)
+    for (label faceI = 0; faceI < mesh_.nInternalFaces(); faceI++)
     {
         if (ownPatch[faceI] != -1)
         {
@@ -592,6 +592,46 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createBaffles
             nBaffles++;
         }
     }
+    const polyBoundaryMesh& pbm = mesh_.boundaryMesh();
+
+    forAll(pbm, patchI)
+    {
+        const polyPatch& pp = pbm[patchI];
+
+        label coupledPatchI = -1;
+        if
+        (
+            pp.coupled()
+        && !refCast<const coupledPolyPatch>(pp).separated()
+        )
+        {
+            coupledPatchI = patchI;
+        }
+
+        forAll(pp, i)
+        {
+            label faceI = pp.start()+i;
+
+            if (ownPatch[faceI] != -1)
+            {
+                createBaffle
+                (
+                    faceI,
+                    ownPatch[faceI],    // owner side patch
+                    neiPatch[faceI],    // neighbour side patch
+                    meshMod
+                );
+
+                if (coupledPatchI != -1)
+                {
+                    faceToCoupledPatch_.insert(faceI, coupledPatchI);
+                }
+
+                nBaffles++;
+            }
+        }
+    }
+
 
     autoPtr<mapPolyMesh> map;
     if (returnReduce(nBaffles, sumOp<label>()))
@@ -1157,12 +1197,13 @@ Foam::List<Foam::labelPair> Foam::meshRefinement::freeStandingBaffles
 // Merge baffles. Gets pairs of faces.
 Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::mergeBaffles
 (
-    const List<labelPair>& couples
+    const List<labelPair>& couples,
+    const Map<label>& faceToPatch
 )
 {
     autoPtr<mapPolyMesh> map;
 
-    if (returnReduce(couples.size(), sumOp<label>()))
+    if (returnReduce(couples.size()+faceToPatch.size(), sumOp<label>()))
     {
         // Mesh change engine
         polyTopoChange meshMod(mesh_);
@@ -1243,6 +1284,47 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::mergeBaffles
                 );
             }
         }
+
+        forAllConstIter(Map<label>, faceToPatch, iter)
+        {
+            label faceI = iter.key();
+            label patchI = iter();
+
+            if (!mesh_.isInternalFace(faceI))
+            {
+                FatalErrorIn("meshRefinement::mergeBaffles(..)")
+                    << "problem: face:" << faceI
+                    << " at:" << mesh_.faceCentres()[faceI]
+                    << "(wanted patch:" << patchI
+                    << ") is an internal face" << exit(FatalError);
+            }
+
+            label zoneID = faceZones.whichZone(faceI);
+            bool zoneFlip = false;
+
+            if (zoneID >= 0)
+            {
+                const faceZone& fZone = faceZones[zoneID];
+                zoneFlip = fZone.flipMap()[fZone.whichFace(faceI)];
+            }
+
+            meshMod.setAction
+            (
+                polyModifyFace
+                (
+                    faces[faceI],           // modified face
+                    faceI,                  // label of face being modified
+                    faceOwner[faceI],       // owner
+                    -1,                     // neighbour
+                    false,                  // face flip
+                    patchI,                 // patch for face
+                    false,                  // remove from zone
+                    zoneID,                 // zone for face
+                    zoneFlip                // face flip in zone
+                )
+            );
+        }
+
 
         // Change the mesh (no inflation)
         map = meshMod.changeMesh(mesh_, false, true);
@@ -1325,7 +1407,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::mergeZoneBaffles
     autoPtr<mapPolyMesh> mapPtr;
     if (returnReduce(zoneBaffles.size(), sumOp<label>()))
     {
-        mapPtr = mergeBaffles(zoneBaffles);
+        mapPtr = mergeBaffles(zoneBaffles, Map<label>(0));
     }
     return mapPtr;
 }
@@ -2968,8 +3050,6 @@ void Foam::meshRefinement::baffleAndSplitMesh
     const bool useTopologicalSnapDetection,
     const bool removeEdgeConnectedCells,
     const scalarField& perpendicularAngle,
-    const bool mergeFreeStanding,
-    const scalar planarAngle,
     const dictionary& motionDict,
     Time& runTime,
     const labelList& globalToMasterPatch,
@@ -3135,64 +3215,75 @@ void Foam::meshRefinement::baffleAndSplitMesh
         Pout<< "Dumped debug data in = "
             << runTime.cpuTimeIncrement() << " s\n" << nl << endl;
     }
+}
 
 
+void Foam::meshRefinement::mergeFreeStandingBaffles
+(
+    const snapParameters& snapParams,
+    const bool useTopologicalSnapDetection,
+    const bool removeEdgeConnectedCells,
+    const scalarField& perpendicularAngle,
+    const scalar planarAngle,
+    const dictionary& motionDict,
+    Time& runTime,
+    const labelList& globalToMasterPatch,
+    const labelList& globalToSlavePatch
+)
+{
     // Merge baffles
     // ~~~~~~~~~~~~~
 
-    if (mergeFreeStanding)
-    {
-        Info<< nl
-            << "Merge free-standing baffles" << nl
-            << "---------------------------" << nl
-            << endl;
+    Info<< nl
+        << "Merge free-standing baffles" << nl
+        << "---------------------------" << nl
+        << endl;
 
 
-        // List of pairs of freestanding baffle faces.
-        List<labelPair> couples
+    // List of pairs of freestanding baffle faces.
+    List<labelPair> couples
+    (
+        freeStandingBaffles    // filter out freestanding baffles
         (
-            freeStandingBaffles    // filter out freestanding baffles
-            (
-                localPointRegion::findDuplicateFacePairs(mesh_),
-                planarAngle
-            )
+            localPointRegion::findDuplicateFacePairs(mesh_),
+            planarAngle
+        )
+    );
+
+    label nCouples = couples.size();
+    reduce(nCouples, sumOp<label>());
+
+    Info<< "Detected free-standing baffles : " << nCouples << endl;
+
+    if (nCouples > 0)
+    {
+        // Actually merge baffles. Note: not exactly parallellized. Should
+        // convert baffle faces into processor faces if they resulted
+        // from them.
+        mergeBaffles(couples, Map<label>(0));
+
+        // Detect any problem cells resulting from merging of baffles
+        // and delete them
+        handleSnapProblems
+        (
+            snapParams,
+            useTopologicalSnapDetection,
+            removeEdgeConnectedCells,
+            perpendicularAngle,
+            motionDict,
+            runTime,
+            globalToMasterPatch,
+            globalToSlavePatch
         );
 
-        label nCouples = couples.size();
-        reduce(nCouples, sumOp<label>());
-
-        Info<< "Detected free-standing baffles : " << nCouples << endl;
-
-        if (nCouples > 0)
+        if (debug)
         {
-            // Actually merge baffles. Note: not exactly parallellized. Should
-            // convert baffle faces into processor faces if they resulted
-            // from them.
-            mergeBaffles(couples);
-
-            // Detect any problem cells resulting from merging of baffles
-            // and delete them
-            handleSnapProblems
-            (
-                snapParams,
-                useTopologicalSnapDetection,
-                removeEdgeConnectedCells,
-                perpendicularAngle,
-                motionDict,
-                runTime,
-                globalToMasterPatch,
-                globalToSlavePatch
-            );
-
-            if (debug)
-            {
-                // Debug:test all is still synced across proc patches
-                checkData();
-            }
+            // Debug:test all is still synced across proc patches
+            checkData();
         }
-        Info<< "Merged free-standing baffles in = "
-            << runTime.cpuTimeIncrement() << " s\n" << nl << endl;
     }
+    Info<< "Merged free-standing baffles in = "
+        << runTime.cpuTimeIncrement() << " s\n" << nl << endl;
 }
 
 

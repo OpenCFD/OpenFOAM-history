@@ -68,12 +68,8 @@ class refinementFeatures;
 class shellSurfaces;
 class removeCells;
 class fvMeshDistribute;
-class searchableSurface;
-class regionSplit;
-class globalIndex;
 class removePoints;
 class localPointRegion;
-
 class snapParameters;
 
 
@@ -185,6 +181,14 @@ private:
 
         //- per cc-cc vector the index of the surface hit
         labelIOList surfaceIndex_;
+
+
+        // For baffle merging
+
+            //- Original patch for baffle faces that used to be on
+            //  coupled patches
+            Map<label> faceToCoupledPatch_;
+
 
         //- user supplied face based data.
         List<Tuple2<mapType, labelList> > userFaceData_;
@@ -723,6 +727,13 @@ public:
                 return surfaceIndex_;
             }
 
+            //- For faces originating from processor faces store the original
+            //  patch
+            const Map<label>& faceToCoupledPatch() const
+            {
+                return faceToCoupledPatch_;
+            }
+
             //- Additional face data that is maintained across
             //  topo changes. Every entry is a list over all faces.
             //  Bit of a hack. Additional flag to say whether to maintain master
@@ -885,11 +896,6 @@ public:
                 const bool useTopologicalSnapDetection,
                 const bool removeEdgeConnectedCells,
                 const scalarField& perpendicularAngle,
-
-                // How to handle free-standing baffles
-                const bool mergeFreeStanding,
-                const scalar freeStandingAngle,
-
                 const dictionary& motionDict,
                 Time& runTime,
                 const labelList& globalToMasterPatch,
@@ -897,6 +903,20 @@ public:
                 const pointField& locationsInMesh,
                 const wordList& regionsInMesh,
                 const pointField& locationsOutsideMesh
+            );
+
+            //- Merge free-standing baffles
+            void mergeFreeStandingBaffles
+            (
+                const snapParameters& snapParams,
+                const bool useTopologicalSnapDetection,
+                const bool removeEdgeConnectedCells,
+                const scalarField& perpendicularAngle,
+                const scalar planarAngle,
+                const dictionary& motionDict,
+                Time& runTime,
+                const labelList& globalToMasterPatch,
+                const labelList& globalToSlavePatch
             );
 
             //- Split off (with optional buffer layers) unreachable areas
@@ -962,8 +982,13 @@ public:
                 labelList& originatingFaceZone
             );
 
-            //- Merge baffles. Gets pairs of faces
-            autoPtr<mapPolyMesh> mergeBaffles(const List<labelPair>&);
+            //- Merge baffles. Gets pairs of faces and boundary faces to move
+            //  onto (coupled) patches
+            autoPtr<mapPolyMesh> mergeBaffles
+            (
+                const List<labelPair>&,
+                const Map<label>& faceToPatch
+            );
 
             //- Merge all baffles on faceZones
             autoPtr<mapPolyMesh> mergeZoneBaffles

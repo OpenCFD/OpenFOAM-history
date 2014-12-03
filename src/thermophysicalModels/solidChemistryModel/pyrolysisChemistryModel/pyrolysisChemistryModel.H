@@ -75,7 +75,7 @@ protected:
          //- Number of gas species
         label nGases_;
 
-        //- Number of components being solved by ODE
+        //- Total number of concentrations used by the ODE
         label nComponents_;
 
         //- List of reaction rate per gas [kg/m3/s]
@@ -120,6 +120,9 @@ public:
 
         //- Gases table
         inline const speciesTable& gasTable() const;
+
+        //- Return the total number of concentrations used by the ODE
+        virtual label nSpecie() const;
 
         //- dc/dt = omega, rate of change in concentration, for each species
         virtual scalarField omega
