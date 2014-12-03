@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -203,8 +203,6 @@ Foam::label Foam::ConeInjection<CloudType>::parcelsToInject
 
         const label nToInject = targetParcels - nInjected_;
 
-        nInjected_ += nToInject;
-
         return positionAxis_.size()*nToInject;
     }
     else
@@ -285,6 +283,9 @@ void Foam::ConeInjection<CloudType>::setProperties
 
     // set particle diameter
     parcel.d() = sizeDistribution_().sample();
+
+    // increment number of particles injected
+    nInjected_++;
 }
 
 
