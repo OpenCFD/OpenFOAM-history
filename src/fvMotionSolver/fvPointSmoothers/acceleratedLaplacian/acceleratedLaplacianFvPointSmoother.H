@@ -22,22 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::equipotentialPointSmoother
+    Foam::acceleratedLaplacianFvPointSmoother
 
 Description
-    Equipotential point smoothing. Points are moved towards the centroid of the
-    surrounding cell volumes. This method tends to equilise cell volumes, and
-    can generate distorted cells around refinement patterns.
+    Accelerated laplacian point smoothing. Points are moved towards the average
+    of the surrounding cell centres. A Finite-volume solution is used as an
+    initial guess to accelerate the solution.
 
 SourceFiles
-    equipotentialPointSmoother.C
+    acceleratedLaplacianFvPointSmoother.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef equipotentialPointSmoother_H
-#define equipotentialPointSmoother_H
+#ifndef acceleratedLaplacianFvPointSmoother_H
+#define acceleratedLaplacianFvPointSmoother_H
 
-#include "pointSmoother.H"
+#include "laplacianPointSmoother.H"
+#include "fvMotionSolverCore.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,23 +48,32 @@ namespace pointSmoothers
 {
 
 /*---------------------------------------------------------------------------*\
-                   Class equipotentialPointSmoother Declaration
+                      Class acceleratedLaplacianFvPointSmoother Declaration
 \*---------------------------------------------------------------------------*/
 
-class equipotentialPointSmoother
+class acceleratedLaplacianFvPointSmoother
 :
-    public pointSmoother
+    public laplacianPointSmoother,
+    public fvMotionSolverCore
 {
+private:
+
+    // Private data
+
+        //- Cell-centre motion field
+        volVectorField cellDisplacement_;
+
+
 public:
 
     //- Runtime type information
-    TypeName("equipotential");
+    TypeName("acceleratedLaplacian");
 
 
     // Constructors
 
         //- Construct from a dictionary and a polyMesh
-        equipotentialPointSmoother
+        acceleratedLaplacianFvPointSmoother
         (
             const dictionary& dict,
             pointVectorField& pointDisplacement
@@ -71,10 +81,25 @@ public:
 
 
     //- Destructor
-    virtual ~equipotentialPointSmoother();
+    virtual ~acceleratedLaplacianFvPointSmoother();
 
 
     // Member Functions
+
+        // Access
+
+            // Constant access to the cell displacements
+            const volVectorField& cellDisplacement() const
+            {
+                return cellDisplacement_;
+            }
+
+            // Non-constant access to the cell displacements
+            volVectorField& cellDisplacement()
+            {
+                return cellDisplacement_;
+            }
+
 
         //- Calculate the end point locations
         virtual void update

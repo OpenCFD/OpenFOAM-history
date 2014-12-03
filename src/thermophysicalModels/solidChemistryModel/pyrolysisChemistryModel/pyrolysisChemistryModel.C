@@ -672,4 +672,14 @@ void Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::solve
         ") const"
     );
 }
+
+
+template<class CompType, class SolidThermo,  class GasThermo>
+Foam::label Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::
+nSpecie() const
+{
+    return nComponents_;
+}
+
+
 // ************************************************************************* //

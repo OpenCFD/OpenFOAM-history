@@ -11,6 +11,8 @@ fvMotionSolvers/componentDisplacement/componentLaplacian/displacementComponentLa
 fvMotionSolvers/velocity/laplacian/velocityLaplacianFvMotionSolver.C
 fvMotionSolvers/componentVelocity/componentLaplacian/velocityComponentLaplacianFvMotionSolver.C
 
+fvPointSmoothers/acceleratedLaplacian/acceleratedLaplacianFvPointSmoother.C
+
 motionDiffusivity/motionDiffusivity/motionDiffusivity.C
 motionDiffusivity/uniform/uniformDiffusivity.C
 motionDiffusivity/inverseDistance/inverseDistanceDiffusivity.C

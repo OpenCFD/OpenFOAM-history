@@ -39,6 +39,7 @@ SourceFiles
 #include "pointSmoother.H"
 #include "polyMeshGeometry.H"
 #include "motionSmootherAlgo.H"
+#include "fieldSmoother.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,7 +65,7 @@ class pointSmoothingMeshMover
         //- IDs of fixedValue patches that we can modify
         const labelList adaptPatchIDs_;
 
-        //- Combined indirect fixedValue patche that we can modify
+        //- Combined indirect fixedValue patches that we can modify
         autoPtr<indirectPrimitivePatch> adaptPatchPtr_;
 
         //- Scale factor for displacement
@@ -75,6 +76,9 @@ class pointSmoothingMeshMover
 
         //- Mesh mover algorithm
         motionSmootherAlgo meshMover_;
+
+        //- Field smoothing
+        fieldSmoother fieldSmoother_;
 
 
     // Private Member Functions
