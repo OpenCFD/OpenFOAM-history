@@ -29,21 +29,9 @@ License
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 template<class ParcelType>
-Foam::string Foam::SprayParcel<ParcelType>::propHeader =
-    ParcelType::propHeader
-  + " d0"
-  + " position0"
-  + " sigma"
-  + " mu"
-  + " liquidCore"
-  + " KHindex"
-  + " y"
-  + " yDot"
-  + " tc"
-  + " ms"
-  + " injector"
-  + " tMom"
-  + " user";
+Foam::string Foam::SprayParcel<ParcelType>::propertyList_ =
+    Foam::SprayParcel<ParcelType>::propertyList();
+
 
 template<class ParcelType>
 const std::size_t Foam::SprayParcel<ParcelType>::sizeofFields_
@@ -106,7 +94,7 @@ Foam::SprayParcel<ParcelType>::SprayParcel
     (
         "SprayParcel<ParcelType>::SprayParcel"
         "("
-            "const polyMesh, "
+            "const polyMesh&, "
             "Istream&, "
             "bool"
         ")"
