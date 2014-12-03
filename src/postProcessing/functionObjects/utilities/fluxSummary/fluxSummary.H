@@ -169,6 +169,9 @@ protected:
             //- Face flip map signs
             List<List<scalar> > faceSign_;
 
+            //- Sum of face areas
+            List<scalar> faceArea_;
+
 
         //- Tolerance applied when matching face normals
         scalar tolerance_;
@@ -191,7 +194,7 @@ protected:
         (
             const word& faceZoneName,
             const vector& refDir,
-            DynamicList<vector>& zoneRefDir,
+            DynamicList<vector>& dir,
             DynamicList<word>& faceZoneNames,
             DynamicList<List<label> >& faceID,
             DynamicList<List<label> >& facePatchID,
@@ -203,12 +206,15 @@ protected:
         (
             const word& cellZoneName,
             const vector& refDir,
-            DynamicList<vector>& zoneRefDir,
+            DynamicList<vector>& dir,
             DynamicList<word>& faceZoneNames,
             DynamicList<List<label> >& faceID,
             DynamicList<List<label> >& facePatchID,
             DynamicList<List<scalar> >& faceSign
         ) const;
+
+        //- Initialise the total area per derived faceZone
+        void initialiseFaceArea();
 
         //- Disallow default bitwise copy construct
         fluxSummary(const fluxSummary&);
