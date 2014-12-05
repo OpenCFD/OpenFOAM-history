@@ -64,6 +64,10 @@ Foam::refinementParameters::refinementParameters(const dictionary& dict)
     handleSnapProblems_
     (
         dict.lookupOrDefault<Switch>("handleSnapProblems", true)
+    ),
+    interfaceRefine_
+    (
+        dict.lookupOrDefault<Switch>("interfaceRefine", true)
     )
 {
     point locationInMesh;

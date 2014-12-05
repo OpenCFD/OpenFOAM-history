@@ -177,7 +177,7 @@ void Foam::meshRefinement::calcNeighbourData
 
                 label own = faceCells[i];
                 label ownLevel = cellLevel[own];
-                label faceLevel = meshCutter_.getAnchorLevel(pp.start()+i);
+                label faceLevel = meshCutter_.faceLevel(pp.start()+i);
                 if (faceLevel < 0)
                 {
                     // Due to e.g. face merging no longer a consistent
@@ -560,7 +560,7 @@ void Foam::meshRefinement::checkData()
                         << " ownLevel:"
                         << meshCutter_.cellLevel()[mesh_.faceOwner()[faceI]]
                         << " faceLevel:"
-                        << meshCutter_.getAnchorLevel(faceI)
+                        << meshCutter_.faceLevel(faceI)
                         << endl;
                 }
             }

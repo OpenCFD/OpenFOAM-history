@@ -795,7 +795,7 @@ Foam::label Foam::hexRef8::findLevel
 
 
 // Gets cell level such that the face has four points <= level.
-Foam::label Foam::hexRef8::getAnchorLevel(const label faceI) const
+Foam::label Foam::hexRef8::faceLevel(const label faceI) const
 {
     const face& f = mesh_.faces()[faceI];
 
@@ -3514,7 +3514,7 @@ Foam::labelListList Foam::hexRef8::setRefinement
 
     for (label faceI = 0; faceI < mesh_.nFaces(); faceI++)
     {
-        faceAnchorLevel[faceI] = getAnchorLevel(faceI);
+        faceAnchorLevel[faceI] = faceLevel(faceI);
     }
 
     // -1  : no need to split face

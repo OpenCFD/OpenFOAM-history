@@ -106,6 +106,13 @@ class autoRefineDriver
             const label maxIter
         );
 
+        //- Refine cells with opposite faces with differing refinement level
+        label refinementInterfaceRefine
+        (
+            const refinementParameters& refineParams,
+            const label maxIter
+        );
+
         //- Remove all cells within intersected region
         void removeInsideCells
         (
