@@ -38,7 +38,6 @@ SourceFiles
 #define geometricElementTransformPointSmoother_H
 
 #include "pointSmoother.H"
-#include "cellPointConnectivity.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -58,9 +57,6 @@ class geometricElementTransformPointSmoother
 private:
 
     // Private Data
-
-        //- Cell-point connectivity
-        const cellPointConnectivity& cellPointConnectivity_;
 
         //- Transformation parameter
         const scalar transformationParameter_;
