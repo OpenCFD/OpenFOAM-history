@@ -114,8 +114,8 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddyBox()
     momentOfInertia::massPropertiesPatch(pp, 1, mass, cM, J, true);
 
     // transformation from global to patch
-    // - eigen vectors listed in largest eigen value order; largest
-    //   assumed to be in the streamwise direction
+    // - eigen vectors listed in largest eigen value order
+    // - smallest should be in the streamwise direction (normal to patch)
     tensor R = eigenVectors(J);
 
     // determine limits of patch in patch axes
@@ -126,12 +126,13 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddyBox()
     reduce(minP, minOp<vector>());
     reduce(maxP, maxOp<vector>());
 
+    // eddy box is +/- maxSigmax on either side of patch
+    // - note: patch located at box mid-plane
     bounds_ = (maxP & R) - (minP & R) + 2*maxSigmax*patchNormal_;
+    vector origin = (minP & R) - patchNormal_*maxSigmax;
 
     // eddy box volume
     v0_ = bounds_.x()*bounds_.y()*bounds_.z();
-
-    vector origin = (minP & R) - patchNormal_*maxSigmax;
 
     // assign cooridinate system for eddy box
     // - x: streamwise direction
