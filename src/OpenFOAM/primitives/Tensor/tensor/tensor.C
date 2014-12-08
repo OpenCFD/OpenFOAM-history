@@ -207,8 +207,8 @@ Foam::vector Foam::eigenVector
 (
     const tensor& T,
     const scalar lambda,
-    const vector direction1,
-    const vector direction2
+    const vector& direction1,
+    const vector& direction2
 )
 {
     // Construct the linear system for this eigenvalue
@@ -309,7 +309,7 @@ Foam::vector Foam::eigenVector
 }
 
 
-Foam::tensor Foam::eigenVectors(const tensor& T, const vector lambdas)
+Foam::tensor Foam::eigenVectors(const tensor& T, const vector& lambdas)
 {
     vector Ux(1, 0, 0), Uy(0, 1, 0), Uz(0, 0, 1);
 
@@ -339,15 +339,15 @@ Foam::vector Foam::eigenVector
 (
     const symmTensor& T,
     const scalar lambda,
-    const vector direction1,
-    const vector direction2
+    const vector& direction1,
+    const vector& direction2
 )
 {
     return eigenVector(tensor(T), lambda, direction1, direction2);
 }
 
 
-Foam::tensor Foam::eigenVectors(const symmTensor& T, const vector lambdas)
+Foam::tensor Foam::eigenVectors(const symmTensor& T, const vector& lambdas)
 {
     return eigenVectors(tensor(T), lambdas);
 }
