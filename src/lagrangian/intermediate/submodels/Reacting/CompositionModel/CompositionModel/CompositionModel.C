@@ -287,7 +287,7 @@ const Foam::scalarField& Foam::CompositionModel<CloudType>::Y0
 
 
 template<class CloudType>
-Foam::scalarField Foam::CompositionModel<CloudType>::X
+Foam::tmp<Foam::scalarField> Foam::CompositionModel<CloudType>::X
 (
     const label phaseI,
     const scalarField& Y
@@ -322,7 +322,8 @@ Foam::scalarField Foam::CompositionModel<CloudType>::X
         {
             FatalErrorIn
             (
-                "Foam::scalarField Foam::CompositionModel<CloudType>::X"
+                "Foam::tmp<Foam::scalarField> "
+                "Foam::CompositionModel<CloudType>::X"
                 "("
                     "const label, "
                     "const scalarField&"
@@ -333,7 +334,68 @@ Foam::scalarField Foam::CompositionModel<CloudType>::X
     }
 
     tmp<scalarField> tfld = X/WInv;
-    return tfld();
+    return tfld;
+}
+
+
+template<class CloudType>
+Foam::tmp<Foam::scalarField> Foam::CompositionModel<CloudType>::globalY
+(
+    const label phaseI,
+    const scalarField& localY
+) const
+{
+    const phaseProperties& props = phaseProps_[phaseI];
+    tmp<scalarField> tY(new scalarField());
+    scalarField& Y = tY();
+
+    switch (props.phase())
+    {
+        case phaseProperties::GAS:
+        {
+            Y.setSize(thermo_.carrier().species().size(), 0);
+            forAll(localY, i)
+            {
+                label gid = props.globalIds()[i];
+                Y[gid] = localY[i];
+            }
+            break;
+        }
+        case phaseProperties::LIQUID:
+        {
+            Y.setSize(thermo_.liquids().properties().size(), 0);
+            forAll(localY, i)
+            {
+                label gid = props.globalIds()[i];
+                Y[gid] = localY[i];
+            }
+            break;
+        }
+        case phaseProperties::SOLID:
+        {
+            Y.setSize(thermo_.solids().properties().size(), 0);
+            forAll(localY, i)
+            {
+                label gid = props.globalIds()[i];
+                Y[gid] = localY[i];
+            }
+            break;
+        }
+        default:
+        {
+            FatalErrorIn
+            (
+                "Foam::tmp<Foam::scalarField> "
+                "Foam::CompositionModel<CloudType>::globalY"
+                "("
+                "    const label, "
+                "    const scalarField&"
+                ") const"
+            )   << "Unknown phase enumeration" << abort(FatalError);
+        }
+    }
+
+    return tY;
 }
 
 
