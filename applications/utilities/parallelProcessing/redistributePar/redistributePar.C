@@ -44,7 +44,10 @@ Usage
 
     \param -reconstruct \n
     Reconstruct geometry (like reconstructParMesh). Equivalent to setting
-    numberOfSubdomains 1 in the decomposeParDict
+    numberOfSubdomains 1 in the decomposeParDict.
+
+    \param -newTimes \n
+    (in combination with -reconstruct) reconstruct only new times.
 
     \param -cellDist \n
     Write the cell distribution as a labelList, for use with 'manual'
@@ -2131,6 +2134,11 @@ int main(int argc, char *argv[])
         "write cell distribution as a labelList - for use with 'manual' "
         "decomposition method or as a volScalarField for post-processing."
     );
+    argList::addBoolOption
+    (
+        "newTimes",
+        "only reconstruct new times (i.e. that do not exist already)"
+    );
 
 
     // Handle arguments
@@ -2142,6 +2150,7 @@ int main(int argc, char *argv[])
     const bool reconstruct = args.optionFound("reconstruct");
     bool overwrite = args.optionFound("overwrite");
     bool writeCellDist = args.optionFound("cellDist");
+    bool newTimes = args.optionFound("newTimes");
 
 
 
@@ -2307,6 +2316,16 @@ int main(int argc, char *argv[])
         false                   // enableFunctionObjects
     );
 
+
+    HashSet<word> masterTimeDirSet;
+    if (newTimes)
+    {
+        instantList baseTimeDirs(baseRunTime.times());
+        forAll(baseTimeDirs, i)
+        {
+            masterTimeDirSet.insert(baseTimeDirs[i].name());
+        }
+    }
 
 
     // Determine any region
@@ -2534,6 +2553,13 @@ int main(int argc, char *argv[])
         // Loop over all times
         forAll(timeDirs, timeI)
         {
+            if (newTimes && masterTimeDirSet.found(timeDirs[timeI].name()))
+            {
+                Info<< "Skipping time " << timeDirs[timeI].name()
+                    << endl << endl;
+                continue;
+            }
+
             // Set time for global database
             runTime.setTime(timeDirs[timeI], timeI);
             baseRunTime.setTime(timeDirs[timeI], timeI);

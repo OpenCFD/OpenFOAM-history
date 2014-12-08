@@ -138,15 +138,16 @@ void Foam::patchSeedSet::calcSamples
             // to be found
             const scalar globalDistSqr
             (
-                magSqr
-                (
-                    boundBox
-                    (
-                        pp.points(),
-                        pp.meshPoints(),
-                        true
-                    ).span()
-                )
+                //magSqr
+                //(
+                //    boundBox
+                //    (
+                //        pp.points(),
+                //        pp.meshPoints(),
+                //        true
+                //    ).span()
+                //)
+                GREAT
             );
 
             forAll(selectedLocations_, sampleI)
@@ -349,7 +350,7 @@ Foam::patchSeedSet::patchSeedSet
     (
         dict.lookupOrDefault<pointField>
         (
-            "selectedLocations",
+            "points",
             pointField(0)
         )
     )

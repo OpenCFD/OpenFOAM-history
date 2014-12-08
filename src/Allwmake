@@ -48,13 +48,13 @@ wmake $targetType genericPatchFields
 
 wmake $targetType conversion
 
-wmake $targetType sampling
-
 wmake $targetType mesh/extrudeModel
 
 wmake $targetType dynamicMesh
 wmake $targetType dynamicFvMesh
 wmake $targetType topoChangerFvMesh
+
+wmake $targetType sampling
 
 # Build the proper scotchDecomp, metisDecomp etc.
 parallel/Allwmake $targetType $*

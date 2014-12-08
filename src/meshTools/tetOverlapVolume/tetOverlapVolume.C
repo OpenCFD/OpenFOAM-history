@@ -39,6 +39,12 @@ namespace Foam
 defineTypeNameAndDebug(tetOverlapVolume, 0);
 }
 
+// When to consider a tet to be zero volume. We want to avoid doing clipping
+// against negative volume tets. Tet volume can be calculated incorrectly
+// due to truncation errors. The value below works for single and double
+// precision but could probably be tighter for double precision.
+Foam::scalar Foam::tetOverlapVolume::minTetVolume_ = 1e-18;
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 

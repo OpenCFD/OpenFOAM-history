@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "geometricElementTransformPointSmoother.H"
+#include "cellPointConnectivity.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -49,17 +50,10 @@ Foam::pointSmoothers::geometricElementTransformPointSmoother::
 geometricElementTransformPointSmoother
 (
     const dictionary& dict,
-    const polyMesh& mesh
+    pointVectorField& pointDisplacement
 )
 :
-    pointSmoother(dict, mesh),
-    cellPointConnectivity_
-    (
-        MeshObject<polyMesh, MoveableMeshObject, cellPointConnectivity>::New
-        (
-            mesh
-        )
-    ),
+    pointSmoother(dict, pointDisplacement),
     transformationParameter_
     (
         readScalar(dict.lookup("transformationParameter"))
@@ -79,17 +73,23 @@ Foam::pointSmoothers::geometricElementTransformPointSmoother::
 void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 (
     const labelList& facesToMove,
-    const polyMeshGeometry& meshGeometry,
     const pointField& oldPoints,
     const pointField& currentPoints,
-    vectorField& displacements
-) const
+    polyMeshGeometry& meshGeometry
+)
 {
+    // Lookup or generate the cell-point connectivity/
+    const cellPointConnectivity& connectivity =
+        MeshObject<polyMesh, MoveableMeshObject, cellPointConnectivity>::New
+        (
+            mesh()
+        );
+
     // Number of points used in each average
     labelField counts(mesh().nPoints(), -1);
 
     // Reset the displacements which are about to be calculated
-    reset(facesToMove, counts, displacements);
+    reset(facesToMove, counts);
 
     // Identify the cells which are to be moved
     labelHashSet cellsToMove(facesToMove.size()*2/3);
@@ -117,53 +117,53 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
         (
             mesh().cells()[cellI]
         );
-        const labelList cellPoints
+        const labelList cPoints
         (
             cFaces.labels(mesh().faces())
         );
-        const edgeList cellEdges
+        const edgeList cEdges
         (
             cFaces.edges(mesh().faces())
         );
 
         // Calculate a transformed point for each cell point
-        forAll(cellPoints, cellPointI)
+        forAll(cPoints, cPointI)
         {
-            const label pointI(cellPoints[cellPointI]);
+            const label pointI(cPoints[cPointI]);
 
             if (counts[pointI] == -1) continue;
 
             const labelList& pPoints
             (
-                cellPointConnectivity_.cellPointPoints()[cellI][cellPointI]
+                connectivity.cellPointPoints()[cellI][cPointI]
             );
             const labelList& pFaces
             (
-                cellPointConnectivity_.cellPointFaces()[cellI][cellPointI]
+                connectivity.cellPointFaces()[cellI][cPointI]
             );
             const label nPPoints(pPoints.size());
 
             // Initial guess of the dual face centre
             vector dualAverage(vector::zero);
-            forAll(pPoints, pointPointI)
+            forAll(pPoints, pPointI)
             {
                 dualAverage +=
-                    currentPoints[pPoints[pointPointI]]
-                  + meshGeometry.faceCentres()[pFaces[pointPointI]];
+                    currentPoints[pPoints[pPointI]]
+                  + meshGeometry.faceCentres()[pFaces[pPointI]];
             }
             dualAverage /= 2*nPPoints;
 
             // Calculate the dual face centre and normal
             vector dualNormal(vector::zero);
-            forAll(pPoints, pointPointI)
+            forAll(pPoints, pPointI)
             {
-                const label nextPPointI((pointPointI + 1) % nPPoints);
+                const label nextPPointI((pPointI + 1) % nPPoints);
 
                 point edgeCentre
                 (
                     0.5
                    *(
-                        currentPoints[pPoints[pointPointI]]
+                        currentPoints[pPoints[pPointI]]
                       + currentPoints[pointI]
                     )
                 );
@@ -191,15 +191,15 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
             scalar sumA(0);
             vector sumAc(vector::zero);
-            forAll(pPoints, pointPointI)
+            forAll(pPoints, pPointI)
             {
-                const label nextPPointI((pointPointI + 1) % nPPoints);
+                const label nextPPointI((pPointI + 1) % nPPoints);
 
                 point edgeCentre
                 (
                     0.5
                    *(
-                        currentPoints[pPoints[pointPointI]]
+                        currentPoints[pPoints[pPointI]]
                       + currentPoints[pointI]
                     )
                 );
@@ -244,21 +244,21 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
         // Length scale
         scalar lengthScale(0), transformedLengthScale(0), lengthScaleRatio;
-        forAll(cellEdges, edgeI)
+        forAll(cEdges, cEdgeI)
         {
             lengthScale +=
-                cellEdges[edgeI].mag(currentPoints);
+                cEdges[cEdgeI].mag(currentPoints);
             transformedLengthScale +=
-                cellEdges[edgeI].mag(transformedPoints);
+                cEdges[cEdgeI].mag(transformedPoints);
         }
-        lengthScale /= cellEdges.size();
-        transformedLengthScale /= cellEdges.size();
+        lengthScale /= cEdges.size();
+        transformedLengthScale /= cEdges.size();
         lengthScaleRatio = lengthScale/transformedLengthScale;
 
         // Add the displacement to the average
-        forAll(cellPoints, cellPointI)
+        forAll(cPoints, cPointI)
         {
-            const label pointI(cellPoints[cellPointI]);
+            const label pointI(cPoints[cPointI]);
 
             if (counts[pointI] == -1) continue;
 
@@ -274,12 +274,12 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
             ++ counts[pointI];
 
-            displacements[pointI] += newPoint - oldPoints[pointI];
+            pointDisplacement()[pointI] += newPoint - oldPoints[pointI];
         }
     }
 
     // Reset all the boundary faces
-    reset(facesToMove, counts, displacements, false);
+    reset(facesToMove, counts, false);
 
     // Calculate the boundary transformations
     forAll(facesToMove, faceToMoveI)
@@ -370,13 +370,13 @@ void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
 
                 ++ counts[pointI];
 
-                displacements[pointI] += newPoint - oldPoints[pointI];
+                pointDisplacement()[pointI] += newPoint - oldPoints[pointI];
             }
         }
     }
 
     // Average
-    average(facesToMove, counts, displacements);
+    average(facesToMove, counts);
 }
 
 

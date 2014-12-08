@@ -114,7 +114,7 @@ void Foam::primitiveMeshGeometry::updateCellCentresAndVols
         const labelList cellFaces(mesh().cells()[cellI]);
 
         // Esimate the cell centre as the average of face centres
-        vector cEst;
+        vector cEst(vector::zero);
         forAll(cellFaces, cellFaceI)
         {
             cEst += faceCentres_[cellFaces[cellFaceI]];

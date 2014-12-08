@@ -34,6 +34,9 @@ Description
 #include "emptyPolyPatch.H"
 #include "demandDrivenData.H"
 #include "cyclicPolyPatch.H"
+#include "removeCells.H"
+#include "polyTopoChange.H"
+#include "mapPolyMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -351,6 +354,39 @@ void Foam::fvMeshSubset::subsetZones()
 
     // Add the zones
     fvMeshSubsetPtr_().addZones(pZonePtrs, fZonePtrs, cZonePtrs);
+}
+
+
+Foam::labelList Foam::fvMeshSubset::getCellsToRemove
+(
+    const labelList& region,
+    const label currentRegion
+) const
+{
+    // Count
+    label nKeep = 0;
+    forAll(region, cellI)
+    {
+        if (region[cellI] == currentRegion)
+        {
+            nKeep++;
+        }
+    }
+
+    // Collect cells to remove
+    label nRemove = baseMesh().nCells() - nKeep;
+    labelList cellsToRemove(nRemove);
+
+    nRemove = 0;
+    forAll(region, cellI)
+    {
+        if (region[cellI] != currentRegion)
+        {
+            cellsToRemove[nRemove++] = cellI;
+        }
+    }
+
+    return cellsToRemove;
 }
 
 
@@ -1375,6 +1411,68 @@ void Foam::fvMeshSubset::setLargeCellSubset
         region[iter.key()] = 1;
     }
     setLargeCellSubset(region, 1, patchID, syncPar);
+}
+
+
+Foam::labelList Foam::fvMeshSubset::getExposedFaces
+(
+    const labelList& region,
+    const label currentRegion,
+    const bool syncCouples
+) const
+{
+    // Collect cells to remove
+    labelList cellsToRemove(getCellsToRemove(region, currentRegion));
+
+    return removeCells(baseMesh(), syncCouples).getExposedFaces(cellsToRemove);
+}
+
+
+void Foam::fvMeshSubset::setLargeCellSubset
+(
+    const labelList& region,
+    const label currentRegion,
+    const labelList& exposedFaces,
+    const labelList& patchIDs,
+    const bool syncCouples
+)
+{
+    // Collect cells to remove
+    labelList cellsToRemove(getCellsToRemove(region, currentRegion));
+
+    // Mesh changing engine.
+    polyTopoChange meshMod(baseMesh());
+
+    removeCells cellRemover(baseMesh(), syncCouples);
+
+    cellRemover.setRefinement
+    (
+        cellsToRemove,
+        exposedFaces,
+        patchIDs,
+        meshMod
+    );
+
+    // Create mesh, return map from old to new mesh.
+    autoPtr<mapPolyMesh> map = meshMod.makeMesh
+    (
+        fvMeshSubsetPtr_,
+        IOobject
+        (
+            baseMesh().name(),
+            baseMesh().time().timeName(),
+            baseMesh().time(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        baseMesh(),
+        syncCouples
+    );
+
+    pointMap_ = map().pointMap();
+    faceMap_ = map().faceMap();
+    cellMap_ = map().cellMap();
+    patchMap_ = identity(baseMesh().boundaryMesh().size());
 }
 
 

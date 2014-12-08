@@ -104,9 +104,6 @@ protected:
          //- The number of reactions
         virtual label nReaction() const;
 
-        //- The number of reactions
-        virtual label nSpecie() const;
-
         //- Set reacting status of cell, cellI
         void setCellReacting(const label cellI, const bool active);
 

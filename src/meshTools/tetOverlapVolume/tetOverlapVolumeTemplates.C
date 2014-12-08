@@ -45,7 +45,7 @@ void Foam::tetOverlapVolume::tetTetOverlap
     tetPointRef::storeOp cutInside(cutInsideTets, nCutInside);
     tetPointRef::dummyOp outside;
 
-    if ((tetA.tet().mag() < SMALL) || (tetB.tet().mag() < SMALL))
+    if (tetA.tet().mag() < minTetVolume_ || tetB.tet().mag() < minTetVolume_)
     {
         return;
     }

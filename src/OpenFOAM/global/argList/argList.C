@@ -608,7 +608,7 @@ void Foam::argList::parse
             }
             else
             {
-                source = rootPath_/globalCase_/"system/decomposeParDict";
+                source = rootPath_/globalCase_/"system"/"decomposeParDict";
                 // Override with -decomposeParDict
                 if (options_.found("decomposeParDict"))
                 {

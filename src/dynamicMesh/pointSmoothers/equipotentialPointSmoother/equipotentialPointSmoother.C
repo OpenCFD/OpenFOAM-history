@@ -48,10 +48,10 @@ namespace pointSmoothers
 Foam::pointSmoothers::equipotentialPointSmoother::equipotentialPointSmoother
 (
     const dictionary& dict,
-    const polyMesh& mesh
+    pointVectorField& pointDisplacement
 )
 :
-    pointSmoother(dict, mesh)
+    pointSmoother(dict, pointDisplacement)
 {}
 
 
@@ -66,17 +66,16 @@ Foam::pointSmoothers::equipotentialPointSmoother::~equipotentialPointSmoother()
 void Foam::pointSmoothers::equipotentialPointSmoother::update
 (
     const labelList& facesToMove,
-    const polyMeshGeometry& meshGeometry,
     const pointField& oldPoints,
     const pointField& currentPoints,
-    vectorField& displacements
-) const
+    polyMeshGeometry& meshGeometry
+)
 {
     // Number of points used in each average
     scalarField weights(mesh().nPoints());
 
     // Reset the displacements which are about to be calculated
-    reset(facesToMove, weights, displacements);
+    reset(facesToMove, weights);
 
     // Sum the non-internal face displacements
     forAll(facesToMove, faceToMoveI)
@@ -93,7 +92,7 @@ void Foam::pointSmoothers::equipotentialPointSmoother::update
             {
                 const label pointI(fPoints[fPointI]);
 
-                displacements[pointI] +=
+                pointDisplacement()[pointI] +=
                     area
                    *(
                         meshGeometry.faceCentres()[faceI]
@@ -120,15 +119,15 @@ void Foam::pointSmoothers::equipotentialPointSmoother::update
 
                 if (weights[pointI] < SMALL)
                 {
-                    const labelList& pointCells(mesh().pointCells()[pointI]);
+                    const labelList& pCells(mesh().pointCells()[pointI]);
 
-                    forAll(pointCells, pointCellI)
+                    forAll(pCells, pCellI)
                     {
-                        const label cellI(pointCells[pointCellI]);
+                        const label cellI(pCells[pCellI]);
 
                         const scalar volume(mesh().cellVolumes()[cellI]);
 
-                        displacements[pointI] +=
+                        pointDisplacement()[pointI] +=
                             volume
                            *(
                                 meshGeometry.cellCentres()[cellI]
@@ -143,7 +142,7 @@ void Foam::pointSmoothers::equipotentialPointSmoother::update
     }
 
     // Average
-    average(facesToMove, weights, displacements);
+    average(facesToMove, weights);
 }
 
 

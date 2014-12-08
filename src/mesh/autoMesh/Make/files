@@ -31,6 +31,7 @@ $(meshMover)/externalDisplacementMeshMover.C
 $(meshMover)/medialAxisMeshMover.C
 $(meshMover)/pointSmoothingMeshMover.C
 $(meshMover)/zeroFixedValue/zeroFixedValuePointPatchFields.C
+$(meshMover)/fieldSmoother/fieldSmoother.C
 
 LIB = $(FOAM_LIBBIN)/libautoMesh
 

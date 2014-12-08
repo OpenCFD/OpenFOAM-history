@@ -152,10 +152,12 @@ sets
         //   according to fraction of patches they hold.
         maxPoints   100;
 
-        // 2. Specified set of locations. The difference with patchCloud
-        //    is that this selects patch face centres, not an arbitrary
-        //    location on the face.
-        selectedLocations   ((0.049 0.099 0.005)(0.051 0.054 0.005));
+        // 2. Specified set of locations. This selects for every the specified
+        //    point the nearest patch face. (in addition the number of points
+        //    is also truncated by the maxPoints setting)
+        //    The difference with patchCloud is that this selects patch
+        //    face centres, not an arbitrary location on the face.
+        points   ((0.049 0.099 0.005)(0.051 0.054 0.005));
     }
 
 );

@@ -43,7 +43,16 @@ bool Foam::pointSmoother::isInternalOrProcessorFace(const label faceI) const
         return true;
     }
 
-    if (processorPatchIDs_[mesh().boundaryMesh().patchID()[faceI]])
+    if
+    (
+        processorPatchIDs_
+        [
+            mesh().boundaryMesh().patchID()
+            [
+                faceI - mesh().nInternalFaces()
+            ]
+        ]
+    )
     {
         return true;
     }
@@ -99,14 +108,15 @@ Foam::autoPtr<Foam::PackedBoolList> Foam::pointSmoother::pointsToMove
 Foam::pointSmoother::pointSmoother
 (
     const dictionary& dict,
-    const polyMesh& mesh
+    pointVectorField& pointDisplacement
 )
 :
-    mesh_(mesh)
+    mesh_(pointDisplacement.mesh().mesh()),
+    pointDisplacement_(pointDisplacement)
 {
-    forAll(mesh.boundaryMesh(), patchI)
+    forAll(mesh().boundaryMesh(), patchI)
     {
-        const polyPatch& pp(mesh.boundaryMesh()[patchI]);
+        const polyPatch& pp(mesh().boundaryMesh()[patchI]);
 
         if (isA<processorPolyPatch>(pp))
         {
@@ -122,7 +132,7 @@ Foam::autoPtr<Foam::pointSmoother>
 Foam::pointSmoother::New
 (
     const dictionary& dict,
-    const polyMesh& mesh
+    pointVectorField& pointDisplacement
 )
 {
     word pointSmootherType(dict.lookup(typeName));
@@ -142,7 +152,7 @@ Foam::pointSmoother::New
             << exit(FatalError);
     }
 
-    return cstrIter()(dict, mesh);
+    return cstrIter()(dict, pointDisplacement);
 }
 
 

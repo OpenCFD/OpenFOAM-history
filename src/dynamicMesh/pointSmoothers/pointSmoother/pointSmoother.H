@@ -61,6 +61,9 @@ private:
         //- Set of the processor patch indices
         labelHashSet processorPatchIDs_;
 
+        //- Reference to the point displacement field
+        pointVectorField& pointDisplacement_;
+
 
     // Private Member Functions
 
@@ -91,18 +94,16 @@ protected:
         (
             const labelList& facesToMove,
             Field<weightType>& weights,
-            vectorField& displacements,
             const bool resetInternalFaces = true
-        ) const;
+        );
 
         //- Average the displacements using the weights provided
         template <class weightType>
         void average
         (
             const labelList& facesToMove,
-            Field<weightType>& weights,
-            vectorField& displacements
-        ) const;
+            Field<weightType>& weights
+        );
 
 
 public:
@@ -117,15 +118,15 @@ public:
         autoPtr,
         pointSmoother,
         dictionary,
-        (const dictionary& dict, const polyMesh& mesh),
-        (dict, mesh)
+        (const dictionary& dict, pointVectorField& pointDisplacement),
+        (dict, pointDisplacement)
     );
 
 
     // Constructors
 
-        //- Construct from a mesh and a dictionary
-        pointSmoother(const dictionary& dict, const polyMesh& mesh);
+        //- Construct from a dictionary and a point displacement field
+        pointSmoother(const dictionary&, pointVectorField&);
 
 
     // Selector
@@ -133,7 +134,7 @@ public:
         static autoPtr<pointSmoother> New
         (
             const dictionary& dict,
-            const polyMesh& mesh
+            pointVectorField& pointDisplacement
         );
 
 
@@ -151,16 +152,27 @@ public:
                 return mesh_;
             }
 
+            // Constant access to the point displacements
+            const pointVectorField& pointDisplacement() const
+            {
+                return pointDisplacement_;
+            }
+
+            // Non-constant access to the point displacements
+            pointVectorField& pointDisplacement()
+            {
+                return pointDisplacement_;
+            }
+
 
         //- Calculate the end point locations
         virtual void update
         (
             const labelList& facesToMove,
-            const polyMeshGeometry& meshGeometry,
             const pointField& oldPoints,
             const pointField& currentPoints,
-            vectorField& displacements
-        ) const = 0;
+            polyMeshGeometry& meshGeometry
+        ) = 0;
 };
 
 

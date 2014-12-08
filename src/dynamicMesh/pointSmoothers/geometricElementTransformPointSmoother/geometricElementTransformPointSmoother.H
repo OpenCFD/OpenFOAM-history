@@ -38,7 +38,6 @@ SourceFiles
 #define geometricElementTransformPointSmoother_H
 
 #include "pointSmoother.H"
-#include "cellPointConnectivity.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -59,9 +58,6 @@ private:
 
     // Private Data
 
-        //- Cell-point connectivity
-        const cellPointConnectivity& cellPointConnectivity_;
-
         //- Transformation parameter
         const scalar transformationParameter_;
 
@@ -78,7 +74,7 @@ public:
         geometricElementTransformPointSmoother
         (
             const dictionary& dict,
-            const polyMesh& mesh
+            pointVectorField& pointDisplacement
         );
 
 
@@ -92,11 +88,10 @@ public:
         virtual void update
         (
             const labelList& facesToMove,
-            const polyMeshGeometry& meshGeometry,
             const pointField& oldPoints,
             const pointField& currentPoints,
-            vectorField& displacements
-        ) const;
+            polyMeshGeometry& meshGeometry
+        );
 };
 
 

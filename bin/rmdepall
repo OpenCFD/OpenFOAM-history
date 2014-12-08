@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #-------------------------------------------------------------------------------
 # License
@@ -57,13 +57,17 @@ do
 done
 
 
+# Where are the dep files stored?
+depFile=`wdep dummy.dep`
+depDir=`dirname "$depFile"`
+
 if [ "$#" -eq 0 ]
 then
     echo "removing all .dep files ..."
-    find . -name '*.dep' -print | xargs -t rm 2>/dev/null
+    find "$depDir" -name '*.dep' -print | xargs -t rm 2>/dev/null
 else
     echo "removing .dep files referring to $1 ..."
-    find . -name '*.dep' -exec grep "$1" '{}' \; -exec rm '{}' \;
+    find "$depDir" -name '*.dep' -exec grep "$1" '{}' \; -exec rm '{}' \;
 fi
 
 #------------------------------------------------------------------------------

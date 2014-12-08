@@ -54,6 +54,12 @@ class polyMesh;
 
 class tetOverlapVolume
 {
+    // Private data
+
+        //- Minimum tet volume to skip test
+        static scalar minTetVolume_;
+
+
     // Private classes
 
         //- tetPoints handling : sum resulting volumes

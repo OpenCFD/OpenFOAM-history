@@ -177,7 +177,7 @@ void Foam::meshRefinement::calcNeighbourData
 
                 label own = faceCells[i];
                 label ownLevel = cellLevel[own];
-                label faceLevel = meshCutter_.getAnchorLevel(pp.start()+i);
+                label faceLevel = meshCutter_.faceLevel(pp.start()+i);
                 if (faceLevel < 0)
                 {
                     // Due to e.g. face merging no longer a consistent
@@ -560,7 +560,7 @@ void Foam::meshRefinement::checkData()
                         << " ownLevel:"
                         << meshCutter_.cellLevel()[mesh_.faceOwner()[faceI]]
                         << " faceLevel:"
-                        << meshCutter_.getAnchorLevel(faceI)
+                        << meshCutter_.faceLevel(faceI)
                         << endl;
                 }
             }
@@ -2060,6 +2060,9 @@ Foam::label Foam::meshRefinement::addMeshedPatch
         // Store
         meshedPatches_.append(name);
 
+        // Clear patch based addressing
+        faceToCoupledPatch_.clear();
+
         return patchI;
     }
 }
@@ -2455,6 +2458,10 @@ void Foam::meshRefinement::distribute(const mapDistributePolyMesh& map)
     // surfaceIndex is face data.
     map.distributeFaceData(surfaceIndex_);
 
+    // faceToPatch (baffles that were on coupled faces) is not maintained
+    // (since baffling also disconnects points)
+    faceToCoupledPatch_.clear();
+
     // maintainedFaces are indices of faces.
     forAll(userFaceData_, i)
     {
@@ -2552,6 +2559,22 @@ void Foam::meshRefinement::updateMesh
 
     // Update surfaceIndex
     updateList(map.faceMap(), label(-1), surfaceIndex_);
+
+    // Update faceToCoupledPatch_
+    {
+        Map<label> newFaceToPatch(faceToCoupledPatch_.size());
+        forAllConstIter(Map<label>, faceToCoupledPatch_, iter)
+        {
+            label newFaceI = map.reverseFaceMap()[iter.key()];
+
+            if (newFaceI >= 0)
+            {
+                newFaceToPatch.insert(newFaceI, iter());
+            }
+        }
+        faceToCoupledPatch_.transfer(newFaceToPatch);
+    }
+
 
     // Update cached intersection information
     updateIntersections(changedFaces);

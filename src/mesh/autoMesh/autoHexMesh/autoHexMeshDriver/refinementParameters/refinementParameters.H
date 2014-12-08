@@ -104,6 +104,8 @@ class refinementParameters
 
         Switch handleSnapProblems_;
 
+        Switch interfaceRefine_;
+
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
@@ -202,6 +204,12 @@ public:
             bool handleSnapProblems() const
             {
                 return handleSnapProblems_;
+            }
+
+            //- Refine cell with opposite faces with different refinement level
+            bool interfaceRefine() const
+            {
+                return interfaceRefine_;
             }
 
 

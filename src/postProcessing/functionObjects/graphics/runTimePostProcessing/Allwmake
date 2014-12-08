@@ -5,14 +5,22 @@ cd ${0%/*} || exit 1    # run from this directory
 
 mkdir -p Make/$WM_OPTIONS > /dev/null 2>&1
 
+# Store current directory
+sourceDir=$PWD
+
+# Where are any generated files stored?
+depFile=`wdep dummy.C`
+depDir=`dirname $depFile`
+
+
 if [ -d "$VTK_DIR" ];
 then
     ln -s CMakeLists-VTK.txt CMakeLists.txt
-    (cd Make/$WM_OPTIONS && cmake ../.. && make)
+    (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
 elif [ -d "$ParaView_DIR" ];
 then
     ln -s CMakeLists-ParaView.txt CMakeLists.txt
-    (cd Make/$WM_OPTIONS && cmake ../.. && make)
+    (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
 else
     echo "ERROR: Build of $PWD requires a valid VTK installation which"
     echo "       can be supplied by ParView by VTK:"

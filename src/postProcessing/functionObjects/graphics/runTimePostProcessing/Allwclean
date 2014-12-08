@@ -1,4 +1,9 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # run from this directory
 
-rm -rf Make/$WM_OPTIONS CMakeLists.txt > /dev/null 2>&1
+(
+    # Where are the generated files stored?
+    depFile=`wdep dummy.C` && \
+    depDir=`dirname $depFile` && \
+    rm -rf "$depDir" CMakeLists.txt > /dev/null 2>&1
+)
