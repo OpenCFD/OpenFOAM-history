@@ -76,7 +76,7 @@ void Foam::SprayParcel<ParcelType>::calc
     }
 
     // get old mixture composition
-    const scalarField& Y0(this->Y());
+    const scalarField Y0(composition.globalY(0, this->Y()));
     scalarField X0(composition.liquids().X(Y0));
 
     // check if we have critical or boiling conditions
@@ -106,7 +106,7 @@ void Foam::SprayParcel<ParcelType>::calc
         // update Cp, sigma, density and diameter due to change in temperature
         // and/or composition
         scalar T1 = this->T();
-        const scalarField& Y1(this->Y());
+        const scalarField Y1(composition.globalY(0, this->Y()));
         scalarField X1(composition.liquids().X(Y1));
 
         this->Cp() = composition.liquids().Cp(this->pc_, T1, X1);
