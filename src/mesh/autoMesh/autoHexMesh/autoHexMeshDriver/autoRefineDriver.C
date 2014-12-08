@@ -688,15 +688,17 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
         for (;iter < maxIter; iter++)
         {
             Info<< nl
-                << "Refinement interface refinement iteration " << iter << nl
-                << "------------------------------------------" << nl
+                << "Refinement transition refinement iteration " << iter << nl
+                << "--------------------------------------------" << nl
                 << endl;
 
             const labelList& surfaceIndex = meshRefiner_.surfaceIndex();
             const hexRef8& cutter = meshRefiner_.meshCutter();
             const vectorField& faceAreas = mesh.faceAreas();
+            //const pointField& faceCentres = mesh.faceCentres();
+            //const pointField& cellCentres = mesh.cellCentres();
+            //const scalarField& cellVolumes = mesh.cellVolumes();
             const labelList& faceOwner = mesh.faceOwner();
-            const scalarField magFaceAreas(mag(faceAreas));
 
 
             // Determine cells to refine
@@ -706,6 +708,36 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
 
             labelList candidateCells;
             {
+                // Pass1: pick up cells with differing face level
+
+                cellSet transitionCells
+                (
+                    mesh,
+                    "transitionCells",
+                    cells.size()/100
+                );
+
+                forAll(cells, cellI)
+                {
+                    const cell& cFaces = cells[cellI];
+                    label cLevel = cutter.cellLevel()[cellI];
+
+                    forAll(cFaces, cFaceI)
+                    {
+                        label faceI = cFaces[cFaceI];
+
+                        if (surfaceIndex[faceI] != -1)
+                        {
+                            label fLevel = cutter.faceLevel(faceI);
+                            if (fLevel != cLevel)
+                            {
+                                transitionCells.insert(cellI);
+                            }
+                        }
+                    }
+                }
+
+
                 cellSet candidateCellSet
                 (
                     mesh,
@@ -713,9 +745,47 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
                     cells.size()/1000
                 );
 
-                forAll(cells, cellI)
+                // Pass2: check for oppositeness
+
+                forAllConstIter(cellSet, transitionCells, iter)
                 {
+                    label cellI = iter.key();
                     const cell& cFaces = cells[cellI];
+
+                    //const scalar cVol = cellVolumes[cellI];
+                    //
+                    //
+                    //// Determine principal axes of cell
+                    //symmTensor R(symmTensor::zero);
+                    //
+                    //forAll(cFaces, i)
+                    //{
+                    //    label faceI = cFaces[i];
+                    //
+                    //    const point& fc = faceCentres[faceI];
+                    //
+                    //    // Calculate face-pyramid volume
+                    //    scalar pyrVol = 1.0/3.0 * faceAreas[faceI] & (fc-cc);
+                    //
+                    //    if (faceOwner[faceI] != cellI)
+                    //    {
+                    //        pyrVol = -pyrVol;
+                    //    }
+                    //
+                    //    // Calculate face-pyramid centre
+                    //    vector pc = (3.0/4.0)*fc + (1.0/4.0)*cc;
+                    //
+                    //    R += pyrVol/cVol*sqr(pc-cc);
+                    //}
+                    //
+                    //const tensor axes(eigenVectors(R));
+                    const tensor axes
+                    (
+                        vector(1, 0, 0),
+                        vector(0, 1, 0),
+                        vector(0, 0, 1)
+                    );
+
 
                     // Check if this cell has
                     // - opposing sides intersected
@@ -729,39 +799,37 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
                     {
                         label faceI = cFaces[cFaceI];
 
-                        if
-                        (
-                           !mesh.isInternalFace(faceI)
-                         || surfaceIndex[faceI] != -1
-                        )
+                        if (surfaceIndex[faceI] != -1)
                         {
                             label fLevel = cutter.faceLevel(faceI);
 
                             // Get outwards pointing normal
-                            vector n = faceAreas[faceI]/magFaceAreas[faceI];
+                            vector n = faceAreas[faceI]/mag(faceAreas[faceI]);
                             if (faceOwner[faceI] != cellI)
                             {
                                 n = -n;
                             }
 
                             // What is major direction and sign
-                            direction cmpt = -1;
-                            scalar magCmpt = -GREAT;
-                            for
-                            (
-                                direction dir = 0;
-                                dir < vector::nComponents;
-                                dir++
-                            )
+                            direction cmpt = vector::X;
+                            scalar maxComp = (n&axes.x());
+
+                            scalar yComp = (n&axes.y());
+                            scalar zComp = (n&axes.z());
+
+                            if (mag(yComp) > mag(maxComp))
                             {
-                                if (mag(n[dir]) > magCmpt)
-                                {
-                                    magCmpt = mag(n[dir]);
-                                    cmpt = dir;
-                                }
+                                maxComp = yComp;
+                                cmpt = vector::Y;
                             }
 
-                            if (n[cmpt] > 0)
+                            if (mag(zComp) > mag(maxComp))
+                            {
+                                maxComp = zComp;
+                                cmpt = vector::Z;
+                            }
+
+                            if (maxComp > 0)
                             {
                                 plusFaceLevel[cmpt] = max
                                 (
@@ -860,7 +928,7 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
             {
                 meshRefiner_.balanceAndRefine
                 (
-                    "coarse cell refinement iteration " + name(iter),
+                    "interface cell refinement iteration " + name(iter),
                     decomposer_,
                     distributor_,
                     cellsToRefine,
@@ -871,7 +939,7 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
             {
                 meshRefiner_.refineAndBalance
                 (
-                    "coarse cell refinement iteration " + name(iter),
+                    "interface cell refinement iteration " + name(iter),
                     decomposer_,
                     distributor_,
                     cellsToRefine,
