@@ -162,7 +162,7 @@ void Foam::fluxSummary::initialiseFaceZone
 void Foam::fluxSummary::initialiseFaceZoneAndDirection
 (
     const word& faceZoneName,
-    const vector& refDir,
+    const vector& dir,
     DynamicList<vector>& zoneRefDir,
     DynamicList<word>& faceZoneNames,
     DynamicList<List<label> >& faceID,
@@ -171,6 +171,8 @@ void Foam::fluxSummary::initialiseFaceZoneAndDirection
 ) const
 {
     const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+    vector refDir = dir/(mag(dir) + ROOTVSMALL);
 
     label zoneI = mesh.faceZones().findZoneID(faceZoneName);
 
@@ -195,7 +197,7 @@ void Foam::fluxSummary::initialiseFaceZoneAndDirection
     }
 
     faceZoneNames.append(faceZoneName);
-    zoneRefDir.append(refDir/(mag(refDir) + ROOTVSMALL));
+    zoneRefDir.append(refDir);
 
     const faceZone& fZone = mesh.faceZones()[zoneI];
 
@@ -281,7 +283,7 @@ void Foam::fluxSummary::initialiseFaceZoneAndDirection
 void Foam::fluxSummary::initialiseCellZoneAndDirection
 (
     const word& cellZoneName,
-    const vector& refDir,
+    const vector& dir,
     DynamicList<vector>& zoneRefDir,
     DynamicList<word>& faceZoneNames,
     DynamicList<List<label> >& faceID,
@@ -290,6 +292,8 @@ void Foam::fluxSummary::initialiseCellZoneAndDirection
 ) const
 {
     const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+    vector refDir = dir/(mag(dir) + ROOTVSMALL);
 
     const label cellZoneI = mesh.cellZones().findZoneID(cellZoneName);
 
@@ -549,7 +553,7 @@ void Foam::fluxSummary::initialiseCellZoneAndDirection
     {
         const word zoneName = cellZoneName + ":faceZone" + Foam::name(regionI);
         faceZoneNames.append(zoneName);
-        zoneRefDir.append(refDir/(mag(refDir) + ROOTVSMALL));
+        zoneRefDir.append(refDir);
         faceID.append(regionFaceIDs[regionI]);
         facePatchID.append(regionFacePatchIDs[regionI]);
         faceSign.append(regionFaceSigns[regionI]);
@@ -581,6 +585,40 @@ void Foam::fluxSummary::initialiseCellZoneAndDirection
 }
 
 
+void Foam::fluxSummary::initialiseFaceArea()
+{
+    faceArea_.setSize(faceID_.size(), 0);
+
+    const fvMesh& mesh = refCast<const fvMesh>(obr_);
+    const surfaceScalarField& magSf = mesh.magSf();
+
+    forAll(faceID_, zoneI)
+    {
+        const labelList& faceIDs = faceID_[zoneI];
+        const labelList& facePatchIDs = facePatchID_[zoneI];
+
+        scalar sumMagSf = 0;
+
+        forAll(faceIDs, i)
+        {
+            label faceI = faceIDs[i];
+
+            if (facePatchIDs[i] == -1)
+            {
+                sumMagSf += magSf[faceI];
+            }
+            else
+            {
+                label patchI = facePatchIDs[i];
+                sumMagSf += magSf.boundaryField()[patchI][faceI];
+            }
+        }
+
+        faceArea_[zoneI] = returnReduce(sumMagSf, sumOp<scalar>());
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::fluxSummary::fluxSummary
@@ -604,6 +642,7 @@ Foam::fluxSummary::fluxSummary
     faceID_(),
     facePatchID_(),
     faceSign_(),
+    faceArea_(),
     tolerance_(0.8)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
@@ -730,6 +769,8 @@ void Foam::fluxSummary::read(const dictionary& dict)
         facePatchID_.transfer(facePatchID);
         faceSign_.transfer(faceSign);
 
+        initialiseFaceArea();
+
         functionObjectFile::resetNames(faceZoneName_);
     }
 }
@@ -739,6 +780,7 @@ void Foam::fluxSummary::writeFileHeader(const label i)
 {
     writeHeader(file(i), "Flux summary");
     writeHeaderValue(file(i), "Face zone", faceZoneName_[i]);
+    writeHeaderValue(file(i), "Total area", faceArea_[i]);
 
     switch (mode_)
     {

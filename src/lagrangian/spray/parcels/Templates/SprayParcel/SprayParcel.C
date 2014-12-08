@@ -76,7 +76,7 @@ void Foam::SprayParcel<ParcelType>::calc
     }
 
     // get old mixture composition
-    const scalarField& Y0(this->Y());
+    const scalarField Y0(composition.globalY(0, this->Y()));
     scalarField X0(composition.liquids().X(Y0));
 
     // check if we have critical or boiling conditions
@@ -106,7 +106,7 @@ void Foam::SprayParcel<ParcelType>::calc
         // update Cp, sigma, density and diameter due to change in temperature
         // and/or composition
         scalar T1 = this->T();
-        const scalarField& Y1(this->Y());
+        const scalarField Y1(composition.globalY(0, this->Y()));
         scalarField X1(composition.liquids().X(Y1));
 
         this->Cp() = composition.liquids().Cp(this->pc_, T1, X1);
@@ -150,13 +150,19 @@ void Foam::SprayParcel<ParcelType>::calcAtomization
     const label cellI
 )
 {
+    typedef typename TrackData::cloudType::sprayCloudType sprayCloudType;
+    const AtomizationModel<sprayCloudType>& atomization =
+        td.cloud().atomization();
+
+    if (!atomization.active())
+    {
+        return;
+    }
+
     typedef typename TrackData::cloudType::reactingCloudType reactingCloudType;
     const CompositionModel<reactingCloudType>& composition =
         td.cloud().composition();
 
-    typedef typename TrackData::cloudType::sprayCloudType sprayCloudType;
-    const AtomizationModel<sprayCloudType>& atomization =
-        td.cloud().atomization();
 
     // Average molecular weight of carrier mix - assumes perfect gas
     scalar Wc = this->rhoc_*specie::RR*this->Tc()/this->pc();
@@ -220,11 +226,19 @@ void Foam::SprayParcel<ParcelType>::calcBreakup
     typedef typename TrackData::cloudType cloudType;
     typedef typename cloudType::parcelType parcelType;
     typedef typename cloudType::forceType forceType;
+    typedef typename TrackData::cloudType::sprayCloudType sprayCloudType;
+
+    BreakupModel<sprayCloudType>& breakup = td.cloud().breakup();
+
+    if (!breakup.active())
+    {
+        return;
+    }
 
     const parcelType& p = static_cast<const parcelType&>(*this);
     const forceType& forces = td.cloud().forces();
 
-    if (td.cloud().breakup().solveOscillationEq())
+    if (breakup.solveOscillationEq())
     {
         solveTABEq(td, dt);
     }
@@ -244,7 +258,7 @@ void Foam::SprayParcel<ParcelType>::calcBreakup
     const scalar mass = p.mass();
     const forceSuSp Fcp = forces.calcCoupled(p, dt, mass, Re, muAv);
     const forceSuSp Fncp = forces.calcNonCoupled(p, dt, mass, Re, muAv);
-    this->tMom() = mass/(Fcp.Sp() + Fncp.Sp());
+    this->tMom() = mass/(Fcp.Sp() + Fncp.Sp() + ROOTVSMALL);
 
     const vector g = td.cloud().g().value();
 
@@ -252,7 +266,7 @@ void Foam::SprayParcel<ParcelType>::calcBreakup
     scalar dChild = 0.0;
     if
     (
-        td.cloud().breakup().update
+        breakup.update
         (
             dt,
             g,

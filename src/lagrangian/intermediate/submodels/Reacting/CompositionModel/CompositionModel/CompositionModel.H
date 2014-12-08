@@ -204,7 +204,19 @@ public:
 
                 //- Return the list of phase phaseI volume fractions fractions
                 //  based on supplied mass fractions Y
-                scalarField X(const label phaseI, const scalarField& Y) const;
+                tmp<scalarField> X
+                (
+                    const label phaseI,
+                    const scalarField& Y
+                ) const;
+
+                //- Return the list of phase phaseI mass fractions in global
+                //  phase lists
+                tmp<scalarField> globalY
+                (
+                    const label phaseI,
+                    const scalarField& localY
+                ) const;
 
 
             // Mixture properties
