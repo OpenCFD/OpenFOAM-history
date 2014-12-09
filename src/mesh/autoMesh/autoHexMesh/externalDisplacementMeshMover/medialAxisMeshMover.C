@@ -214,7 +214,7 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
         nSmoothSurfaceNormals,
         isPatchMasterPoint,
         isPatchMasterEdge,
-        adaptPatchPtr_(),
+        pp,
         pointNormals
     );
 
@@ -1549,7 +1549,7 @@ void Foam::medialAxisMeshMover::calculateDisplacement
         nSmoothPatchThickness,
         isPatchMasterPoint,
         isPatchMasterEdge,
-        adaptPatchPtr_(),
+        pp,
         minThickness,
         thickness
     );
