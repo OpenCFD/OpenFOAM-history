@@ -695,9 +695,9 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
             const labelList& surfaceIndex = meshRefiner_.surfaceIndex();
             const hexRef8& cutter = meshRefiner_.meshCutter();
             const vectorField& faceAreas = mesh.faceAreas();
-            //const pointField& faceCentres = mesh.faceCentres();
-            //const pointField& cellCentres = mesh.cellCentres();
-            //const scalarField& cellVolumes = mesh.cellVolumes();
+            const pointField& faceCentres = mesh.faceCentres();
+            const pointField& cellCentres = mesh.cellCentres();
+            const scalarField& cellVolumes = mesh.cellVolumes();
             const labelList& faceOwner = mesh.faceOwner();
 
 
@@ -751,40 +751,34 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
                 {
                     label cellI = iter.key();
                     const cell& cFaces = cells[cellI];
+                    const point& cc = cellCentres[cellI];
+                    const scalar rCVol = pow(cellVolumes[cellI], -5.0/3.0);
 
-                    //const scalar cVol = cellVolumes[cellI];
-                    //
-                    //
-                    //// Determine principal axes of cell
-                    //symmTensor R(symmTensor::zero);
-                    //
-                    //forAll(cFaces, i)
-                    //{
-                    //    label faceI = cFaces[i];
-                    //
-                    //    const point& fc = faceCentres[faceI];
-                    //
-                    //    // Calculate face-pyramid volume
-                    //    scalar pyrVol = 1.0/3.0 * faceAreas[faceI] & (fc-cc);
-                    //
-                    //    if (faceOwner[faceI] != cellI)
-                    //    {
-                    //        pyrVol = -pyrVol;
-                    //    }
-                    //
-                    //    // Calculate face-pyramid centre
-                    //    vector pc = (3.0/4.0)*fc + (1.0/4.0)*cc;
-                    //
-                    //    R += pyrVol/cVol*sqr(pc-cc);
-                    //}
-                    //
-                    //const tensor axes(eigenVectors(R));
-                    const tensor axes
-                    (
-                        vector(1, 0, 0),
-                        vector(0, 1, 0),
-                        vector(0, 0, 1)
-                    );
+                    // Determine principal axes of cell
+                    symmTensor R(symmTensor::zero);
+
+                    forAll(cFaces, i)
+                    {
+                        label faceI = cFaces[i];
+
+                        const point& fc = faceCentres[faceI];
+
+                        // Calculate face-pyramid volume
+                        scalar pyrVol = 1.0/3.0 * faceAreas[faceI] & (fc-cc);
+
+                        if (faceOwner[faceI] != cellI)
+                        {
+                            pyrVol = -pyrVol;
+                        }
+
+                        // Calculate face-pyramid centre
+                        vector pc = (3.0/4.0)*fc + (1.0/4.0)*cc;
+
+                        R += pyrVol*sqr(pc-cc)*rCVol;
+                    }
+
+                    vector lambdas(eigenValues(R));
+                    const tensor axes(eigenVectors(R, lambdas));
 
 
                     // Check if this cell has
