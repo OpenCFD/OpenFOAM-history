@@ -170,7 +170,13 @@ bool Foam::pointSmoothingMeshMover::move
     labelList& checkFaces
 )
 {
+    const label nPointSmootherIter = readLabel
+    (
+        moveDict.lookup("nPointSmootherIter")
+    );
+
     // Update the point smoother displacements
+    for (label i = 0; i < nPointSmootherIter; i ++)
     {
         meshGeometry_.correct
         (
