@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "SprayParcel.H"
+#include "BreakupModel.H"
 #include "CompositionModel.H"
 #include "AtomizationModel.H"
 
