@@ -67,7 +67,7 @@ Foam::eddy::eddy
     // length scale in x direction
     sigma_.x() = sigmaX;
 
-    // length scale in y = z; given by gamma
+    // length scale in y = z; given as function of gamma
     sigma_.y() = sigma_.x()/Foam::sqrt(scalar(gamma2));
     sigma_.z() = sigma_.y();
 
@@ -76,19 +76,13 @@ Foam::eddy::eddy
 
     // eddy rotation from principal-to-global axes
     // - given by the 3 eigen vectors of the Reynold stress tensor
-    Rpg_ =
-        tensor
-        (
-            eigenVector(R, lambda.x()),
-            eigenVector(R, lambda.y()),
-            eigenVector(R, lambda.z())
-        ).T();
+    Rpg_ = eigenVectors(R, lambda).T();
 
     // distance when eddy passes out of eddy box in local principal axes system
     sigmaXMax_ = n & (sigma_ & Rpg_);
 
     // intensity (eq. 13)
-    scalar alphaRMS =
+    scalar alphaAve =
         sqrt
         (
             max
@@ -99,15 +93,16 @@ Foam::eddy::eddy
             )
         );
 
-    alpha_.x() = eps(rndGen)*alphaRMS;
-    alpha_.y() = eps(rndGen)*alphaRMS;
-    alpha_.z() = eps(rndGen)*alphaRMS;
-//Debug(gamma2);
-//Debug(c2);
-//Debug(sigma_);
-//Debug(lambda);
-//Debug(sigmaXMax_);
-//Debug(alpha_);
+    alpha_.x() = eps(rndGen)*alphaAve;
+    alpha_.y() = eps(rndGen)*alphaAve;
+    alpha_.z() = eps(rndGen)*alphaAve;
+
+    if (0)
+    {
+        Pout<< "gamma2:" << gamma2 << " c2:" << c2 << " sigma:" << sigma_
+            << " lambda:" << lambda << " sigmaXMax:" << sigmaXMax_
+            << " alpha:" << alpha_ << endl;
+    }
 }
 
 
