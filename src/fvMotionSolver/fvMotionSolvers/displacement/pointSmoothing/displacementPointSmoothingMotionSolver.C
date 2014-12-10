@@ -293,6 +293,10 @@ displacementPointSmoothingMotionSolver
     displacementMotionSolver(mesh, dict, dict.lookup("solver")),
     meshGeometry_(mesh),
     pointSmoother_(pointSmoother::New(coeffDict(), pointDisplacement())),
+    nPointSmootherIter_
+    (
+        readLabel(coeffDict().lookup("nPointSmootherIter"))
+    ),
     relaxationFactors_(coeffDict().lookup("relaxationFactors")),
     relaxedPoints_(mesh.points()),
     facesToMove_(),
@@ -338,26 +342,27 @@ void Foam::displacementPointSmoothingMotionSolver::solve()
     labelHashSet affectedFaces;
     markAffectedFaces(facesToMove_, affectedFaces);
 
-    meshGeometry_.correct
-    (
-        points0() + pointDisplacement().internalField(),
-        affectedFaces.toc()
-    );
+    for(label i = 0; i < nPointSmootherIter_; i ++)
+    {
+        meshGeometry_.correct
+        (
+            points0() + pointDisplacement().internalField(),
+            affectedFaces.toc()
+        );
 
-    pointSmoother_->update
-    (
-        affectedFaces.toc(),
-        points0(),
-        points0() + pointDisplacement().internalField(),
-        meshGeometry_
-    );
+        pointSmoother_->update
+        (
+            affectedFaces.toc(),
+            points0(),
+            points0() + pointDisplacement().internalField(),
+            meshGeometry_
+        );
 
-    pointDisplacement().correctBoundaryConditions();
-
-    pointConstraints::New
-    (
-        pointDisplacement().mesh()
-    ).constrainDisplacement(pointDisplacement());
+        pointConstraints::New
+        (
+            pointDisplacement().mesh()
+        ).constrainDisplacement(pointDisplacement());
+    }
 
     relax();
 }
