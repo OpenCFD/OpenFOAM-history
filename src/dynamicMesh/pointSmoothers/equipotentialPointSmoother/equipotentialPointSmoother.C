@@ -72,7 +72,7 @@ void Foam::pointSmoothers::equipotentialPointSmoother::update
 )
 {
     // Number of points used in each average
-    scalarField weights(mesh().nPoints());
+    scalarField weights(mesh().nPoints(), 0);
 
     // Reset the displacements which are about to be calculated
     reset(facesToMove, weights);
