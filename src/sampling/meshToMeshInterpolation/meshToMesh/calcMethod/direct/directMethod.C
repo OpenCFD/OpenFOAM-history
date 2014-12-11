@@ -235,6 +235,7 @@ Foam::directMethod::directMethod
 Foam::directMethod::~directMethod()
 {}
 
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void Foam::directMethod::calculate
