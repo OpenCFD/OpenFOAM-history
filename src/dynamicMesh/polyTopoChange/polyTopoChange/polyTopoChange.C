@@ -698,7 +698,7 @@ Foam::label Foam::polyTopoChange::getCellOrder
                 cellInOrder++;
 
                 // find if the neighbours have been visited
-                const labelList& neighbours = cellCellAddressing[currentCell];
+                const labelUList neighbours = cellCellAddressing[currentCell];
 
                 // Add in increasing order of connectivity
 
