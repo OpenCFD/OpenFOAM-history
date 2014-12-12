@@ -25,33 +25,6 @@ License
 
 #include "partialFaceAreaWeightAMI.H"
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-template<class SourcePatch, class TargetPatch>
-void Foam::partialFaceAreaWeightAMI<SourcePatch, TargetPatch>::setNextFaces
-(
-    label& startSeedI,
-    label& srcFaceI,
-    label& tgtFaceI,
-    const boolList& mapFlag,
-    labelList& seedFaces,
-    const DynamicList<label>& visitedFaces,
-    const bool errorOnNotFound
-) const
-{
-    faceAreaWeightAMI<SourcePatch, TargetPatch>::setNextFaces
-    (
-        startSeedI,
-        srcFaceI,
-        tgtFaceI,
-        mapFlag,
-        seedFaces,
-        visitedFaces,
-        false // no error on not found
-    );
-}
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class SourcePatch, class TargetPatch>
@@ -75,7 +48,7 @@ partialFaceAreaWeightAMI
         tgtMagSf,
         triMode,
         reverseTarget,
-        requireMatch
+        false // requireMatch is not required
     )
 {}
 

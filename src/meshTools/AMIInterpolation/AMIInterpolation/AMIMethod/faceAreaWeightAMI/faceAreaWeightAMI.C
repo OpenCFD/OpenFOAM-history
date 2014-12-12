@@ -96,10 +96,11 @@ void Foam::faceAreaWeightAMI<SourcePatch, TargetPatch>::calcAddressing
                 tgtFaceI,
                 mapFlag,
                 seedFaces,
-                visitedFaces
+                visitedFaces,
+                this->requireMatch_
             );
         }
-    } while (nFacesRemaining > 0);
+    } while ((tgtFaceI != -1) && (nFacesRemaining > 0));
 
     this->srcNonOverlap_.transfer(nonOverlapFaces);
 }

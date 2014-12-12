@@ -113,7 +113,7 @@ protected:
                 const boolList& mapFlag,
                 labelList& seedFaces,
                 const DynamicList<label>& visitedFaces,
-                bool errorOnNotFound = true
+                bool errorOnNotFound
             ) const;
 
 

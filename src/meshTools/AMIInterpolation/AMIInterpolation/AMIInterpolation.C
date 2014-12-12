@@ -965,7 +965,7 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
                 tgtMagSf_,
                 triMode_,
                 reverseTarget_,
-                requireMatch_
+                requireMatch_ && (lowWeightCorrection_ < 0)
             )
         );
 
@@ -1088,7 +1088,7 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
                 tgtMagSf_,
                 triMode_,
                 reverseTarget_,
-                requireMatch_
+                requireMatch_ && (lowWeightCorrection_ < 0)
             )
         );
 

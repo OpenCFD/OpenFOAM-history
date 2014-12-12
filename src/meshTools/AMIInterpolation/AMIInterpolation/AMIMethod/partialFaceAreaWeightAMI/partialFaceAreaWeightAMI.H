@@ -62,20 +62,6 @@ private:
         //- Disallow default bitwise assignment
         void operator=(const partialFaceAreaWeightAMI&);
 
-        // Marching front
-
-            //- Set the source and target seed faces
-            virtual void setNextFaces
-            (
-                label& startSeedI,
-                label& srcFaceI,
-                label& tgtFaceI,
-                const boolList& mapFlag,
-                labelList& seedFaces,
-                const DynamicList<label>& visitedFaces,
-                bool errorOnNotFound = true
-            ) const;
-
 
 public:
 
