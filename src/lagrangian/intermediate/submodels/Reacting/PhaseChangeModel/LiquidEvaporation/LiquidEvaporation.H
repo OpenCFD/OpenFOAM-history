@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -118,7 +118,7 @@ public:
             const scalar Ts,
             const scalar pc,
             const scalar Tc,
-            const scalarField& Yl,
+            const scalarField& Xlg,
             scalarField& dMassPC
         ) const;
 
@@ -132,10 +132,10 @@ public:
         ) const;
 
         //- Return vapourisation temperature
-        virtual scalar Tvap(const scalarField& Y) const;
+        virtual scalar Tvap(const scalarField& Xlg) const;
 
         //- Return maximum/limiting temperature
-        virtual scalar TMax(const scalar p, const scalarField& Y) const;
+        virtual scalar TMax(const scalar p, const scalarField& Xlg) const;
 };
 
 

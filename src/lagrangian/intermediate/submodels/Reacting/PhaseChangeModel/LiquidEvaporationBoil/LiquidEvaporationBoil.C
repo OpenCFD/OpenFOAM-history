@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -147,15 +147,12 @@ void Foam::LiquidEvaporationBoil<CloudType>::calculate
     const scalar Ts,
     const scalar pc,
     const scalar Tc,
-    const scalarField& Yl,
+    const scalarField& Xlg,
     scalarField& dMassPC
 ) const
 {
-    // liquid volume fraction
-    const scalarField X(liquids_.X(Yl));
-
     // immediately evaporate mass that has reached critical condition
-    if ((liquids_.Tc(X) - T) < SMALL)
+    if ((liquids_.Tc(Xlg) - T) < SMALL)
     {
         if (debug)
         {
@@ -190,10 +187,10 @@ void Foam::LiquidEvaporationBoil<CloudType>::calculate
     }
 
     // droplet surface pressure assumed to surface vapour pressure
-    scalar ps = liquids_.pv(pc, Ts, X);
+    scalar ps = liquids_.pv(pc, Ts, Xlg);
 
     // vapour density at droplet surface [kg/m3]
-    scalar rhos = ps*liquids_.W(X)/(specie::RR*Ts);
+    scalar rhos = ps*liquids_.W(Xlg)/(specie::RR*Ts);
 
     // construct carrier phase species volume fractions for cell, cellI
     const scalarField XcMix(calcXc(cellI));
@@ -307,7 +304,7 @@ void Foam::LiquidEvaporationBoil<CloudType>::calculate
                 // evaporation
 
                 // surface molar fraction - Raoult's Law
-                const scalar Xs = X[lid]*pSat/pc;
+                const scalar Xs = Xlg[gid]*pSat/pc;
 
                 // molar ratio
                 const scalar Xr = (Xs - Xc)/max(SMALL, 1.0 - Xs);
@@ -378,12 +375,10 @@ Foam::scalar Foam::LiquidEvaporationBoil<CloudType>::dh
 template<class CloudType>
 Foam::scalar Foam::LiquidEvaporationBoil<CloudType>::Tvap
 (
-    const scalarField& Y
+    const scalarField& Xlg
 ) const
 {
-    const scalarField X(liquids_.X(Y));
-
-    return liquids_.Tpt(X);
+    return liquids_.Tpt(Xlg);
 }
 
 
@@ -391,12 +386,10 @@ template<class CloudType>
 Foam::scalar Foam::LiquidEvaporationBoil<CloudType>::TMax
 (
     const scalar p,
-    const scalarField& Y
+    const scalarField& Xlg
 ) const
 {
-    const scalarField X(liquids_.X(Y));
-
-    return liquids_.pvInvert(p, X);
+    return liquids_.pvInvert(p, Xlg);
 }
 
 
