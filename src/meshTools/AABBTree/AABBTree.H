@@ -118,6 +118,7 @@ protected:
         //- Create the bounding boxes by interrogating points
         void createBoxes
         (
+            const bool equalBinSize,
             const label level,
             const List<Type>& objects,
             const pointField& points,
@@ -139,10 +140,13 @@ public:
         AABBTree();
 
         //- Construct from components
+        //  equalBinSize: divide into equal number of elements or
+        //                equal span
         AABBTree
         (
-            const List<Type>& objects,
+            const UList<Type>& objects,
             const pointField& points,
+            const bool equalBinSize = true,
             const label maxLevel = 3,
             const label minBinSize = 100
         );

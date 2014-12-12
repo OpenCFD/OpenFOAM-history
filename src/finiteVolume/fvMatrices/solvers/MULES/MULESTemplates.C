@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -55,12 +55,14 @@ void Foam::MULES::explicitSolve
 
     if (mesh.moving())
     {
+        volScalarField::DimensionedInternalField Vsc(mesh.Vsc());
+
         psiIf =
         (
             mesh.Vsc0()().field()*rho.oldTime().field()
-           *psi0*rDeltaT/mesh.Vsc()().field()
+           *psi0*rDeltaT/Vsc.field()
           + Su.field()
-          - psiIf
+          - psiIf*(mesh.V()/Vsc.field())
         )/(rho.field()*rDeltaT - Sp.field());
     }
     else

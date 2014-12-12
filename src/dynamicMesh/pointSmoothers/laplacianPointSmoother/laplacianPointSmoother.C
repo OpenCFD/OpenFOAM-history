@@ -72,7 +72,7 @@ void Foam::pointSmoothers::laplacianPointSmoother::update
 )
 {
     // Number of points used in each average
-    labelField counts(mesh().nPoints());
+    labelField counts(mesh().nPoints(), 0);
 
     // Reset the displacements which are about to be calculated
     reset(facesToMove, counts);

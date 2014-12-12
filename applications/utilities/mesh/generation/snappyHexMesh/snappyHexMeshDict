@@ -325,6 +325,10 @@ castellatedMeshControls
     // Optional: switch off topological test for cells to-be-squashed
     //           and use geometric test instead
     //useTopologicalSnapDetection false;
+
+    // Optional: do not refine surface cells with opposite faces of
+    //           differing refinement levels
+    //interfaceRefine false;
 }
 
 // Settings for the snapping.

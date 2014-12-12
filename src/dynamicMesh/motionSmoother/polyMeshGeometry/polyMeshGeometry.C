@@ -120,13 +120,20 @@ void Foam::polyMeshGeometry::updateCellCentresAndVols
 
         const labelList& cFaces(cells[cellI]);
 
-        // Esimate the cell centre as the average of face centres
+
+        // Estimate the cell centre and bounding box using the face centres
         vector cEst = vector::zero;
+        boundBox bb(boundBox::invertedBox);
+
         forAll(cFaces, cFaceI)
         {
-            cEst += faceCentres_[cFaces[cFaceI]];
+            const point& fc = faceCentres_[cFaces[cFaceI]];
+            cEst += fc;
+            bb.max() = max(bb.max(), fc);
+            bb.min() = min(bb.min(), fc);
         }
         cEst /= cFaces.size();
+
 
         // Sum up the face-pyramid contributions
         forAll(cFaces, cFaceI)
@@ -152,9 +159,22 @@ void Foam::polyMeshGeometry::updateCellCentresAndVols
         }
 
         // Average the accumulated quantities
+
         if (mag(cellVolumes_[cellI]) > VSMALL)
         {
-            cellCentres_[cellI] /= cellVolumes_[cellI];
+            point cc = cellCentres_[cellI] / cellVolumes_[cellI];
+
+            // Do additional check for collapsed cells since some volumes
+            // (e.g. 1e-33) do not trigger above but do return completely
+            // wrong cell centre
+            if (bb.contains(cc))
+            {
+                cellCentres_[cellI] = cc;
+            }
+            else
+            {
+                cellCentres_[cellI] = cEst;
+            }
         }
         else
         {

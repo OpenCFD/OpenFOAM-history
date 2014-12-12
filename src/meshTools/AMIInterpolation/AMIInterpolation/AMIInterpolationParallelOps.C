@@ -344,7 +344,8 @@ Foam::AMIInterpolation<SourcePatch, TargetPatch>::calcProcMap
             AABBTree<face>
             (
                 srcPatch.localFaces(),
-                srcPatch.localPoints()
+                srcPatch.localPoints(),
+                false
             ).boundBoxes();
     }
     else

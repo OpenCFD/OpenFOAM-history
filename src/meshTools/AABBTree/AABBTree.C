@@ -25,7 +25,8 @@ License
 
 #include "AABBTree.H"
 #include "meshTools.H"
-#include "OFstream.H"
+#include "PackedBoolList.H"
+//#include "OFstream.H"
 
 template<class Type>
 Foam::scalar Foam::AABBTree<Type>::tolerance_ = 1e-4;
@@ -124,6 +125,7 @@ void Foam::AABBTree<Type>::writeOBJ
 template<class Type>
 void Foam::AABBTree<Type>::createBoxes
 (
+    const bool equalBinSize,
     const label level,
     const List<Type>& objects,
     const pointField& points,
@@ -138,7 +140,8 @@ void Foam::AABBTree<Type>::createBoxes
 {
     const vector span = bb.span();
 
-    // determine which direction to divide the box
+    // Determine which direction to divide the box
+
     direction maxDir = 0;
     scalar maxSpan = span[maxDir];
     for (label dirI = 1; dirI < 3; dirI++)
@@ -151,104 +154,107 @@ void Foam::AABBTree<Type>::createBoxes
     }
 
 
-    // allocate the points into the min bin
-    DynamicList<label> minBinObjectIDs(objectIDs.size());
-    treeBoundBox minBb(point::max, point::min);
-    {
-        const scalar divide = bb.min()[maxDir] + (0.5 + tolerance_)*maxSpan;
+    scalar divide;
 
-        boolList markedPoints(points.size(), false);
-        forAll(points, pointI)
-        {
-            const point& pt = points[pointI];
-            if (pt[maxDir] < divide)
-            {
-                markedPoints[pointI] = true;
-            }
-        }
+    if (equalBinSize)
+    {
+        // Pick up points used by this set of objects
+
+        PackedBoolList isUsedPoint(points.size());
+        DynamicList<scalar> component(points.size());
 
         forAll(objectIDs, i)
         {
             const label objI = objectIDs[i];
             const Type& obj = objects[objI];
 
-            bool addObject = false;
             forAll(obj, pI)
             {
                 const label pointI = obj[pI];
-                if (markedPoints[pointI])
+                if (isUsedPoint.set(pointI))
                 {
-                    addObject = true;
-                    break;
+                    component.append(points[pointI][maxDir]);
                 }
-            }
-
-            if (addObject)
-            {
-                minBinObjectIDs.append(objI);
-                const boundBox objBb(points, obj, false);
-                minBb.min() = min(minBb.min(), objBb.min());
-                minBb.max() = max(minBb.max(), objBb.max());
             }
         }
 
-        // inflate box in case geometry reduces to 2-D
-        if (minBinObjectIDs.size())
+        // Determine the median
+
+        Foam::sort(component);
+
+        divide = component[component.size()/2];
+    }
+    else
+    {
+        // Geometric middle
+        divide = bb.min()[maxDir] + 0.5*maxSpan;
+    }
+
+
+    scalar divMin = divide + tolerance_*maxSpan;
+    scalar divMax = divide - tolerance_*maxSpan;
+
+
+    // Assign the objects to min or max bin
+
+    DynamicList<label> minBinObjectIDs(objectIDs.size());
+    treeBoundBox minBb(point::max, point::min);
+
+    DynamicList<label> maxBinObjectIDs(objectIDs.size());
+    treeBoundBox maxBb(point::max, point::min);
+
+    forAll(objectIDs, i)
+    {
+        const label objI = objectIDs[i];
+        const Type& obj = objects[objI];
+
+        bool intoMin = false;
+        bool intoMax = false;
+
+        forAll(obj, pI)
         {
-            minBb.inflate(0.01);
+            const label pointI = obj[pI];
+            const point& pt = points[pointI];
+            if (pt[maxDir] < divMin)
+            {
+                intoMin = true;
+            }
+            if (pt[maxDir] > divMax)
+            {
+                intoMax = true;
+            }
+        }
+
+
+        if (intoMin)
+        {
+            minBinObjectIDs.append(objI);
+            const boundBox objBb(points, obj, false);
+            minBb.min() = min(minBb.min(), objBb.min());
+            minBb.max() = max(minBb.max(), objBb.max());
+        }
+        if (intoMax)
+        {
+            maxBinObjectIDs.append(objI);
+            const boundBox objBb(points, obj, false);
+            maxBb.min() = min(maxBb.min(), objBb.min());
+            maxBb.max() = max(maxBb.max(), objBb.max());
         }
     }
 
-    // allocate the points into the max bin
-    DynamicList<label> maxBinObjectIDs(objectIDs.size());
-    treeBoundBox maxBb(point::max, point::min);
+    // inflate box in case geometry reduces to 2-D
+    if (minBinObjectIDs.size())
     {
-        const scalar divide = bb.min()[maxDir] + (0.5 - tolerance_)*maxSpan;
-
-        boolList markedPoints(points.size(), false);
-        forAll(points, pointI)
-        {
-            const point& pt = points[pointI];
-            if (pt[maxDir] > divide)
-            {
-                markedPoints[pointI] = true;
-            }
-        }
-
-        forAll(objectIDs, i)
-        {
-            const label objI = objectIDs[i];
-            const Type& obj = objects[objI];
-
-            bool addObject = false;
-            forAll(obj, pI)
-            {
-                const label pointI = obj[pI];
-                if (markedPoints[pointI])
-                {
-                    addObject = true;
-                    break;
-                }
-            }
-
-            if (addObject)
-            {
-                maxBinObjectIDs.append(objI);
-                const boundBox objBb(points, obj, false);
-                maxBb.min() = min(maxBb.min(), objBb.min());
-                maxBb.max() = max(maxBb.max(), objBb.max());
-            }
-        }
-
-        // inflate box in case geometry reduces to 2-D
-        if (maxBinObjectIDs.size())
-        {
-            maxBb.inflate(0.01);
-        }
+        minBb.inflate(0.01);
+    }
+    if (maxBinObjectIDs.size())
+    {
+        maxBb.inflate(0.01);
     }
 
     minBinObjectIDs.shrink();
     maxBinObjectIDs.shrink();
+
 
     label minI;
     if (minBinObjectIDs.size() > minLeafSize_ && level < maxLevel_)
@@ -286,6 +292,7 @@ void Foam::AABBTree<Type>::createBoxes
     {
         createBoxes
         (
+            equalBinSize,
             level + 1,
             objects,
             points,
@@ -301,6 +308,7 @@ void Foam::AABBTree<Type>::createBoxes
     {
         createBoxes
         (
+            equalBinSize,
             level + 1,
             objects,
             points,
@@ -330,8 +338,9 @@ Foam::AABBTree<Type>::AABBTree()
 template<class Type>
 Foam::AABBTree<Type>::AABBTree
 (
-    const List<Type>& objects,
+    const UList<Type>& objects,
     const pointField& points,
+    const bool equalBinSize,
     const label maxLevel,
     const label minLeafSize
 )
@@ -341,6 +350,12 @@ Foam::AABBTree<Type>::AABBTree
     boundBoxes_(),
     addressing_()
 {
+    if (objects.empty())
+    {
+        return;
+    }
+
+
     DynamicList<Pair<treeBoundBox> > bbs(maxLevel);
     DynamicList<labelPair> nodes(maxLevel);
     DynamicList<labelList> addr(maxLevel);
@@ -353,6 +368,7 @@ Foam::AABBTree<Type>::AABBTree
 
     createBoxes
     (
+        equalBinSize,
         0,          // starting at top level
         objects,
         points,
@@ -366,22 +382,22 @@ Foam::AABBTree<Type>::AABBTree
     );
 
 
-//    {
-//        OFstream os("tree.obj");
-//        label vertI = 0;
-//        writeOBJ
-//        (
-//            true,       // leavesOnly
-//            false,      // writeLinesOnly
-//
-//            topBb,
-//            0,
-//            bbs,
-//            nodes,
-//            vertI,
-//            os
-//        );
-//    }
+    //{
+    //    OFstream os("tree.obj");
+    //    label vertI = 0;
+    //    writeOBJ
+    //    (
+    //        true,       // leavesOnly
+    //        false,      // writeLinesOnly
+    //
+    //        topBb,
+    //        0,
+    //        bbs,
+    //        nodes,
+    //        vertI,
+    //        os
+    //    );
+    //}
 
 
     // transfer flattened tree to persistent storage

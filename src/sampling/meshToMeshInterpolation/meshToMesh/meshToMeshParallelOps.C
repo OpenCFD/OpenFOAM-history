@@ -124,8 +124,12 @@ Foam::autoPtr<Foam::mapDistribute> Foam::meshToMesh::calcProcMap
 
     if (src.nCells() > 0)
     {
-        procBb[Pstream::myProcNo()] =
-            AABBTree<labelList>(src.cellPoints(), src.points()).boundBoxes();
+        procBb[Pstream::myProcNo()] = AABBTree<labelList>
+        (
+            src.cellPoints(),
+            src.points(),
+            false
+        ).boundBoxes();
     }
     else
     {

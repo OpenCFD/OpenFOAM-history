@@ -694,10 +694,7 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
 
             const labelList& surfaceIndex = meshRefiner_.surfaceIndex();
             const hexRef8& cutter = meshRefiner_.meshCutter();
-            const vectorField& faceAreas = mesh.faceAreas();
-            //const pointField& faceCentres = mesh.faceCentres();
-            //const pointField& cellCentres = mesh.cellCentres();
-            //const scalarField& cellVolumes = mesh.cellVolumes();
+            const vectorField& fA = mesh.faceAreas();
             const labelList& faceOwner = mesh.faceOwner();
 
 
@@ -747,119 +744,183 @@ Foam::label Foam::autoRefineDriver::refinementInterfaceRefine
 
                 // Pass2: check for oppositeness
 
+                //forAllConstIter(cellSet, transitionCells, iter)
+                //{
+                //    label cellI = iter.key();
+                //    const cell& cFaces = cells[cellI];
+                //    const point& cc = cellCentres[cellI];
+                //    const scalar rCVol = pow(cellVolumes[cellI], -5.0/3.0);
+                //
+                //    // Determine principal axes of cell
+                //    symmTensor R(symmTensor::zero);
+                //
+                //    forAll(cFaces, i)
+                //    {
+                //        label faceI = cFaces[i];
+                //
+                //        const point& fc = faceCentres[faceI];
+                //
+                //        // Calculate face-pyramid volume
+                //        scalar pyrVol = 1.0/3.0 * fA[faceI] & (fc-cc);
+                //
+                //        if (faceOwner[faceI] != cellI)
+                //        {
+                //            pyrVol = -pyrVol;
+                //        }
+                //
+                //        // Calculate face-pyramid centre
+                //        vector pc = (3.0/4.0)*fc + (1.0/4.0)*cc;
+                //
+                //        R += pyrVol*sqr(pc-cc)*rCVol;
+                //    }
+                //
+                //    //- MEJ: Problem: truncation errors cause complex evs
+                //    vector lambdas(eigenValues(R));
+                //    const tensor axes(eigenVectors(R, lambdas));
+                //
+                //
+                //    // Check if this cell has
+                //    // - opposing sides intersected
+                //    // - which are of different refinement level
+                //    // - plus the inbetween face
+                //
+                //    labelVector plusFaceLevel(labelVector(-1, -1, -1));
+                //    labelVector minFaceLevel(labelVector(-1, -1, -1));
+                //
+                //    forAll(cFaces, cFaceI)
+                //    {
+                //        label faceI = cFaces[cFaceI];
+                //
+                //        if (surfaceIndex[faceI] != -1)
+                //        {
+                //            label fLevel = cutter.faceLevel(faceI);
+                //
+                //            // Get outwards pointing normal
+                //            vector n = fA[faceI]/mag(fA[faceI]);
+                //            if (faceOwner[faceI] != cellI)
+                //            {
+                //                n = -n;
+                //            }
+                //
+                //            // What is major direction and sign
+                //            direction cmpt = vector::X;
+                //            scalar maxComp = (n&axes.x());
+                //
+                //            scalar yComp = (n&axes.y());
+                //            scalar zComp = (n&axes.z());
+                //
+                //            if (mag(yComp) > mag(maxComp))
+                //            {
+                //                maxComp = yComp;
+                //                cmpt = vector::Y;
+                //            }
+                //
+                //            if (mag(zComp) > mag(maxComp))
+                //            {
+                //                maxComp = zComp;
+                //                cmpt = vector::Z;
+                //            }
+                //
+                //            if (maxComp > 0)
+                //            {
+                //                plusFaceLevel[cmpt] = max
+                //                (
+                //                    plusFaceLevel[cmpt],
+                //                    fLevel
+                //                );
+                //            }
+                //            else
+                //            {
+                //                minFaceLevel[cmpt] = max
+                //                (
+                //                    minFaceLevel[cmpt],
+                //                    fLevel
+                //                );
+                //            }
+                //        }
+                //    }
+                //
+                //    // Check if we picked up any opposite differing level
+                //    for (direction dir = 0; dir < vector::nComponents; dir++)
+                //    {
+                //        if
+                //        (
+                //            plusFaceLevel[dir] != -1
+                //         && minFaceLevel[dir] != -1
+                //         && plusFaceLevel[dir] != minFaceLevel[dir]
+                //        )
+                //        {
+                //            candidateCellSet.insert(cellI);
+                //        }
+                //    }
+                //}
+
+                const scalar oppositeCos = Foam::cos(Foam::degToRad(135));
+
                 forAllConstIter(cellSet, transitionCells, iter)
                 {
                     label cellI = iter.key();
                     const cell& cFaces = cells[cellI];
+                    label cLevel = cutter.cellLevel()[cellI];
 
-                    //const scalar cVol = cellVolumes[cellI];
-                    //
-                    //
-                    //// Determine principal axes of cell
-                    //symmTensor R(symmTensor::zero);
-                    //
-                    //forAll(cFaces, i)
-                    //{
-                    //    label faceI = cFaces[i];
-                    //
-                    //    const point& fc = faceCentres[faceI];
-                    //
-                    //    // Calculate face-pyramid volume
-                    //    scalar pyrVol = 1.0/3.0 * faceAreas[faceI] & (fc-cc);
-                    //
-                    //    if (faceOwner[faceI] != cellI)
-                    //    {
-                    //        pyrVol = -pyrVol;
-                    //    }
-                    //
-                    //    // Calculate face-pyramid centre
-                    //    vector pc = (3.0/4.0)*fc + (1.0/4.0)*cc;
-                    //
-                    //    R += pyrVol/cVol*sqr(pc-cc);
-                    //}
-                    //
-                    //const tensor axes(eigenVectors(R));
-                    const tensor axes
-                    (
-                        vector(1, 0, 0),
-                        vector(0, 1, 0),
-                        vector(0, 0, 1)
-                    );
-
-
-                    // Check if this cell has
-                    // - opposing sides intersected
-                    // - which are of different refinement level
-                    // - plus the inbetween face
-
-                    labelVector plusFaceLevel(labelVector(-1, -1, -1));
-                    labelVector minFaceLevel(labelVector(-1, -1, -1));
+                    // Detect opposite intersection
+                    bool foundOpposite = false;
 
                     forAll(cFaces, cFaceI)
                     {
                         label faceI = cFaces[cFaceI];
 
-                        if (surfaceIndex[faceI] != -1)
+                        if
+                        (
+                            surfaceIndex[faceI] != -1
+                         && cutter.faceLevel(faceI) > cLevel
+                        )
                         {
-                            label fLevel = cutter.faceLevel(faceI);
-
                             // Get outwards pointing normal
-                            vector n = faceAreas[faceI]/mag(faceAreas[faceI]);
+                            vector n = fA[faceI]/mag(fA[faceI]);
                             if (faceOwner[faceI] != cellI)
                             {
                                 n = -n;
                             }
 
-                            // What is major direction and sign
-                            direction cmpt = vector::X;
-                            scalar maxComp = (n&axes.x());
-
-                            scalar yComp = (n&axes.y());
-                            scalar zComp = (n&axes.z());
-
-                            if (mag(yComp) > mag(maxComp))
+                            // Check for any opposite intersection
+                            forAll(cFaces, cFaceI2)
                             {
-                                maxComp = yComp;
-                                cmpt = vector::Y;
-                            }
+                                label face2I = cFaces[cFaceI2];
 
-                            if (mag(zComp) > mag(maxComp))
-                            {
-                                maxComp = zComp;
-                                cmpt = vector::Z;
-                            }
-
-                            if (maxComp > 0)
-                            {
-                                plusFaceLevel[cmpt] = max
+                                if
                                 (
-                                    plusFaceLevel[cmpt],
-                                    fLevel
-                                );
+                                    face2I != faceI
+                                 && surfaceIndex[face2I] != -1
+                                )
+                                {
+                                    // Get outwards pointing normal
+                                    vector n2 = fA[face2I]/mag(fA[face2I]);
+                                    if (faceOwner[face2I] != cellI)
+                                    {
+                                        n2 = -n2;
+                                    }
+
+
+                                    if ((n&n2) < oppositeCos)
+                                    {
+                                        foundOpposite = true;
+                                        break;
+                                    }
+                                }
                             }
-                            else
+
+                            if (foundOpposite)
                             {
-                                minFaceLevel[cmpt] = max
-                                (
-                                    minFaceLevel[cmpt],
-                                    fLevel
-                                );
+                                break;
                             }
                         }
                     }
 
-                    // Check if we picked up any opposite differing level
-                    for (direction dir = 0; dir < vector::nComponents; dir++)
+
+                    if (foundOpposite)
                     {
-                        if
-                        (
-                            plusFaceLevel[dir] != -1
-                         && minFaceLevel[dir] != -1
-                         && plusFaceLevel[dir] != minFaceLevel[dir]
-                        )
-                        {
-                            candidateCellSet.insert(cellI);
-                        }
+                        candidateCellSet.insert(cellI);
                     }
                 }
 

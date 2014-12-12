@@ -60,6 +60,9 @@ class displacementPointSmoothingMotionSolver
         //- Point smoothing method
         autoPtr<pointSmoother> pointSmoother_;
 
+        //- Number of point smoother iterations per timestep
+        const label nPointSmootherIter_;
+
         //- Relaxation factors to use in each iteration
         const scalarList relaxationFactors_;
 
