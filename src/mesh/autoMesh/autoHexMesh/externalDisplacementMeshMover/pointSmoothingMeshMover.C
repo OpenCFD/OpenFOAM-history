@@ -178,25 +178,32 @@ bool Foam::pointSmoothingMeshMover::move
     // Update the point smoother displacements
     for (label i = 0; i < nPointSmootherIter; i ++)
     {
-        meshGeometry_.correct
+        const pointField currentPoints
         (
-            oldPoints_ + pointDisplacement().internalField(),
-            checkFaces
+            oldPoints_
+          + pointDisplacement().internalField()
         );
 
+        // Update derived geometry (cell centres, volumes etc) on selected
+        // set of faces
+        meshGeometry_.correct(currentPoints, checkFaces);
+
+        // Recalculate smooth displacement. Updates pointDisplacement
         pointSmoother_->update
         (
             checkFaces,
             oldPoints_,
-            oldPoints_ + pointDisplacement().internalField(),
+            currentPoints,
             meshGeometry_
         );
 
+        // Apply boundary conditions and constraints
         pointConstraints::New
         (
             pointDisplacement().mesh()
         ).constrainDisplacement(pointDisplacement());
     }
+
 
     // Correct and smooth the patch displacements
     {
@@ -239,8 +246,6 @@ bool Foam::pointSmoothingMeshMover::move
             )
         );
 
-        pointDisplacement().correctBoundaryConditions();
-
         vectorField displacement
         (
             pointDisplacement().internalField(),
@@ -275,13 +280,13 @@ void Foam::pointSmoothingMeshMover::movePoints
 {
     externalDisplacementMeshMover::movePoints(p);
 
-    // Update local data for new geometry
-    adaptPatchPtr_().movePoints(p);
+    // Update polyMeshGeometry for changed points
+    meshGeometry_.correct();
 
-    // Update motionSmoother for new geometry
+    // Update motionSmoother for new geometry (moves adaptPatchPtr_)
     meshMover_.movePoints();
 
-    // Assume corrent mesh location is correct
+    // Assume current mesh location is correct (reset oldPoints, scale)
     meshMover_.correct();
 }
 

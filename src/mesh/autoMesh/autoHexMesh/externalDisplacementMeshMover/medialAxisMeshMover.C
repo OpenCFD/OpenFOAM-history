@@ -1657,8 +1657,6 @@ bool Foam::medialAxisMeshMover::shrinkMesh
     const label nSnap  = readLabel(meshQualityDict.lookup("nRelaxIter"));
 
 
-
-
     // Make sure displacement boundary conditions is uptodate with
     // internal field
     meshMover_.setDisplacementPatchFields();
@@ -1724,14 +1722,6 @@ bool Foam::medialAxisMeshMover::move
     const word minThicknessName = word(moveDict.lookup("minThicknessName"));
 
 
-    // The points have moved so before calculation update
-    // the mesh and motionSolver accordingly
-    movePoints(mesh().points());
-    //
-    //// Update any point motion bcs (e.g. timevarying)
-    //pointDisplacement_.boundaryField().updateCoeffs();
-
-
     // Extract out patch-wise displacement
     const indirectPrimitivePatch& pp = adaptPatchPtr_();
 
@@ -1785,13 +1775,10 @@ void Foam::medialAxisMeshMover::movePoints(const pointField& p)
 {
     externalDisplacementMeshMover::movePoints(p);
 
-    // Update local data for new geometry
-    adaptPatchPtr_().movePoints(p);
-
-    // Update motionSmoother for new geometry
+    // Update motionSmoother for new geometry (moves adaptPatchPtr_)
     meshMover_.movePoints();
 
-    // Assume corrent mesh location is correct
+    // Assume corrent mesh location is correct (reset oldPoints, scale)
     meshMover_.correct();
 }
 

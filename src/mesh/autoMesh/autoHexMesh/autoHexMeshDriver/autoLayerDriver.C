@@ -55,9 +55,7 @@ Description
 #include "cyclicSlipPointPatchFields.H"
 #include "fixedValueFvPatchFields.H"
 #include "localPointRegion.H"
-
 #include "externalDisplacementMeshMover.H"
-#include "medialAxisMeshMover.H"
 #include "scalarIOField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -3877,6 +3875,7 @@ void Foam::autoLayerDriver::addLayers
             // Reset mesh points and start again
             mesh.movePoints(oldPoints);
             pp().movePoints(mesh.points());
+            medialAxisMoverPtr().movePoints(mesh.points());
 
             // Grow out region of non-extrusion
             for (label i = 0; i < layerParams.nGrow(); i++)
