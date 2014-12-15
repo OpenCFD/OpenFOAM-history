@@ -1516,7 +1516,7 @@ void Foam::autoLayerDriver::getPatchDisplacement
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // Start off from same thickness everywhere (except where no extrusion)
-    patchDisp = - thickness*pointNormals;
+    patchDisp = thickness*pointNormals;
 
 
     label nNoVisNormal = 0;
@@ -3558,6 +3558,11 @@ void Foam::autoLayerDriver::addLayers
 
             {
                 const pointField oldPatchPos(pp().localPoints());
+
+                // We have patchDisp which is the outwards pointing
+                // extrusion distance. Convert into an inwards pointing
+                // shrink distance
+                patchDisp = -patchDisp;
 
                 // Take over patchDisp into pointDisplacement field and
                 // adjust both for multi-patch constraints

@@ -1387,9 +1387,7 @@ void Foam::medialAxisMeshMover::calculateDisplacement
     );
 
 
-    scalarField thickness(patchDisp.size());
-
-    thickness = mag(patchDisp);
+    scalarField thickness(mag(patchDisp));
 
     forAll(thickness, patchPointI)
     {
@@ -1456,7 +1454,7 @@ void Foam::medialAxisMeshMover::calculateDisplacement
             vector n =
                 patchDisp[patchPointI]
               / (mag(patchDisp[patchPointI]) + VSMALL);
-            vector mVec = mesh().points()[pointI]-medialVec_[pointI];
+            vector mVec = medialVec_[pointI]-mesh().points()[pointI];
             mVec /= mag(mVec)+VSMALL;
             thicknessRatio *= (n&mVec);
 
