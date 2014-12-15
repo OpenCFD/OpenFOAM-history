@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -147,15 +147,12 @@ void Foam::LiquidEvaporation<CloudType>::calculate
     const scalar Ts,
     const scalar pc,
     const scalar Tc,
-    const scalarField& Yl,
+    const scalarField& Xlg,
     scalarField& dMassPC
 ) const
 {
-    // liquid volume fraction
-    const scalarField X(liquids_.X(Yl));
-
     // immediately evaporate mass that has reached critical condition
-    if ((liquids_.Tc(X) - T) < SMALL)
+    if ((liquids_.Tc(Xlg) - T) < SMALL)
     {
         if (debug)
         {
@@ -282,12 +279,10 @@ Foam::scalar Foam::LiquidEvaporation<CloudType>::dh
 template<class CloudType>
 Foam::scalar Foam::LiquidEvaporation<CloudType>::Tvap
 (
-    const scalarField& Y
+    const scalarField& Xlg
 ) const
 {
-    const scalarField X(liquids_.X(Y));
-
-    return liquids_.Tpt(X);
+    return liquids_.Tpt(Xlg);
 }
 
 
@@ -295,12 +290,10 @@ template<class CloudType>
 Foam::scalar Foam::LiquidEvaporation<CloudType>::TMax
 (
     const scalar p,
-    const scalarField& Y
+    const scalarField& Xlg
 ) const
 {
-    const scalarField X(liquids_.X(Y));
-
-    return liquids_.pvInvert(p, X);
+    return liquids_.pvInvert(p, Xlg);
 }
 
 

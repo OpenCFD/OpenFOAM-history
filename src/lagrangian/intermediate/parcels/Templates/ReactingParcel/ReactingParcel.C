@@ -65,14 +65,19 @@ void Foam::ReactingParcel<ParcelType>::calcPhaseChange
         return;
     }
 
-    scalar Tvap = phaseChange.Tvap(YComponents);
+    const CompositionModel<reactingCloudType>& composition =
+        td.cloud().composition();
+
+    const scalarField Xlg(composition.globalX(idPhase, YComponents));
+
+    scalar Tvap = phaseChange.Tvap(Xlg);
 
     if (T < Tvap)
     {
         return;
     }
 
-    const scalar TMax = phaseChange.TMax(pc_, YComponents);
+    const scalar TMax = phaseChange.TMax(pc_, Xlg);
     const scalar Tdash = min(T, TMax);
     const scalar Tsdash = min(Ts, TMax);
 
@@ -89,7 +94,7 @@ void Foam::ReactingParcel<ParcelType>::calcPhaseChange
         Tsdash,
         pc_,
         this->Tc_,
-        YComponents,
+        Xlg,
         dMassPC
     );
 
@@ -100,9 +105,6 @@ void Foam::ReactingParcel<ParcelType>::calcPhaseChange
 
     // Add to cumulative phase change mass
     phaseChange.addToPhaseChangeMass(this->nParticle_*dMassTot);
-
-    const CompositionModel<reactingCloudType>& composition =
-        td.cloud().composition();
 
     forAll(dMassPC, i)
     {

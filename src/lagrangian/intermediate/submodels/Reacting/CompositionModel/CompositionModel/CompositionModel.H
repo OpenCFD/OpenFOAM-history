@@ -210,6 +210,14 @@ public:
                     const scalarField& Y
                 ) const;
 
+                //- Return the list of phase phaseI volume fractions in global
+                //  phase lists
+                tmp<scalarField> globalX
+                (
+                    const label phaseI,
+                    const scalarField& localY
+                ) const;
+
                 //- Return the list of phase phaseI mass fractions in global
                 //  phase lists
                 tmp<scalarField> globalY
