@@ -933,7 +933,8 @@ bool Foam::processorPolyPatch::order
 
                 scalarField tols2
                 (
-                    calcFaceTol(pp, pp.points(), facePointAverages)
+                    matchTolerance()
+                   *calcFaceTol(pp, pp.points(), facePointAverages)
                 );
 
                 labelList faceMap2(faceMap.size(), -1);
