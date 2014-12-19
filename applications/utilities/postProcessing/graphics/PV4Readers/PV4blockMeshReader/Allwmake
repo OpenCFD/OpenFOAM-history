@@ -13,8 +13,7 @@ then
         depFile=`wdep dummy.C`
         depDir=`dirname $depFile`
 
-        (mkdir -p $depDir && cd $depDir && cmake $sourceDir)
-        make
+        (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
     )
 fi
 
