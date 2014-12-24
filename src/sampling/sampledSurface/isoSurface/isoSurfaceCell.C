@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,6 +30,12 @@ License
 #include "tetMatcher.H"
 #include "syncTools.H"
 #include "addToRunTimeSelectionTable.H"
+#include "triSurfaceSearch.H"
+#include "surfaceIntersection.H"
+#include "intersectedSurface.H"
+#include "searchableBox.H"
+#include "triSurfaceMesh.H"
+#include "Time.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -1517,6 +1523,7 @@ Foam::isoSurfaceCell::isoSurfaceCell
     const scalarField& pVals,
     const scalar iso,
     const bool regularise,
+    const boundBox& bounds,
     const scalar mergeTol
 )
 :
@@ -1524,6 +1531,7 @@ Foam::isoSurfaceCell::isoSurfaceCell
     cVals_(cVals),
     pVals_(pVals),
     iso_(iso),
+    bounds_(bounds),
     mergeDistance_(mergeTol*mesh.bounds().mag())
 {
     if (debug)
@@ -1732,6 +1740,125 @@ Foam::isoSurfaceCell::isoSurfaceCell
         }
 
         //orientSurface(*this, faceEdges, edgeFace0, edgeFace1, edgeFacesRest);
+    }
+
+
+
+    // Cut to optional bounding box
+    if (bounds_ != boundBox::greatBox)
+    {
+        if (debug)
+        {
+            Pout<< "isoSurfaceCell : trimming to " << bounds_
+                << endl;
+        }
+
+        const triSurfaceSearch query1(*this);
+
+        const searchableBox box
+        (
+            IOobject
+            (
+                "box",                      // dummy name
+                mesh_.time().constant(),    // instance
+                triSurfaceMesh::meshSubDir, // local
+                mesh_,                      // registry
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            treeBoundBox(bounds_)
+        );
+
+
+        // Triangulate box
+        DynamicList<labelledTri> tris(12);
+        pointField pts(box.treeBoundBox::points());
+        const faceList& fcs = treeBoundBox::faces;
+        forAll(fcs, faceI)
+        {
+            const face& f = fcs[faceI];
+            // Triangulate around vertex 0
+            for (label fp = 1; fp < f.size()-1; fp++)
+            {
+                tris.append(labelledTri(f[0], f[fp], f[f.fcIndex(fp)], faceI));
+            }
+        }
+        geometricSurfacePatchList patches(fcs.size());
+        forAll(patches, patchI)
+        {
+            patches[patchI] = geometricSurfacePatch
+            (
+                "",
+                "patch" + Foam::name(patchI),
+                patchI
+            );
+        }
+        triSurface boxTris(tris.xfer(), patches, pts.xfer());
+
+        if (debug)
+        {
+            fileName stlFile(mesh_.time().path()/"box.stl");
+            Pout<< "isoSurfaceCell : writing box to " << stlFile << endl;
+            boxTris.write(stlFile);
+        }
+
+
+        const triSurfaceSearch query2(boxTris);
+
+        // Determine intersection edges
+        surfaceIntersection inter(query1, query2);
+
+        // Use intersection edges to cut up faces. (does all the hard work)
+        intersectedSurface newTris(*this, true, inter);
+
+        if (debug)
+        {
+            fileName stlFile(mesh_.time().path()/"intersected.stl");
+            Pout<< "isoSurfaceCell : writing intersected surface (size "
+                << newTris.size() << ") to " << stlFile << endl;
+            newTris.write(stlFile);
+        }
+
+
+        // Mark triangles based on whether they are inside or outside
+        List<volumeType> volTypes;
+        box.getVolumeType(newTris.faceCentres(), volTypes);
+
+        boolList includeTri(newTris.size(), false);
+        forAll(volTypes, triI)
+        {
+            if (volTypes[triI] == volumeType::INSIDE)
+            {
+                includeTri[triI] = true;
+            }
+        }
+
+        labelList pointMap;
+        labelList faceMap;
+        triSurface subTris(newTris.subsetMesh(includeTri, pointMap, faceMap));
+
+        if (debug)
+        {
+            fileName stlFile(mesh_.time().path()/"subTris.stl");
+            Pout<< "isoSurfaceCell : writing subsetted surface (size "
+                << subTris.size() << ") to " << stlFile << endl;
+            subTris.write(stlFile);
+        }
+
+        triSurface::operator=(subTris);
+        meshCells_ = UIndirectList<label>(meshCells_, faceMap)();
+
+        labelList newReversePointMap(triPointMergeMap_.size(), -1);
+        forAll(pointMap, pointI)
+        {
+            label oldPointI = pointMap[pointI];
+            if (oldPointI != -1)
+            {
+                newReversePointMap[oldPointI] = pointI;
+            }
+        }
+        triPointMergeMap_.transfer(newReversePointMap);
     }
 }
 

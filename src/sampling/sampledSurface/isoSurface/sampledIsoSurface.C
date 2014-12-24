@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -346,6 +346,7 @@ bool Foam::sampledIsoSurface::updateGeometry() const
                 *pointSubFieldPtr_,
                 isoVal_,
                 regularise_,
+                bounds_,
                 mergeTol_
             )
         );
@@ -360,6 +361,7 @@ bool Foam::sampledIsoSurface::updateGeometry() const
                 *pointFieldPtr_,
                 isoVal_,
                 regularise_,
+                bounds_,
                 mergeTol_
             )
         );
@@ -401,6 +403,7 @@ Foam::sampledIsoSurface::sampledIsoSurface
     sampledSurface(name, mesh, dict),
     isoField_(dict.lookup("isoField")),
     isoVal_(readScalar(dict.lookup("isoValue"))),
+    bounds_(dict.lookupOrDefault("bounds", boundBox::greatBox)),
     mergeTol_(dict.lookupOrDefault("mergeTol", 1e-6)),
     regularise_(dict.lookupOrDefault("regularise", true)),
     average_(dict.lookupOrDefault("average", false)),

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -62,6 +62,9 @@ class sampledIsoSurface
 
         //- iso value
         const scalar isoVal_;
+
+        //- Optional bounding box to trim triangles against
+        const boundBox bounds_;
 
         //- Merge tolerance
         const scalar mergeTol_;
