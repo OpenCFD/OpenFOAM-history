@@ -289,9 +289,15 @@ void Foam::MPPICCloud<CloudType>::info()
     forAll(this->mesh().cells(), cellI)
     {
         const label n = this->cellOccupancy()[cellI].size();
+
         if (n > 0)
         {
-            nMin = min(nMin, n*alphaMax/alpha()[cellI]);
+            const scalar nPack = n*alphaMax/alpha()[cellI];
+
+            if (nPack < nMin)
+            {
+                nMin = nPack;
+            }
         }
     }
 
