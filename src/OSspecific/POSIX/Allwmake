@@ -3,7 +3,7 @@ cd ${0%/*} || exit 1    # Run from this directory
 
 # Parse arguments for library compilation
 targetType=libo
-. $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments $*
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments $*
 
 unset COMP_FLAGS LINK_FLAGS
 
