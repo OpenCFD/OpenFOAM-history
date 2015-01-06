@@ -30,11 +30,13 @@
 #     directories of all machines and delete them.
 #
 #------------------------------------------------------------------------------
+Script=${0##*/}
+
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
-usage: ${0##*/}
+Usage: $Script
 
     Remove all object and related files
 
@@ -42,7 +44,11 @@ USAGE
     exit 1
 }
 
-# Parse options
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -73,5 +79,13 @@ echo "Removing misc files"
 find . \( -name exe -o -name log \) -exec rm {} \;
 
 tutorials/Allclean
+
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset Script usage
+
 
 #------------------------------------------------------------------------------

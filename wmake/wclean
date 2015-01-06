@@ -57,7 +57,10 @@ USAGE
 }
 
 
-# parse options
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -150,7 +153,8 @@ then
     objectsDir=$MakeDir/$WM_OPTIONS
     if echo $PWD | grep "$WM_PROJECT_DIR"
     then
-        objectsDir=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
+        platformPath=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}
+        objectsDir=$platformPath$(echo $PWD | sed s%$WM_PROJECT_DIR%% )
     fi
     rm -rf $objectsDir 2>/dev/null
 fi
@@ -164,6 +168,13 @@ if [ -d lnInclude ]
 then
     rm -rf lnInclude 2>/dev/null
 fi
+
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset Script usage
 
 
 #------------------------------------------------------------------------------

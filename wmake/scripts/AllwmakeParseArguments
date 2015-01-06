@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -22,64 +22,67 @@
 #     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 #
 # File
-#     wmake/scripts/AllwmakeArguments
+#     wmake/scripts/AllwmakeParseArguments
 #
 # Description
-#     General argument handling script for Allwmake scripts
+#     Allwmake argument parser
 #
 # Usage
-#     # Declare and set targetType to default if library building is supported
-#     targetType=libso          # lib, libo or libso
-#     # Declare and set genDoc to default if documentation building is supported
-#     genDoc=0                  # 0 or 1
-#     # Parse arguments
-#     . $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
+#     # Declare the targetType and set to default for library building
+#     targetType=libso      # lib, libo or libso
+#
+#     # Declare genDoc and set to default if documentation building is supported
+#     genDoc=0              # 0 or 1
+#
+#     # Parse the arguments by sourcing this script
+#     . $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
 #
 #------------------------------------------------------------------------------
-
-script=${0##*/}
+Script=${0##*/}
 
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
 
-    # Show normal usage options
+    # Print normal usage options
     cat<<USAGE
 
-Usage: $script [OPTIONS]
+Usage: $Script [OPTIONS]
 
 options:
-  -h or -help       Display list of Allwmake options
-  -hd or -help-dev  Display list of AllwmakeArguments options
-  -k or -non-stop   Build without stopping when errors occur
-  -j                Build on all local cores/hyperthreads
-  -jN or -j N       Build on N cores/hyperthreads
-  -no-scheduler     Build without wmakeScheduler
+  -h or -help       Print list of Allwmake options
+  -k or -non-stop   Compile without stopping when errors occur
+  -j                Compile using all local cores/hyperthreads
+  -jN or -j N       Compile using N cores/hyperthreads
+  -no-scheduler     Compile without wmakeScheduler
 USAGE
 
-    # Show options for building code documentation
+    # Print options for building code documentation
     test -n "$genDoc" && cat<<USAGE_DOC
-  doc               Build code documentation (requires Doxygen to be installed)
+  doc               Compile code documentation (requires Doxygen)
 USAGE_DOC
 
-    # Show options for building libraries
+    # Print options for building libraries
     test -n "$targetType" && cat<<USAGE_LIB
-  lib               Build statically linked archive lib (.a)
-  libo              Build statically linked lib (.o)
-  libso             Build dynamically linked lib (.so)
-  dep               Build dependency files
+  lib               Compile statically linked archive lib (.a)
+  libo              Compile statically linked lib (.o)
+  libso             Compile dynamically linked lib (.so)
+  dep               Compile dependency files
 USAGE_LIB
 
     exit 1
 }
 
-# Set WM_NCOMPPROCS to local number of cores
-getNCOMPPROCS()
+
+#------------------------------------------------------------------------------
+# Set WM_NCOMPPROCS to number of cores on local machine
+#------------------------------------------------------------------------------
+
+setWM_NCOMPPROCS()
 {
     if [ -r /proc/cpuinfo ]
     then
         WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)
-        [ $WM_NCOMPPROCS -le 8 ] || WM_NCOMPPROCS=8
     else
         WM_NCOMPPROCS=1
     fi
@@ -87,34 +90,44 @@ getNCOMPPROCS()
     export WM_NCOMPPROCS
 }
 
-# Parse options
+
+#------------------------------------------------------------------------------
+# Parse the arguments and options
+#------------------------------------------------------------------------------
+
 while [ "$#" -gt 0 ]
 do
     case "$1" in
+        # Print help
         -h | -help)
             usage
             ;;
+        # Parallel compilation on all cores of local machine
         -j)
-            getNCOMPPROCS
+            setWM_NCOMPPROCS
             test $# -ge 2 && expr $2 + 1 > /dev/null 2>&1 \
                 && shift && export WM_NCOMPPROCS=$1
-            echo "Building enabled on $WM_NCOMPPROCS cores"
+            echo "Compiling enabled on $WM_NCOMPPROCS cores"
             ;;
+        # Parallel compilation on specified number of cores
         -j*)
             export WM_NCOMPPROCS=${1#-j}
-            echo "Building enabled on $WM_NCOMPPROCS cores"
+            echo "Compiling enabled on $WM_NCOMPPROCS cores"
             ;;
+        # Non-stop compilatio, ignoring errors
         -k | -non-stop)
             export WM_CONTINUE_ON_ERROR=1
             ;;
+        # Disable scheduled parallel compilation
         -no-scheduler)
             unset WM_SCHEDULER
             ;;
+        # Generate documentation
         doc)
             test -n "$genDoc" || usage "invalid option '$1'"
             genDoc=1
             ;;
-        # wmake target type
+        # Specify target type
         lib | libo | libso | dep)
             test -n "$targetType" || usage "invalid option '$1'"
             targetType=$1
@@ -130,7 +143,12 @@ do
     shift
 done
 
-# Cleanup local variables
-unset usage getNCOMPPROCS
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset Script usage setWM_NCOMPPROCS
+
 
 # ----------------------------------------------------------------- end-of-file

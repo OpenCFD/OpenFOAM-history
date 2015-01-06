@@ -1,9 +1,9 @@
 #!/bin/sh
-cd ${0%/*} || exit 1    # run from this directory
+cd ${0%/*} || exit 1    # Run from this directory
 
 # Parse arguments for library compilation
 targetType=libso
-. $WM_PROJECT_DIR/wmake/scripts/AllwmakeArguments
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
 
 
 #
