@@ -479,7 +479,7 @@ void Foam::Field<Type>::map
             distMap.distribute(newMapF, noOp());
         }
 
-        if (mapper.direct() && &mapper.directAddressing())
+        if (mapper.direct() && notNull(mapper.directAddressing()))
         {
             map(newMapF, mapper.directAddressing());
         }
@@ -487,7 +487,7 @@ void Foam::Field<Type>::map
         {
             map(newMapF, mapper.addressing(), mapper.weights());
         }
-        else if (mapper.direct() && !&mapper.directAddressing())
+        else if (mapper.direct() && isNull(mapper.directAddressing()))
         {
             // Special case, no local mapper. Assume ordering already correct
             // from distribution. Note: this behaviour is different compared
@@ -501,7 +501,7 @@ void Foam::Field<Type>::map
         if
         (
             mapper.direct()
-         && &mapper.directAddressing()
+         && notNull(mapper.directAddressing())
          && mapper.directAddressing().size()
         )
         {
@@ -550,11 +550,11 @@ void Foam::Field<Type>::autoMap
             distMap.distribute(fCpy, noOp());
         }
 
-        if ((mapper.direct() && &mapper.directAddressing()) || !mapper.direct())
+        if ((mapper.direct() && notNull(mapper.directAddressing())) || !mapper.direct())
         {
             this->map(fCpy, mapper);
         }
-        else if (mapper.direct() && !&mapper.directAddressing())
+        else if (mapper.direct() && isNull(mapper.directAddressing()))
         {
             // Special case, no local mapper. Assume ordering already correct
             // from distribution. Note: this behaviour is different compared
@@ -569,7 +569,7 @@ void Foam::Field<Type>::autoMap
         (
             (
                 mapper.direct()
-             && &mapper.directAddressing()
+             && notNull(mapper.directAddressing())
              && mapper.directAddressing().size()
             )
          || (!mapper.direct() && mapper.addressing().size())

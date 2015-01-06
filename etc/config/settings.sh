@@ -240,41 +240,23 @@ fi
 case "${foamCompiler}" in
 OpenFOAM | ThirdParty)
     case "$WM_COMPILER" in
-    Gcc | Gcc46)
-        gcc_version=gcc-4.6.1
-        gmp_version=gmp-5.0.4
-        mpfr_version=mpfr-3.1.0
-        mpc_version=mpc-0.9
+    Gcc | Gcc++0x | Gcc48 | Gcc48++0x)
+        gcc_version=gcc-4.8.2
+        gmp_version=gmp-5.1.2
+        mpfr_version=mpfr-3.1.2
+        mpc_version=mpc-1.0.1
         ;;
-    Gcc49)
+    Gcc49 | Gcc49++0x)
         gcc_version=gcc-4.9.0
         gmp_version=gmp-5.1.2
         mpfr_version=mpfr-3.1.2
         mpc_version=mpc-1.0.1
         ;;
-    Gcc48)
-        gcc_version=gcc-4.8.3
-        gmp_version=gmp-5.1.2
-        mpfr_version=mpfr-3.1.2
-        mpc_version=mpc-1.0.1
-        ;;
-    Gcc47)
-        gcc_version=gcc-4.7.2
-        gmp_version=gmp-5.0.4
-        mpfr_version=mpfr-3.1.0
-        mpc_version=mpc-0.9
-        ;;
-    Gcc45)
-        gcc_version=gcc-4.5.2
-        gmp_version=gmp-5.0.1
-        mpfr_version=mpfr-2.4.2
-        mpc_version=mpc-0.8.1
-        ;;
     Clang)
         # using clang - not gcc
         export WM_CC='clang'
         export WM_CXX='clang++'
-        clang_version=llvm-3.4.2
+        clang_version=llvm-3.5.0
         ;;
     *)
         echo 1>&2
@@ -355,6 +337,20 @@ system)
     echo "   treating as 'system' instead" 1>&2
     ;;
 esac
+
+
+#
+# add c++0x flags for external programs
+#
+if [ -n "$WM_CXXFLAGS" ]
+then
+    case "$WM_COMPILER" in
+    Gcc*++0x)
+        WM_CXXFLAGS="$WM_CXXFLAGS -std=c++0x"
+        ;;
+    esac
+fi
+
 
 
 # Communications library
