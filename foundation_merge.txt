@@ -421,44 +421,44 @@ Date:   Tue Dec 16 20:45:51 2014 +0000
     Added return when position_ == endPosition
     May resolve bug-report http://www.openfoam.org/mantisbt/view.php?id=1459
 
-commit c9512b7456e1d2379e20ae50c5649bfb08517621
+*OK* commit c9512b7456e1d2379e20ae50c5649bfb08517621
 Author: Henry <Henry>
 Date:   Tue Dec 16 14:32:39 2014 +0000
 
     Ensure fields are initialized before mapping to avoid SIGFPE caused by uninitialized values
 
-commit fcb037ba085443971096a61c5ae3783df27684bb
+*OK* commit fcb037ba085443971096a61c5ae3783df27684bb
 Author: Henry <Henry>
 Date:   Tue Dec 16 09:50:33 2014 +0000
 
     Added reference
 
-commit 40808d5d68726b275bf676c223dc96cb77b076c6
+*OK* commit 40808d5d68726b275bf676c223dc96cb77b076c6
 Author: Henry <Henry>
 Date:   Tue Dec 16 09:50:20 2014 +0000
 
     Ignore test directory
 
-commit 5ca78127d64dcd8b802f2e7a5579092d925fa4f3
+*OK* commit 5ca78127d64dcd8b802f2e7a5579092d925fa4f3
 Author: Henry <Henry>
 Date:   Tue Dec 16 09:18:50 2014 +0000
 
     Upgrade OpenMPI to 1.8.3
 
-commit eba4c47759b933df8864bf3b5718b56a92ac63d4
+*OK* commit eba4c47759b933df8864bf3b5718b56a92ac63d4
 Author: Henry <Henry>
 Date:   Tue Dec 16 09:07:20 2014 +0000
 
     Upgrade gcc-4.8.2 -> gcc-4.8.3
 
-commit 6439b0306fcec6b77eee3afabf021f17663b6b39
+*OK* commit 6439b0306fcec6b77eee3afabf021f17663b6b39
 Author: Henry <Henry>
 Date:   Tue Dec 16 08:38:18 2014 +0000
 
     Corrected calculation of multi-layer resistance
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1447
 
-commit 1db5ee8f56687031e6a81b20b09f037a79e8bd27
+*OK* commit 1db5ee8f56687031e6a81b20b09f037a79e8bd27
 Author: Henry <Henry>
 Date:   Tue Dec 16 08:37:57 2014 +0000
 
