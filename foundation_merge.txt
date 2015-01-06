@@ -464,19 +464,19 @@ Date:   Tue Dec 16 08:37:57 2014 +0000
 
     Upgraded gcc-4.9.0 -> gcc-4.9.2
 
-commit 3d30a05a926dd214fab6eb0070aaf1f1b18e9bed
+*OK* commit 3d30a05a926dd214fab6eb0070aaf1f1b18e9bed
 Author: Henry <Henry>
 Date:   Tue Dec 16 08:37:25 2014 +0000
 
     Renamed -frounded-math option
 
-commit 78f47dacd60d0e2abcc61e301dd14dba34cd3400
+*OK* commit 78f47dacd60d0e2abcc61e301dd14dba34cd3400
 Author: Henry <Henry>
 Date:   Mon Dec 15 22:39:21 2014 +0000
 
     Move gcc-specific options to the appropriate wmake rules files
 
-commit 3dd3e6157ccc3bb6d6a1b2208deb7eca92784929
+*OK* commit 3dd3e6157ccc3bb6d6a1b2208deb7eca92784929
 Author: Henry <Henry>
 Date:   Mon Dec 15 22:38:10 2014 +0000
 
