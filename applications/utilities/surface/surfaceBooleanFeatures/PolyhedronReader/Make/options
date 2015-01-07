@@ -1,4 +1,3 @@
-EXE_FROUNDING_MATH = -frounding-math
 EXE_NDEBUG = -DNDEBUG
 /* EXE_NDEBUG = -g -O0 -DFULLDEBUG */
 
@@ -10,7 +9,7 @@ c++CGALWARN = -Wno-old-style-cast
 include $(GENERAL_RULES)/CGAL
 
 EXE_INC = \
-    ${EXE_FROUNDING_MATH} \
+    ${ROUNDING_MATH} \
     ${EXE_NDEBUG} \
     ${CGAL_INC} \
     ${c++CGALWARN} \
