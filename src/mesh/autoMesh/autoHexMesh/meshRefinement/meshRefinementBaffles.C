@@ -2422,7 +2422,7 @@ void Foam::meshRefinement::calcPatchNumMasterFaces
         patch.meshEdges(mesh_.edges(), mesh_.pointEdges()),
         nMasterFacesPerEdge,
         plusEqOp<label>(),
-        0
+        label(0)
     );
 }
 
