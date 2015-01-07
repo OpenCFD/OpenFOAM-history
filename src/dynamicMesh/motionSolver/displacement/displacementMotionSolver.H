@@ -90,6 +90,37 @@ public:
     TypeName("displacementMotionSolver");
 
 
+    // Declare run-time constructor selection tables
+
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            displacementMotionSolver,
+            displacement,
+            (
+                const polyMesh& mesh,
+                const IOdictionary& dict,
+                const pointVectorField& pointDisplacement,
+                const pointIOField& points0
+            ),
+            (mesh, dict, pointDisplacement, points0)
+        );
+
+
+    // Selectors
+
+        //- Select constructed from polyMesh, dictionary and components.
+        //  If dictionary was registered this will 'steal' that registration.
+        static autoPtr<displacementMotionSolver> New
+        (
+            const word& solverTypeName,
+            const polyMesh&,
+            const IOdictionary&,
+            const pointVectorField& pointDisplacement,
+            const pointIOField& points0
+        );
+
+
     // Constructors
 
         //- Construct from mesh and dictionary
@@ -97,6 +128,16 @@ public:
         (
             const polyMesh&,
             const IOdictionary&,
+            const word& type
+        );
+
+        //- Construct from mesh and dictionary
+        displacementMotionSolver
+        (
+            const polyMesh&,
+            const IOdictionary&,
+            const pointVectorField& pointDisplacement,
+            const pointIOField& points0,
             const word& type
         );
 
