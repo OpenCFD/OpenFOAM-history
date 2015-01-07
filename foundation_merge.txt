@@ -268,7 +268,7 @@ Date:   Mon Dec 22 20:11:04 2014 +0000
     twoPhaseEulerFoam/interfacialModels/turbulentDispersionModels: Added Fprime function
     to support improved discretisation in pEqn and implicit treatment in the phase-fraction equation
 
-commit a61f07451faa306a231a27c9904f0b967920dbe4
+*OK* commit a61f07451faa306a231a27c9904f0b967920dbe4
 Author: Henry <Henry>
 Date:   Mon Dec 22 19:54:58 2014 +0000
 
@@ -276,13 +276,13 @@ Date:   Mon Dec 22 19:54:58 2014 +0000
     Now the rotor axis may be specified in other than the z-direction
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1290
 
-commit ce379c8b63e3e83c82632b81ebbf9dba7d8b09b1
+*OK* commit ce379c8b63e3e83c82632b81ebbf9dba7d8b09b1
 Author: Henry <Henry>
 Date:   Sun Dec 21 21:57:15 2014 +0000
 
     RDT -> rapid distortion theory
 
-commit 4d362576822a3fba2e923ef9ebc4354e2c6bb795
+*OK* commit 4d362576822a3fba2e923ef9ebc4354e2c6bb795
 Author: Henry <Henry>
 Date:   Sat Dec 20 12:17:59 2014 +0000
 
@@ -292,56 +292,56 @@ Date:   Sat Dec 20 12:17:59 2014 +0000
        http://www.openfoam.org/mantisbt/view.php?id=996
        http://www.openfoam.org/mantisbt/view.php?id=991
 
-commit f82cd6c7c0a56a3f55e7702b3fe716b516ffcf09
+*OK* commit f82cd6c7c0a56a3f55e7702b3fe716b516ffcf09
 Author: Henry <Henry>
 Date:   Fri Dec 19 21:33:38 2014 +0000
 
     Added general kOmegaSST and kOmegaSSTSato for multiphase flow
     Provided by Juho Peltola
 
-commit aab5463644ad99f0b74080cda7ec5bc7127ee182
+*OK* commit aab5463644ad99f0b74080cda7ec5bc7127ee182
 Author: Henry <Henry>
 Date:   Fri Dec 19 21:33:16 2014 +0000
 
     Reformat references
 
-commit b1a1a32c98b5d0ffd2c84593da94454b1fca9885
+*OK* commit b1a1a32c98b5d0ffd2c84593da94454b1fca9885
 Author: Henry <Henry>
 Date:   Fri Dec 19 17:03:30 2014 +0000
 
     Corrected for SP compilation
 
-commit fae6dcad37d9671d217ec2a2b49943663341dd3c
+*OK* commit fae6dcad37d9671d217ec2a2b49943663341dd3c
 Author: Henry <Henry>
 Date:   Fri Dec 19 11:55:16 2014 +0000
 
     Reformatted references
 
-commit 2cb1adebbf108eaae5df2a8b756b71a480a6d34a
+*OK* commit 2cb1adebbf108eaae5df2a8b756b71a480a6d34a
 Author: Henry <Henry>
 Date:   Fri Dec 19 11:54:57 2014 +0000
 
     Included new files
 
-commit f1dfb92002a54acc93bf3707b48e6f0a1b08bf8e
+*OK* commit f1dfb92002a54acc93bf3707b48e6f0a1b08bf8e
 Author: Henry <Henry>
 Date:   Fri Dec 19 11:54:23 2014 +0000
 
     Removed spurious additional phase-fraction factor
 
-commit c282a02ae52f81f9ad1fadaa795ceb2f02337c9f
+*OK* commit c282a02ae52f81f9ad1fadaa795ceb2f02337c9f
 Author: Henry <Henry>
 Date:   Fri Dec 19 11:53:36 2014 +0000
 
     Added LopezDeBertodano turbulentDispersionModel
 
-commit 8fa9f8944a21a204a7f795c9c396f686b7c59156
+*OK* commit 8fa9f8944a21a204a7f795c9c396f686b7c59156
 Author: Henry <Henry>
 Date:   Fri Dec 19 11:53:17 2014 +0000
 
     Added IshiiZuber drag model
 
-commit 08480055fbf5cd705e4335066949638268670092
+*OK* commit 08480055fbf5cd705e4335066949638268670092
 Author: Henry <Henry>
 Date:   Thu Dec 18 17:13:41 2014 +0000
 
