@@ -87,77 +87,77 @@ Date:   Fri Jan 2 15:38:52 2015 +0000
     lduMatrixOperations: Added support for scaling symmetric matrices
     Note: non-uniform scaling of a symmetric matrix generates an asymmetric matrix
 
-commit 35af64bf39f9044440c3c78d74edfddfa9e26163
+*OK* commit 35af64bf39f9044440c3c78d74edfddfa9e26163
 Author: Henry <Henry>
 Date:   Fri Jan 2 14:38:08 2015 +0000
 
     fvMatrix: Corrected scaling by tmp<volScalarField>
 
-commit a8e99f862ab2b96e45320bfeadd5d0f6131f5b23
+*OK* commit a8e99f862ab2b96e45320bfeadd5d0f6131f5b23
 Author: Henry <Henry>
 Date:   Thu Jan 1 18:12:28 2015 +0000
 
     Corrected and improved documentation
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=790
 
-commit aedacd531f9841e9c03e2adfca168137c4fba20b
+*OK* commit aedacd531f9841e9c03e2adfca168137c4fba20b
 Author: Henry <Henry>
 Date:   Thu Jan 1 18:11:22 2015 +0000
 
     Updated for OpenFOAM-2.3.x
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=858
 
-commit f3602dd321d4ea923e429b4d3a470398eb967ffb
+*OK* commit f3602dd321d4ea923e429b4d3a470398eb967ffb
 Author: Henry <Henry>
 Date:   Thu Jan 1 16:27:58 2015 +0000
 
     Removed spurious file
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1374
 
-commit 34f4b64bf884df6a6ec761c50e6a418da60dfac7
+*OK* commit 34f4b64bf884df6a6ec761c50e6a418da60dfac7
 Author: Henry <Henry>
 Date:   Thu Jan 1 16:27:47 2015 +0000
 
     Updated header
 
-commit b70ebf82af1826a8267c1c12bd1f4ac8518e60e7
+*OK* commit b70ebf82af1826a8267c1c12bd1f4ac8518e60e7
 Author: Henry <Henry>
 Date:   Thu Jan 1 16:27:26 2015 +0000
 
     explicitPorositySource: corrected doc
 
-commit 3058a8df7e8997cb00e72d3a0d68728f546f5de3
+*OK* commit 3058a8df7e8997cb00e72d3a0d68728f546f5de3
 Author: Henry <Henry>
 Date:   Thu Jan 1 13:43:17 2015 +0000
 
     Updated headers
 
-commit 83421f2aeba3e551a204ccbe976e112955038458
+*OK* commit 83421f2aeba3e551a204ccbe976e112955038458
 Author: Henry <Henry>
 Date:   Thu Jan 1 13:42:57 2015 +0000
 
     particle::initCellFacePt(): Added suggestions to resolve failure to find particle
     Resolves bug report: http://www.openfoam.org/mantisbt/view.php?id=1461
 
-commit fef662401a229639bcfd604f060f82375efa8b06
+*OK* commit fef662401a229639bcfd604f060f82375efa8b06
 Author: Henry <Henry>
 Date:   Thu Jan 1 13:42:13 2015 +0000
 
     primitiveMesh::pointInCellBB: Inflate the cell isotropically to handle anisotropic cells more robustly
 
-commit 10ee5c477b96a5957291303df5807c46091bab90
+*OK* commit 10ee5c477b96a5957291303df5807c46091bab90
 Author: Henry <Henry>
 Date:   Wed Dec 31 23:03:26 2014 +0000
 
     atmBoundaryLayer: rationalized U and epsilon BCs and added the corresponding k BC
 
-commit 3745eac1096e5d29cc04fe76ddeed0a9aedb82e9
+*OK* commit 3745eac1096e5d29cc04fe76ddeed0a9aedb82e9
 Author: Henry <Henry>
 Date:   Wed Dec 31 19:08:15 2014 +0000
 
     Updated headers
 
-commit 2a614865fff303855db7403e145452f909e23ffa
+*OK* commit 2a614865fff303855db7403e145452f909e23ffa
 Author: Henry <Henry>
 Date:   Wed Dec 31 19:02:52 2014 +0000
 
@@ -183,26 +183,26 @@ Date:   Wed Dec 31 19:02:52 2014 +0000
     
     Thus both 32bit and 64bit label builds can coexist without problem.
 
-commit ff52b0c4852df597865e9e8c3d62f85695f57de1
+*OK* commit ff52b0c4852df597865e9e8c3d62f85695f57de1
 Author: Henry <Henry>
 Date:   Wed Dec 31 19:02:04 2014 +0000
 
     Updated header
 
-commit 99e8b9b6c1b14115a78c80958c24db67462941b4
+*OK* commit 99e8b9b6c1b14115a78c80958c24db67462941b4
 Author: Henry <Henry>
 Date:   Wed Dec 31 19:01:13 2014 +0000
 
     orientFaceZone: convert 0 to label
 
-commit 8f9a576bde8d476a550e03f38aada95b7e2f9f39
+*OK* commit 8f9a576bde8d476a550e03f38aada95b7e2f9f39
 Author: Henry <Henry>
 Date:   Mon Dec 29 17:39:20 2014 +0000
 
     atmBoundaryLayer: Attempt to rationalize the inputs and documentation to make these BCs more usable
     Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=860
 
-commit a6ccbc6d7dd6a5ee27947d37405ec8af0b75121b
+*OK* commit a6ccbc6d7dd6a5ee27947d37405ec8af0b75121b
 Author: Henry <Henry>
 Date:   Mon Dec 29 12:05:54 2014 +0000
 
@@ -210,58 +210,58 @@ Date:   Mon Dec 29 12:05:54 2014 +0000
     Rewrote using field algebra rather than looping over cells
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1384
 
-commit 1d824a2232190e4ba268fc72d55bb98e88f54f74
+*OK* commit 1d824a2232190e4ba268fc72d55bb98e88f54f74
 Author: Henry <Henry>
 Date:   Mon Dec 29 11:13:34 2014 +0000
 
     turbulentTemperatureRadCoupledMixed: Corrected/improved mixed BC formulation to ensure the reference temperature is physical
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1369
 
-commit e3307142c74af75e5837166363bf77a722f1c1c3
+*OK* commit e3307142c74af75e5837166363bf77a722f1c1c3
 Author: Henry <Henry>
 Date:   Mon Dec 29 11:13:25 2014 +0000
 
     Minor reformatting
 
-commit a0e704c5cd4e7bf24fe759f76f74b24fe0eeef8f
+*OK* commit a0e704c5cd4e7bf24fe759f76f74b24fe0eeef8f
 Author: Henry <Henry>
 Date:   Mon Dec 29 11:12:29 2014 +0000
 
     externalWallHeatFluxTemperature: Combined logic into a single switch
 
-commit 5f6e909f72ce67acab0b486c7069a6318135499c
+*OK* commit 5f6e909f72ce67acab0b486c7069a6318135499c
 Author: Henry <Henry>
 Date:   Mon Dec 29 11:11:43 2014 +0000
 
     viewFactor: moved some of the "noise" to print only on debug
 
-commit 9550a248cf4a74627d174aaebbd62a8148e98008
+*OK* commit 9550a248cf4a74627d174aaebbd62a8148e98008
 Author: Henry <Henry>
 Date:   Sun Dec 28 17:00:11 2014 +0000
 
     fanFvPatchField: Correct the type specialization
     Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=1415
 
-commit 2e8c7a89a81f65357df8d56443ba9e3bdd6deb6b
+*OK* commit 2e8c7a89a81f65357df8d56443ba9e3bdd6deb6b
 Author: Henry <Henry>
 Date:   Sun Dec 28 17:00:03 2014 +0000
 
     Write the coefficients before the field
 
-commit d4a13421ad0551088e331289ebbfc4cdb2472dc0
+*OK* commit d4a13421ad0551088e331289ebbfc4cdb2472dc0
 Author: Henry <Henry>
 Date:   Sun Dec 28 15:14:42 2014 +0000
 
     Bring TurbulenceModels up to date with turbulenceModels
 
-commit c39f95b361375ed7853f2d91f85cf9a698686631
+*OK* commit c39f95b361375ed7853f2d91f85cf9a698686631
 Author: Henry <Henry>
 Date:   Sun Dec 28 12:53:56 2014 +0000
 
     CrankNicolsonDdtScheme: Changed ddtCorr from a basic Euler scheme to include the Crank-Nicolson correction
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1468
 
-commit cd405fd3692145edd9ae1112c7e297b8b02d1530
+*OK* commit cd405fd3692145edd9ae1112c7e297b8b02d1530
 Author: Henry <Henry>
 Date:   Mon Dec 22 20:11:04 2014 +0000
 
