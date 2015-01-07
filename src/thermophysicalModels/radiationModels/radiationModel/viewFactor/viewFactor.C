@@ -62,16 +62,19 @@ void Foam::radiation::viewFactor::initialise()
 
     if (debug)
     {
-        Pout<< "Selected patches:" << selectedPatches_ << endl;
-        Pout<< "Number of coarse faces:" << nLocalCoarseFaces_ << endl;
+        Pout<< "radiation::viewFactor::initialise() Selected patches:"
+            << selectedPatches_ << endl;
+        Pout<< "radiation::viewFactor::initialise() Number of coarse faces:"
+            << nLocalCoarseFaces_ << endl;
     }
 
     totalNCoarseFaces_ = nLocalCoarseFaces_;
     reduce(totalNCoarseFaces_, sumOp<label>());
 
-    if (Pstream::master())
+    if (debug && Pstream::master())
     {
-        Info<< "Total number of clusters : " << totalNCoarseFaces_ << endl;
+        InfoIn("radiation::viewFactor::initialise()")
+            << "Total number of clusters : " << totalNCoarseFaces_ << endl;
     }
 
     map_.reset
@@ -133,7 +136,11 @@ void Foam::radiation::viewFactor::initialise()
             new scalarSquareMatrix(totalNCoarseFaces_, totalNCoarseFaces_, 0.0)
         );
 
-        Info<< "Insert elements in the matrix..." << endl;
+        if (debug)
+        {
+            InfoIn("radiation::viewFactor::initialise()")
+                << "Insert elements in the matrix..." << endl;
+        }
 
         for (label procI = 0; procI < Pstream::nProcs(); procI++)
         {
@@ -151,7 +158,11 @@ void Foam::radiation::viewFactor::initialise()
         bool smoothing = readBool(coeffs_.lookup("smoothing"));
         if (smoothing)
         {
-            Info<< "Smoothing the matrix..." << endl;
+            if (debug)
+            {
+                InfoIn("radiation::viewFactor::initialise()")
+                    << "Smoothing the matrix..." << endl;
+            }
 
             for (label i=0; i<totalNCoarseFaces_; i++)
             {
@@ -532,7 +543,7 @@ void Foam::radiation::viewFactor::calculate()
                     if (i==j)
                     {
                         C[i][j] = invEj - (invEj - 1.0)*Fmatrix_()[i][j];
-                        q[i] += (Fmatrix_()[i][j] - 1.0)*sigmaT4  - QrExt[j];
+                        q[i] += (Fmatrix_()[i][j] - 1.0)*sigmaT4 - QrExt[j];
                     }
                     else
                     {
@@ -544,6 +555,7 @@ void Foam::radiation::viewFactor::calculate()
             }
 
             Info<< "\nSolving view factor equations..." << endl;
+
             // Negative coming into the fluid
             LUsolve(C, q);
         }
@@ -567,7 +579,13 @@ void Foam::radiation::viewFactor::calculate()
                         }
                     }
                 }
-                Info<< "\nDecomposing C matrix..." << endl;
+
+                if (debug)
+                {
+                    InfoIn("radiation::viewFactor::initialise()")
+                        << "\nDecomposing C matrix..." << endl;
+                }
+
                 LUDecompose(CLU_(), pivotIndices_);
             }
 
@@ -590,7 +608,12 @@ void Foam::radiation::viewFactor::calculate()
                 }
             }
 
-            Info<< "\nLU Back substitute C matrix.." << endl;
+            if (debug)
+            {
+                InfoIn("radiation::viewFactor::initialise()")
+                    << "\nLU Back substitute C matrix.." << endl;
+            }
+
             LUBacksubstitute(CLU_(), pivotIndices_, q);
             iterCounter_ ++;
         }
@@ -644,7 +667,9 @@ void Foam::radiation::viewFactor::calculate()
             const scalarField& Qrp = Qr_.boundaryField()[patchID];
             const scalarField& magSf = mesh_.magSf().boundaryField()[patchID];
             scalar heatFlux = gSum(Qrp*magSf);
-            Info<< "Total heat transfer rate at patch: "
+
+            InfoIn("radiation::viewFactor::initialise()")
+                << "Total heat transfer rate at patch: "
                 << patchID << " "
                 << heatFlux << endl;
         }
