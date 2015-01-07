@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -321,6 +321,26 @@ Foam::IOobject::IOobject
     instance_(io.instance_),
     local_(io.local_),
     db_(registry),
+    rOpt_(io.rOpt_),
+    wOpt_(io.wOpt_),
+    registerObject_(io.registerObject_),
+    globalObject_(io.globalObject_),
+    objState_(io.objState_)
+{}
+
+
+Foam::IOobject::IOobject
+(
+    const IOobject& io,
+    const word& name
+)
+:
+    name_(name),
+    headerClassName_(io.headerClassName_),
+    note_(io.note_),
+    instance_(io.instance_),
+    local_(io.local_),
+    db_(io.db_),
     rOpt_(io.rOpt_),
     wOpt_(io.wOpt_),
     registerObject_(io.registerObject_),
