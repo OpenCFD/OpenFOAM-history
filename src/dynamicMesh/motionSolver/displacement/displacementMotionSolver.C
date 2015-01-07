@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,22 +35,19 @@ namespace Foam
 }
 
 
-// * * * * * * * * * * * * * Protected Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
-Foam::IOobject Foam::displacementMotionSolver::points0IO
-(
-    const polyMesh& mesh
-) const
+Foam::IOobject Foam::displacementMotionSolver::points0IO(const polyMesh& mesh)
 {
     const word instance =
-        time().findInstance
+        mesh.time().findInstance
         (
             mesh.meshDir(),
             "points0",
             IOobject::READ_IF_PRESENT
         );
 
-    if (instance != time().constant())
+    if (instance != mesh.time().constant())
     {
         // points0 written to a time folder
 
