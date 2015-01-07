@@ -348,73 +348,73 @@ Date:   Thu Dec 18 17:13:41 2014 +0000
     execFlowFunctionObjects: Reconstruct functionObjects if the mesh changes
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1452
 
-commit 0d4fa65c27f1706767b1b588e162368d3a4bc099
+*OK* commit 0d4fa65c27f1706767b1b588e162368d3a4bc099
 Author: Henry <Henry>
 Date:   Thu Dec 18 13:15:51 2014 +0000
 
     Corrected tc and ms for new parcels
     Resolved bug-report http://www.openfoam.org/mantisbt/view.php?id=1286
 
-commit 1921449192e4816c4198dd577afe7def14225323
+*OK* commit 1921449192e4816c4198dd577afe7def14225323
 Author: Henry <Henry>
 Date:   Thu Dec 18 13:07:17 2014 +0000
 
     Correct child parcel properties
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1287
 
-commit 970884a56169467c86e7cbf48293e5701ecd3e10
+*OK* commit 970884a56169467c86e7cbf48293e5701ecd3e10
 Author: Henry <Henry>
 Date:   Thu Dec 18 12:50:24 2014 +0000
 
     Reduce the stripped parcel mass due to evaporation
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1295
 
-commit ca31aaec322f52be8efd1d1107646f42ce67384c
+*OK* commit ca31aaec322f52be8efd1d1107646f42ce67384c
 Author: Henry <Henry>
 Date:   Thu Dec 18 12:36:58 2014 +0000
 
     Improved member function documentation
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1285
 
-commit d50de8d4f007110f6146a80f8f016283e6e86daf
+*OK* commit d50de8d4f007110f6146a80f8f016283e6e86daf
 Author: Henry <Henry>
 Date:   Thu Dec 18 12:25:19 2014 +0000
 
     Renamed minParticleMass -> minParcelMass
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1288
 
-commit cc088b65ed3659d308eeaffd07598a1b9bb556b5
+*OK* commit cc088b65ed3659d308eeaffd07598a1b9bb556b5
 Author: Henry <Henry>
 Date:   Thu Dec 18 11:37:35 2014 +0000
 
     fvDOM: check mesh is on x-y plane for 2D cases and in x-direction for 1D cases
 
-commit 9c7b04d0c3faf1d9bccc7436516a55508acb5a61
+*OK* commit 9c7b04d0c3faf1d9bccc7436516a55508acb5a61
 Author: Henry <Henry>
 Date:   Wed Dec 17 20:11:02 2014 +0000
 
     Coco/R based parsers are no longer supported
 
-commit e59ed485e34ce94f04f2f9585a373f1c785c97ef
+*OK* commit e59ed485e34ce94f04f2f9585a373f1c785c97ef
 Author: Henry <Henry>
 Date:   Wed Dec 17 20:09:01 2014 +0000
 
     Updated to preferentially search the local directory for dependencies
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1222
 
-commit b29c7f6bed0168a44f98959f95d6bc2983ce9fec
+*OK* commit b29c7f6bed0168a44f98959f95d6bc2983ce9fec
 Author: Henry <Henry>
 Date:   Wed Dec 17 14:11:02 2014 +0000
 
     Added references
 
-commit 8027be5be790a653aac14b163088d8d9a772a143
+*OK* commit 8027be5be790a653aac14b163088d8d9a772a143
 Author: Henry <Henry>
 Date:   Wed Dec 17 14:10:43 2014 +0000
 
     Corrected description
 
-commit e05b72580dba0fb2c23e4ffd670687e5bafe65b4
+*OK* commit e05b72580dba0fb2c23e4ffd670687e5bafe65b4
 Author: Henry <Henry>
 Date:   Tue Dec 16 20:45:51 2014 +0000
 
