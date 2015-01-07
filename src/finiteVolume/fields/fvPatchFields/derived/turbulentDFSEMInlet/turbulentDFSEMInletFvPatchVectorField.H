@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -90,7 +90,7 @@ class turbulentDFSEMInletFvPatchVectorField
         //- List of eddies
         List<eddy> eddies_;
 
-        //- Patch normal
+        //- Patch normal into the domain
         vector patchNormal_;
 
         //- Eddy box volume
@@ -98,9 +98,6 @@ class turbulentDFSEMInletFvPatchVectorField
 
         //- Eddy box bounds
         vector bounds_;
-
-        //- Tolerance used in patch face search
-        scalar tolerance_;
 
         //- Octree to search for nearest patch face to point
         autoPtr<indexedOctree<treeType> > treePtr_;
@@ -168,8 +165,7 @@ public:
             const dictionary&
         );
 
-        //- Construct by mapping given
-        //  turbulentDFSEMInletFvPatchVectorField
+        //- Construct by mapping given turbulentDFSEMInletFvPatchVectorField
         //  onto a new patch
         turbulentDFSEMInletFvPatchVectorField
         (

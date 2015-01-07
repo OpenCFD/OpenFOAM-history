@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,10 +37,13 @@ License
 
 void Foam::turbulentDFSEMInletFvPatchVectorField::checkPatch()
 {
-    // check that patch is planar
     const vectorField nf(patch().nf());
-    patchNormal_ = gAverage(nf);
-    scalar error = max(magSqr(patchNormal_ - nf));
+
+    // patch normal points into domain
+    patchNormal_ = -gAverage(nf);
+
+    // check that patch is planar
+    scalar error = max(magSqr(patchNormal_ + nf));
 
     if (error > SMALL)
     {
@@ -54,9 +57,6 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkPatch()
     }
 
     patchNormal_ /= mag(patchNormal_) + ROOTVSMALL;
-
-    // set tolerance
-    tolerance_ = gSum(patch().magSf());
 }
 
 
@@ -118,38 +118,61 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddyBox()
     // - smallest should be in the streamwise direction (normal to patch)
     tensor R = eigenVectors(J);
 
-    // determine limits of patch in patch axes
+    // determine limits of patch in patch local system
     const pointField transformedPoints(pp.localPoints() & R.T());
     vector minP = min(transformedPoints);
     vector maxP = max(transformedPoints);
-
     reduce(minP, minOp<vector>());
     reduce(maxP, maxOp<vector>());
 
     // eddy box is +/- maxSigmax on either side of patch
     // - note: patch located at box mid-plane
-    bounds_ = (maxP & R) - (minP & R) + 2*maxSigmax*patchNormal_;
     vector origin = (minP & R) - patchNormal_*maxSigmax;
-
-    // eddy box volume
-    v0_ = bounds_.x()*bounds_.y()*bounds_.z();
 
     // assign cooridinate system for eddy box
     // - x: streamwise direction
     // - y,z: wall normal direction
-    boxCoordSystemPtr_.reset
-    (
-        new cartesianCS("eddyBox", origin, R.x(), patchNormal_)
-    );
+    if (((R.x()^R.y()) & patchNormal_) > 0)
+    {
+        boxCoordSystemPtr_.reset
+        (
+            new cartesianCS("eddyBox", origin, R.y(), patchNormal_)
+        );
+    }
+    else
+    {
+        boxCoordSystemPtr_.reset
+        (
+            new cartesianCS("eddyBox", origin, R.x(), patchNormal_)
+        );
+    }
+
+    // eddy box bounds in box co-ordinate system
+    vector minPeb = boxCoordSystemPtr_->localPosition(minP & R);
+    vector maxPeb = boxCoordSystemPtr_->localPosition(maxP & R);
+    vector dxeb = boxCoordSystemPtr_->localVector(2*maxSigmax*patchNormal_);
+    bounds_ = cmptMag(maxPeb - minPeb + dxeb);
+
+    // eddy box volume
+    v0_ = bounds_.x()*bounds_.y()*bounds_.z();
 
     if (debug)
     {
         Info<< "Patch: " << patch().patch().name() << " eddy box:" << nl
-            << "    volume: " << v0_ << nl
-            << "    bounds: " << bounds_ << nl
-            << "    origin: " << origin << nl
-            << "    e3    : " << R.x() << nl
-            << "    e1    : " << patchNormal_ << nl
+            << "    volume    : " << v0_ << nl
+            << "    bounds    : " << bounds_ << nl
+            << "    origin    : " << origin << nl
+            << "    e1        : " << boxCoordSystemPtr_->R().e1() << nl
+            << "    e2        : " << boxCoordSystemPtr_->R().e2() << nl
+            << "    e3        : " << boxCoordSystemPtr_->R().e3() << nl
+            << "    normal    : " << patchNormal_ << nl
+            << "    R         : " << R << nl
+            << "    Cf        : " << gAverage(patch().Cf()) << nl
+            << "    minP      : " << minP << nl
+            << "    maxP      : " << maxP << nl
+            << "    minP&R    : " << (minP & R) << nl
+            << "    maxP&R    : " << (maxP & R) << nl
+            << "    maxSigmax : " << maxSigmax << nl
             << endl;
     }
 }
@@ -187,7 +210,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddies()
     {
         Pout<< "Patch:" << patch().patch().name()
             << " processor:" << Pstream::myProcNo()
-            << " seeded:" <<  eddies_.size() << " eddies" << endl;
+            << " seeded:" << nEddy_ << " eddies" << endl;
     }
 
     reduce(nEddy_, sumOp<label>());
@@ -223,12 +246,23 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::setNewPosition
     const bool localOnly
 )
 {
-    List<label> procHits(Pstream::nProcs(), 0);
-
     while (true)
     {
-        // local position in eddy box
-        p = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
+        if (localOnly)
+        {
+            // local position in eddy box
+            p = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
+        }
+        else
+        {
+            p = vector::min;
+            if (Pstream::master())
+            {
+                // local position in eddy box
+                p = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
+            }
+            reduce(p, maxOp<vector>());
+        }
 
         // snap point to inlet plane at x = 0
         point pDash = p;
@@ -237,12 +271,15 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::setNewPosition
         // position in global system
         pDash = boxCoordSystemPtr_->globalPosition(pDash);
 
-        pointIndexHit sample = treePtr_->findNearest(pDash, tolerance_);
-
+        // find patch face
+        vector dx(bounds_.x(), 0, 0);
+        pointIndexHit sample = treePtr_->findLineAny(pDash-dx, pDash+dx);
         bool hit = sample.hit();
 
-        if (!localOnly)
+        if (Pstream::parRun() && !localOnly)
         {
+            List<label> procHits(Pstream::nProcs(), 0);
+
             if (hit)
             {
                 procHits[Pstream::myProcNo()] = 1;
@@ -254,13 +291,11 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::setNewPosition
 
             Pstream::listCombineGather(procHits, plusEqOp<label>());
             Pstream::listCombineScatter(procHits);
-
             label nHits = sum(procHits);
 
             if (nHits == 1)
             {
                 faceI = sample.index();
-
                 return;
             }
             else if (nHits > 1)
@@ -285,12 +320,10 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::setNewPosition
                 {
                     faceI = -1;
                 }
-
                 return;
             }
         }
-
-        if (hit)
+        else if (hit)
         {
             faceI = sample.index();
             return;
@@ -314,17 +347,17 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::convectEddies
 
         e.move(deltaT*UMean_);
 
+        const scalar minEddyX = e.position().x() + 0.5*e.sigmaXMax();
+
         // check to see if eddy has exited downstream box plane
-        if (e.position().x() - 0.5*e.sigmaXMax() > bounds_.x())
+        if (minEddyX > bounds_.x())
         {
-            scalar overshoot =
-                e.position().x() - 0.5*e.sigma().x() - bounds_.x();
-
             // Spawn new eddy on this processor
-
             point newPosition = point::zero;
             label faceI = -1;
             setNewPosition(newPosition, faceI, true);
+
+            newPosition.x() = -0.5*e.sigmaXMax();
 
             e = eddy
                 (
@@ -337,6 +370,8 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::convectEddies
             e.initialise(nEddy, v0_);
 
             // include any overshoot when setting eddy x position
+            scalar overshoot = minEddyX - bounds_.x();
+            overshoot -= floor(overshoot/bounds_.x())*bounds_.x();
             e.move(overshoot);
 
             nRecycled++;
@@ -373,9 +408,6 @@ Foam::vector Foam::turbulentDFSEMInletFvPatchVectorField::uDashEddy
         // length scales
         const vector& sigma = e.sigma();
 
-        // intensities
-        const vector& alpha = e.alpha();
-
         // relative distance inside eddy
         vector r = cmptDivide(xp - xk, sigma);
 
@@ -383,6 +415,9 @@ Foam::vector Foam::turbulentDFSEMInletFvPatchVectorField::uDashEddy
 
         if (r2 < 1)
         {
+            // intensities
+            const vector& alpha = e.alpha();
+
             // fluctuating velocity in principal axes system (eq. 8)
             vector uDashLoc = cmptMultiply(sigma, (1 - r2)*(r^alpha));
 
@@ -391,7 +426,7 @@ Foam::vector Foam::turbulentDFSEMInletFvPatchVectorField::uDashEddy
         }
     }
 
-    return uDash;
+    return boxCoordSystemPtr_->globalVector(uDash);
 }
 
 
@@ -416,7 +451,6 @@ turbulentDFSEMInletFvPatchVectorField
     patchNormal_(vector::zero),
     v0_(0),
     bounds_(vector::zero),
-    tolerance_(0),
     treePtr_(),
     rndGen_(1234, -1),
     boxCoordSystemPtr_(),
@@ -447,7 +481,6 @@ turbulentDFSEMInletFvPatchVectorField
     patchNormal_(ptf.patchNormal_),
     v0_(ptf.v0_),
     bounds_(ptf.bounds_),
-    tolerance_(ptf.tolerance_),
     treePtr_(),
     rndGen_(1234, -1),
     boxCoordSystemPtr_(),
@@ -477,7 +510,6 @@ turbulentDFSEMInletFvPatchVectorField
     patchNormal_(vector::zero),
     v0_(0),
     bounds_(vector::zero),
-    tolerance_(0),
     treePtr_(),
     rndGen_(1234, -1),
     boxCoordSystemPtr_(),
@@ -506,7 +538,6 @@ turbulentDFSEMInletFvPatchVectorField
     patchNormal_(ptf.patchNormal_),
     v0_(ptf.v0_),
     bounds_(ptf.bounds_),
-    tolerance_(ptf.tolerance_),
     treePtr_(),
     rndGen_(1234, -1),
     boxCoordSystemPtr_(),
@@ -535,7 +566,6 @@ turbulentDFSEMInletFvPatchVectorField
     patchNormal_(ptf.patchNormal_),
     v0_(ptf.v0_),
     bounds_(ptf.bounds_),
-    tolerance_(ptf.tolerance_),
     treePtr_(),
     rndGen_(1234, -1),
     boxCoordSystemPtr_(),
@@ -613,7 +643,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::updateCoeffs()
 
         // set velocity
         vectorField& U = *this;
-        U = -UMean_*patchNormal_;
+        U = UMean_*patchNormal_;
 
         const pointField& Cf = patch().Cf();
 
@@ -625,21 +655,29 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::updateCoeffs()
         }
 
         // rescale to ensure correct flow rate
-        scalar fCorr = gSum(U & patch().Sf())/gSum(patch().magSf())/mag(UMean_);
+        scalar fCorr = gSum(U & -patch().Sf())/gSum(patch().magSf())/UMean_;
         U *= fCorr;
 
         if (debug)
         {
-            Info<< "patch:" << patch().patch().name()
+            Info<< "Patch:" << patch().patch().name()
                 << " min/max(U):" << gMin(U) << ", " << gMax(U) << endl;
         }
 
 
         curTimeIndex_ = db().time().timeIndex();
 
-        if (db().time().outputTime())
+        if (debug && db().time().outputTime())
         {
             // create a set of the eddies
+            OFstream os(db().time().path()/"eddies.obj");
+            forAll(eddies_, eddyI)
+            {
+                const point& localP = eddies_[eddyI].position();
+                point p = boxCoordSystemPtr_->globalPosition(localP);
+
+                os  << "v " << p.x() << " " << p.y() << " " << p.z() << nl;
+            }
         }
     }
 
