@@ -33,26 +33,27 @@ License
 
 namespace Foam
 {
-
-template<>
-const char*
-NamedEnum
-<externalWallHeatFluxTemperatureFvPatchScalarField::operationMode, 3>::names[]=
-{
-    "fixedHeatFlux",
-    "fixedHeatTransferCoefficient",
-    "unknown"
-};
-
-const NamedEnum
-<
-    externalWallHeatFluxTemperatureFvPatchScalarField::operationMode, 3
->
-externalWallHeatFluxTemperatureFvPatchScalarField::operationModeNames;
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    template<>
+    const char*
+    NamedEnum
+    <
+        externalWallHeatFluxTemperatureFvPatchScalarField::operationMode,
+        3
+    >::names[] =
+    {
+        "fixedHeatFlux",
+        "fixedHeatTransferCoefficient",
+        "unknown"
+    };
 
 } // End namespace Foam
+
+const Foam::NamedEnum
+<
+    Foam::externalWallHeatFluxTemperatureFvPatchScalarField::operationMode,
+    3
+> Foam::externalWallHeatFluxTemperatureFvPatchScalarField::operationModeNames;
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -279,8 +280,8 @@ void Foam::externalWallHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
     {
         case omFixedHeatFlux:
         {
-            refGrad() =  (q_ + Qr)/kappa(Tp);
-            refValue() =  0.0;
+            refGrad() = (q_ + Qr)/kappa(Tp);
+            refValue() = 0.0;
             valueFraction() = 0.0;
 
             break;
