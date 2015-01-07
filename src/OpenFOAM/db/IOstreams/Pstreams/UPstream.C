@@ -60,7 +60,7 @@ void Foam::UPstream::setParRun(const label nProcs)
     {
         parRun_ = false;
         freeCommunicator(UPstream::worldComm);
-        label comm = allocateCommunicator(-1, labelList(1, 0), false);
+        label comm = allocateCommunicator(-1, labelList(1, label(0)), false);
         if (comm != UPstream::worldComm)
         {
             FatalErrorIn("UPstream::setParRun(const label)")
