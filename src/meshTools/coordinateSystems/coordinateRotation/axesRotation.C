@@ -101,7 +101,8 @@ void Foam::axesRotation::calcTransform
                     "const vector&,"
                     "const axisOrder&"
                 ")"
-            )   << "Unhandled axes specifictation" << endl
+            )
+                << "Unhandled axes specification" << endl
                 << abort(FatalError);
 
             Rtr = tensor::zero;
@@ -109,9 +110,10 @@ void Foam::axesRotation::calcTransform
         }
     }
 
-    // the global->local transformation
+    // Global->local transformation
     Rtr_ = Rtr;
-    // the local->global transformation
+
+    // Local->global transformation
     R_ = Rtr.T();
 }
 
@@ -319,13 +321,14 @@ void Foam::axesRotation::operator=(const dictionary& dict)
     }
     else if (dict.found("axis") || dict.found("direction"))
     {
+        // Both "axis" and "direction" are required
+        // If one is missing the appropriate error message will be generated
         order = e3e1;
         dict.lookup("axis") >> axis1;
         dict.lookup("direction") >> axis2;
     }
     else
     {
-        // let it bomb if only one of axis/direction is defined
         FatalErrorIn
         (
             "axesRotation::operator=(const dictionary&) "
