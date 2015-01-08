@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "CompressibleTurbulenceModel.H"
-#include "fluidThermo.H"
+#include "compressibleTransportModel.H"
 #include "addToRunTimeSelectionTable.H"
 #include "makeTurbulenceModel.H"
 
@@ -38,16 +38,16 @@ makeBaseTurbulenceModel
     volScalarField,
     compressibleTurbulenceModel,
     CompressibleTurbulenceModel,
-    fluidThermo
+    compressibleTransportModel
 );
 
 #define makeRASModel(Type)                                                     \
     makeTemplatedTurbulenceModel                                               \
-    (fluidThermoCompressibleTurbulenceModel, RAS, Type)
+    (compressibleTransportModelCompressibleTurbulenceModel, RAS, Type)
 
 #define makeLESModel(Type)                                                     \
     makeTemplatedTurbulenceModel                                               \
-    (fluidThermoCompressibleTurbulenceModel, LES, Type)
+    (compressibleTransportModelCompressibleTurbulenceModel, LES, Type)
 
 #include "kEpsilon.H"
 makeRASModel(kEpsilon);
