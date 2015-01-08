@@ -84,7 +84,7 @@ Foam::velocityDisplacementMotionSolver::velocityDisplacementMotionSolver
     (
         IOobject
         (
-            "pointDisplacement",
+            "pointVelocityDisplacement",
             mesh.time().timeName(),
             mesh
         ),

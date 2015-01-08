@@ -168,7 +168,11 @@ Foam::displacementMotionSolver::displacementMotionSolver
 )
 :
     motionSolver(mesh, dict, type),
-    pointDisplacement_(pointDisplacement),
+    pointDisplacement_
+    (
+        IOobject(pointDisplacement, "pointDisplacement"),
+        pointDisplacement
+    ),
     points0_(points0)
 {
     if (points0_.size() != mesh.nPoints())
