@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -297,7 +297,8 @@ Foam::InjectionModel<CloudType>::InjectionModel(CloudType& owner)
     nParticleFixed_(0.0),
     time0_(0.0),
     timeStep0_(this->template getModelProperty<scalar>("timeStep0")),
-    delayedVolume_(0.0)
+    delayedVolume_(0.0),
+    injectorID_(-1)
 {}
 
 
@@ -325,7 +326,8 @@ Foam::InjectionModel<CloudType>::InjectionModel
     nParticleFixed_(0.0),
     time0_(owner.db().time().value()),
     timeStep0_(this->template getModelProperty<scalar>("timeStep0")),
-    delayedVolume_(0.0)
+    delayedVolume_(0.0),
+    injectorID_(this->coeffDict().lookupOrDefault("typeID", -1))
 {
     // Provide some info
     // - also serves to initialise mesh dimensions - needed for parallel runs
@@ -399,7 +401,8 @@ Foam::InjectionModel<CloudType>::InjectionModel
     nParticleFixed_(im.nParticleFixed_),
     time0_(im.time0_),
     timeStep0_(im.timeStep0_),
-    delayedVolume_(im.delayedVolume_)
+    delayedVolume_(im.delayedVolume_),
+    injectorID_(im.injectorID_)
 {}
 
 
@@ -593,6 +596,7 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
 
                         if (pPtr->move(td, dt))
                         {
+                            pPtr->typeID() = injectorID_;
                             cloud.addParticle(pPtr);
                         }
                         else
@@ -697,6 +701,8 @@ void Foam::InjectionModel<CloudType>::injectSteadyState
                     pPtr->d(),
                     pPtr->rho()
                 );
+
+            pPtr->typeID() = injectorID_;
 
             // Add the new parcel
             cloud.addParticle(pPtr);
