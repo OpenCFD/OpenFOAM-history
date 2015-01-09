@@ -49,7 +49,6 @@ Description
         );
         lifeTime        10000;
         trackLength     1e-3;
-        nSubCycle       5;
         cloudName       particleTracks;
         seedSampleSet   patchSeed;
         patchSeedCoeffs
@@ -71,10 +70,10 @@ Description
         fields       | fields to sample        | yes         |
         lifetime     | maximum number of particle tracking steps | yes |
         trackLength  | tracking segment length | no          |
-        nSubCycle    | number of tracking steps per cell | no|
         cloudName    | cloud name to use       | yes         |
-        seedSampleSet| seeding method (see below)| yes       |
         log          | Log to standard output  | no          | yes
+        bounds       | Bounding box to trim tracks | no | greatBox
+        seedSampleSet| seeding method (see below)| yes       |
     \endtable
 
     \linebreak
@@ -85,10 +84,6 @@ Description
         patchSeed | seeding via patch faces
         triSurfaceMeshPointSet | points according to a tri-surface mesh
     \endplaintable
-
-Note
-    When specifying the track resolution, the \c trackLength OR \c nSubCycle
-    option should be used
 
 SeeAlso
     Foam::functionObject
@@ -142,17 +137,11 @@ class wallBoundedStreamLine
         //- Input dictionary
         dictionary dict_;
 
-        //- Name of this set of field averages.
-        word name_;
-
         //- Database this class is registered to
         const objectRegistry& obr_;
 
         //- Load fields from files (not from objectRegistry)
         bool loadFromFiles_;
-
-        //- On/off switch
-        bool active_;
 
         //- Switch to send output to Info as well as to file
         Switch log_;

@@ -444,7 +444,6 @@ Foam::wallBoundedStreamLine::wallBoundedStreamLine
     dict_(dict),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
-    active_(true),
     log_(true)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
