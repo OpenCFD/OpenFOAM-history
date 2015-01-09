@@ -38,6 +38,9 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// Include uint.H before CGAL headers to define __STDC_LIMIT_MACROS
+#include "uint.H"
+
 #include "CGAL3DKernel.H"
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/Nef_polyhedron_3.h>
