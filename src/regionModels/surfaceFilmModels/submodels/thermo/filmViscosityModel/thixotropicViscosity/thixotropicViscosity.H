@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -56,6 +56,27 @@ Description
         \mu_{\infty}    | limiting viscosity when \f$ \lambda = 0 \f$
     \endvartable
 
+    If the \c ArrheniusTemperature option is specified, the viscosity is
+    further manipulated by:
+
+        \f[
+            \mu = \mu_{thx} exp(k_{1} \alpha)
+        \f]
+
+    Where
+
+        \f[
+            \alpha = \frac{1}{T + k_{2}} - \frac{1}{T_{ref} + K_{2}})
+        \f]
+
+    Here:
+    \vartable
+        \mu_{thx}       | thixotropic viscosity
+        k1              | model coefficient
+        k2              | model coefficient
+        Tref            | reference temperature
+        T               | temperature
+    \endvartable
 
     Reference:
     \verbatim
@@ -130,6 +151,18 @@ protected:
         //  0 = freestream value (most liquid)
         //  1 = fully built (most solid)
         volScalarField lambda_;
+
+        // Arrhenius temperature dependency flag
+        bool ArrheniusTemperature_;
+
+        // Arrhenius temperature dependency k1 coefficient
+        dimensionedScalar k1_;
+
+        // Arrhenius temperature dependency k2 coefficient
+        dimensionedScalar k2_;
+
+        // Arrhenius temperature dependency Tref coefficient
+        dimensionedScalar Tref_;
 
 
     // Protected Member Functions
