@@ -1,42 +1,55 @@
-commit 0a7ade60a30465867b304cd95a3a17fece53fd86
+*OK* commit ba0393358f3599e511417484e95db46290157d5d
+Author: Henry <Henry>
+Date:   Tue Jan 6 17:32:02 2015 +0000
+
+    Updated headers
+
+*OK* commit 5085a9807b87b4213d58a8b51456a4aba4dc67ac
+Author: Henry <Henry>
+Date:   Tue Jan 6 17:31:02 2015 +0000
+
+    wallDist: separate the meshWaveWallDist from the wallDist interface
+    In preparation for run-time selectable methods
+
+*OK* commit 0a7ade60a30465867b304cd95a3a17fece53fd86
 Author: Henry <Henry>
 Date:   Sun Jan 4 23:43:25 2015 +0000
 
     Ensure __STDC_LIMIT_MACROS is defined before the CGAL headers are included
     Additional resolution of bug-report http://www.openfoam.org/mantisbt/view.php?id=1474
 
-commit 5d058dacdbddad09f10434241136b781c694587a
+*OK* commit 5d058dacdbddad09f10434241136b781c694587a
 Author: Henry <Henry>
 Date:   Sun Jan 4 20:15:16 2015 +0000
 
     Updated headers
 
-commit 097f23e11a3ee5c4e93ffc68b89614265459e6d5
+*OK* commit 097f23e11a3ee5c4e93ffc68b89614265459e6d5
 Author: Henry <Henry>
 Date:   Sun Jan 4 20:13:37 2015 +0000
 
     Added support for glibc < 2.18
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1474
 
-commit 3857ba0cda13d312dae7f91196356abcbf57e144
+*OK* commit 3857ba0cda13d312dae7f91196356abcbf57e144
 Author: Henry <Henry>
 Date:   Sun Jan 4 20:13:17 2015 +0000
 
     Updated header
 
-commit 4ba0aee354001a77b4a50ab1d75595c211fb8148
+*OK* commit 4ba0aee354001a77b4a50ab1d75595c211fb8148
 Author: Henry <Henry>
 Date:   Sun Jan 4 20:12:48 2015 +0000
 
     Added support to test older gcc versions
 
-commit 51b1089d093bbf8890b3d4102f33861145eb5b55
+*OK* commit 51b1089d093bbf8890b3d4102f33861145eb5b55
 Author: Henry <Henry>
 Date:   Sat Jan 3 18:32:40 2015 +0000
 
     Removed spurious file
 
-commit cedd21599b64d899d726e46628e3615b097317d7
+*OK* commit cedd21599b64d899d726e46628e3615b097317d7
 Author: Henry <Henry>
 Date:   Sat Jan 3 16:54:07 2015 +0000
 
@@ -44,26 +57,26 @@ Date:   Sat Jan 3 16:54:07 2015 +0000
     Warning: generates a VERY large number of messages from OpenFOAM applications
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1473
 
-commit 4d415b0cb86a37cf3a5a247562803a2cbf09f305
+*OK* commit 4d415b0cb86a37cf3a5a247562803a2cbf09f305
 Author: Henry <Henry>
 Date:   Fri Jan 2 19:20:50 2015 +0000
 
     Updated header
 
-commit ee6f3909bd8cb06752ed5d83f2d0a9a5d5d08dd8
+*OK* commit ee6f3909bd8cb06752ed5d83f2d0a9a5d5d08dd8
 Author: Henry <Henry>
 Date:   Fri Jan 2 19:20:19 2015 +0000
 
     LduMatrixOperations: Added support for scaling symmetric matrices
     Note: non-uniform scaling of a symmetric matrix generates an asymmetric matrix
 
-commit cd01692afd13b4e5a7d3ff539886d58a07ca390a
+*OK* commit cd01692afd13b4e5a7d3ff539886d58a07ca390a
 Author: Henry <Henry>
 Date:   Fri Jan 2 16:44:07 2015 +0000
 
     Updated header
 
-commit 79e8c34ef2afb0b87a460a6f8586b46ca9f5c5c1
+*OK* commit 79e8c34ef2afb0b87a460a6f8586b46ca9f5c5c1
 Author: Henry <Henry>
 Date:   Fri Jan 2 16:43:32 2015 +0000
 
@@ -80,7 +93,7 @@ Date:   Fri Jan 2 16:43:32 2015 +0000
         sub-cycling and I would recommend that you use this approach in
         interDyMFoam for your complex mesh motion cases.
 
-commit 237e6f4fa5349ea31261a8f819a3d115458197ad
+*OK* commit 237e6f4fa5349ea31261a8f819a3d115458197ad
 Author: Henry <Henry>
 Date:   Fri Jan 2 15:38:52 2015 +0000
 
