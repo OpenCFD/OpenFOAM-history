@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,13 +68,7 @@ protected:
         pointIOField points0_;
 
 
-    // Protected Member Functions
-
-        //- Return IO object for points0
-        IOobject points0IO(const polyMesh& mesh) const;
-
 private:
-
 
     // Private Member Functions
 
@@ -83,6 +77,7 @@ private:
 
         //- Disallow default bitwise assignment
         void operator=(const displacementMotionSolver&);
+
 
 public:
 
@@ -105,6 +100,11 @@ public:
             ),
             (mesh, dict, pointDisplacement, points0)
         );
+
+    // Static Member Functions
+
+        //- Return IO object for points0
+        static IOobject points0IO(const polyMesh& mesh);
 
 
     // Selectors
