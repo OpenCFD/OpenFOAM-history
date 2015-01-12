@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -116,9 +116,11 @@ class isoSurface
         //- Regularise?
         const Switch regularise_;
 
+        //- Optional bounds
+        const boundBox bounds_;
+
         //- When to merge points
         const scalar mergeDistance_;
-
 
         //- Whether face might be cut
         List<cellCutType> faceCutType_;
@@ -407,6 +409,7 @@ public:
             const scalarField& pointIsoVals,
             const scalar iso,
             const bool regularise,
+            const boundBox& bounds = boundBox::greatBox,
             const scalar mergeTol = 1e-6    // fraction of bounding box
         );
 

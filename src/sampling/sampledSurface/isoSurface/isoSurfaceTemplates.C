@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -240,8 +240,8 @@ void Foam::isoSurface::generateTriPoints
         case 0x0F:
         break;
 
-        case 0x0E:
         case 0x01:
+        case 0x0E:
             points.append
             (
                 generatePoint(s0,p0,hasSnap0,snapP0,s1,p1,hasSnap1,snapP1)
@@ -254,10 +254,16 @@ void Foam::isoSurface::generateTriPoints
             (
                 generatePoint(s0,p0,hasSnap0,snapP0,s3,p3,hasSnap3,snapP3)
             );
+            if (triIndex == 0x0E)
+            {
+                // Flip normals
+                label sz = points.size();
+                Swap(points[sz-2], points[sz-1]);
+            }
         break;
 
-        case 0x0D:
         case 0x02:
+        case 0x0D:
             points.append
             (
                 generatePoint(s1,p1,hasSnap1,snapP1,s0,p0,hasSnap0,snapP0)
@@ -270,97 +276,133 @@ void Foam::isoSurface::generateTriPoints
             (
                 generatePoint(s1,p1,hasSnap1,snapP1,s2,p2,hasSnap2,snapP2)
             );
+            if (triIndex == 0x0D)
+            {
+                // Flip normals
+                label sz = points.size();
+                Swap(points[sz-2], points[sz-1]);
+            }
         break;
 
-        case 0x0C:
         case 0x03:
-        {
-            Type tp1 =
-                generatePoint(s0,p0,hasSnap0,snapP0,s2,p2,hasSnap2,snapP2);
-            Type tp2 =
-                generatePoint(s1,p1,hasSnap1,snapP1,s3,p3,hasSnap3,snapP3);
+        case 0x0C:
+            {
+                Type p0p2 =
+                    generatePoint(s0,p0,hasSnap0,snapP0,s2,p2,hasSnap2,snapP2);
+                Type p1p3 =
+                    generatePoint(s1,p1,hasSnap1,snapP1,s3,p3,hasSnap3,snapP3);
 
-            points.append
-            (
-                generatePoint(s0,p0,hasSnap0,snapP0,s3,p3,hasSnap3,snapP3)
-            );
-            points.append(tp1);
-            points.append(tp2);
-            points.append(tp2);
-            points.append
-            (
-                generatePoint(s1,p1,hasSnap1,snapP1,s2,p2,hasSnap2,snapP2)
-            );
-            points.append(tp1);
-        }
+                points.append
+                (
+                    generatePoint(s0,p0,hasSnap0,snapP0,s3,p3,hasSnap3,snapP3)
+                );
+                points.append(p1p3);
+                points.append(p0p2);
+
+                points.append(p1p3);
+                points.append
+                (
+                    generatePoint(s1,p1,hasSnap1,snapP1,s2,p2,hasSnap2,snapP2)
+                );
+                points.append(p0p2);
+            }
+            if (triIndex == 0x0C)
+            {
+                // Flip normals
+                label sz = points.size();
+                Swap(points[sz-5], points[sz-4]);
+                Swap(points[sz-2], points[sz-1]);
+            }
         break;
 
-        case 0x0B:
         case 0x04:
-        {
-            points.append
-            (
-                generatePoint(s2,p2,hasSnap2,snapP2,s0,p0,hasSnap0,snapP0)
-            );
-            points.append
-            (
-                generatePoint(s2,p2,hasSnap2,snapP2,s1,p1,hasSnap1,snapP1)
-            );
-            points.append
-            (
-                generatePoint(s2,p2,hasSnap2,snapP2,s3,p3,hasSnap3,snapP3)
-            );
-        }
+        case 0x0B:
+            {
+                points.append
+                (
+                    generatePoint(s2,p2,hasSnap2,snapP2,s0,p0,hasSnap0,snapP0)
+                );
+                points.append
+                (
+                    generatePoint(s2,p2,hasSnap2,snapP2,s1,p1,hasSnap1,snapP1)
+                );
+                points.append
+                (
+                    generatePoint(s2,p2,hasSnap2,snapP2,s3,p3,hasSnap3,snapP3)
+                );
+            }
+            if (triIndex == 0x0B)
+            {
+                // Flip normals
+                label sz = points.size();
+                Swap(points[sz-2], points[sz-1]);
+            }
         break;
 
-        case 0x0A:
         case 0x05:
-        {
-            Type tp0 =
-                generatePoint(s0,p0,hasSnap0,snapP0,s1,p1,hasSnap1,snapP1);
-            Type tp1 =
-                generatePoint(s2,p2,hasSnap2,snapP2,s3,p3,hasSnap3,snapP3);
+        case 0x0A:
+            {
+                Type p0p1 =
+                    generatePoint(s0,p0,hasSnap0,snapP0,s1,p1,hasSnap1,snapP1);
+                Type p2p3 =
+                    generatePoint(s2,p2,hasSnap2,snapP2,s3,p3,hasSnap3,snapP3);
 
-            points.append(tp0);
-            points.append(tp1);
-            points.append
-            (
-                generatePoint(s0,p0,hasSnap0,snapP0,s3,p3,hasSnap3,snapP3)
-            );
-            points.append(tp0);
-            points.append
-            (
-                generatePoint(s1,p1,hasSnap1,snapP1,s2,p2,hasSnap2,snapP2)
-            );
-            points.append(tp1);
-        }
+                points.append(p0p1);
+                points.append(p2p3);
+                points.append
+                (
+                    generatePoint(s0,p0,hasSnap0,snapP0,s3,p3,hasSnap3,snapP3)
+                );
+
+                points.append(p0p1);
+                points.append
+                (
+                    generatePoint(s1,p1,hasSnap1,snapP1,s2,p2,hasSnap2,snapP2)
+                );
+                points.append(p2p3);
+            }
+            if (triIndex == 0x0A)
+            {
+                // Flip normals
+                label sz = points.size();
+                Swap(points[sz-5], points[sz-4]);
+                Swap(points[sz-2], points[sz-1]);
+            }
         break;
 
-        case 0x09:
         case 0x06:
-        {
-            Type tp0 =
-                generatePoint(s0,p0,hasSnap0,snapP0,s1,p1,hasSnap1,snapP1);
-            Type tp1 =
-                generatePoint(s2,p2,hasSnap2,snapP2,s3,p3,hasSnap3,snapP3);
+        case 0x09:
+            {
+                Type p0p1 =
+                    generatePoint(s0,p0,hasSnap0,snapP0,s1,p1,hasSnap1,snapP1);
+                Type p2p3 =
+                    generatePoint(s2,p2,hasSnap2,snapP2,s3,p3,hasSnap3,snapP3);
 
-            points.append(tp0);
-            points.append
-            (
-                generatePoint(s1,p1,hasSnap1,snapP1,s3,p3,hasSnap3,snapP3)
-            );
-            points.append(tp1);
-            points.append(tp0);
-            points.append
-            (
-                generatePoint(s0,p0,hasSnap0,snapP0,s2,p2,hasSnap2,snapP2)
-            );
-            points.append(tp1);
-        }
+                points.append(p0p1);
+                points.append
+                (
+                    generatePoint(s1,p1,hasSnap1,snapP1,s3,p3,hasSnap3,snapP3)
+                );
+                points.append(p2p3);
+
+                points.append(p0p1);
+                points.append(p2p3);
+                points.append
+                (
+                    generatePoint(s0,p0,hasSnap0,snapP0,s2,p2,hasSnap2,snapP2)
+                );
+            }
+            if (triIndex == 0x09)
+            {
+                // Flip normals
+                label sz = points.size();
+                Swap(points[sz-5], points[sz-4]);
+                Swap(points[sz-2], points[sz-1]);
+            }
         break;
 
-        case 0x07:
         case 0x08:
+        case 0x07:
             points.append
             (
                 generatePoint(s3,p3,hasSnap3,snapP3,s0,p0,hasSnap0,snapP0)
@@ -373,6 +415,12 @@ void Foam::isoSurface::generateTriPoints
             (
                 generatePoint(s3,p3,hasSnap3,snapP3,s1,p1,hasSnap1,snapP1)
             );
+            if (triIndex == 0x07)
+            {
+                // Flip normals
+                label sz = points.size();
+                Swap(points[sz-2], points[sz-1]);
+            }
         break;
     }
 }
@@ -707,7 +755,7 @@ Foam::isoSurface::interpolate
     > > c2(adaptPatchFields(cCoords));
 
 
-    DynamicList<Type> triPoints(nCutCells_);
+    DynamicList<Type> triPoints(3*nCutCells_);
     DynamicList<label> triMeshCells(nCutCells_);
 
     // Dummy snap data

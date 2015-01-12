@@ -64,10 +64,15 @@ Foam::argList::initValidTables::initValidTables()
     );
     validParOptions.set("roots", "(dir1 .. dirN)");
 
+    argList::addOption
+    (
+        "decomposeParDict", "file",
+        "read decomposePar dictionary from specified location"
+    );
     validParOptions.set
     (
         "decomposeParDict",
-        "read decomposePar dictionary from specified location"
+        "file"
     );
 
     argList::addBoolOption
@@ -624,7 +629,7 @@ void Foam::argList::parse
                 if (!decompDictStream.good())
                 {
                     FatalError
-                        << "Cannot read "
+                        << "Cannot read decomposeParDict from "
                         << decompDictStream.name()
                         << exit(FatalError);
                 }

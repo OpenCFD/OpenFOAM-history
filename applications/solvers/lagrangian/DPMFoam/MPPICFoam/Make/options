@@ -23,6 +23,7 @@ EXE_LIBS = \
     -lmeshTools \
     -llagrangian \
     -llagrangianIntermediate \
+    -llagrangianTurbulentSubModels \
     -lthermophysicalFunctions \
     -lspecie \
     -lradiationModels \

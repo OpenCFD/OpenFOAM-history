@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -48,6 +48,7 @@ SourceFiles
 #include "labelPair.H"
 #include "pointIndexHit.H"
 #include "PackedBoolList.H"
+#include "boundBox.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -90,6 +91,9 @@ class isoSurfaceCell
 
         //- isoSurfaceCell value
         const scalar iso_;
+
+        //- Optional bounds
+        const boundBox bounds_;
 
         //- When to merge points
         const scalar mergeDistance_;
@@ -214,19 +218,15 @@ class isoSurfaceCell
         void generateTriPoints
         (
             const DynamicList<Type>& snapped,
-            const scalar isoVal0,
             const scalar s0,
             const Type& p0,
             const label p0Index,
-            const scalar isoVal1,
             const scalar s1,
             const Type& p1,
             const label p1Index,
-            const scalar isoVal2,
             const scalar s2,
             const Type& p2,
             const label p2Index,
-            const scalar isoVal3,
             const scalar s3,
             const Type& p3,
             const label p3Index,
@@ -336,6 +336,7 @@ public:
             const scalarField& pointValues,
             const scalar iso,
             const bool regularise,
+            const boundBox& bounds = boundBox::greatBox,
             const scalar mergeTol = 1e-6    // fraction of bounding box
         );
 
@@ -353,18 +354,6 @@ public:
         {
             return triPointMergeMap_;
         }
-
-
-        //- Interpolates cCoords,pCoords. Takes the original fields
-        //  used to create the iso surface.
-        template<class Type>
-        tmp<Field<Type> > interpolate
-        (
-            const scalarField& cVals,
-            const scalarField& pVals,
-            const Field<Type>& cCoords,
-            const Field<Type>& pCoords
-        ) const;
 
         //- Interpolates cCoords,pCoords.
         template<class Type>
