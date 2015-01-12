@@ -311,6 +311,162 @@ void Foam::streamLineBase::storePoint
 }
 
 
+void Foam::streamLineBase::trimToBox(const treeBoundBox& bb)
+{
+    forAll(allTracks_, trackI)
+    {
+        const List<point>& track = allTracks_[trackI];
+
+        if (track.size())
+        {
+            // Storage for new track
+            DynamicList<point> newTrack(track.size());
+            DynamicList<scalarList> newScalars(track.size());
+            DynamicList<vectorList> newVectors(track.size());
+
+            for
+            (
+                label segmentI = 1;
+                segmentI < track.size();
+                segmentI++
+            )
+            {
+                const point& startPt = track[segmentI-1];
+                const point& endPt = track[segmentI];
+
+                const vector d(endPt-startPt);
+                scalar magD = mag(d);
+                if (magD > ROOTVSMALL)
+                {
+                    if (bb.contains(startPt))
+                    {
+                        // Store 1.0*track[segmentI-1]+0*track[segmentI]
+                        storePoint
+                        (
+                            trackI,
+
+                            0.0,
+                            segmentI-1,
+                            segmentI,
+
+                            newTrack,
+                            newScalars,
+                            newVectors
+                        );
+                        if (!bb.contains(endPt))
+                        {
+                            point clipPt;
+                            bb.intersects(endPt, startPt, clipPt);
+
+                            // Store point and interpolated values
+                            storePoint
+                            (
+                                trackI,
+
+                                mag(clipPt-startPt)/magD,
+                                segmentI-1,
+                                segmentI,
+
+                                newTrack,
+                                newScalars,
+                                newVectors
+                            );
+                        }
+                    }
+                    else
+                    {
+                        // startPt outside box. Get starting point
+
+                        point clipPt;
+                        if (bb.intersects(startPt, endPt, clipPt))
+                        {
+                            // Store point and interpolated values
+                            storePoint
+                            (
+                                trackI,
+
+                                mag(clipPt-startPt)/magD,
+                                segmentI-1,
+                                segmentI,
+
+                                newTrack,
+                                newScalars,
+                                newVectors
+                            );
+
+                            if (!bb.contains(endPt))
+                            {
+                                bb.intersects
+                                (
+                                    endPt,
+                                    point(clipPt),
+                                    clipPt
+                                );
+
+                                // Store point and interpolated values
+                                storePoint
+                                (
+                                    trackI,
+
+                                    mag(clipPt-startPt)/magD,
+                                    segmentI-1,
+                                    segmentI,
+
+                                    newTrack,
+                                    newScalars,
+                                    newVectors
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Last point
+            if (bb.contains(track.last()))
+            {
+                storePoint
+                (
+                    trackI,
+
+                    1.0,
+                    track.size()-2,
+                    track.size()-1,
+
+                    newTrack,
+                    newScalars,
+                    newVectors
+                );
+            }
+
+
+            // Replace track points
+            allTracks_[trackI].transfer(newTrack);
+            // Replace track scalars
+            forAll(allScalars_, scalarI)
+            {
+                scalarList& trackVals = allScalars_[scalarI][trackI];
+                trackVals.setSize(newScalars.size());
+                forAll(newScalars, segmentI)
+                {
+                    trackVals[segmentI] = newScalars[segmentI][scalarI];
+                }
+            }
+            // Replace track vectors
+            forAll(allVectors_, vectorI)
+            {
+                vectorList& trackVals = allVectors_[vectorI][trackI];
+                trackVals.setSize(newVectors.size());
+                forAll(newVectors, segmentI)
+                {
+                    trackVals[segmentI] = newVectors[segmentI][vectorI];
+                }
+            }
+        }
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::streamLineBase::streamLineBase
@@ -557,188 +713,35 @@ void Foam::streamLineBase::write()
         }
 
 
-        if (bounds_ != boundBox::greatBox)
-        {
-            // Clip to bounding box
-
-            const treeBoundBox bb(bounds_);
-
-            forAll(allTracks_, trackI)
-            {
-                const List<point>& track = allTracks_[trackI];
-
-                if (track.size())
-                {
-                    // Storage for new track
-                    DynamicList<point> newTrack(track.size());
-                    DynamicList<scalarList> newScalars(track.size());
-                    DynamicList<vectorList> newVectors(track.size());
-
-                    for
-                    (
-                        label segmentI = 1;
-                        segmentI < track.size();
-                        segmentI++
-                    )
-                    {
-                        const point& startPt = track[segmentI-1];
-                        const point& endPt = track[segmentI];
-
-                        const vector d(endPt-startPt);
-                        scalar magD = mag(d);
-                        if (magD > ROOTVSMALL)
-                        {
-                            if (bb.contains(startPt))
-                            {
-                                // Store 1.0*track[segmentI-1]+0*track[segmentI]
-                                storePoint
-                                (
-                                    trackI,
-
-                                    0.0,
-                                    segmentI-1,
-                                    segmentI,
-
-                                    newTrack,
-                                    newScalars,
-                                    newVectors
-                                );
-                                if (!bb.contains(endPt))
-                                {
-                                    point clipPt;
-                                    bb.intersects(endPt, startPt, clipPt);
-
-                                    // Store point and interpolated values
-                                    storePoint
-                                    (
-                                        trackI,
-
-                                        mag(clipPt-startPt)/magD,
-                                        segmentI-1,
-                                        segmentI,
-
-                                        newTrack,
-                                        newScalars,
-                                        newVectors
-                                    );
-                                }
-                            }
-                            else
-                            {
-                                // startPt outside box. Get starting point
-
-                                point clipPt;
-                                if (bb.intersects(startPt, endPt, clipPt))
-                                {
-                                    // Store point and interpolated values
-                                    storePoint
-                                    (
-                                        trackI,
-
-                                        mag(clipPt-startPt)/magD,
-                                        segmentI-1,
-                                        segmentI,
-
-                                        newTrack,
-                                        newScalars,
-                                        newVectors
-                                    );
-
-                                    if (!bb.contains(endPt))
-                                    {
-                                        bb.intersects
-                                        (
-                                            endPt,
-                                            point(clipPt),
-                                            clipPt
-                                        );
-
-                                        // Store point and interpolated values
-                                        storePoint
-                                        (
-                                            trackI,
-
-                                            mag(clipPt-startPt)/magD,
-                                            segmentI-1,
-                                            segmentI,
-
-                                            newTrack,
-                                            newScalars,
-                                            newVectors
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Last point
-                    if (bb.contains(track.last()))
-                    {
-                        storePoint
-                        (
-                            trackI,
-
-                            1.0,
-                            track.size()-2,
-                            track.size()-1,
-
-                            newTrack,
-                            newScalars,
-                            newVectors
-                        );
-                    }
-
-
-                    // Replace track points
-                    allTracks_[trackI].transfer(newTrack);
-                    // Replace track scalars
-                    forAll(allScalars_, scalarI)
-                    {
-                        scalarList& trackVals = allScalars_[scalarI][trackI];
-                        trackVals.setSize(newScalars.size());
-                        forAll(newScalars, segmentI)
-                        {
-                            trackVals[segmentI] = newScalars[segmentI][scalarI];
-                        }
-                    }
-                    // Replace track vectors
-                    forAll(allVectors_, vectorI)
-                    {
-                        vectorList& trackVals = allVectors_[vectorI][trackI];
-                        trackVals.setSize(newVectors.size());
-                        forAll(newVectors, segmentI)
-                        {
-                            trackVals[segmentI] = newVectors[segmentI][vectorI];
-                        }
-                    }
-                }
-            }
-        }
-
-
-        label nTracks = 0;
-        label n = 0;
-        forAll(allTracks_, trackI)
-        {
-            if (allTracks_[trackI].size())
-            {
-                nTracks++;
-                n += allTracks_[trackI].size();
-            }
-        }
-
-        Info(log_)
-            << "    Tracks:" << nTracks << nl
-            << "    Total samples:" << n
-            << endl;
-
-
-        // Massage into form suitable for writers
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
         if (Pstream::master())
         {
+            if (bounds_ != boundBox::greatBox)
+            {
+                // Clip to bounding box
+                trimToBox(treeBoundBox(bounds_));
+            }
+
+
+            label nTracks = 0;
+            label n = 0;
+            forAll(allTracks_, trackI)
+            {
+                if (allTracks_[trackI].size())
+                {
+                    nTracks++;
+                    n += allTracks_[trackI].size();
+                }
+            }
+
+            Info(log_)
+                << "    Tracks:" << nTracks << nl
+                << "    Total samples:" << n
+                << endl;
+
+
+            // Massage into form suitable for writers
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
             // Make output directory
 
             fileName vtkPath
@@ -755,7 +758,7 @@ void Foam::streamLineBase::write()
 
             mkDir(vtkPath);
 
-            // Convert track positions
+            // Convert track positions (and compact out empty tracks)
 
             PtrList<coordSet> tracks(nTracks);
             nTracks = 0;

@@ -170,6 +170,9 @@ protected:
             DynamicList<List<vector> >& newVectors
         );
 
+        //- Trim tracks to bounding box
+        void trimToBox(const treeBoundBox& bb);
+
         //- Do the actual tracking to fill the track data
         virtual void track() = 0;
 
