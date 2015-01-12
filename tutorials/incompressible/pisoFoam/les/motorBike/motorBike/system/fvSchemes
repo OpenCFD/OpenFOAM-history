@@ -56,7 +56,12 @@ fluxRequired
 {
     default         no;
     p;
-    Phi;
+    Phi
+}
+
+wallDist
+{
+    method meshWave;
 }
 
 

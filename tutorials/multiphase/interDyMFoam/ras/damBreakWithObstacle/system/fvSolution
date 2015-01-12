@@ -27,7 +27,7 @@ solvers
     p_rgh
     {
         solver          GAMG;
-        tolerance       1e-7;
+        tolerance       1e-08;
         relTol          0.01;
         smoother        DIC;
         nPreSweeps      0;
@@ -48,7 +48,7 @@ solvers
     "pcorr.*"
     {
         $p_rghFinal;
-        tolerance       0.001;
+        tolerance       0.0001;
     }
 
     U
@@ -60,7 +60,7 @@ solvers
         nSweeps         1;
     }
 
-    "(k|B|nuTilda)"
+    "(k|omega|B|nuTilda).*"
     {
         solver          smoothSolver;
         smoother        symGaussSeidel;
