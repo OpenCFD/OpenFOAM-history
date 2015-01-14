@@ -86,7 +86,6 @@ class fvDOM
 :
     public radiationModel
 {
-
     // Private data
 
 

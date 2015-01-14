@@ -44,6 +44,7 @@ namespace Foam
     }
 }
 
+
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 void Foam::radiation::fvDOM::initialise()
@@ -433,6 +434,7 @@ Foam::radiation::fvDOM::fvDOM
 {
     initialise();
 }
+
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 

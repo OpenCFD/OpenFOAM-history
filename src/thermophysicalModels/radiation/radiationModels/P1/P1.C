@@ -248,8 +248,8 @@ void Foam::radiation::P1::calculate()
         if (!G_.boundaryField()[patchi].coupled())
         {
             Qr_.boundaryField()[patchi] =
-               - gamma.boundaryField()[patchi]
-               * G_.boundaryField()[patchi].snGrad();
+                -gamma.boundaryField()[patchi]
+                *G_.boundaryField()[patchi].snGrad();
         }
     }
 }
