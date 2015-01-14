@@ -25,6 +25,7 @@ License
 
 #include "triangle.H"
 #include "triPoints.H"
+#include "plane.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
