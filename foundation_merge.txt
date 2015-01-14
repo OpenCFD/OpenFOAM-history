@@ -1,100 +1,100 @@
-commit 086131d4a172321f60858d9851fb0335abdc4857
+*OK* commit 086131d4a172321f60858d9851fb0335abdc4857
 Author: Henry <Henry>
 Date:   Sun Jan 11 22:27:36 2015 +0000
 
     Updated options files for new location of radiation lnInclude directory
 
-commit 8e5b23ece79db3c37d232568f6952a114c8fefa9
+*OK* commit 8e5b23ece79db3c37d232568f6952a114c8fefa9
 Author: Henry <Henry>
 Date:   Sun Jan 11 22:17:00 2015 +0000
 
     Updated headers
 
-commit 1f3679fe0e6c48861de4fc4e1aefa842e88a32ab
+*OK* commit 1f3679fe0e6c48861de4fc4e1aefa842e88a32ab
 Author: Henry <Henry>
 Date:   Sun Jan 11 22:16:14 2015 +0000
 
     thermophysicalModels/radiationModels -> thermophysicalModels/radiation
 
-commit 8c591c480e5154613ba2bc0e85a2c5529849e531
+*OK* commit 8c591c480e5154613ba2bc0e85a2c5529849e531
 Author: Henry <Henry>
 Date:   Sun Jan 11 18:44:18 2015 +0000
 
     wmake: Added to "See also"
 
-commit ac42485493e92d286224f4195c3bafba7cca8f56
+*OK* commit ac42485493e92d286224f4195c3bafba7cca8f56
 Author: Henry <Henry>
 Date:   Sun Jan 11 18:21:20 2015 +0000
 
     wmake: Added "See also"
 
-commit 9106d893c70eb239cf32e4ad4d324ed5ae5fe577
+*OK* commit 9106d893c70eb239cf32e4ad4d324ed5ae5fe577
 Author: Henry <Henry>
 Date:   Sun Jan 11 17:16:48 2015 +0000
 
     Update header
 
-commit 03ebd6ddb988b6b601bfcdd472593c06cb91b253
+*OK* commit 03ebd6ddb988b6b601bfcdd472593c06cb91b253
 Author: Henry <Henry>
 Date:   Sun Jan 11 17:16:15 2015 +0000
 
     wdep: If source file is not in the current directory search tree for first occurrence
 
-commit 86906e8230802ec50b60256ea3c4272b3fb7032b
+*OK* commit 86906e8230802ec50b60256ea3c4272b3fb7032b
 Author: Henry <Henry>
 Date:   Sun Jan 11 15:51:13 2015 +0000
 
     Remove deprecated and out-of-date scripts
 
-commit 38c62f02101a142833cf3721d9590b9faf428ab2
+*OK* commit 38c62f02101a142833cf3721d9590b9faf428ab2
 Author: Henry <Henry>
 Date:   Sun Jan 11 15:42:10 2015 +0000
 
     Rename foamClearPolyMesh -> foamCleanPolyMesh for consistency with the other foamClear.* scripts
 
-commit 2442d3aec7452cfa2a1627510e54278a5bc508a5
+*OK* commit 2442d3aec7452cfa2a1627510e54278a5bc508a5
 Author: Henry <Henry>
 Date:   Sun Jan 11 13:34:41 2015 +0000
 
     Remove out-of-date and deprecated scripts
 
-commit 4e90a5d364cae59651e338b6754849200ffc99a9
+*OK* commit 4e90a5d364cae59651e338b6754849200ffc99a9
 Author: Henry <Henry>
 Date:   Sun Jan 11 13:16:56 2015 +0000
 
     Remove set -x
 
-commit 0e51d263d095bbe2d192989cfb1f5ef635a557fc
+*OK* commit 0e51d263d095bbe2d192989cfb1f5ef635a557fc
 Author: Henry <Henry>
 Date:   Sun Jan 11 13:14:55 2015 +0000
 
     wrmdepold: Updated rmdepold to handle out-of-tree .dep and .o files
 
-commit fb1b5ffac5d054577c7ff924262e03524e174371
+*OK* commit fb1b5ffac5d054577c7ff924262e03524e174371
 Author: Henry <Henry>
 Date:   Sun Jan 11 12:15:06 2015 +0000
 
     wdep: updated
 
-commit dddbe58c946e651a650cba502b2c3c471a1d11c1
+*OK* commit dddbe58c946e651a650cba502b2c3c471a1d11c1
 Author: Henry <Henry>
 Date:   Sat Jan 10 23:22:46 2015 +0000
 
     wrmo: Add -a/-all/all option to remove .o files from all platforms rather than just the current platform.
 
-commit 92f1b0fb78b9621ad648bdb67f8936dcc4befb7d
+*OK* commit 92f1b0fb78b9621ad648bdb67f8936dcc4befb7d
 Author: Henry <Henry>
 Date:   Sat Jan 10 23:22:39 2015 +0000
 
     Updated doc
 
-commit 16b29a9bd05b4bd6de23861ffb424012d8e5633e
+*OK* commit 16b29a9bd05b4bd6de23861ffb424012d8e5633e
 Author: Henry <Henry>
 Date:   Sat Jan 10 23:18:34 2015 +0000
 
     wrmdep: Add -a/-all/all option to removed for all platforms rather than just the current platform.
 
-commit 1c83ab493ee4bf1b9ba9d7ab6352ac98a0954809
+*OK* commit 1c83ab493ee4bf1b9ba9d7ab6352ac98a0954809
 Author: Henry <Henry>
 Date:   Sat Jan 10 22:33:39 2015 +0000
 
