@@ -1,25 +1,24 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # Run from this directory
 
-#./Allwclean
-
-mkdir -p Make/$WM_OPTIONS > /dev/null 2>&1
+# Source the wmake functions
+. $WM_DIR/scripts/wmakeFunctions
 
 # Store current directory
 sourceDir=$PWD
 
 # Where are any generated files stored?
-depFile=`wdep dummy.C`
-depDir=`dirname $depFile`
+findObjectDir dummy.C
+depDir="$objectsDir"
 
 
 if [ -d "$VTK_DIR" ];
 then
-    ln -s CMakeLists-VTK.txt CMakeLists.txt
+    rm -f CMakeLists.txt && ln -s CMakeLists-VTK.txt CMakeLists.txt
     (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
 elif [ -d "$ParaView_DIR" ];
 then
-    ln -s CMakeLists-ParaView.txt CMakeLists.txt
+    rm -f CMakeLists.txt && ln -s CMakeLists-ParaView.txt CMakeLists.txt
     (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
 else
     echo "ERROR: Build of $PWD requires a valid VTK installation which"

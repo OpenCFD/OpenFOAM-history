@@ -26,6 +26,7 @@ link_directories(
 
 add_definitions(
     -DWM_$ENV{WM_PRECISION_OPTION} -DNoRepository
+    -DWM_LABEL_SIZE=$ENV{WM_LABEL_SIZE}
 )
 
 set(CMAKE_BUILD_TYPE Release)
