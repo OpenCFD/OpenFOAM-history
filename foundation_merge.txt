@@ -1,3 +1,276 @@
+commit 086131d4a172321f60858d9851fb0335abdc4857
+Author: Henry <Henry>
+Date:   Sun Jan 11 22:27:36 2015 +0000
+
+    Updated options files for new location of radiation lnInclude directory
+
+commit 8e5b23ece79db3c37d232568f6952a114c8fefa9
+Author: Henry <Henry>
+Date:   Sun Jan 11 22:17:00 2015 +0000
+
+    Updated headers
+
+commit 1f3679fe0e6c48861de4fc4e1aefa842e88a32ab
+Author: Henry <Henry>
+Date:   Sun Jan 11 22:16:14 2015 +0000
+
+    thermophysicalModels/radiationModels -> thermophysicalModels/radiation
+
+commit 8c591c480e5154613ba2bc0e85a2c5529849e531
+Author: Henry <Henry>
+Date:   Sun Jan 11 18:44:18 2015 +0000
+
+    wmake: Added to "See also"
+
+commit ac42485493e92d286224f4195c3bafba7cca8f56
+Author: Henry <Henry>
+Date:   Sun Jan 11 18:21:20 2015 +0000
+
+    wmake: Added "See also"
+
+commit 9106d893c70eb239cf32e4ad4d324ed5ae5fe577
+Author: Henry <Henry>
+Date:   Sun Jan 11 17:16:48 2015 +0000
+
+    Update header
+
+commit 03ebd6ddb988b6b601bfcdd472593c06cb91b253
+Author: Henry <Henry>
+Date:   Sun Jan 11 17:16:15 2015 +0000
+
+    wdep: If source file is not in the current directory search tree for first occurrence
+
+commit 86906e8230802ec50b60256ea3c4272b3fb7032b
+Author: Henry <Henry>
+Date:   Sun Jan 11 15:51:13 2015 +0000
+
+    Remove deprecated and out-of-date scripts
+
+commit 38c62f02101a142833cf3721d9590b9faf428ab2
+Author: Henry <Henry>
+Date:   Sun Jan 11 15:42:10 2015 +0000
+
+    Rename foamClearPolyMesh -> foamCleanPolyMesh for consistency with the other foamClear.* scripts
+
+commit 2442d3aec7452cfa2a1627510e54278a5bc508a5
+Author: Henry <Henry>
+Date:   Sun Jan 11 13:34:41 2015 +0000
+
+    Remove out-of-date and deprecated scripts
+
+commit 4e90a5d364cae59651e338b6754849200ffc99a9
+Author: Henry <Henry>
+Date:   Sun Jan 11 13:16:56 2015 +0000
+
+    Remove set -x
+
+commit 0e51d263d095bbe2d192989cfb1f5ef635a557fc
+Author: Henry <Henry>
+Date:   Sun Jan 11 13:14:55 2015 +0000
+
+    wrmdepold: Updated rmdepold to handle out-of-tree .dep and .o files
+
+commit fb1b5ffac5d054577c7ff924262e03524e174371
+Author: Henry <Henry>
+Date:   Sun Jan 11 12:15:06 2015 +0000
+
+    wdep: updated
+
+commit dddbe58c946e651a650cba502b2c3c471a1d11c1
+Author: Henry <Henry>
+Date:   Sat Jan 10 23:22:46 2015 +0000
+
+    wrmo: Add -a/-all/all option to remove .o files from all platforms rather than just the current platform.
+
+commit 92f1b0fb78b9621ad648bdb67f8936dcc4befb7d
+Author: Henry <Henry>
+Date:   Sat Jan 10 23:22:39 2015 +0000
+
+    Updated doc
+
+commit 16b29a9bd05b4bd6de23861ffb424012d8e5633e
+Author: Henry <Henry>
+Date:   Sat Jan 10 23:18:34 2015 +0000
+
+    wrmdep: Add -a/-all/all option to removed for all platforms rather than just the current platform.
+
+commit 1c83ab493ee4bf1b9ba9d7ab6352ac98a0954809
+Author: Henry <Henry>
+Date:   Sat Jan 10 22:33:39 2015 +0000
+
+    Replaced rmoall with wrmo
+    Description
+        Remove all .o files from the object directory tree corresponding to the
+        current source derectory or remove only the .o file corresponding to the
+        optionally specified [file].
+
+*OK* commit f46ec6553d05983c963b02a2ce54b395ff4a711b
+Author: Henry <Henry>
+Date:   Sat Jan 10 22:12:00 2015 +0000
+
+    Updated headers
+
+*OK* commit 8257b61446ec10ac2ca36d1af564e04b02eb0fda
+Author: Henry <Henry>
+Date:   Sat Jan 10 22:11:29 2015 +0000
+
+    Corrected documentation for Doxygen
+
+*OK* commit b0c120b7b5e2d08336aec329e1220c8147cf4c01
+Author: Henry <Henry>
+Date:   Sat Jan 10 21:58:19 2015 +0000
+
+    wmake/scripts/AllwmakeParseArguments: Handle stop-on-error
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1485
+
+*OK* commit fd6459c556ea1ee97a70f808580431ca28b5fea3
+Author: Henry <Henry>
+Date:   Sat Jan 10 21:12:27 2015 +0000
+
+    Corrected typo
+
+*OK* commit 49b27c838f536be837055ea02c4040f2d9cdec84
+Author: Henry <Henry>
+Date:   Sat Jan 10 21:10:24 2015 +0000
+
+    Added missing file
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1484
+
+*OK* commit 24d054199d19ee77110cb89d3e87cef5b2e91bad
+Author: Henry <Henry>
+Date:   Sat Jan 10 17:23:20 2015 +0000
+
+    wmake/wcleanAll: Corrected typo
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1483
+
+*OK* commit 1a084b8954c0cb4e274128089825f48d4fb0e200
+Author: Henry <Henry>
+Date:   Sat Jan 10 12:26:39 2015 +0000
+
+    wallDist: Add support for distance to any patch set
+
+*OK* commit 0123afd3e3a0b272a5b5f08591fad7502f3322cf
+Author: Henry <Henry>
+Date:   Sat Jan 10 11:27:14 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Added more description including specification of relaxation
+
+*OK* commit c29c13b742cb6c696efff2271867a75777b7f7b8
+Author: Henry <Henry>
+Date:   Fri Jan 9 23:17:24 2015 +0000
+
+    wallDist: Added nRequired option to the wallDist dict
+
+*OK* commit 4b4fce2c02674a7fc4478e4c3f0e92249f8290a3
+Author: Henry <Henry>
+Date:   Fri Jan 9 22:05:32 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Only run the predictor method on first call
+    Improves efficiency for moving-mesh cases
+
+*OK* commit 28ec2c2a06ac6910594cf0208e16d8b39bc187a0
+Author: Henry <Henry>
+Date:   Fri Jan 9 21:41:21 2015 +0000
+
+    wallDist: moved patchTypes into patchDistMethod
+
+*OK* commit 014c602f4a36c40d52b8d8059d2f2a31d3cec375
+Author: Henry <Henry>
+Date:   Fri Jan 9 16:18:49 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Added comment concerning predictor step
+
+*OK* commit cb3cd0afb031e477482d46f8e64119dcb87cb138
+Author: Henry <Henry>
+Date:   Fri Jan 9 16:12:58 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Calculation of approximate distance to nearest patch for all cells
+    and boundary by solving the Eikonal equation in advection form with diffusion smoothing.
+
+*OK* commit 113f7a9d7bd952bd9f274c42ca52f3470582bd25
+Author: Henry <Henry>
+Date:   Thu Jan 8 23:10:41 2015 +0000
+
+    Fixed a typo
+
+*OK* commit 4a411a62c6942a0b6d1dbc38e7983eca60079d4d
+Author: Henry <Henry>
+Date:   Thu Jan 8 22:43:42 2015 +0000
+
+    wallDist/patchDistMethods/Poisson: New method for fast calculation of an approximate wall-distance field
+    by solving Poisson's equation
+
+*OK* commit e61ac9d842485b5a782a32ed074396e2d619e32b
+Author: Henry <Henry>
+Date:   Thu Jan 8 17:21:07 2015 +0000
+
+    wallDist: Set BCs for y and n appropriately for solving PDEs
+
+*OK* commit 22869d6e380294f02e45b6dbd30a714c1df73ee2
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:25:48 2015 +0000
+
+    Updated header
+
+*OK* commit 5d5c397c44b01a74ebf6308e9d6fdc550da3597e
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:25:17 2015 +0000
+
+    twoPhaseEulerFoam: removed unnecessary fvc.H
+
+*OK*commit 501edb4bcaf0ecfba9d49d53c8104c865830e584
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:11:28 2015 +0000
+
+    Update headers
+
+*CHECK* commit 6f0b2c1727ee9ce02093fb7c40663e44adf29e58
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:08:53 2015 +0000
+
+    wallDist: Add support for cached wall-reflection vectors
+    Currently these vectors are generated at the same time as the wall-distance field
+    by the same run-time selected algorithm.  This will be changed so that the wall-reflection
+    vectors are only generated and stored if required.
+
+*OK* commit 7900e9ea9ebc87b9dbeb821b1e48d62223bb850e
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:45:47 2015 +0000
+
+    Updated headers
+
+*OK* commit bb2c2efd49f156de17736c6c53d20a4d16b9eed2
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:40:23 2015 +0000
+
+    wallDist: now a MeshObject cached and updated automatically with a run-time selected algorithm
+    
+    When using models which require the wallDist e.g. kOmegaSST it will
+    request the method to be used from the wallDist sub-dictionary in
+    fvSchemes e.g.
+    
+    wallDist
+    {
+        method meshWave;
+    }
+    
+    specifies the mesh-wave method as hard-coded in previous OpenFOAM versions.
+
+*OK* commit 2028973e19af2b840729c9f8e78528953bde7ef9
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:38:25 2015 +0000
+
+    MeshObject: Improved diagnostics
+
+*OK* commit 28aa1141e97559951c3b7e94e27f776f51486a2f
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:36:37 2015 +0000
+
+    wrmdep: Replacement for rmdepall
+    Remove all .dep files from the object directory tree corresponding to the
+    current source derectory or remove only the .dep files referring to the
+    optionally specified [file].
+
 *OK* commit ba0393358f3599e511417484e95db46290157d5d
 Author: Henry <Henry>
 Date:   Tue Jan 6 17:32:02 2015 +0000
