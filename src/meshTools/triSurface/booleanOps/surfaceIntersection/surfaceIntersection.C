@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -815,7 +815,7 @@ Foam::surfaceIntersection::surfaceIntersection
 }
 
 
-// Construct from full intersection Poutrmation
+// Construct from full intersection information
 Foam::surfaceIntersection::surfaceIntersection
 (
     const triSurface& surf1,
