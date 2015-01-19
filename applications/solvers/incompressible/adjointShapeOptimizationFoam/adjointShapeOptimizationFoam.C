@@ -219,6 +219,7 @@ int main(int argc, char *argv[])
             Ua.correctBoundaryConditions();
         }
 
+        laminarTransport.correct();
         turbulence->correct();
 
         runTime.write();

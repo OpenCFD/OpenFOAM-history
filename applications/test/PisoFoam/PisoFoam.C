@@ -63,8 +63,8 @@ Description
 
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
-#include "IncompressibleTurbulenceModel.H"
 #include "pimpleControl.H"
+#include "turbulenceModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
                 (
                     "phiHbyA",
                     (fvc::interpolate(HbyA) & mesh.Sf())
-                  + fvc::interpolate(rAU)*fvc::ddtCorr(U, phi)
+                  + fvc::ddtCorr(rAU, U, phi)
                 );
 
                 adjustPhi(phiHbyA, U, p);
@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
             }
         }
 
+        laminarTransport.correct();
         turbulence->correct();
 
         runTime.write();
