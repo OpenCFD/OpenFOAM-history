@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,6 +26,7 @@ License
 #include "isoSurfaceCell.H"
 #include "polyMesh.H"
 #include "tetMatcher.H"
+#include "isoSurface.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -372,22 +373,18 @@ void Foam::isoSurfaceCell::generateTriPoints
                     (
                         snappedPoints,
 
-                        //pVals_[f0[1]],
                         pVals[f0[1]],
                         pCoords[f0[1]],
                         snappedPoint[f0[1]],
 
-                        //pVals_[f0[0]],
                         pVals[f0[0]],
                         pCoords[f0[0]],
                         snappedPoint[f0[0]],
 
-                        //pVals_[f0[2]],
                         pVals[f0[2]],
                         pCoords[f0[2]],
                         snappedPoint[f0[2]],
 
-                        //pVals_[oppositeI],
                         pVals[oppositeI],
                         pCoords[oppositeI],
                         snappedPoint[oppositeI],
@@ -401,22 +398,18 @@ void Foam::isoSurfaceCell::generateTriPoints
                     (
                         snappedPoints,
 
-                        //pVals_[f0[0]],
                         pVals[f0[0]],
                         pCoords[f0[0]],
                         snappedPoint[f0[0]],
 
-                        //pVals_[f0[1]],
                         pVals[f0[1]],
                         pCoords[f0[1]],
                         snappedPoint[f0[1]],
 
-                        //pVals_[f0[2]],
                         pVals[f0[2]],
                         pCoords[f0[2]],
                         snappedPoint[f0[2]],
 
-                        //pVals_[oppositeI],
                         pVals[oppositeI],
                         pCoords[oppositeI],
                         snappedPoint[oppositeI],
@@ -450,22 +443,18 @@ void Foam::isoSurfaceCell::generateTriPoints
                             (
                                 snappedPoints,
 
-                                //pVals_[tri[1]],
                                 pVals[tri[1]],
                                 pCoords[tri[1]],
                                 snappedPoint[tri[1]],
 
-                                //pVals_[tri[0]],
                                 pVals[tri[0]],
                                 pCoords[tri[0]],
                                 snappedPoint[tri[0]],
 
-                                //pVals_[tri[2]],
                                 pVals[tri[2]],
                                 pCoords[tri[2]],
                                 snappedPoint[tri[2]],
 
-                                //cVals_[cellI],
                                 cVals[cellI],
                                 cCoords[cellI],
                                 snappedCc[cellI],
@@ -479,22 +468,18 @@ void Foam::isoSurfaceCell::generateTriPoints
                             (
                                 snappedPoints,
 
-                                //pVals_[tri[0]],
                                 pVals[tri[0]],
                                 pCoords[tri[0]],
                                 snappedPoint[tri[0]],
 
-                                //pVals_[tri[1]],
                                 pVals[tri[1]],
                                 pCoords[tri[1]],
                                 snappedPoint[tri[1]],
 
-                                //pVals_[tri[2]],
                                 pVals[tri[2]],
                                 pCoords[tri[2]],
                                 snappedPoint[tri[2]],
 
-                                //cVals_[cellI],
                                 cVals[cellI],
                                 cCoords[cellI],
                                 snappedCc[cellI],
@@ -523,60 +508,6 @@ void Foam::isoSurfaceCell::generateTriPoints
 }
 
 
-//template<class Type>
-//Foam::tmp<Foam::Field<Type> >
-//Foam::isoSurfaceCell::interpolate
-//(
-//    const scalarField& cVals,
-//    const scalarField& pVals,
-//    const Field<Type>& cCoords,
-//    const Field<Type>& pCoords
-//) const
-//{
-//    DynamicList<Type> triPoints(nCutCells_);
-//    DynamicList<label> triMeshCells(nCutCells_);
-//
-//    // Dummy snap data
-//    DynamicList<Type> snappedPoints;
-//    labelList snappedCc(mesh_.nCells(), -1);
-//    labelList snappedPoint(mesh_.nPoints(), -1);
-//
-//
-//    generateTriPoints
-//    (
-//        cVals,
-//        pVals,
-//
-//        cCoords,
-//        pCoords,
-//
-//        snappedPoints,
-//        snappedCc,
-//        snappedPoint,
-//
-//        triPoints,
-//        triMeshCells
-//    );
-//
-//
-//    // One value per point
-//    tmp<Field<Type> > tvalues(new Field<Type>(points().size()));
-//    Field<Type>& values = tvalues();
-//
-//    forAll(triPoints, i)
-//    {
-//        label mergedPointI = triPointMergeMap_[i];
-//
-//        if (mergedPointI >= 0)
-//        {
-//            values[mergedPointI] = triPoints[i];
-//        }
-//    }
-//
-//    return tvalues;
-//}
-
-
 template<class Type>
 Foam::tmp<Foam::Field<Type> >
 Foam::isoSurfaceCell::interpolate
@@ -585,14 +516,13 @@ Foam::isoSurfaceCell::interpolate
     const Field<Type>& pCoords
 ) const
 {
-    DynamicList<Type> triPoints(nCutCells_);
+    DynamicList<Type> triPoints(3*nCutCells_);
     DynamicList<label> triMeshCells(nCutCells_);
 
     // Dummy snap data
     DynamicList<Type> snappedPoints;
     labelList snappedCc(mesh_.nCells(), -1);
     labelList snappedPoint(mesh_.nPoints(), -1);
-
 
     generateTriPoints
     (
@@ -610,22 +540,15 @@ Foam::isoSurfaceCell::interpolate
         triMeshCells
     );
 
-
-    // One value per point
-    tmp<Field<Type> > tvalues(new Field<Type>(points().size()));
-    Field<Type>& values = tvalues();
-
-    forAll(triPoints, i)
-    {
-        label mergedPointI = triPointMergeMap_[i];
-
-        if (mergedPointI >= 0)
-        {
-            values[mergedPointI] = triPoints[i];
-        }
-    }
-
-    return tvalues;
+    return isoSurface::interpolate
+    (
+        points().size(),
+        triPointMergeMap_,
+        interpolatedPoints_,
+        interpolatedOldPoints_,
+        interpolationWeights_,
+        triPoints
+    );
 }
 
 

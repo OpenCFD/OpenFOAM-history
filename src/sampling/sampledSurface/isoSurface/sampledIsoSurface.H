@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -97,7 +97,6 @@ class sampledIsoSurface
             mutable const volScalarField* volFieldPtr_;
 
             //- Cached pointfield
-            mutable autoPtr<pointScalarField> storedPointFieldPtr_;
             mutable const pointScalarField* pointFieldPtr_;
 
             // And on subsetted mesh

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -111,9 +111,23 @@ void Foam::sampledIsoSurface::getIsoFields() const
     // Get pointField
     // ~~~~~~~~~~~~~~
 
+    // In case of multiple iso values we don't want to calculate multiple e.g.
+    // "volPointInterpolate(p)" so register it and re-use it. This is the
+    // same as the 'cache' functionality from volPointInterpolate but
+    // unfortunately that one does not guarantee that the field pointer
+    // remain: e.g. some other
+    // functionObject might delete the cached version.
+    // (volPointInterpolation::interpolate with cache=false deletes any
+    //  registered one or if mesh.changing())
+
     if (!subMeshPtr_.valid())
     {
-        word pointFldName = "volPointInterpolate(" + isoField_ + ')';
+        const word pointFldName =
+            "volPointInterpolate_"
+          + type()
+          + "("
+          + isoField_
+          + ')';
 
         if (fvm.foundObject<pointScalarField>(pointFldName))
         {
@@ -122,7 +136,28 @@ void Foam::sampledIsoSurface::getIsoFields() const
                 Info<< "sampledIsoSurface::getIsoField() : lookup pointField "
                     << pointFldName << endl;
             }
-            pointFieldPtr_ = &fvm.lookupObject<pointScalarField>(pointFldName);
+            const pointScalarField& pfld = fvm.lookupObject<pointScalarField>
+            (
+                pointFldName
+            );
+
+            if (!pfld.upToDate(*volFieldPtr_))
+            {
+                if (debug)
+                {
+                    Info<< "sampledIsoSurface::getIsoField() :"
+                        << " updating pointField "
+                        << pointFldName << endl;
+                }
+                // Update the interpolated value
+                volPointInterpolation::New(fvm).interpolate
+                (
+                    *volFieldPtr_,
+                    const_cast<pointScalarField&>(pfld)
+                );
+            }
+
+            pointFieldPtr_ = &pfld;
         }
         else
         {
@@ -135,27 +170,17 @@ void Foam::sampledIsoSurface::getIsoFields() const
                     << fvm.time().timeName() << endl;
             }
 
-            if
+            tmp<pointScalarField> tpfld
             (
-                storedPointFieldPtr_.empty()
-             || (fvm.time().timeName() != storedPointFieldPtr_().instance())
-            )
-            {
-                if (debug)
-                {
-                    Info<< "sampledIsoSurface::getIsoField() :"
-                        << " interpolating volField " << volFieldPtr_->name()
-                        << " to get pointField " << pointFldName << endl;
-                }
-
-                storedPointFieldPtr_.reset
+                volPointInterpolation::New(fvm).interpolate
                 (
-                    volPointInterpolation::New(fvm)
-                    .interpolate(*volFieldPtr_).ptr()
-                );
-                storedPointFieldPtr_->checkOut();
-                pointFieldPtr_ = storedPointFieldPtr_.operator->();
-            }
+                    *volFieldPtr_,
+                    pointFldName,
+                    false
+                )
+            );
+            pointFieldPtr_ = tpfld.ptr();
+            const_cast<pointScalarField*>(pointFieldPtr_)->store();
         }
 
 
@@ -169,7 +194,6 @@ void Foam::sampledIsoSurface::getIsoFields() const
             );
             volFieldPtr_ = storedVolFieldPtr_.operator->();
         }
-
 
         if (debug)
         {
@@ -221,8 +245,10 @@ void Foam::sampledIsoSurface::getIsoFields() const
 
         // Pointfield on submesh
 
-        word pointFldName =
-            "volPointInterpolate("
+        const word pointFldName =
+            "volPointInterpolate_"
+          + type()
+          + "("
           + volSubFieldPtr_->name()
           + ')';
 
@@ -338,11 +364,13 @@ bool Foam::sampledIsoSurface::updateGeometry() const
 
     if (subMeshPtr_.valid())
     {
+        const volScalarField& vfld = *volSubFieldPtr_;
+
         surfPtr_.reset
         (
             new isoSurface
             (
-                *volSubFieldPtr_,
+                vfld,
                 *pointSubFieldPtr_,
                 isoVal_,
                 regularise_,
@@ -353,11 +381,13 @@ bool Foam::sampledIsoSurface::updateGeometry() const
     }
     else
     {
+        const volScalarField& vfld = *volFieldPtr_;
+
         surfPtr_.reset
         (
             new isoSurface
             (
-                *volFieldPtr_,
+                vfld,
                 *pointFieldPtr_,
                 isoVal_,
                 regularise_,
@@ -414,7 +444,6 @@ Foam::sampledIsoSurface::sampledIsoSurface
     prevTimeIndex_(-1),
     storedVolFieldPtr_(NULL),
     volFieldPtr_(NULL),
-    storedPointFieldPtr_(NULL),
     pointFieldPtr_(NULL)
 {
     if (!sampledSurface::interpolate())

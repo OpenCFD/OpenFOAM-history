@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -56,6 +56,7 @@ namespace Foam
 {
 
 class polyMesh;
+class plane;
 
 /*---------------------------------------------------------------------------*\
                        Class isoSurfaceCell Declaration
@@ -109,6 +110,15 @@ class isoSurfaceCell
 
         //- For every unmerged triangle point the point in the triSurface
         labelList triPointMergeMap_;
+
+        //- triSurface points that have weighted interpolation
+        DynamicList<label> interpolatedPoints_;
+
+        //- corresponding original, unmerged points
+        DynamicList<FixedList<label, 3> > interpolatedOldPoints_;
+
+        //- corresponding weights
+        DynamicList<FixedList<scalar, 3> > interpolationWeights_;
 
 
     // Private Member Functions
@@ -271,27 +281,6 @@ class isoSurfaceCell
             Map<labelList>& edgeFacesRest
         ) const;
 
-        ////- Determine orientation
-        //static void walkOrientation
-        //(
-        //    const triSurface& surf,
-        //    const List<FixedList<label, 3> >& faceEdges,
-        //    const labelList& edgeFace0,
-        //    const labelList& edgeFace1,
-        //    const label seedTriI,
-        //    labelList& flipState
-        //);
-
-        ////- Orient surface
-        //static void orientSurface
-        //(
-        //    triSurface&,
-        //    const List<FixedList<label, 3> >& faceEdges,
-        //    const labelList& edgeFace0,
-        //    const labelList& edgeFace1,
-        //    const Map<labelList>& edgeFacesRest
-        //);
-
         //- Is triangle (given by 3 edges) not fully connected?
         static bool danglingTriangle
         (
@@ -317,8 +306,6 @@ class isoSurfaceCell
             labelList& newToOldPoints
         );
 
-        //- Combine all triangles inside a cell into a minimal triangulation
-        void combineCellTriangles();
 
 public:
 
@@ -347,12 +334,6 @@ public:
         const labelList& meshCells() const
         {
             return meshCells_;
-        }
-
-        //- For every unmerged triangle point the point in the triSurface
-        const labelList triPointMergeMap() const
-        {
-            return triPointMergeMap_;
         }
 
         //- Interpolates cCoords,pCoords.
