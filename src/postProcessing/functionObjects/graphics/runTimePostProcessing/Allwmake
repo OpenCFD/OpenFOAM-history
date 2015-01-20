@@ -12,6 +12,7 @@ findObjectDir dummy.C
 depDir="$objectsDir"
 
 if [ -d "$VTK_DIR" -o  -d "$ParaView_DIR" ]
+then
     (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
 else
     echo "ERROR: Build of $PWD requires a valid VTK installation which"
