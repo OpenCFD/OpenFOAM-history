@@ -327,7 +327,7 @@ Foam::InjectionModel<CloudType>::InjectionModel
     time0_(owner.db().time().value()),
     timeStep0_(this->template getModelProperty<scalar>("timeStep0")),
     delayedVolume_(0.0),
-    injectorID_(this->coeffDict().lookupOrDefault("typeID", -1))
+    injectorID_(this->coeffDict().lookupOrDefault("injectorID", -1))
 {
     // Provide some info
     // - also serves to initialise mesh dimensions - needed for parallel runs
@@ -335,17 +335,24 @@ Foam::InjectionModel<CloudType>::InjectionModel
     Info<< "    Constructing " << owner.mesh().nGeometricD() << "-D injection"
         << endl;
 
+    if (injectorID_ != -1)
+    {
+        Info<< "    injector ID: " << injectorID_ << endl;
+    }
+
     if (owner.solution().transient())
     {
         this->coeffDict().lookup("massTotal") >> massTotal_;
         this->coeffDict().lookup("SOI") >> SOI_;
-        SOI_ = owner.db().time().userTimeToTime(SOI_);
     }
     else
     {
         massFlowRate_.reset(this->coeffDict());
         massTotal_ = massFlowRate_.value(owner.db().time().value());
+        this->coeffDict().readIfPresent("SOI", SOI_);
     }
+
+    SOI_ = owner.db().time().userTimeToTime(SOI_);
 
     const word parcelBasisType = this->coeffDict().lookup("parcelBasisType");
 
@@ -596,7 +603,7 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
 
                         if (pPtr->move(td, dt))
                         {
-                            pPtr->typeID() = injectorID_;
+                            pPtr->typeId() = injectorID_;
                             cloud.addParticle(pPtr);
                         }
                         else
@@ -629,6 +636,13 @@ void Foam::InjectionModel<CloudType>::injectSteadyState
 )
 {
     if (!this->active())
+    {
+        return;
+    }
+
+    const scalar time = this->owner().db().time().value();
+
+    if (time < SOI_)
     {
         return;
     }
@@ -702,7 +716,7 @@ void Foam::InjectionModel<CloudType>::injectSteadyState
                     pPtr->rho()
                 );
 
-            pPtr->typeID() = injectorID_;
+            pPtr->typeId() = injectorID_;
 
             // Add the new parcel
             cloud.addParticle(pPtr);
