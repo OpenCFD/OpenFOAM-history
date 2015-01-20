@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -64,7 +64,6 @@ void thixotropicViscosity::updateMu()
     const dimensionedScalar mSMALL("SMALL", dimMass, ROOTVSMALL);
     const volScalarField deltaMass("deltaMass", max(m0, film.deltaMass()));
     const volScalarField filmMass("filmMass", film.netMass() + mSMALL);
-    const volScalarField mask(pos(film.delta() - film.deltaSmall()));
 
     // weighting field to blend new and existing mass contributions
     const volScalarField w
@@ -74,9 +73,7 @@ void thixotropicViscosity::updateMu()
     );
 
     // set new viscosity
-    mu_ =
-        mask*muInf_/(sqr(1.0 - K_*(1.0 - w)*lambda_) + ROOTVSMALL)
-      + (1 - mask)*muInf_;
+    mu_ = w*muInf_ + (1 - w)*(muInf_/(sqr(1.0 - K_*lambda_) + ROOTVSMALL));
     mu_.correctBoundaryConditions();
 }
 
@@ -109,7 +106,11 @@ thixotropicViscosity::thixotropicViscosity
             IOobject::AUTO_WRITE
         ),
         owner.regionMesh()
-    )
+    ),
+    ArrheniusTemperature_(readBool(coeffDict_.lookup("ArrheniusTemperature"))),
+    k1_("k1", dimTemperature, 0),
+    k2_("k2", dimTemperature, 0),
+    Tref_("Tref", dimTemperature, 0)
 {
     lambda_.min(1.0);
     lambda_.max(0.0);
@@ -119,6 +120,14 @@ thixotropicViscosity::thixotropicViscosity
     //   cannot be evaluated yet (still in construction)
     mu_ = muInf_;
     mu_.correctBoundaryConditions();
+
+    // Read optional entries when employing Arrhenius temperature model
+    if (ArrheniusTemperature_)
+    {
+        coeffDict_.lookup("k1") >> k1_.value();
+        coeffDict_.lookup("k2") >> k2_.value();
+        coeffDict_.lookup("Tref") >> Tref_.value();
+    }
 }
 
 
@@ -145,6 +154,7 @@ void thixotropicViscosity::correct
     const volScalarField& deltaRho = film.deltaRho();
     const surfaceScalarField& phi = film.phi();
     const volScalarField& alpha = film.alpha();
+    const volScalarField mask(pos(film.delta() - film.deltaSmall()));
 
     // gamma-dot (shear rate)
     volScalarField gDot("gDot", alpha*mag(U - Uw)/(delta + film.deltaSmall()));
@@ -175,10 +185,17 @@ void thixotropicViscosity::correct
 
     lambdaEqn.solve();
 
+    lambda_ *= mask;
     lambda_.min(1.0);
     lambda_.max(0.0);
 
     updateMu();
+
+    if (ArrheniusTemperature_)
+    {
+        mu_ *= exp(k1_*((1/(T + k2_)) - 1/(Tref_ + k2_)));
+        mu_.correctBoundaryConditions();
+    }
 }
 
 

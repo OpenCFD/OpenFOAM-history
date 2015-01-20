@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -121,7 +121,13 @@ Foam::scalar Foam::ReactingMultiphaseParcel<ParcelType>::updateMassFractions
 
     YMix[GAS] = massGas/massNew;
     YMix[LIQ] = massLiquid/massNew;
-    YMix[SLD] = 1.0 - YMix[GAS] - YMix[LIQ];
+    YMix[SLD] = massSolid/massNew;
+
+    scalar Ytotal = sum(YMix);
+
+    YMix[GAS] /= Ytotal;
+    YMix[LIQ] /= Ytotal;
+    YMix[SLD] /= Ytotal;
 
     return massNew;
 }
@@ -318,27 +324,10 @@ void Foam::ReactingMultiphaseParcel<ParcelType>::calc
         dhsTrans
     );
 
-
-    // 2. Update the parcel properties due to change in mass
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    scalarField dMassGas(dMassDV + dMassSRGas);
-    scalarField dMassLiquid(dMassPC + dMassSRLiquid);
-    scalarField dMassSolid(dMassSRSolid);
-    scalar mass1 =
-        updateMassFractions(mass0, dMassGas, dMassLiquid, dMassSolid);
-
-    this->Cp_ = CpEff(td, pc, T0, idG, idL, idS);
-
-    // Update particle density or diameter
-    if (td.cloud().constProps().constantVolume())
-    {
-        this->rho_ = mass1/this->volume();
-    }
-    else
-    {
-        this->d_ = cbrt(mass1/this->rho_*6.0/pi);
-    }
+    const scalarField dMassGas(dMassDV + dMassSRGas);
+    const scalarField dMassLiquid(dMassPC + dMassSRLiquid);
+    const scalarField dMassSolid(dMassSRSolid);
+    scalar mass1 = mass0 - sum(dMassGas) - sum(dMassLiquid) - sum(dMassSolid);
 
     // Remove the particle when mass falls below minimum threshold
     if (np0*mass1 < td.cloud().constProps().minParticleMass())
@@ -376,6 +365,22 @@ void Foam::ReactingMultiphaseParcel<ParcelType>::calc
         }
 
         return;
+    }
+
+
+    // 2. Update the parcel properties due to change in mass
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    (void)updateMassFractions(mass0, dMassGas, dMassLiquid, dMassSolid);
+
+    // Update particle density or diameter
+    if (td.cloud().constProps().constantVolume())
+    {
+        this->rho_ = mass1/this->volume();
+    }
+    else
+    {
+        this->d_ = cbrt(mass1/this->rho_*6.0/pi);
     }
 
     // Correct surface values due to emitted species
