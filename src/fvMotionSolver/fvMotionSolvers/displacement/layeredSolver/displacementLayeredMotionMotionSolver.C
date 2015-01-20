@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,6 +44,13 @@ namespace Foam
         motionSolver,
         displacementLayeredMotionMotionSolver,
         dictionary
+    );
+
+    addToRunTimeSelectionTable
+    (
+        displacementMotionSolver,
+        displacementLayeredMotionMotionSolver,
+        displacement
     );
 }
 
@@ -528,6 +535,19 @@ displacementLayeredMotionMotionSolver
 )
 :
     displacementMotionSolver(mesh, dict, typeName)
+{}
+
+
+Foam::displacementLayeredMotionMotionSolver::
+displacementLayeredMotionMotionSolver
+(
+    const polyMesh& mesh,
+    const IOdictionary& dict,
+    const pointVectorField& pointDisplacement,
+    const pointIOField& points0
+)
+:
+    displacementMotionSolver(mesh, dict, pointDisplacement, points0, typeName)
 {}
 
 

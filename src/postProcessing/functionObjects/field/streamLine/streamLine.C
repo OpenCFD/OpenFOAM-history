@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,18 +23,10 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Pstream.H"
-#include "functionObjectList.H"
 #include "streamLine.H"
 #include "fvMesh.H"
 #include "streamLineParticleCloud.H"
-#include "ReadFields.H"
-#include "meshSearch.H"
 #include "sampledSet.H"
-#include "globalIndex.H"
-#include "mapDistribute.H"
-#include "interpolationCellPoint.H"
-#include "PatchTools.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -46,60 +38,9 @@ defineTypeNameAndDebug(streamLine, 0);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::indirectPrimitivePatch>
-Foam::streamLine::wallPatch() const
-{
-    const fvMesh& mesh = dynamic_cast<const fvMesh&>(obr_);
-
-    const polyBoundaryMesh& patches = mesh.boundaryMesh();
-
-    label nFaces = 0;
-
-    forAll(patches, patchI)
-    {
-        //if (!polyPatch::constraintType(patches[patchI].type()))
-        if (isA<wallPolyPatch>(patches[patchI]))
-        {
-            nFaces += patches[patchI].size();
-        }
-    }
-
-    labelList addressing(nFaces);
-
-    nFaces = 0;
-
-    forAll(patches, patchI)
-    {
-        //if (!polyPatch::constraintType(patches[patchI].type()))
-        if (isA<wallPolyPatch>(patches[patchI]))
-        {
-            const polyPatch& pp = patches[patchI];
-
-            forAll(pp, i)
-            {
-                addressing[nFaces++] = pp.start()+i;
-            }
-        }
-    }
-
-    return autoPtr<indirectPrimitivePatch>
-    (
-        new indirectPrimitivePatch
-        (
-            IndirectList<face>
-            (
-                mesh.faces(),
-                addressing
-            ),
-            mesh.points()
-        )
-    );
-}
-
-
 void Foam::streamLine::track()
 {
-    const Time& runTime = obr_.time();
+    //const Time& runTime = obr_.time();
     const fvMesh& mesh = dynamic_cast<const fvMesh&>(obr_);
 
     IDLList<streamLineParticle> initialParticles;
@@ -135,164 +76,17 @@ void Foam::streamLine::track()
     PtrList<interpolation<scalar> > vsInterp;
     PtrList<volVectorField> vvFlds;
     PtrList<interpolation<vector> > vvInterp;
-
     label UIndex = -1;
 
-    if (loadFromFiles_)
-    {
-        IOobjectList allObjects(mesh, runTime.timeName());
-
-        IOobjectList objects(2*fields_.size());
-        forAll(fields_, i)
-        {
-            objects.add(*allObjects[fields_[i]]);
-        }
-
-        ReadFields(mesh, objects, vsFlds);
-        vsInterp.setSize(vsFlds.size());
-        forAll(vsFlds, i)
-        {
-            vsInterp.set
-            (
-                i,
-                interpolation<scalar>::New
-                (
-                    interpolationScheme_,
-                    vsFlds[i]
-                )
-            );
-        }
-        ReadFields(mesh, objects, vvFlds);
-        vvInterp.setSize(vvFlds.size());
-        forAll(vvFlds, i)
-        {
-            vvInterp.set
-            (
-                i,
-                interpolation<vector>::New
-                (
-                    interpolationScheme_,
-                    vvFlds[i]
-                )
-            );
-        }
-    }
-    else
-    {
-        label nScalar = 0;
-        label nVector = 0;
-
-        forAll(fields_, i)
-        {
-            if (mesh.foundObject<volScalarField>(fields_[i]))
-            {
-                nScalar++;
-            }
-            else if (mesh.foundObject<volVectorField>(fields_[i]))
-            {
-                nVector++;
-            }
-            else
-            {
-                FatalErrorIn("streamLine::track()")
-                    << "Cannot find field " << fields_[i] << nl
-                    << "Valid scalar fields are:"
-                    << mesh.names(volScalarField::typeName) << nl
-                    << "Valid vector fields are:"
-                    << mesh.names(volVectorField::typeName)
-                    << exit(FatalError);
-            }
-        }
-        vsInterp.setSize(nScalar);
-        nScalar = 0;
-        vvInterp.setSize(nVector);
-        nVector = 0;
-
-        forAll(fields_, i)
-        {
-            if (mesh.foundObject<volScalarField>(fields_[i]))
-            {
-                const volScalarField& f = mesh.lookupObject<volScalarField>
-                (
-                    fields_[i]
-                );
-                vsInterp.set
-                (
-                    nScalar++,
-                    interpolation<scalar>::New
-                    (
-                        interpolationScheme_,
-                        f
-                    )
-                );
-            }
-            else if (mesh.foundObject<volVectorField>(fields_[i]))
-            {
-                const volVectorField& f = mesh.lookupObject<volVectorField>
-                (
-                    fields_[i]
-                );
-
-                if (f.name() == UName_)
-                {
-                    UIndex = nVector;
-                }
-
-                vvInterp.set
-                (
-                    nVector++,
-                    interpolation<vector>::New
-                    (
-                        interpolationScheme_,
-                        f
-                    )
-                );
-            }
-        }
-    }
-
-    // Store the names
-    scalarNames_.setSize(vsInterp.size());
-    forAll(vsInterp, i)
-    {
-        scalarNames_[i] = vsInterp[i].psi().name();
-    }
-    vectorNames_.setSize(vvInterp.size());
-    forAll(vvInterp, i)
-    {
-        vectorNames_[i] = vvInterp[i].psi().name();
-    }
-
-    // Check that we know the index of U in the interpolators.
-
-    if (UIndex == -1)
-    {
-        FatalErrorIn("streamLine::track()")
-            << "Cannot find field to move particles with : " << UName_ << nl
-            << "This field has to be present in the sampled fields " << fields_
-            << " and in the objectRegistry."
-            << exit(FatalError);
-    }
-
-    // Sampled data
-    // ~~~~~~~~~~~~
-
-    // Size to maximum expected sizes.
-    allTracks_.clear();
-    allTracks_.setCapacity(nSeeds);
-    allScalars_.setSize(vsInterp.size());
-    forAll(allScalars_, i)
-    {
-        allScalars_[i].clear();
-        allScalars_[i].setCapacity(nSeeds);
-    }
-    allVectors_.setSize(vvInterp.size());
-    forAll(allVectors_, i)
-    {
-        allVectors_[i].clear();
-        allVectors_[i].setCapacity(nSeeds);
-    }
-
+    initInterpolations
+    (
+        nSeeds,
+        UIndex,
+        vsFlds,
+        vsInterp,
+        vvFlds,
+        vvInterp
+    );
 
     // additional particle info
     streamLineParticle::trackingData td
@@ -330,12 +124,7 @@ Foam::streamLine::streamLine
     const bool loadFromFiles
 )
 :
-    functionObjectState(obr, name),
-    dict_(dict),
-    obr_(obr),
-    loadFromFiles_(loadFromFiles),
-    log_(true),
-    nSubCycle_(0)
+    streamLineBase(name, obr, dict, loadFromFiles)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
     if (setActive<fvMesh>())
@@ -357,47 +146,7 @@ void Foam::streamLine::read(const dictionary& dict)
 {
     if (active_)
     {
-        log_.readIfPresent("log", dict);
-
-        Info(log_)<< type() << " " << name_ << ":" << nl;
-
-        //dict_ = dict;
-        dict.lookup("fields") >> fields_;
-        if (dict.found("UName"))
-        {
-            dict.lookup("UName") >> UName_;
-        }
-        else
-        {
-            UName_ = "U";
-            if (dict.found("U"))
-            {
-                IOWarningIn("streamLine::read(const dictionary&)", dict)
-                    << "Using deprecated entry \"U\"."
-                    << " Please use \"UName\" instead."
-                    << endl;
-                dict.lookup("U") >> UName_;
-            }
-        }
-
-        if (findIndex(fields_, UName_) == -1)
-        {
-            FatalIOErrorIn("streamLine::read(const dictionary&)", dict)
-                << "Velocity field for tracking " << UName_
-                << " should be present in the list of fields " << fields_
-                << exit(FatalIOError);
-        }
-
-
-        dict.lookup("trackForward") >> trackForward_;
-        dict.lookup("lifeTime") >> lifeTime_;
-        if (lifeTime_ < 1)
-        {
-            FatalErrorIn(":streamLine::read(const dictionary&)")
-                << "Illegal value " << lifeTime_ << " for lifeTime"
-                << exit(FatalError);
-        }
-
+        streamLineBase::read(dict);
 
         bool subCycling = dict.found("nSubCycle");
         bool fixedLength = dict.found("trackLength");
@@ -411,7 +160,6 @@ void Foam::streamLine::read(const dictionary& dict)
                 << exit(FatalIOError);
         }
 
-
         nSubCycle_ = 1;
         if (dict.readIfPresent("nSubCycle", nSubCycle_))
         {
@@ -424,377 +172,8 @@ void Foam::streamLine::read(const dictionary& dict)
                 << "    automatic track length specified through"
                 << " number of sub cycles : " << nSubCycle_ << nl << endl;
         }
-        else
-        {
-            dict.lookup("trackLength") >> trackLength_;
-
-            Info(log_)
-                << "    fixed track length specified : "
-                << trackLength_ << nl << endl;
-        }
-
-
-        interpolationScheme_ = dict.lookupOrDefault
-        (
-            "interpolationScheme",
-            interpolationCellPoint<scalar>::typeName
-        );
-
-        //Info(log_)<< "    using interpolation " << interpolationScheme_
-        //    << endl;
-
-        cloudName_ = dict.lookupOrDefault<word>("cloudName", "streamLine");
-        dict.lookup("seedSampleSet") >> seedSet_;
-
-        const fvMesh& mesh = dynamic_cast<const fvMesh&>(obr_);
-
-        meshSearchPtr_.reset(new meshSearch(mesh));
-
-        const dictionary& coeffsDict = dict.subDict(seedSet_ + "Coeffs");
-        sampledSetPtr_ = sampledSet::New
-        (
-            seedSet_,
-            mesh,
-            meshSearchPtr_(),
-            coeffsDict
-        );
-        coeffsDict.lookup("axis") >> sampledSetAxis_;
-
-        scalarFormatterPtr_ = writer<scalar>::New(dict.lookup("setFormat"));
-        vectorFormatterPtr_ = writer<vector>::New(dict.lookup("setFormat"));
     }
 }
-
-
-void Foam::streamLine::execute()
-{
-//    const Time& runTime = obr_.time();
-//    Pout<< "**streamLine::execute : time:" << runTime.timeName() << endl;
-//
-//    bool isOutputTime = false;
-//
-//    const functionObjectList& fobs = runTime.functionObjects();
-//
-//    forAll(fobs, i)
-//    {
-//        if (isA<streamLineFunctionObject>(fobs[i]))
-//        {
-//            const streamLineFunctionObject& fo =
-//                dynamic_cast<const streamLineFunctionObject&>(fobs[i]);
-//
-//            if (fo.name() == name_)
-//            {
-//                Pout<< "found me:" << i << endl;
-//                if (fo.outputControl().output())
-//                {
-//                    isOutputTime = true;
-//                    break;
-//                }
-//            }
-//        }
-//    }
-//
-//
-//    if (active_ && isOutputTime)
-//    {
-//        track();
-//    }
-}
-
-
-void Foam::streamLine::end()
-{}
-
-
-void Foam::streamLine::timeSet()
-{}
-
-
-void Foam::streamLine::write()
-{
-    if (active_)
-    {
-        Info(log_)<< type() << " " << name_ << " output:" << nl;
-
-        const Time& runTime = obr_.time();
-        const fvMesh& mesh = dynamic_cast<const fvMesh&>(obr_);
-
-
-        // Do all injection and tracking
-        track();
-
-
-        if (Pstream::parRun())
-        {
-            // Append slave tracks to master ones
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            globalIndex globalTrackIDs(allTracks_.size());
-
-            // Construct a distribution map to pull all to the master.
-            labelListList sendMap(Pstream::nProcs());
-            labelListList recvMap(Pstream::nProcs());
-
-            if (Pstream::master())
-            {
-                // Master: receive all. My own first, then consecutive
-                // processors.
-                label trackI = 0;
-
-                forAll(recvMap, procI)
-                {
-                    labelList& fromProc = recvMap[procI];
-                    fromProc.setSize(globalTrackIDs.localSize(procI));
-                    forAll(fromProc, i)
-                    {
-                        fromProc[i] = trackI++;
-                    }
-                }
-            }
-
-            labelList& toMaster = sendMap[0];
-            toMaster.setSize(globalTrackIDs.localSize());
-            forAll(toMaster, i)
-            {
-                toMaster[i] = i;
-            }
-
-            const mapDistribute distMap
-            (
-                globalTrackIDs.size(),
-                sendMap.xfer(),
-                recvMap.xfer()
-            );
-
-
-            // Distribute the track positions. Note: use scheduled comms
-            // to prevent buffering.
-            allTracks_.shrink();
-            mapDistributeBase::distribute
-            (
-                Pstream::scheduled,
-                distMap.schedule(),
-                distMap.constructSize(),
-                distMap.subMap(),
-                false,
-                distMap.constructMap(),
-                false,
-                allTracks_,
-                flipOp()
-            );
-            allTracks_.setCapacity(allTracks_.size());
-
-            // Distribute the scalars
-            forAll(allScalars_, scalarI)
-            {
-                allScalars_[scalarI].shrink();
-                mapDistributeBase::distribute
-                (
-                    Pstream::scheduled,
-                    distMap.schedule(),
-                    distMap.constructSize(),
-                    distMap.subMap(),
-                    false,
-                    distMap.constructMap(),
-                    false,
-                    allScalars_[scalarI],
-                    flipOp()
-                );
-                allScalars_[scalarI].setCapacity(allScalars_[scalarI].size());
-            }
-            // Distribute the vectors
-            forAll(allVectors_, vectorI)
-            {
-                allVectors_[vectorI].shrink();
-                mapDistributeBase::distribute
-                (
-                    Pstream::scheduled,
-                    distMap.schedule(),
-                    distMap.constructSize(),
-                    distMap.subMap(),
-                    false,
-                    distMap.constructMap(),
-                    false,
-                    allVectors_[vectorI],
-                    flipOp()
-                );
-                allVectors_[vectorI].setCapacity(allVectors_[vectorI].size());
-            }
-        }
-
-
-        label n = 0;
-        forAll(allTracks_, trackI)
-        {
-            n += allTracks_[trackI].size();
-        }
-
-        Info(log_)
-            << "    Tracks:" << allTracks_.size() << nl
-            << "    Total samples:" << n
-            << endl;
-
-
-        // Massage into form suitable for writers
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        if (Pstream::master() && allTracks_.size())
-        {
-            // Make output directory
-
-            fileName vtkPath
-            (
-                Pstream::parRun()
-              ? runTime.path()/".."/"postProcessing"/"sets"/name()
-              : runTime.path()/"postProcessing"/"sets"/name()
-            );
-            if (mesh.name() != fvMesh::defaultRegion)
-            {
-                vtkPath = vtkPath/mesh.name();
-            }
-            vtkPath = vtkPath/mesh.time().timeName();
-
-            mkDir(vtkPath);
-
-            // Convert track positions
-
-            PtrList<coordSet> tracks(allTracks_.size());
-            forAll(allTracks_, trackI)
-            {
-                tracks.set
-                (
-                    trackI,
-                    new coordSet
-                    (
-                        "track" + Foam::name(trackI),
-                        sampledSetAxis_                 //"xyz"
-                    )
-                );
-                tracks[trackI].transfer(allTracks_[trackI]);
-            }
-
-            // Convert scalar values
-
-            if (allScalars_.size() > 0)
-            {
-                List<List<scalarField> > scalarValues(allScalars_.size());
-
-                forAll(allScalars_, scalarI)
-                {
-                    DynamicList<scalarList>& allTrackVals =
-                        allScalars_[scalarI];
-                    scalarValues[scalarI].setSize(allTrackVals.size());
-
-                    forAll(allTrackVals, trackI)
-                    {
-                        scalarList& trackVals = allTrackVals[trackI];
-                        scalarValues[scalarI][trackI].transfer(trackVals);
-                    }
-                }
-
-                fileName vtkFile
-                (
-                    vtkPath
-                  / scalarFormatterPtr_().getFileName
-                    (
-                        tracks[0],
-                        scalarNames_
-                    )
-                );
-
-                Info(log_)<< "    Writing data to " << vtkFile.path() << endl;
-
-                scalarFormatterPtr_().write
-                (
-                    true,           // writeTracks
-                    tracks,
-                    scalarNames_,
-                    scalarValues,
-                    OFstream(vtkFile)()
-                );
-
-                forAll(scalarNames_, nameI)
-                {
-                    dictionary propsDict;
-                    propsDict.add("file", vtkFile);
-                    const word& fieldName = scalarNames_[nameI];
-                    setProperty(fieldName, propsDict);
-                }
-            }
-
-            // Convert vector values
-
-            if (allVectors_.size() > 0)
-            {
-                List<List<vectorField> > vectorValues(allVectors_.size());
-
-                forAll(allVectors_, vectorI)
-                {
-                    DynamicList<vectorList>& allTrackVals =
-                        allVectors_[vectorI];
-                    vectorValues[vectorI].setSize(allTrackVals.size());
-
-                    forAll(allTrackVals, trackI)
-                    {
-                        vectorList& trackVals = allTrackVals[trackI];
-                        vectorValues[vectorI][trackI].transfer(trackVals);
-                    }
-                }
-
-                fileName vtkFile
-                (
-                    vtkPath
-                  / vectorFormatterPtr_().getFileName
-                    (
-                        tracks[0],
-                        vectorNames_
-                    )
-                );
-
-                //Info(log_)<< "    Writing vector data to " << vtkFile << endl;
-
-                vectorFormatterPtr_().write
-                (
-                    true,           // writeTracks
-                    tracks,
-                    vectorNames_,
-                    vectorValues,
-                    OFstream(vtkFile)()
-                );
-
-                forAll(vectorNames_, nameI)
-                {
-                    dictionary propsDict;
-                    propsDict.add("file", vtkFile);
-                    const word& fieldName = vectorNames_[nameI];
-                    setProperty(fieldName, propsDict);
-                }
-            }
-        }
-    }
-}
-
-
-void Foam::streamLine::updateMesh(const mapPolyMesh&)
-{
-    read(dict_);
-}
-
-
-void Foam::streamLine::movePoints(const polyMesh&)
-{
-    // Moving mesh affects the search tree
-    read(dict_);
-}
-
-
-//void Foam::streamLine::readUpdate(const polyMesh::readUpdateState state)
-//{
-//    if (state != UNCHANGED)
-//    {
-//        read(dict_);
-//    }
-//}
 
 
 // ************************************************************************* //

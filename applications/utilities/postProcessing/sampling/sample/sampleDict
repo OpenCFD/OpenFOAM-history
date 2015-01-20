@@ -251,12 +251,14 @@ surfaces
         isoValue        0.5;
         interpolate     true;
 
-        //zone            ABC;          // Optional: zone only
-        //exposedPatchName fixedWalls;  // Optional: zone only
+        // zone            ABC;         // Optional: zone only
+        // exposedPatchName fixedWalls; // Optional: zone only
 
-        // regularise      false;    // Optional: do not simplify
-        // mergeTol        1e-10;    // Optional: fraction of mesh bounding box
-                                     // to merge points (default=1e-6)
+        // bounds       (1 1 1)(2 2 2); // Optional: limit extent
+
+        // regularise   false;      // Optional: do not simplify
+        // mergeTol     1e-10;      // Optional: fraction of mesh bounding box
+                                    // to merge points (default=1e-6)
     }
     constantIso
     {
@@ -266,9 +268,12 @@ surfaces
         isoField        rho;
         isoValue        0.5;
         interpolate     false;
-        regularise      false;              // do not simplify
-        // mergeTol        1e-10;    // Optional: fraction of mesh bounding box
-                                     // to merge points (default=1e-6)
+        regularise      false;          // do not simplify
+
+        // bounds       (1 1 1)(2 2 2); // Optional: limit extent
+
+        // mergeTol     1e-10;      // Optional: fraction of mesh bounding box
+                                    // to merge points (default=1e-6)
     }
 
     triangleCut
@@ -286,9 +291,11 @@ surfaces
         //zone            ABC;          // Optional: zone only
         //exposedPatchName fixedWalls;  // Optional: zone only
 
-        // regularise      false;    // Optional: do not simplify
-        // mergeTol        1e-10;    // Optional: fraction of mesh bounding box
-                                     // to merge points (default=1e-6)
+        // bounds       (1 1 1)(2 2 2); // Optional: limit extent
+
+        // regularise   false;      // Optional: do not simplify
+        // mergeTol     1e-10;      // Optional: fraction of mesh bounding box
+                                    // to merge points (default=1e-6)
     }
 
     distance
@@ -307,6 +314,8 @@ surfaces
                                 // of isoSurfaceCell
         interpolate     false;
         regularise      false;  // Optional: do not simplify
+        // bounds       (1 1 1)(2 2 2); // Optional: limit extent
+
         // mergeTol 1e-10;      // Optional: fraction of mesh bounding box
                                 // to merge points (default=1e-6)
     }
