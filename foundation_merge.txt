@@ -1,3 +1,48 @@
+*OK* commit 7883c1bc362b7ec4b2b6f84ea18def7c21123923
+Author: Henry <Henry>
+Date:   Mon Jan 19 09:02:49 2015 +0000
+
+    applications/utilities/mesh/generation/Allwmake: Updated for changes to foamyHexMesh organization
+
+*OK* commit 155966d6d3e2fa7b5f355d977234c46061c79584
+Author: Henry <Henry>
+Date:   Sun Jan 18 21:16:37 2015 +0000
+
+    Updated headers
+
+*OK* commit a1c33aa1d22d60869e11035c61c0c516c5a5f023
+Author: Henry <Henry>
+Date:   Sun Jan 18 21:13:45 2015 +0000
+
+    Rationalized foamyHexMesh directory structure and build scripts
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1186
+
+*OK* commit 658da453baff37a7600f4ebbc2079959fff8efa7
+Author: Henry <Henry>
+Date:   Sun Jan 18 21:11:54 2015 +0000
+
+    Remove cyclic link in foamyHexMesh/mixerVessel tutorial
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1191
+
+*OK* commit 7b5d0dad20e3dc2084114871a0f2e39303a13d69
+Author: Henry <Henry>
+Date:   Mon Jan 12 12:34:38 2015 +0000
+
+    Update headers
+
+*OK* commit b5277967c024a2c0fc2d1f0d5306cbe99d75317b
+Author: Henry <Henry>
+Date:   Mon Jan 12 12:32:38 2015 +0000
+
+    Incompressible turbulence models: Remove the correction of the laminar transport model
+    Explicitly correct laminar transport at the application level as is done in the multiphase solvers
+
+*OK* commit 5a4a4e5e4a79e4c79f1175a35105cf302468467c
+Author: Henry <Henry>
+Date:   Mon Jan 12 11:53:19 2015 +0000
+
+    wallDist: Ensure appropriate method correct function is called
+
 *OK* commit 086131d4a172321f60858d9851fb0335abdc4857
 Author: Henry <Henry>
 Date:   Sun Jan 11 22:27:36 2015 +0000
