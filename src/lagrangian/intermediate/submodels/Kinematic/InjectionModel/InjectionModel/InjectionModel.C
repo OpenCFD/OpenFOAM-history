@@ -795,9 +795,9 @@ bool Foam::InjectionModel<CloudType>::fullyDescribed() const
 template<class CloudType>
 void Foam::InjectionModel<CloudType>::info(Ostream& os)
 {
-    os  << "    " << this->modelName() << ":" << nl
-        << "        number of parcels added     = " << parcelsAddedTotal_ << nl
-        << "        mass introduced             = " << massInjected_ << nl;
+    os  << "    Injector " << this->modelName() << ":" << nl
+        << "      - parcels added               = " << parcelsAddedTotal_ << nl
+        << "      - mass introduced             = " << massInjected_ << nl;
 
     if (this->outputTime())
     {

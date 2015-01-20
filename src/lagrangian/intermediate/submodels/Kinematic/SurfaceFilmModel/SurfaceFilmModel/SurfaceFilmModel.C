@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -288,8 +288,9 @@ void Foam::SurfaceFilmModel<CloudType>::info(Ostream& os)
     label nInjectTotal =
         nInject0 + returnReduce(nParcelsInjected_, sumOp<label>());
 
-    os  << "    Parcels absorbed into film      = " << nTransTotal << nl
-        << "    New film detached parcels       = " << nInjectTotal << endl;
+    os  << "    Surface film:" << nl
+        << "      - parcels absorbed            = " << nTransTotal << nl
+        << "      - parcels ejected             = " << nInjectTotal << endl;
 
     if (this->outputTime())
     {
