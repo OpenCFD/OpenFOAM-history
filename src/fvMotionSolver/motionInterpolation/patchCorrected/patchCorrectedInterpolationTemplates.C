@@ -49,7 +49,7 @@ void Foam::patchCorrectedInterpolation::interpolateType
                 mesh()
             ),
             pointDisplacement.mesh(),
-            dimLength,
+            pointDisplacement.dimensions(),
             fixedValuePointPatchField<Type>::typeName
         );
 
@@ -120,7 +120,7 @@ void Foam::patchCorrectedInterpolation::interpolateDataFromPatchGroups
                 mesh()
             ),
             data.mesh(),
-            dimensionedScalar("zero", dimLength, 0),
+            dimensionedScalar("zero", data.dimensions(), 0),
             zeroGradientPointPatchField<scalar>::typeName
         );
         GeometricField<Type, pointPatchField, pointMesh> patchData(data);
