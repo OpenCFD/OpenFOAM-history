@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,7 +51,8 @@ SourceFiles
 namespace Foam
 {
 
-class pointData;
+template <class DataType>
+class PointData;
 
 /*---------------------------------------------------------------------------*\
              Class medialAxisMeshMover Declaration
@@ -108,7 +109,7 @@ class medialAxisMeshMover
             //- Is mesh edge on a cusp of displacement
             bool isMaxEdge
             (
-                const List<pointData>& pointWallDist,
+                const List<PointData<vector> >& pointWallDist,
                 const label edgeI,
                 const scalar minCos
             ) const;

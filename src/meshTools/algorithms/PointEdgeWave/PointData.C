@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,30 +23,32 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "pointData.H"
+#include "PointData.H"
 
 // * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
 
-Foam::Ostream& Foam::operator<<(Ostream& os, const pointData& wDist)
+template<class DataType>
+Foam::Ostream& Foam::operator<<(Ostream& os, const PointData<DataType>& pd)
 {
     if (os.format() == IOstream::ASCII)
     {
         return os
-            << static_cast<const pointEdgePoint&>(wDist)
-            << token::SPACE << wDist.s() << token::SPACE << wDist.v();
+            << static_cast<const pointEdgePoint&>(pd)
+            << token::SPACE << pd.data();
     }
     else
     {
         return os
-            << static_cast<const pointEdgePoint&>(wDist)
-            << wDist.s() << wDist.v();
+            << static_cast<const pointEdgePoint&>(pd)
+            << pd.data();
     }
 }
 
 
-Foam::Istream& Foam::operator>>(Istream& is, pointData& wDist)
+template<class DataType>
+Foam::Istream& Foam::operator>>(Istream& is, PointData<DataType>& pd)
 {
-    return is >> static_cast<pointEdgePoint&>(wDist) >> wDist.s_ >> wDist.v_;
+    return is >> static_cast<pointEdgePoint&>(pd) >> pd.data_;
 }
 
 
