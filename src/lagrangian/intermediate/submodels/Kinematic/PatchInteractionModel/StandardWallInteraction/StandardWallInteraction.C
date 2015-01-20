@@ -197,6 +197,8 @@ bool Foam::StandardWallInteraction<CloudType>::correct
 template<class CloudType>
 void Foam::StandardWallInteraction<CloudType>::info(Ostream& os)
 {
+    PatchInteractionModel<CloudType>::info(os);
+
     label npe0 = this->template getModelProperty<scalar>("nEscape");
     label npe = npe0 + returnReduce(nEscape_, sumOp<label>());
 
@@ -209,7 +211,7 @@ void Foam::StandardWallInteraction<CloudType>::info(Ostream& os)
     scalar mps0 = this->template getModelProperty<scalar>("massStick");
     scalar mps = mps0 + returnReduce(massStick_, sumOp<scalar>());
 
-    os  << "    Parcel fate (number, mass)" << nl
+    os  << "    Parcel fate: walls (number, mass)" << nl
         << "      - escape                      = " << npe << ", " << mpe << nl
         << "      - stick                       = " << nps << ", " << mps << nl;
 

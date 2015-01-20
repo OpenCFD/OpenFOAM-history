@@ -464,6 +464,10 @@ void Foam::KinematicParcel<ParcelType>::hitPatch
 )
 {
     td.keepParticle = false;
+
+    td.cloud().patchInteraction().addToEscapedParcels(nParticle_*mass());
+
+    return;
 }
 
 
