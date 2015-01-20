@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -484,24 +484,13 @@ volPointInterpolation::interpolate
             if (pf.upToDate(vf))    //TBD: , vf.mesh().points()))
             {
                 solution::cachePrintMessage("Reusing", name, vf);
-                return pf;
             }
             else
             {
-                solution::cachePrintMessage("Deleting", name, vf);
-                pf.release();
-                delete &pf;
-
-                solution::cachePrintMessage("Recalculating", name, vf);
-                tmp<PointFieldType> tpf = interpolate(vf, name, false);
-
-                solution::cachePrintMessage("Storing", name, vf);
-                PointFieldType* pfPtr = tpf.ptr();
-                regIOobject::store(pfPtr);
-
-                // Note: return reference, not pointer
-                return *pfPtr;
+                solution::cachePrintMessage("Updating", name, vf);
+                interpolate(vf, pf);
             }
+            return pf;
         }
     }
 }
@@ -605,24 +594,14 @@ volPointInterpolation::interpolate
             if (pf.upToDate(vf))    //TBD: , vf.mesh().points()))
             {
                 solution::cachePrintMessage("Reusing", name, vf);
-                return pf;
             }
             else
             {
-                solution::cachePrintMessage("Deleting", name, vf);
-                pf.release();
-                delete &pf;
-
-                solution::cachePrintMessage("Recalculating", name, vf);
-                tmp<PointFieldType> tpf = interpolate(vf, name, false);
-
-                solution::cachePrintMessage("Storing", name, vf);
-                PointFieldType* pfPtr = tpf.ptr();
-                regIOobject::store(pfPtr);
-
-                // Note: return reference, not pointer
-                return *pfPtr;
+                solution::cachePrintMessage("Updating", name, vf);
+                interpolateDimensionedInternalField(vf, pf);
             }
+
+            return pf;
         }
     }
 }

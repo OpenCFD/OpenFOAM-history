@@ -11,14 +11,7 @@ sourceDir=$PWD
 findObjectDir dummy.C
 depDir="$objectsDir"
 
-
-if [ -d "$VTK_DIR" ];
-then
-    rm -f CMakeLists.txt && ln -s CMakeLists-VTK.txt CMakeLists.txt
-    (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
-elif [ -d "$ParaView_DIR" ];
-then
-    rm -f CMakeLists.txt && ln -s CMakeLists-ParaView.txt CMakeLists.txt
+if [ -d "$VTK_DIR" -o  -d "$ParaView_DIR" ]
     (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
 else
     echo "ERROR: Build of $PWD requires a valid VTK installation which"
@@ -26,7 +19,5 @@ else
     echo "       - ParaView : export the ParaView_DIR environment variable"
     echo "       - VTK      : export the VTK_DIR variable"
 fi
-
-# export VTK_DIR="$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER/VTK-6.1.0"
 
 # ----------------------------------------------------------------- end-of-file
