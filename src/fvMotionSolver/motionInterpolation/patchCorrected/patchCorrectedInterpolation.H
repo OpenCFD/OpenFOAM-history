@@ -69,7 +69,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class patchCorrectedInterpolation Declaration
+                   Class patchCorrectedInterpolation Declaration
 \*---------------------------------------------------------------------------*/
 
 class patchCorrectedInterpolation
@@ -84,7 +84,7 @@ class patchCorrectedInterpolation
 
     // Private member functions
 
-        //- Get patch groupd from the input stream
+        //- Get patch groups from the input stream
         labelListList getPatchGroups(Istream& entry) const;
 
         //- Interpolate the given cell displacement
