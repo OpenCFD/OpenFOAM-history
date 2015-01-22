@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -550,7 +550,12 @@ void Foam::Field<Type>::autoMap
             distMap.distribute(fCpy, noOp());
         }
 
-        if ((mapper.direct() && notNull(mapper.directAddressing())) || !mapper.direct())
+        if
+        (
+            (mapper.direct()
+         && notNull(mapper.directAddressing()))
+         || !mapper.direct()
+        )
         {
             this->map(fCpy, mapper);
         }
