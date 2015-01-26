@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -244,7 +244,10 @@ int main(int argc, char *argv[])
         )
     );
 
-    fileName baseDir("${WM_PROJECT_DIR}/etc/templates");
+    fileName baseDir
+    (
+        "${WM_PROJECT_DIR}/etc/caseDicts/createZeroDirectoryTemplates/"
+    );
     if (args.optionFound("templateDir"))
     {
         baseDir = args["templateDir"];
