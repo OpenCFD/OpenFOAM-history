@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -251,7 +251,7 @@ kOmegaSST::kOmegaSST
         )
     ),
 
-    y_(mesh_),
+    y_(wallDist::New(mesh_).y()),
 
     k_
     (
@@ -410,7 +410,7 @@ void kOmegaSST::correct()
         // Re-calculate viscosity
         mut_ =
             a1_*rho_*k_
-           /max(a1_*omega_, F2()*sqrt(2.0)*mag(symm(fvc::grad(U_))));
+           /max(a1_*omega_, F23()*sqrt(2.0)*mag(symm(fvc::grad(U_))));
         mut_.correctBoundaryConditions();
 
         // Re-calculate thermal diffusivity
@@ -423,11 +423,6 @@ void kOmegaSST::correct()
     RASModel::correct();
 
     volScalarField divU(fvc::div(phi_/fvc::interpolate(rho_)));
-
-    if (mesh_.changing())
-    {
-        y_.correct();
-    }
 
     if (mesh_.moving())
     {

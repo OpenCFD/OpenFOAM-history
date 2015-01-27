@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,7 +43,7 @@ void Foam::PrandtlDelta::calcDelta()
     delta_ = min
     (
         static_cast<const volScalarField&>(geometricDelta_()),
-        (kappa_/Cdelta_)*wallDist(mesh_).y()
+        (kappa_/Cdelta_)*wallDist::New(mesh_).y()
     );
 }
 

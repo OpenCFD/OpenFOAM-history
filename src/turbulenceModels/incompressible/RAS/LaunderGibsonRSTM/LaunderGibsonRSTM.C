@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,7 @@ LaunderGibsonRSTM::LaunderGibsonRSTM
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
+    const transportModel& transport,
     const word& turbulenceModelName,
     const word& modelName
 )
@@ -174,7 +174,8 @@ LaunderGibsonRSTM::LaunderGibsonRSTM
         )
     ),
 
-    yr_(mesh_),
+    n_(wallDist::New(mesh_).n()),
+    y_(wallDist::New(mesh_).y()),
 
     R_
     (
@@ -380,11 +381,6 @@ void LaunderGibsonRSTM::correct()
         return;
     }
 
-    if (mesh_.changing())
-    {
-        yr_.correct();
-    }
-
     volSymmTensorField P(-twoSymm(R_ & fvc::grad(U_)));
     volScalarField G(GName(), 0.5*mag(tr(P)));
 
@@ -450,10 +446,10 @@ void LaunderGibsonRSTM::correct()
         // wall reflection terms
       + symm
         (
-            I*((yr_.n() & reflect) & yr_.n())
-          - 1.5*(yr_.n()*(reflect & yr_.n())
-          + (yr_.n() & reflect)*yr_.n())
-        )*pow(Cmu_, 0.75)*pow(k_, 1.5)/(kappa_*yr_*epsilon_)
+            I*((n_ & reflect) & n_)
+          - 1.5*(n_*(reflect & n_)
+          + (n_ & reflect)*n_)
+        )*pow(Cmu_, 0.75)*pow(k_, 1.5)/(kappa_*y_*epsilon_)
     );
 
     REqn().relax();

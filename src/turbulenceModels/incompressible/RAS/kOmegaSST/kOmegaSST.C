@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -117,7 +117,7 @@ kOmegaSST::kOmegaSST
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
+    const transportModel& transport,
     const word& turbulenceModelName,
     const word& modelName
 )
@@ -242,7 +242,7 @@ kOmegaSST::kOmegaSST
         )
     ),
 
-    y_(mesh_),
+    y_(wallDist::New(mesh_).y()),
 
     k_
     (
@@ -402,11 +402,6 @@ void kOmegaSST::correct()
     if (!turbulence_)
     {
         return;
-    }
-
-    if (mesh_.changing())
-    {
-        y_.correct();
     }
 
     const volScalarField S2(2*magSqr(symm(fvc::grad(U_))));

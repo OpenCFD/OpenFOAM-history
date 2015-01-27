@@ -120,6 +120,7 @@ public:
             omFixedHeatTransferCoeff,
             omUnknown
         };
+
         static const NamedEnum<operationMode, 3> operationModeNames;
 
 

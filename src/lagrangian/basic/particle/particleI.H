@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -756,8 +756,14 @@ inline void Foam::particle::initCellFacePt()
                     // error.
 
                     FatalErrorIn("void Foam::particle::initCellFacePt()")
-                        << "cell, tetFace and tetPt search failure at position "
-                        << position_ << nl << "for requested cell " << oldCellI
+                        << "    cell, tetFace and tetPt search failure at "
+                        << "position " << position_ << nl
+                        << "    for requested cell " << oldCellI << nl
+                        << "    If this is a restart or "
+                           "reconstruction/decomposition etc. it is likely that"
+                           " the write precision is not sufficient.\n"
+                           "    Either increase 'writePrecision' or "
+                           "set 'writeFormat' to 'binary'"
                         << abort(FatalError);
                 }
 

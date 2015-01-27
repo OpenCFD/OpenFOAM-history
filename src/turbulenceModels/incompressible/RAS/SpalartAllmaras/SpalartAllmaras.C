@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -124,7 +124,7 @@ tmp<volScalarField> SpalartAllmaras::fw(const volScalarField& Stilda) const
                    Stilda,
                    dimensionedScalar("SMALL", Stilda.dimensions(), SMALL)
                )
-              *sqr(kappa_*d_)
+              *sqr(kappa_*y_)
             ),
             scalar(10.0)
         )
@@ -143,7 +143,7 @@ SpalartAllmaras::SpalartAllmaras
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
+    const transportModel& transport,
     const word& turbulenceModelName,
     const word& modelName
 )
@@ -253,7 +253,7 @@ SpalartAllmaras::SpalartAllmaras
         mesh_
     ),
 
-    d_(mesh_)
+    y_(wallDist::New(mesh_).y())
 {
     printCoeffs();
 
@@ -429,18 +429,13 @@ void SpalartAllmaras::correct()
         return;
     }
 
-    if (mesh_.changing())
-    {
-        d_.correct();
-    }
-
     const volScalarField chi(this->chi());
     const volScalarField fv1(this->fv1(chi));
 
     const volScalarField Stilda
     (
         fv3(chi, fv1)*::sqrt(2.0)*mag(skew(fvc::grad(U_)))
-      + fv2(chi, fv1)*nuTilda_/sqr(kappa_*d_)
+      + fv2(chi, fv1)*nuTilda_/sqr(kappa_*y_)
     );
 
     tmp<fvScalarMatrix> nuTildaEqn
@@ -451,7 +446,7 @@ void SpalartAllmaras::correct()
       - Cb2_/sigmaNut_*magSqr(fvc::grad(nuTilda_))
      ==
         Cb1_*Stilda*nuTilda_
-      - fvm::Sp(Cw1_*fw(Stilda)*nuTilda_/sqr(d_), nuTilda_)
+      - fvm::Sp(Cw1_*fw(Stilda)*nuTilda_/sqr(y_), nuTilda_)
     );
 
     nuTildaEqn().relax();

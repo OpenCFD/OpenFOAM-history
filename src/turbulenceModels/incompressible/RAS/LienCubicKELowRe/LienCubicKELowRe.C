@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,7 @@ LienCubicKELowRe::LienCubicKELowRe
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
+    const transportModel& transport,
     const word& turbulenceModelName,
     const word& modelName
 )
@@ -218,7 +218,7 @@ LienCubicKELowRe::LienCubicKELowRe
         mesh_
     ),
 
-    y_(mesh_),
+    y_(wallDist::New(mesh_).y()),
 
     eta_
     (
@@ -418,11 +418,6 @@ void LienCubicKELowRe::correct()
     if (!turbulence_)
     {
         return;
-    }
-
-    if (mesh_.changing())
-    {
-        y_.correct();
     }
 
     tmp<volTensorField> tgradU = fvc::grad(U_);

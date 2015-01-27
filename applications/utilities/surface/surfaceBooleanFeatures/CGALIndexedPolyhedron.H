@@ -38,6 +38,9 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// Include uint.H before CGAL headers to define __STDC_LIMIT_MACROS
+#include "uint.H"
+
 #include "CGAL3DKernel.H"
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/Nef_polyhedron_3.h>
@@ -82,8 +85,8 @@ typedef Polyhedron::Vertex_iterator Vertex_iterator;
 typedef Polyhedron::Halfedge_handle Halfedge_handle;
 typedef Polyhedron::Edge_iterator Edge_iterator;
 typedef Polyhedron::Facet_iterator Facet_iterator;
-typedef typename Polyhedron::Halfedge_around_facet_const_circulator HFCC;
-typedef typename Polyhedron::Vertex_const_iterator                  VCI;
+typedef Polyhedron::Halfedge_around_facet_const_circulator HFCC;
+typedef Polyhedron::Vertex_const_iterator                  VCI;
 
 typedef CGAL::Nef_polyhedron_3<K>  Nef_polyhedron;
 

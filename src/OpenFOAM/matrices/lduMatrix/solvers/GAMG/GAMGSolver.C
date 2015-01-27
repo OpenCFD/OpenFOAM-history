@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -164,7 +164,7 @@ Foam::GAMGSolver::GAMGSolver
 
                     const labelList& procAgglomMap =
                         agglomeration_.procAgglomMap(fineLevelIndex+1);
-                    const List<int>& procIDs =
+                    const List<label>& procIDs =
                         agglomeration_.agglomProcIDs(fineLevelIndex+1);
 
                     procAgglomerateMatrix

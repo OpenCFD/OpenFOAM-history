@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -184,7 +184,8 @@ LaunderGibsonRSTM::LaunderGibsonRSTM
         )
     ),
 
-    y_(mesh_),
+    n_(wallDist::New(mesh_).n()),
+    y_(wallDist::New(mesh_).y()),
 
     R_
     (
@@ -373,11 +374,6 @@ void LaunderGibsonRSTM::correct()
 
     RASModel::correct();
 
-    if (mesh_.changing())
-    {
-        y_.correct();
-    }
-
     volSymmTensorField P(-twoSymm(R_ & fvc::grad(U_)));
     volScalarField G(GName(), 0.5*mag(tr(P)));
 
@@ -443,9 +439,9 @@ void LaunderGibsonRSTM::correct()
         // wall reflection terms
       + symm
         (
-            I*((y_.n() & reflect) & y_.n())
-          - 1.5*(y_.n()*(reflect & y_.n())
-          + (y_.n() & reflect)*y_.n())
+            I*((n_ & reflect) & n_)
+          - 1.5*(n_*(reflect & n_)
+          + (n_ & reflect)*n_)
         )*pow(Cmu_, 0.75)*rho_*pow(k_, 1.5)/(kappa_*y_*epsilon_)
     );
 

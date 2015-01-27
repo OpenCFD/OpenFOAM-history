@@ -235,7 +235,7 @@ const Foam::tensorField& Foam::EulerCoordinateRotation::Tr() const
     (
         "const tensorField& EulerCoordinateRotation::Tr() const"
     );
-    return *reinterpret_cast<const tensorField*>(0);
+    return NullObjectRef<tensorField>();
 }
 
 
@@ -310,5 +310,6 @@ void Foam::EulerCoordinateRotation::write(Ostream& os) const
      os.writeKeyword("e2") << e2() << token::END_STATEMENT << nl;
      os.writeKeyword("e3") << e3() << token::END_STATEMENT << nl;
 }
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

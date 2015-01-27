@@ -1,6 +1,9 @@
 #!/bin/sh
-cd ${0%/*} || exit 1    # run from this directory
+cd ${0%/*} || exit 1    # Run from this directory
 set -x
+
+# Source the wmake functions
+. $WM_DIR/scripts/wmakeFunctions
 
 if [ -d "$ParaView_DIR" -a -r "$ParaView_DIR" ]
 then
@@ -10,8 +13,8 @@ then
         sourceDir=$PWD
 
         # Where are the generated files stored?
-        depFile=`wdep dummy.C`
-        depDir=`dirname $depFile`
+        findObjectDir dummy.C
+        depDir="$objectsDir"
 
         (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
     )

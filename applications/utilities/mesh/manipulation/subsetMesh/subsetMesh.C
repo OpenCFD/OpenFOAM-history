@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
         Info<< "Adding exposed internal faces to a patch called"
             << " \"oldInternalFaces\" (created if necessary)" << endl
             << endl;
-        exposedPatchIDs = labelList(1, -1);
+        exposedPatchIDs = labelList(1, label(-1));
     }
 
 

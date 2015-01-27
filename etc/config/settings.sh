@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -170,7 +170,8 @@ export FOAM_JOB_DIR=$WM_PROJECT_INST_DIR/jobControl
 # wmake configuration
 export WM_DIR=$WM_PROJECT_DIR/wmake
 export WM_LINK_LANGUAGE=c++
-export WM_OPTIONS=$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_COMPILE_OPTION
+export WM_LABEL_OPTION=Int$WM_LABEL_SIZE
+export WM_OPTIONS=$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION$WM_COMPILE_OPTION
 
 # base executables/libraries
 export FOAM_APPBIN=$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
@@ -240,41 +241,41 @@ fi
 case "${foamCompiler}" in
 OpenFOAM | ThirdParty)
     case "$WM_COMPILER" in
-    Gcc | Gcc46)
-        gcc_version=gcc-4.6.1
-        gmp_version=gmp-5.0.4
-        mpfr_version=mpfr-3.1.0
-        mpc_version=mpc-0.9
-        ;;
-    Gcc49)
-        gcc_version=gcc-4.9.0
+    Gcc | Gcc48)
+        gcc_version=gcc-4.8.4
         gmp_version=gmp-5.1.2
         mpfr_version=mpfr-3.1.2
         mpc_version=mpc-1.0.1
         ;;
-    Gcc48)
-        gcc_version=gcc-4.8.3
+    Gcc45)
+        gcc_version=gcc-4.5.4
+        gmp_version=gmp-5.1.2
+        mpfr_version=mpfr-3.1.2
+        mpc_version=mpc-1.0.1
+        ;;
+    Gcc46)
+        gcc_version=gcc-4.6.4
         gmp_version=gmp-5.1.2
         mpfr_version=mpfr-3.1.2
         mpc_version=mpc-1.0.1
         ;;
     Gcc47)
-        gcc_version=gcc-4.7.2
-        gmp_version=gmp-5.0.4
-        mpfr_version=mpfr-3.1.0
-        mpc_version=mpc-0.9
+        gcc_version=gcc-4.7.4
+        gmp_version=gmp-5.1.2
+        mpfr_version=mpfr-3.1.2
+        mpc_version=mpc-1.0.1
         ;;
-    Gcc45)
-        gcc_version=gcc-4.5.2
-        gmp_version=gmp-5.0.1
-        mpfr_version=mpfr-2.4.2
-        mpc_version=mpc-0.8.1
+    Gcc49)
+        gcc_version=gcc-4.9.2
+        gmp_version=gmp-5.1.2
+        mpfr_version=mpfr-3.1.2
+        mpc_version=mpc-1.0.1
         ;;
     Clang)
         # using clang - not gcc
         export WM_CC='clang'
         export WM_CXX='clang++'
-        clang_version=llvm-3.4.2
+        clang_version=llvm-3.5.0
         ;;
     *)
         echo 1>&2
@@ -357,6 +358,20 @@ system)
 esac
 
 
+#
+# add c++0x flags for external programs
+#
+if [ -n "$WM_CXXFLAGS" ]
+then
+    case "$WM_COMPILER" in
+    Gcc*++0x)
+        WM_CXXFLAGS="$WM_CXXFLAGS -std=c++0x"
+        ;;
+    esac
+fi
+
+
+
 # Communications library
 # ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -378,7 +393,7 @@ SYSTEMOPENMPI)
     ;;
 
 OPENMPI)
-    export FOAM_MPI=openmpi-1.6.5
+    export FOAM_MPI=openmpi-1.8.3
     # optional configuration tweaks:
     _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/openmpi.sh`
 

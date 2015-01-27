@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,7 @@ LienLeschzinerLowRe::LienLeschzinerLowRe
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
+    const transportModel& transport,
     const word& turbulenceModelName,
     const word& modelName
 )
@@ -164,7 +164,7 @@ LienLeschzinerLowRe::LienLeschzinerLowRe
         mesh_
     ),
 
-    y_(mesh_),
+    y_(wallDist::New(mesh_).y()),
 
     yStar_(sqrt(k_)*y_/nu() + SMALL),
 
@@ -294,11 +294,6 @@ void LienLeschzinerLowRe::correct()
     if (!turbulence_)
     {
         return;
-    }
-
-    if (mesh_.changing())
-    {
-        y_.correct();
     }
 
     scalar Cmu75 = pow(Cmu_.value(), 0.75);

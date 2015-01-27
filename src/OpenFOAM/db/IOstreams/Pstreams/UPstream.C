@@ -60,7 +60,7 @@ void Foam::UPstream::setParRun(const label nProcs)
     {
         parRun_ = false;
         freeCommunicator(UPstream::worldComm);
-        label comm = allocateCommunicator(-1, labelList(1, 0), false);
+        label comm = allocateCommunicator(-1, labelList(1, label(0)), false);
         if (comm != UPstream::worldComm)
         {
             FatalErrorIn("UPstream::setParRun(const label)")
@@ -428,7 +428,12 @@ Foam::UPstream::treeCommunication_(10);
 
 // Allocate a serial communicator. This gets overwritten in parallel mode
 // (by UPstream::setParRun())
-Foam::UPstream::communicator serialComm(-1, Foam::labelList(1, 0), false);
+Foam::UPstream::communicator serialComm
+(
+    -1,
+    Foam::labelList(1, Foam::label(0)),
+    false
+);
 
 
 

@@ -31,15 +31,15 @@ Description
     \verbatim
         "Implementation and Comparison of Correlations for interfacial Forces
         in a Gas-Liquid System within an Euler-Euler Framework"
-        M Otromke
+        Otromke, M.,
         PhD Thesis
         April 2013
     \endverbatim
 
     \verbatim
         "The Favre averaged drag model for turbulent dispersion in Eulerian
-        multi-phase flows"
-        A D Burns, T Frank, I Hamill, J M Shi
+         multi-phase flows"
+        Burns, A.D., Frank, T., Hamill, I., Shi, J.M.,
         5th international conference on multiphase flow
         Volume 4, Paper 392, May 2004
     \endverbatim
@@ -103,8 +103,9 @@ public:
 
     // Member Functions
 
-        //- Turbulent dispersion force
-        virtual tmp<volVectorField> F() const;
+        //- Turbulent dispersion force coefficient
+        //  multiplying the gradient of the phase-fraction
+        virtual tmp<volScalarField> Fprime() const;
 };
 
 

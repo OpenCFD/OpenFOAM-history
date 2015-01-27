@@ -52,8 +52,6 @@ namespace Foam
 template<class modelType>
 class BlendedInterfacialModel
 {
-private:
-
     // Private data
 
         //- Unordered phase pair

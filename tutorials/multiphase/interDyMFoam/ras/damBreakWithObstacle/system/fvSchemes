@@ -30,6 +30,8 @@ divSchemes
     div(rhoPhi,U)   Gauss upwind;
     div(phi,alpha)  Gauss vanLeer;
     div(phirb,alpha) Gauss linear;
+    div(phi,k)      Gauss upwind;
+    div(phi,omega)  Gauss upwind;
     div((muEff*dev(T(grad(U))))) Gauss linear;
 }
 
@@ -53,6 +55,11 @@ fluxRequired
     default         no;
     p_rgh;
     pcorr;
+}
+
+wallDist
+{
+    method meshWave;
 }
 
 

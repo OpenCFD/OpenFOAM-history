@@ -68,7 +68,7 @@ public:
         {
             if
             (
-                &directAddressing_
+                notNull(directAddressing_)
              && directAddressing_.size()
              && min(directAddressing_) < 0
             )
@@ -88,7 +88,7 @@ public:
         {
             return
             (
-                &directAddressing_
+                notNull(directAddressing_)
               ? directAddressing_.size()
               : distMap_.constructSize()
             );

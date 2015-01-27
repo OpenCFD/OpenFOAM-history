@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #-------------------------------------------------------------------------------
 # License
@@ -24,12 +24,18 @@
 #
 # Script
 #     wdep <file>
+#     cat `wdep <file>`
 #
 # Description
-#     Find the dep-file corresponding to <file> and print the path.
+#     Find the .dep file corresponding to <file> and print the path.
+#     If <file> is not in the current directory the tree is searched for
+#     the first occurrence.
 #
 #------------------------------------------------------------------------------
 Script=${0##*/}
+
+# Source the wmake functions
+. ${0%/*}/scripts/wmakeFunctions
 
 usage() {
     exec 1>&2
@@ -38,14 +44,18 @@ usage() {
 
 Usage: $Script <file>
 
-Finds the dep-file corresponding to <file> and print the path.
+Find the dep-file corresponding to <file> in the current directory
+and print the path.
 
 USAGE
     exit 1
 }
 
 
-# Parse options
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -61,71 +71,45 @@ do
     esac
 done
 
-
-#------------------------------------------------------------------------------
 # Check environment variables
-#------------------------------------------------------------------------------
-
-for check in WM_OPTIONS WM_DIR WM_PROJECT_DIR
-do
-    eval test "\$$check" || {
-        echo "$Script error: environment variable \$$check not set" 1>&2
-        exit 1
-    }
-done
+checkEnv
 
 
 #------------------------------------------------------------------------------
-# Search up directories tree for the Make sub-directory
+# Check <file> is is the current directory,
+# otherwise search tree for first occurrance
 #------------------------------------------------------------------------------
 
-expandpath()
-{
-    dir=`dirname $1`
-    cwd=$PWD
-    cd $dir
-    exPath=$PWD
-    cd $cwd
-}
+sourceFile=$1
 
-find_target()
-{
-    expandpath $1
-
-    if [ "$exPath" = "$WM_PROJECT_DIR" \
-                   -o "$exPath" = "$HOME" \
-                   -o "$exPath" = "/" \
-       ]
+if [ ! -e $1 ]
+then
+    sourceFile=$(find . -name $sourceFile -print -quit)
+    if [ -z "$sourceFile" ]
     then
-        echo "$Script error: could not find Make directory" 1>&2
+        echo "$Script: cannot find source file $1" 1>&2
         exit 1
-    elif [ -d "$1/Make" ]; then
-        dir=$1
-    else
-        find_target "$1/.."
     fi
-}
+fi
+
+
+#------------------------------------------------------------------------------
+# Search up directories tree for the Make sub-directory containing dep files
+# and echo path for the dep file corresponding to the specified source file
+#------------------------------------------------------------------------------
+
+findObjectDir $sourceFile
 
 fileName=${1##*/}
 
-expandpath $1
-
-if echo $exPath | grep "$WM_PROJECT_DIR" > /dev/null
-then
-    objectsDir=$WM_PROJECT_DIR/platforms/${WM_OPTIONS}$(echo $exPath | sed s%$WM_PROJECT_DIR%% )
-else
-    path=$exPath
-    dir=.
-    if [ ! -d Make ]
-    then
-        find_target .
-    fi
-    appDir=$dir
-    expandpath $appDir/.
-    objectsDir=$appDir/Make/${WM_OPTIONS}$(echo $path | sed s%$exPath%% )
-fi
-
 echo $objectsDir/$fileName.dep
+
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset Script usage
 
 
 #------------------------------------------------------------------------------

@@ -53,7 +53,11 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
     // Generate a sorted list of edge labels and corresponding edge indices
     // Negative values indicate an edge which runs in an opposite direction to
     // the face node listing
-    labelListList edgeLabelsEdgeIndices(2*cEdges.size(), labelList(3,-1));
+    labelListList edgeLabelsEdgeIndices
+    (
+        2*cEdges.size(),
+        labelList(3, label(-1))
+    );
     forAll(cEdges, cEdgeI)
     {
         edgeLabelsEdgeIndices[2*cEdgeI][0] = cEdges[cEdgeI][0];
@@ -77,7 +81,7 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
         const label cFaceNEdges(cFace.size());
         forAll(cFace, cFaceEdgeI)
         {
-            edgeLabelsFaceIndices.append(labelList(3, -1));
+            edgeLabelsFaceIndices.append(labelList(3, label(-1)));
             edgeLabelsFaceIndices.last()[0] =
                 cFace[(cFaceEdgeI + owner) % cFaceNEdges];
             edgeLabelsFaceIndices.last()[1] =
@@ -132,13 +136,13 @@ void Foam::cellPointConnectivity::generateCellPointConnectivity(label cellI)
 
         const bool order(faceIndices[0] > faceIndices[1]);
 
-        pointLabelEdgeIndexFaceIndexPairs.append(labelList(4,-1));
+        pointLabelEdgeIndexFaceIndexPairs.append(labelList(4, label(-1)));
         pointLabelEdgeIndexFaceIndexPairs.last()[0] = pointIndices[0];
         pointLabelEdgeIndexFaceIndexPairs.last()[1] = edgeI;
         pointLabelEdgeIndexFaceIndexPairs.last()[2] = absFaceIndices[order];
         pointLabelEdgeIndexFaceIndexPairs.last()[3] = absFaceIndices[!order];
 
-        pointLabelEdgeIndexFaceIndexPairs.append(labelList(4,-1));
+        pointLabelEdgeIndexFaceIndexPairs.append(labelList(4, label(-1)));
         pointLabelEdgeIndexFaceIndexPairs.last()[0] = pointIndices[1];
         pointLabelEdgeIndexFaceIndexPairs.last()[1] = edgeI;
         pointLabelEdgeIndexFaceIndexPairs.last()[2] = absFaceIndices[!order];

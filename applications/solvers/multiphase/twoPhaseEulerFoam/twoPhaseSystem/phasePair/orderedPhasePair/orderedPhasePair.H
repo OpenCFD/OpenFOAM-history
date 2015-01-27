@@ -51,8 +51,6 @@ class orderedPhasePair
 :
     public phasePair
 {
-private:
-
     // Private data
 
         //- Aspect ratio model

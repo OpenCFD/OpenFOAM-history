@@ -906,7 +906,12 @@ Foam::label Foam::meshRefinement::splitFacesUndo
 
         if (duplicateFace.size())
         {
-            meshRefinement::updateList(map().faceMap(), -1, duplicateFace);
+            meshRefinement::updateList
+            (
+                map().faceMap(),
+                label(-1),
+                duplicateFace
+            );
         }
 
         const labelList& oldToNewFaces = map().reverseFaceMap();
@@ -1142,7 +1147,12 @@ Foam::label Foam::meshRefinement::splitFacesUndo
         {
             if (duplicateFace.size())
             {
-                meshRefinement::updateList(map().faceMap(), -1, duplicateFace);
+                meshRefinement::updateList
+                (
+                    map().faceMap(),
+                    label(-1),
+                    duplicateFace
+                );
             }
 
             const labelList& reverseFaceMap = map().reverseFaceMap();

@@ -1,0 +1,867 @@
+*OK* commit 7883c1bc362b7ec4b2b6f84ea18def7c21123923
+Author: Henry <Henry>
+Date:   Mon Jan 19 09:02:49 2015 +0000
+
+    applications/utilities/mesh/generation/Allwmake: Updated for changes to foamyHexMesh organization
+
+*OK* commit 155966d6d3e2fa7b5f355d977234c46061c79584
+Author: Henry <Henry>
+Date:   Sun Jan 18 21:16:37 2015 +0000
+
+    Updated headers
+
+*OK* commit a1c33aa1d22d60869e11035c61c0c516c5a5f023
+Author: Henry <Henry>
+Date:   Sun Jan 18 21:13:45 2015 +0000
+
+    Rationalized foamyHexMesh directory structure and build scripts
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1186
+
+*OK* commit 658da453baff37a7600f4ebbc2079959fff8efa7
+Author: Henry <Henry>
+Date:   Sun Jan 18 21:11:54 2015 +0000
+
+    Remove cyclic link in foamyHexMesh/mixerVessel tutorial
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1191
+
+*OK* commit 7b5d0dad20e3dc2084114871a0f2e39303a13d69
+Author: Henry <Henry>
+Date:   Mon Jan 12 12:34:38 2015 +0000
+
+    Update headers
+
+*OK* commit b5277967c024a2c0fc2d1f0d5306cbe99d75317b
+Author: Henry <Henry>
+Date:   Mon Jan 12 12:32:38 2015 +0000
+
+    Incompressible turbulence models: Remove the correction of the laminar transport model
+    Explicitly correct laminar transport at the application level as is done in the multiphase solvers
+
+*OK* commit 5a4a4e5e4a79e4c79f1175a35105cf302468467c
+Author: Henry <Henry>
+Date:   Mon Jan 12 11:53:19 2015 +0000
+
+    wallDist: Ensure appropriate method correct function is called
+
+*OK* commit 086131d4a172321f60858d9851fb0335abdc4857
+Author: Henry <Henry>
+Date:   Sun Jan 11 22:27:36 2015 +0000
+
+    Updated options files for new location of radiation lnInclude directory
+
+*OK* commit 8e5b23ece79db3c37d232568f6952a114c8fefa9
+Author: Henry <Henry>
+Date:   Sun Jan 11 22:17:00 2015 +0000
+
+    Updated headers
+
+*OK* commit 1f3679fe0e6c48861de4fc4e1aefa842e88a32ab
+Author: Henry <Henry>
+Date:   Sun Jan 11 22:16:14 2015 +0000
+
+    thermophysicalModels/radiationModels -> thermophysicalModels/radiation
+
+*OK* commit 8c591c480e5154613ba2bc0e85a2c5529849e531
+Author: Henry <Henry>
+Date:   Sun Jan 11 18:44:18 2015 +0000
+
+    wmake: Added to "See also"
+
+*OK* commit ac42485493e92d286224f4195c3bafba7cca8f56
+Author: Henry <Henry>
+Date:   Sun Jan 11 18:21:20 2015 +0000
+
+    wmake: Added "See also"
+
+*OK* commit 9106d893c70eb239cf32e4ad4d324ed5ae5fe577
+Author: Henry <Henry>
+Date:   Sun Jan 11 17:16:48 2015 +0000
+
+    Update header
+
+*OK* commit 03ebd6ddb988b6b601bfcdd472593c06cb91b253
+Author: Henry <Henry>
+Date:   Sun Jan 11 17:16:15 2015 +0000
+
+    wdep: If source file is not in the current directory search tree for first occurrence
+
+*OK* commit 86906e8230802ec50b60256ea3c4272b3fb7032b
+Author: Henry <Henry>
+Date:   Sun Jan 11 15:51:13 2015 +0000
+
+    Remove deprecated and out-of-date scripts
+
+*OK* commit 38c62f02101a142833cf3721d9590b9faf428ab2
+Author: Henry <Henry>
+Date:   Sun Jan 11 15:42:10 2015 +0000
+
+    Rename foamClearPolyMesh -> foamCleanPolyMesh for consistency with the other foamClear.* scripts
+
+*OK* commit 2442d3aec7452cfa2a1627510e54278a5bc508a5
+Author: Henry <Henry>
+Date:   Sun Jan 11 13:34:41 2015 +0000
+
+    Remove out-of-date and deprecated scripts
+
+*OK* commit 4e90a5d364cae59651e338b6754849200ffc99a9
+Author: Henry <Henry>
+Date:   Sun Jan 11 13:16:56 2015 +0000
+
+    Remove set -x
+
+*OK* commit 0e51d263d095bbe2d192989cfb1f5ef635a557fc
+Author: Henry <Henry>
+Date:   Sun Jan 11 13:14:55 2015 +0000
+
+    wrmdepold: Updated rmdepold to handle out-of-tree .dep and .o files
+
+*OK* commit fb1b5ffac5d054577c7ff924262e03524e174371
+Author: Henry <Henry>
+Date:   Sun Jan 11 12:15:06 2015 +0000
+
+    wdep: updated
+
+*OK* commit dddbe58c946e651a650cba502b2c3c471a1d11c1
+Author: Henry <Henry>
+Date:   Sat Jan 10 23:22:46 2015 +0000
+
+    wrmo: Add -a/-all/all option to remove .o files from all platforms rather than just the current platform.
+
+*OK* commit 92f1b0fb78b9621ad648bdb67f8936dcc4befb7d
+Author: Henry <Henry>
+Date:   Sat Jan 10 23:22:39 2015 +0000
+
+    Updated doc
+
+*OK* commit 16b29a9bd05b4bd6de23861ffb424012d8e5633e
+Author: Henry <Henry>
+Date:   Sat Jan 10 23:18:34 2015 +0000
+
+    wrmdep: Add -a/-all/all option to removed for all platforms rather than just the current platform.
+
+*OK* commit 1c83ab493ee4bf1b9ba9d7ab6352ac98a0954809
+Author: Henry <Henry>
+Date:   Sat Jan 10 22:33:39 2015 +0000
+
+    Replaced rmoall with wrmo
+    Description
+        Remove all .o files from the object directory tree corresponding to the
+        current source derectory or remove only the .o file corresponding to the
+        optionally specified [file].
+
+*OK* commit f46ec6553d05983c963b02a2ce54b395ff4a711b
+Author: Henry <Henry>
+Date:   Sat Jan 10 22:12:00 2015 +0000
+
+    Updated headers
+
+*OK* commit 8257b61446ec10ac2ca36d1af564e04b02eb0fda
+Author: Henry <Henry>
+Date:   Sat Jan 10 22:11:29 2015 +0000
+
+    Corrected documentation for Doxygen
+
+*OK* commit b0c120b7b5e2d08336aec329e1220c8147cf4c01
+Author: Henry <Henry>
+Date:   Sat Jan 10 21:58:19 2015 +0000
+
+    wmake/scripts/AllwmakeParseArguments: Handle stop-on-error
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1485
+
+*OK* commit fd6459c556ea1ee97a70f808580431ca28b5fea3
+Author: Henry <Henry>
+Date:   Sat Jan 10 21:12:27 2015 +0000
+
+    Corrected typo
+
+*OK* commit 49b27c838f536be837055ea02c4040f2d9cdec84
+Author: Henry <Henry>
+Date:   Sat Jan 10 21:10:24 2015 +0000
+
+    Added missing file
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1484
+
+*OK* commit 24d054199d19ee77110cb89d3e87cef5b2e91bad
+Author: Henry <Henry>
+Date:   Sat Jan 10 17:23:20 2015 +0000
+
+    wmake/wcleanAll: Corrected typo
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1483
+
+*OK* commit 1a084b8954c0cb4e274128089825f48d4fb0e200
+Author: Henry <Henry>
+Date:   Sat Jan 10 12:26:39 2015 +0000
+
+    wallDist: Add support for distance to any patch set
+
+*OK* commit 0123afd3e3a0b272a5b5f08591fad7502f3322cf
+Author: Henry <Henry>
+Date:   Sat Jan 10 11:27:14 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Added more description including specification of relaxation
+
+*OK* commit c29c13b742cb6c696efff2271867a75777b7f7b8
+Author: Henry <Henry>
+Date:   Fri Jan 9 23:17:24 2015 +0000
+
+    wallDist: Added nRequired option to the wallDist dict
+
+*OK* commit 4b4fce2c02674a7fc4478e4c3f0e92249f8290a3
+Author: Henry <Henry>
+Date:   Fri Jan 9 22:05:32 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Only run the predictor method on first call
+    Improves efficiency for moving-mesh cases
+
+*OK* commit 28ec2c2a06ac6910594cf0208e16d8b39bc187a0
+Author: Henry <Henry>
+Date:   Fri Jan 9 21:41:21 2015 +0000
+
+    wallDist: moved patchTypes into patchDistMethod
+
+*OK* commit 014c602f4a36c40d52b8d8059d2f2a31d3cec375
+Author: Henry <Henry>
+Date:   Fri Jan 9 16:18:49 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Added comment concerning predictor step
+
+*OK* commit cb3cd0afb031e477482d46f8e64119dcb87cb138
+Author: Henry <Henry>
+Date:   Fri Jan 9 16:12:58 2015 +0000
+
+    advectionDiffusionPatchDistMethod: Calculation of approximate distance to nearest patch for all cells
+    and boundary by solving the Eikonal equation in advection form with diffusion smoothing.
+
+*OK* commit 113f7a9d7bd952bd9f274c42ca52f3470582bd25
+Author: Henry <Henry>
+Date:   Thu Jan 8 23:10:41 2015 +0000
+
+    Fixed a typo
+
+*OK* commit 4a411a62c6942a0b6d1dbc38e7983eca60079d4d
+Author: Henry <Henry>
+Date:   Thu Jan 8 22:43:42 2015 +0000
+
+    wallDist/patchDistMethods/Poisson: New method for fast calculation of an approximate wall-distance field
+    by solving Poisson's equation
+
+*OK* commit e61ac9d842485b5a782a32ed074396e2d619e32b
+Author: Henry <Henry>
+Date:   Thu Jan 8 17:21:07 2015 +0000
+
+    wallDist: Set BCs for y and n appropriately for solving PDEs
+
+*OK* commit 22869d6e380294f02e45b6dbd30a714c1df73ee2
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:25:48 2015 +0000
+
+    Updated header
+
+*OK* commit 5d5c397c44b01a74ebf6308e9d6fdc550da3597e
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:25:17 2015 +0000
+
+    twoPhaseEulerFoam: removed unnecessary fvc.H
+
+*OK*commit 501edb4bcaf0ecfba9d49d53c8104c865830e584
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:11:28 2015 +0000
+
+    Update headers
+
+*CHECK* commit 6f0b2c1727ee9ce02093fb7c40663e44adf29e58
+Author: Henry <Henry>
+Date:   Thu Jan 8 16:08:53 2015 +0000
+
+    wallDist: Add support for cached wall-reflection vectors
+    Currently these vectors are generated at the same time as the wall-distance field
+    by the same run-time selected algorithm.  This will be changed so that the wall-reflection
+    vectors are only generated and stored if required.
+
+*OK* commit 7900e9ea9ebc87b9dbeb821b1e48d62223bb850e
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:45:47 2015 +0000
+
+    Updated headers
+
+*OK* commit bb2c2efd49f156de17736c6c53d20a4d16b9eed2
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:40:23 2015 +0000
+
+    wallDist: now a MeshObject cached and updated automatically with a run-time selected algorithm
+    
+    When using models which require the wallDist e.g. kOmegaSST it will
+    request the method to be used from the wallDist sub-dictionary in
+    fvSchemes e.g.
+    
+    wallDist
+    {
+        method meshWave;
+    }
+    
+    specifies the mesh-wave method as hard-coded in previous OpenFOAM versions.
+
+*OK* commit 2028973e19af2b840729c9f8e78528953bde7ef9
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:38:25 2015 +0000
+
+    MeshObject: Improved diagnostics
+
+*OK* commit 28aa1141e97559951c3b7e94e27f776f51486a2f
+Author: Henry <Henry>
+Date:   Thu Jan 8 10:36:37 2015 +0000
+
+    wrmdep: Replacement for rmdepall
+    Remove all .dep files from the object directory tree corresponding to the
+    current source derectory or remove only the .dep files referring to the
+    optionally specified [file].
+
+*OK* commit ba0393358f3599e511417484e95db46290157d5d
+Author: Henry <Henry>
+Date:   Tue Jan 6 17:32:02 2015 +0000
+
+    Updated headers
+
+*OK* commit 5085a9807b87b4213d58a8b51456a4aba4dc67ac
+Author: Henry <Henry>
+Date:   Tue Jan 6 17:31:02 2015 +0000
+
+    wallDist: separate the meshWaveWallDist from the wallDist interface
+    In preparation for run-time selectable methods
+
+*OK* commit 0a7ade60a30465867b304cd95a3a17fece53fd86
+Author: Henry <Henry>
+Date:   Sun Jan 4 23:43:25 2015 +0000
+
+    Ensure __STDC_LIMIT_MACROS is defined before the CGAL headers are included
+    Additional resolution of bug-report http://www.openfoam.org/mantisbt/view.php?id=1474
+
+*OK* commit 5d058dacdbddad09f10434241136b781c694587a
+Author: Henry <Henry>
+Date:   Sun Jan 4 20:15:16 2015 +0000
+
+    Updated headers
+
+*OK* commit 097f23e11a3ee5c4e93ffc68b89614265459e6d5
+Author: Henry <Henry>
+Date:   Sun Jan 4 20:13:37 2015 +0000
+
+    Added support for glibc < 2.18
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1474
+
+*OK* commit 3857ba0cda13d312dae7f91196356abcbf57e144
+Author: Henry <Henry>
+Date:   Sun Jan 4 20:13:17 2015 +0000
+
+    Updated header
+
+*OK* commit 4ba0aee354001a77b4a50ab1d75595c211fb8148
+Author: Henry <Henry>
+Date:   Sun Jan 4 20:12:48 2015 +0000
+
+    Added support to test older gcc versions
+
+*OK* commit 51b1089d093bbf8890b3d4102f33861145eb5b55
+Author: Henry <Henry>
+Date:   Sat Jan 3 18:32:40 2015 +0000
+
+    Removed spurious file
+
+*OK* commit cedd21599b64d899d726e46628e3615b097317d7
+Author: Henry <Henry>
+Date:   Sat Jan 3 16:54:07 2015 +0000
+
+    Added InfoSwitches::writeOptionalEntries which enables the writing of optional keywords and values which are not present in the dictionary
+    Warning: generates a VERY large number of messages from OpenFOAM applications
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1473
+
+*OK* commit 4d415b0cb86a37cf3a5a247562803a2cbf09f305
+Author: Henry <Henry>
+Date:   Fri Jan 2 19:20:50 2015 +0000
+
+    Updated header
+
+*OK* commit ee6f3909bd8cb06752ed5d83f2d0a9a5d5d08dd8
+Author: Henry <Henry>
+Date:   Fri Jan 2 19:20:19 2015 +0000
+
+    LduMatrixOperations: Added support for scaling symmetric matrices
+    Note: non-uniform scaling of a symmetric matrix generates an asymmetric matrix
+
+*OK* commit cd01692afd13b4e5a7d3ff539886d58a07ca390a
+Author: Henry <Henry>
+Date:   Fri Jan 2 16:44:07 2015 +0000
+
+    Updated header
+
+*OK* commit 79e8c34ef2afb0b87a460a6f8586b46ca9f5c5c1
+Author: Henry <Henry>
+Date:   Fri Jan 2 16:43:32 2015 +0000
+
+    fvcSurfaceIntegrate: add support for sub-cycling with mesh-motion
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1471
+    
+    Note:
+        In order to avoid unexpectedly poor results I think it would be
+        better if sub-cycling in time were limited to static meshes and
+        solid-body motion only and the Vsc() function removed and I will
+        consider this for the next release with the addition of a check for
+        solid-body motion in the case that sub-cycling is applied.  Now that
+        MULES support semi-implicit operation there is less need for
+        sub-cycling and I would recommend that you use this approach in
+        interDyMFoam for your complex mesh motion cases.
+
+*OK* commit 237e6f4fa5349ea31261a8f819a3d115458197ad
+Author: Henry <Henry>
+Date:   Fri Jan 2 15:38:52 2015 +0000
+
+    lduMatrixOperations: Added support for scaling symmetric matrices
+    Note: non-uniform scaling of a symmetric matrix generates an asymmetric matrix
+
+*OK* commit 35af64bf39f9044440c3c78d74edfddfa9e26163
+Author: Henry <Henry>
+Date:   Fri Jan 2 14:38:08 2015 +0000
+
+    fvMatrix: Corrected scaling by tmp<volScalarField>
+
+*OK* commit a8e99f862ab2b96e45320bfeadd5d0f6131f5b23
+Author: Henry <Henry>
+Date:   Thu Jan 1 18:12:28 2015 +0000
+
+    Corrected and improved documentation
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=790
+
+*OK* commit aedacd531f9841e9c03e2adfca168137c4fba20b
+Author: Henry <Henry>
+Date:   Thu Jan 1 18:11:22 2015 +0000
+
+    Updated for OpenFOAM-2.3.x
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=858
+
+*OK* commit f3602dd321d4ea923e429b4d3a470398eb967ffb
+Author: Henry <Henry>
+Date:   Thu Jan 1 16:27:58 2015 +0000
+
+    Removed spurious file
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1374
+
+*OK* commit 34f4b64bf884df6a6ec761c50e6a418da60dfac7
+Author: Henry <Henry>
+Date:   Thu Jan 1 16:27:47 2015 +0000
+
+    Updated header
+
+*OK* commit b70ebf82af1826a8267c1c12bd1f4ac8518e60e7
+Author: Henry <Henry>
+Date:   Thu Jan 1 16:27:26 2015 +0000
+
+    explicitPorositySource: corrected doc
+
+*OK* commit 3058a8df7e8997cb00e72d3a0d68728f546f5de3
+Author: Henry <Henry>
+Date:   Thu Jan 1 13:43:17 2015 +0000
+
+    Updated headers
+
+*OK* commit 83421f2aeba3e551a204ccbe976e112955038458
+Author: Henry <Henry>
+Date:   Thu Jan 1 13:42:57 2015 +0000
+
+    particle::initCellFacePt(): Added suggestions to resolve failure to find particle
+    Resolves bug report: http://www.openfoam.org/mantisbt/view.php?id=1461
+
+*OK* commit fef662401a229639bcfd604f060f82375efa8b06
+Author: Henry <Henry>
+Date:   Thu Jan 1 13:42:13 2015 +0000
+
+    primitiveMesh::pointInCellBB: Inflate the cell isotropically to handle anisotropic cells more robustly
+
+*OK* commit 10ee5c477b96a5957291303df5807c46091bab90
+Author: Henry <Henry>
+Date:   Wed Dec 31 23:03:26 2014 +0000
+
+    atmBoundaryLayer: rationalized U and epsilon BCs and added the corresponding k BC
+
+*OK* commit 3745eac1096e5d29cc04fe76ddeed0a9aedb82e9
+Author: Henry <Henry>
+Date:   Wed Dec 31 19:08:15 2014 +0000
+
+    Updated headers
+
+*OK* commit 2a614865fff303855db7403e145452f909e23ffa
+Author: Henry <Henry>
+Date:   Wed Dec 31 19:02:52 2014 +0000
+
+    Added and verified support for 64bit labels
+    
+    To compile with 64bit labels set
+    
+    WM_LABEL_SIZE=64
+    
+    in ~/OpenFOAM/dev/prefs.sh
+    
+    source ~/.bashrc
+    
+    then Allwmake in OpenFOAM-dev.
+    
+    This will build into for example OpenFOAM-dev/platforms/linux64ClangDPInt64Opt
+    
+    If WM_LABEL_SIZE is unset or set to 32:
+    
+    WM_LABEL_SIZE=32
+    
+    the build would be placed into OpenFOAM-dev/platforms/linux64ClangDPInt32Opt
+    
+    Thus both 32bit and 64bit label builds can coexist without problem.
+
+*OK* commit ff52b0c4852df597865e9e8c3d62f85695f57de1
+Author: Henry <Henry>
+Date:   Wed Dec 31 19:02:04 2014 +0000
+
+    Updated header
+
+*OK* commit 99e8b9b6c1b14115a78c80958c24db67462941b4
+Author: Henry <Henry>
+Date:   Wed Dec 31 19:01:13 2014 +0000
+
+    orientFaceZone: convert 0 to label
+
+*OK* commit 8f9a576bde8d476a550e03f38aada95b7e2f9f39
+Author: Henry <Henry>
+Date:   Mon Dec 29 17:39:20 2014 +0000
+
+    atmBoundaryLayer: Attempt to rationalize the inputs and documentation to make these BCs more usable
+    Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=860
+
+*OK* commit a6ccbc6d7dd6a5ee27947d37405ec8af0b75121b
+Author: Henry <Henry>
+Date:   Mon Dec 29 12:05:54 2014 +0000
+
+    atmBoundaryLayerInletVelocity: removed spurious limit U <= Uref
+    Rewrote using field algebra rather than looping over cells
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1384
+
+*OK* commit 1d824a2232190e4ba268fc72d55bb98e88f54f74
+Author: Henry <Henry>
+Date:   Mon Dec 29 11:13:34 2014 +0000
+
+    turbulentTemperatureRadCoupledMixed: Corrected/improved mixed BC formulation to ensure the reference temperature is physical
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1369
+
+*OK* commit e3307142c74af75e5837166363bf77a722f1c1c3
+Author: Henry <Henry>
+Date:   Mon Dec 29 11:13:25 2014 +0000
+
+    Minor reformatting
+
+*OK* commit a0e704c5cd4e7bf24fe759f76f74b24fe0eeef8f
+Author: Henry <Henry>
+Date:   Mon Dec 29 11:12:29 2014 +0000
+
+    externalWallHeatFluxTemperature: Combined logic into a single switch
+
+*OK* commit 5f6e909f72ce67acab0b486c7069a6318135499c
+Author: Henry <Henry>
+Date:   Mon Dec 29 11:11:43 2014 +0000
+
+    viewFactor: moved some of the "noise" to print only on debug
+
+*OK* commit 9550a248cf4a74627d174aaebbd62a8148e98008
+Author: Henry <Henry>
+Date:   Sun Dec 28 17:00:11 2014 +0000
+
+    fanFvPatchField: Correct the type specialization
+    Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=1415
+
+*OK* commit 2e8c7a89a81f65357df8d56443ba9e3bdd6deb6b
+Author: Henry <Henry>
+Date:   Sun Dec 28 17:00:03 2014 +0000
+
+    Write the coefficients before the field
+
+*OK* commit d4a13421ad0551088e331289ebbfc4cdb2472dc0
+Author: Henry <Henry>
+Date:   Sun Dec 28 15:14:42 2014 +0000
+
+    Bring TurbulenceModels up to date with turbulenceModels
+
+*OK* commit c39f95b361375ed7853f2d91f85cf9a698686631
+Author: Henry <Henry>
+Date:   Sun Dec 28 12:53:56 2014 +0000
+
+    CrankNicolsonDdtScheme: Changed ddtCorr from a basic Euler scheme to include the Crank-Nicolson correction
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1468
+
+*OK* commit cd405fd3692145edd9ae1112c7e297b8b02d1530
+Author: Henry <Henry>
+Date:   Mon Dec 22 20:11:04 2014 +0000
+
+    twoPhaseEulerFoam/interfacialModels/turbulentDispersionModels: Added Fprime function
+    to support improved discretisation in pEqn and implicit treatment in the phase-fraction equation
+
+*OK* commit a61f07451faa306a231a27c9904f0b967920dbe4
+Author: Henry <Henry>
+Date:   Mon Dec 22 19:54:58 2014 +0000
+
+    rotorDiskSource: Corrected coordinate transformations
+    Now the rotor axis may be specified in other than the z-direction
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1290
+
+*OK* commit ce379c8b63e3e83c82632b81ebbf9dba7d8b09b1
+Author: Henry <Henry>
+Date:   Sun Dec 21 21:57:15 2014 +0000
+
+    RDT -> rapid distortion theory
+
+*OK* commit 4d362576822a3fba2e923ef9ebc4354e2c6bb795
+Author: Henry <Henry>
+Date:   Sat Dec 20 12:17:59 2014 +0000
+
+    Updates to the TAB modeling for distorted droplets
+    Resolves bug-reports:
+       http://www.openfoam.org/mantisbt/view.php?id=1018
+       http://www.openfoam.org/mantisbt/view.php?id=996
+       http://www.openfoam.org/mantisbt/view.php?id=991
+
+*OK* commit f82cd6c7c0a56a3f55e7702b3fe716b516ffcf09
+Author: Henry <Henry>
+Date:   Fri Dec 19 21:33:38 2014 +0000
+
+    Added general kOmegaSST and kOmegaSSTSato for multiphase flow
+    Provided by Juho Peltola
+
+*OK* commit aab5463644ad99f0b74080cda7ec5bc7127ee182
+Author: Henry <Henry>
+Date:   Fri Dec 19 21:33:16 2014 +0000
+
+    Reformat references
+
+*OK* commit b1a1a32c98b5d0ffd2c84593da94454b1fca9885
+Author: Henry <Henry>
+Date:   Fri Dec 19 17:03:30 2014 +0000
+
+    Corrected for SP compilation
+
+*OK* commit fae6dcad37d9671d217ec2a2b49943663341dd3c
+Author: Henry <Henry>
+Date:   Fri Dec 19 11:55:16 2014 +0000
+
+    Reformatted references
+
+*OK* commit 2cb1adebbf108eaae5df2a8b756b71a480a6d34a
+Author: Henry <Henry>
+Date:   Fri Dec 19 11:54:57 2014 +0000
+
+    Included new files
+
+*OK* commit f1dfb92002a54acc93bf3707b48e6f0a1b08bf8e
+Author: Henry <Henry>
+Date:   Fri Dec 19 11:54:23 2014 +0000
+
+    Removed spurious additional phase-fraction factor
+
+*OK* commit c282a02ae52f81f9ad1fadaa795ceb2f02337c9f
+Author: Henry <Henry>
+Date:   Fri Dec 19 11:53:36 2014 +0000
+
+    Added LopezDeBertodano turbulentDispersionModel
+
+*OK* commit 8fa9f8944a21a204a7f795c9c396f686b7c59156
+Author: Henry <Henry>
+Date:   Fri Dec 19 11:53:17 2014 +0000
+
+    Added IshiiZuber drag model
+
+*OK* commit 08480055fbf5cd705e4335066949638268670092
+Author: Henry <Henry>
+Date:   Thu Dec 18 17:13:41 2014 +0000
+
+    execFlowFunctionObjects: Reconstruct functionObjects if the mesh changes
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1452
+
+*OK* commit 0d4fa65c27f1706767b1b588e162368d3a4bc099
+Author: Henry <Henry>
+Date:   Thu Dec 18 13:15:51 2014 +0000
+
+    Corrected tc and ms for new parcels
+    Resolved bug-report http://www.openfoam.org/mantisbt/view.php?id=1286
+
+*OK* commit 1921449192e4816c4198dd577afe7def14225323
+Author: Henry <Henry>
+Date:   Thu Dec 18 13:07:17 2014 +0000
+
+    Correct child parcel properties
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1287
+
+*OK* commit 970884a56169467c86e7cbf48293e5701ecd3e10
+Author: Henry <Henry>
+Date:   Thu Dec 18 12:50:24 2014 +0000
+
+    Reduce the stripped parcel mass due to evaporation
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1295
+
+*OK* commit ca31aaec322f52be8efd1d1107646f42ce67384c
+Author: Henry <Henry>
+Date:   Thu Dec 18 12:36:58 2014 +0000
+
+    Improved member function documentation
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1285
+
+*OK* commit d50de8d4f007110f6146a80f8f016283e6e86daf
+Author: Henry <Henry>
+Date:   Thu Dec 18 12:25:19 2014 +0000
+
+    Renamed minParticleMass -> minParcelMass
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1288
+
+*OK* commit cc088b65ed3659d308eeaffd07598a1b9bb556b5
+Author: Henry <Henry>
+Date:   Thu Dec 18 11:37:35 2014 +0000
+
+    fvDOM: check mesh is on x-y plane for 2D cases and in x-direction for 1D cases
+
+*OK* commit 9c7b04d0c3faf1d9bccc7436516a55508acb5a61
+Author: Henry <Henry>
+Date:   Wed Dec 17 20:11:02 2014 +0000
+
+    Coco/R based parsers are no longer supported
+
+*OK* commit e59ed485e34ce94f04f2f9585a373f1c785c97ef
+Author: Henry <Henry>
+Date:   Wed Dec 17 20:09:01 2014 +0000
+
+    Updated to preferentially search the local directory for dependencies
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1222
+
+*OK* commit b29c7f6bed0168a44f98959f95d6bc2983ce9fec
+Author: Henry <Henry>
+Date:   Wed Dec 17 14:11:02 2014 +0000
+
+    Added references
+
+*OK* commit 8027be5be790a653aac14b163088d8d9a772a143
+Author: Henry <Henry>
+Date:   Wed Dec 17 14:10:43 2014 +0000
+
+    Corrected description
+
+*OK* commit e05b72580dba0fb2c23e4ffd670687e5bafe65b4
+Author: Henry <Henry>
+Date:   Tue Dec 16 20:45:51 2014 +0000
+
+    Added return when position_ == endPosition
+    May resolve bug-report http://www.openfoam.org/mantisbt/view.php?id=1459
+
+*OK* commit c9512b7456e1d2379e20ae50c5649bfb08517621
+Author: Henry <Henry>
+Date:   Tue Dec 16 14:32:39 2014 +0000
+
+    Ensure fields are initialized before mapping to avoid SIGFPE caused by uninitialized values
+
+*OK* commit fcb037ba085443971096a61c5ae3783df27684bb
+Author: Henry <Henry>
+Date:   Tue Dec 16 09:50:33 2014 +0000
+
+    Added reference
+
+*OK* commit 40808d5d68726b275bf676c223dc96cb77b076c6
+Author: Henry <Henry>
+Date:   Tue Dec 16 09:50:20 2014 +0000
+
+    Ignore test directory
+
+*OK* commit 5ca78127d64dcd8b802f2e7a5579092d925fa4f3
+Author: Henry <Henry>
+Date:   Tue Dec 16 09:18:50 2014 +0000
+
+    Upgrade OpenMPI to 1.8.3
+
+*OK* commit eba4c47759b933df8864bf3b5718b56a92ac63d4
+Author: Henry <Henry>
+Date:   Tue Dec 16 09:07:20 2014 +0000
+
+    Upgrade gcc-4.8.2 -> gcc-4.8.3
+
+*OK* commit 6439b0306fcec6b77eee3afabf021f17663b6b39
+Author: Henry <Henry>
+Date:   Tue Dec 16 08:38:18 2014 +0000
+
+    Corrected calculation of multi-layer resistance
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1447
+
+*OK* commit 1db5ee8f56687031e6a81b20b09f037a79e8bd27
+Author: Henry <Henry>
+Date:   Tue Dec 16 08:37:57 2014 +0000
+
+    Upgraded gcc-4.9.0 -> gcc-4.9.2
+
+*OK* commit 3d30a05a926dd214fab6eb0070aaf1f1b18e9bed
+Author: Henry <Henry>
+Date:   Tue Dec 16 08:37:25 2014 +0000
+
+    Renamed -frounded-math option
+
+*OK* commit 78f47dacd60d0e2abcc61e301dd14dba34cd3400
+Author: Henry <Henry>
+Date:   Mon Dec 15 22:39:21 2014 +0000
+
+    Move gcc-specific options to the appropriate wmake rules files
+
+*OK* commit 3dd3e6157ccc3bb6d6a1b2208deb7eca92784929
+Author: Henry <Henry>
+Date:   Mon Dec 15 22:38:10 2014 +0000
+
+    Resolve issues relating to compilation with clang-3.5.0
+
+*OK* commit 195c566562b56ff6f7e9374993f8264d23e57f24
+Author: Henry <Henry>
+Date:   Sun Dec 14 21:50:14 2014 +0000
+
+    Minor change to comment
+
+*OK* commit bc5134a55ec35950a302608c81b47b8efe84798b
+Author: Henry <Henry>
+Date:   Sun Dec 14 21:42:18 2014 +0000
+
+    New version of wmake supporting out-of-tree object and dependency files
+
+*OK* commit 0587e6e0e802b85a0f23d4493575ca162740e010
+Author: Henry <Henry>
+Date:   Fri Dec 12 22:19:03 2014 +0000
+
+    Corrected calculation of iTp
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1456
+
+*OK* commit e3c8025e9dd9d10ed2c9ee65dd9d590b9410c876
+Author: Henry <Henry>
+Date:   Fri Dec 12 11:30:27 2014 +0000
+
+    Improved test to avoid /0
+
+*OK* commit d26c772cf59eca6ae1f20a1b2a03dc4fdebe2b97
+Author: Henry <Henry>
+Date:   Fri Dec 12 08:55:32 2014 +0000
+
+    Keep copy rather than reference to returned object.
+    Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=1454
+
+commit 446e5777f016d589abea857ec6e32b0a7210b5a8
+Author: Henry <Henry>
+Date:   Wed Dec 10 22:40:10 2014 +0000
+
+    Add the OpenFOAM source tree
+
+MEJ: compared 446e5777f016d589abea857ec6e32b0a7210b5a8 sources to our 2.3.x
+
+
+*OK* commit ee487c860d7265200b9f40b8edaed31a9e7a2a43
+Author: Henry <Henry>
+Date:   Wed Dec 10 15:55:25 2014 +0000
+
+    Added .gitignore
+
+*OK* commit 5225d71f17acd18d1ad55a9add61daa681a6b317
+Author: Henry <Henry>
+Date:   Wed Dec 10 15:50:51 2014 +0000
+
+    Add licence and README

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,7 +25,6 @@ License
 
 #include "IDDESDelta.H"
 #include "addToRunTimeSelectionTable.H"
-#include "wallDistReflection.H"
 #include "wallDist.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -43,10 +42,8 @@ void Foam::IDDESDelta::calcDelta()
 {
     const volScalarField& hmax = hmax_();
 
-    // initialise wallNorm
-    wallDistReflection wallNorm(mesh());
-
-    const volVectorField& n = wallNorm.n();
+    // Wall-reflection vectors
+    const volVectorField& n = wallDist::New(mesh()).n();
 
     tmp<volScalarField> tfaceToFacenMax
     (
@@ -116,7 +113,7 @@ void Foam::IDDESDelta::calcDelta()
             (
                 max
                 (
-                    cw_*wallDist(mesh()).y(),
+                    cw_*wallDist::New(mesh()).y(),
                     cw_*hmax
                 ),
                 tfaceToFacenMax

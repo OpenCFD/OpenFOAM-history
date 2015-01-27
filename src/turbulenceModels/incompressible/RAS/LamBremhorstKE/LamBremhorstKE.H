@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -72,7 +72,11 @@ protected:
         volScalarField k_;
         volScalarField epsilon_;
 
-        wallDist y_;
+        //- Wall distance
+        //  Note: different to wall distance in parent RASModel
+        //  which is for near-wall cells only
+        const volScalarField& y_;
+
         volScalarField Rt_;
 
         volScalarField fMu_;
@@ -92,7 +96,7 @@ public:
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport,
+            const transportModel& transport,
             const word& turbulenceModelName = turbulenceModel::typeName,
             const word& modelName = typeName
         );

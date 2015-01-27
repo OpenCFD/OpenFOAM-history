@@ -25,7 +25,6 @@ License
 
 #include "Burns.H"
 #include "phasePair.H"
-#include "fvc.H"
 #include "PhaseCompressibleTurbulenceModel.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -70,8 +69,8 @@ Foam::turbulentDispersionModels::Burns::~Burns()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volVectorField>
-Foam::turbulentDispersionModels::Burns::F() const
+Foam::tmp<Foam::volScalarField>
+Foam::turbulentDispersionModels::Burns::Fprime() const
 {
     const fvMesh& mesh(pair_.phase1().mesh());
     const dragModel&
@@ -86,7 +85,6 @@ Foam::turbulentDispersionModels::Burns::F() const
     return
       - 0.75
        *drag.CdRe()
-       *pair_.dispersed()
        *pair_.continuous().nu()
        *pair_.continuous().turbulence().nut()
        /(
@@ -94,7 +92,6 @@ Foam::turbulentDispersionModels::Burns::F() const
            *sqr(pair_.dispersed().d())
         )
        *pair_.continuous().rho()
-       *fvc::grad(pair_.continuous())
        *(1.0 + pair_.dispersed()/max(pair_.continuous(), residualAlpha_));
 }
 

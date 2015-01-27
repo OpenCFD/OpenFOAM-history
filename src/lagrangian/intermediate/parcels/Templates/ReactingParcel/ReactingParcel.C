@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -248,6 +248,8 @@ void Foam::ReactingParcel<ParcelType>::cellValueSourceCorrection
     const label cellI
 )
 {
+    tetIndices tetIs = this->currentTetIndices();
+
     scalar addedMass = 0.0;
     scalar maxMassI = 0.0;
     forAll(td.cloud().rhoTrans(), i)
@@ -264,6 +266,7 @@ void Foam::ReactingParcel<ParcelType>::cellValueSourceCorrection
 
     const scalar massCell = this->massCell(cellI);
 
+    this->rhoc_ = td.rhoInterp().psi()[cellI];
     this->rhoc_ += addedMass/td.cloud().pMesh().cellVolumes()[cellI];
 
     const scalar massCellNew = massCell + addedMass;
@@ -284,6 +287,7 @@ void Foam::ReactingParcel<ParcelType>::cellValueSourceCorrection
     const scalar Cpc = td.CpInterp().psi()[cellI];
     this->Cpc_ = (massCell*Cpc + addedMass*CpEff)/massCellNew;
 
+    this->Tc_ = td.TInterp().interpolate(this->position(), tetIs);
     this->Tc_ += td.cloud().hsTrans()[cellI]/(this->Cpc_*massCellNew);
 
     if (this->Tc_ < td.cloud().constProps().TMin())
@@ -497,26 +501,11 @@ void Foam::ReactingParcel<ParcelType>::calc
     );
 
 
-    // 2. Update the parcel properties due to change in mass
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    scalarField dMass(dMassPC);
-    scalar mass1 = updateMassFraction(mass0, dMass, Y_);
-
-    this->Cp_ = composition.Cp(0, Y_, pc_, T0);
-
-    // Update particle density or diameter
-    if (td.cloud().constProps().constantVolume())
-    {
-        this->rho_ = mass1/this->volume();
-    }
-    else
-    {
-        this->d_ = cbrt(mass1/this->rho_*6.0/pi);
-    }
+    const scalarField dMass(dMassPC.xfer());
+    scalar mass1 = mass0 - sum(dMass);
 
     // Remove the particle when mass falls below minimum threshold
-    if (np0*mass1 < td.cloud().constProps().minParticleMass())
+    if (np0*mass1 < td.cloud().constProps().minParcelMass())
     {
         td.keepParticle = false;
 
@@ -541,6 +530,22 @@ void Foam::ReactingParcel<ParcelType>::calc
 
         return;
     }
+
+
+    // 2. Update the parcel properties due to change in mass
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // Update particle density or diameter
+    if (td.cloud().constProps().constantVolume())
+    {
+        this->rho_ = mass1/this->volume();
+    }
+    else
+    {
+        this->d_ = cbrt(mass1/this->rho_*6.0/pi);
+    }
+
+    (void)updateMassFraction(mass0, dMass, Y_);
 
     // Correct surface values due to emitted species
     correctSurfaceValues(td, cellI, Ts, Cs, rhos, mus, Prs, kappas);
@@ -569,7 +574,7 @@ void Foam::ReactingParcel<ParcelType>::calc
             Sph
         );
 
-    this->Cp_ = composition.Cp(0, Y_, pc_, T0);
+    this->Cp_ = composition.Cp(0, Y_, pc_, this->T_);
 
 
     // Motion

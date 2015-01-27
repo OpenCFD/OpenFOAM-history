@@ -142,7 +142,8 @@ setenv FOAM_JOB_DIR $WM_PROJECT_INST_DIR/jobControl
 # wmake configuration
 setenv WM_DIR $WM_PROJECT_DIR/wmake
 setenv WM_LINK_LANGUAGE c++
-setenv WM_OPTIONS $WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_COMPILE_OPTION
+setenv WM_LABEL_OPTION Int$WM_LABEL_SIZE
+setenv WM_OPTIONS $WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION$WM_COMPILE_OPTION
 
 # base executables/libraries
 setenv FOAM_APPBIN $WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
@@ -216,41 +217,41 @@ case OpenFOAM:
 case ThirdParty:
     switch ("$WM_COMPILER")
     case Gcc:
-    case Gcc46:
-        set gcc_version=gcc-4.6.1
-        set gmp_version=gmp-5.0.4
-        set mpfr_version=mpfr-3.1.0
-        set mpc_version=mpc-0.9
-        breaksw
-    case Gcc49:
-        set gcc_version=gcc-4.9.0
-        set gmp_version=gmp-5.1.2
-        set mpfr_version=mpfr-3.1.2
-        set mpc_version=mpc-1.0.1
-        breaksw
     case Gcc48:
         set gcc_version=gcc-4.8.3
         set gmp_version=gmp-5.1.2
         set mpfr_version=mpfr-3.1.2
         set mpc_version=mpc-1.0.1
         breaksw
-    case Gcc47:
-        set gcc_version=gcc-4.7.2
-        set gmp_version=gmp-5.0.4
-        set mpfr_version=mpfr-3.1.0
-        set mpc_version=mpc-0.9
-        breaksw
     case Gcc45:
-        set gcc_version=gcc-4.5.2
-        set gmp_version=gmp-5.0.1
-        set mpfr_version=mpfr-2.4.2
-        set mpc_version=mpc-0.8.1
+        set gcc_version=gcc-4.5.4
+        set gmp_version=gmp-5.1.2
+        set mpfr_version=mpfr-3.1.2
+        set mpc_version=mpc-1.0.1
+        breaksw
+    case Gcc46:
+        set gcc_version=gcc-4.6.4
+        set gmp_version=gmp-5.1.2
+        set mpfr_version=mpfr-3.1.2
+        set mpc_version=mpc-1.0.1
+        breaksw
+    case Gcc47:
+        set gcc_version=gcc-4.7.4
+        set gmp_version=gmp-5.1.2
+        set mpfr_version=mpfr-3.1.2
+        set mpc_version=mpc-1.0.1
+        breaksw
+    case Gcc49:
+        set gcc_version=gcc-4.9.2
+        set gmp_version=gmp-5.1.2
+        set mpfr_version=mpfr-3.1.2
+        set mpc_version=mpc-1.0.1
         breaksw
     case Clang:
         # using clang - not gcc
         setenv WM_CC 'clang'
         setenv WM_CXX 'clang++'
-        set clang_version=llvm-3.4.2
+        set clang_version=llvm-3.5.0
         breaksw
     default:
         echo
@@ -335,6 +336,19 @@ default:
 endsw
 
 
+#
+# add c++0x flags for external programs
+#
+if ( $?WM_CXXFLAGS ) then
+    switch ("$WM_COMPILER")
+    case Gcc*++0x:
+        setenv WM_CXXFLAGS "$WM_CXXFLAGS -std=c++0x"
+        breaksw
+    endsw
+endif
+
+
+
 # Communications library
 # ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -356,7 +370,7 @@ case SYSTEMOPENMPI:
     breaksw
 
 case OPENMPI:
-    setenv FOAM_MPI openmpi-1.6.5
+    setenv FOAM_MPI openmpi-1.8.3
     # optional configuration tweaks:
     _foamSource `$WM_PROJECT_DIR/bin/foamEtcFile config/openmpi.csh`
 

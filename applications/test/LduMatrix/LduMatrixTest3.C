@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 
         while (piso.correct())
         {
-            volScalarField rAU = 1.0/UEqn.A();
+            volScalarField rAU(1.0/UEqn.A());
 
             U = rAU*UEqn.H();
             phi = (fvc::interpolate(U) & mesh.Sf())
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
                 );
 
                 pEqn.setReference(pRefCell, pRefValue);
-                 pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
+                pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
 
                 if (piso.finalNonOrthogonalIter())
                 {

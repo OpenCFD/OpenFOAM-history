@@ -55,6 +55,9 @@ makeRASModel(kEpsilon);
 #include "buoyantKEpsilon.H"
 makeRASModel(buoyantKEpsilon);
 
+#include "kOmegaSST.H"
+makeRASModel(kOmegaSST);
+
 #include "Smagorinsky.H"
 makeLESModel(Smagorinsky);
 

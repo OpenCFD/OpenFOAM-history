@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -60,7 +60,7 @@ SourceFiles
 #define compressibleLaunderGibsonRSTM_H
 
 #include "RASModel.H"
-#include "wallDistReflection.H"
+#include "wallDist.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -109,7 +109,8 @@ protected:
 
         // Fields
 
-            wallDistReflection y_;
+            const volVectorField& n_;
+            const volScalarField& y_;
 
             volSymmTensorField R_;
             volScalarField k_;

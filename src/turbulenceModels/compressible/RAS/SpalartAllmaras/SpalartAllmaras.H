@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -122,9 +122,10 @@ protected:
             volScalarField mut_;
             volScalarField alphat_;
 
-
-        //- Wall distance
-        wallDist d_;
+            //- Wall distance
+            //  Note: different to wall distance in parent RASModel
+            //  which is for near-wall cells only
+            const volScalarField& y_;
 
 
     // Protected Member Functions

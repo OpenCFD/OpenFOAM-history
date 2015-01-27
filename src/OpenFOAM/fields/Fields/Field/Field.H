@@ -100,7 +100,7 @@ public:
         //- Return a null field
         inline static const Field<Type>& null()
         {
-            return *reinterpret_cast< Field<Type>* >(0);
+            return NullObjectRef<Field<Type> >();
         }
 
 

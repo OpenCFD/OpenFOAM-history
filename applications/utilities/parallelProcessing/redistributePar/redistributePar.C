@@ -490,7 +490,7 @@ void writeProcAddressing
             patchMap,
             eqOp<label>(),
             flipOp(),
-            -1,
+            label(-1),
             UPstream::msgType()
         );
     }
@@ -531,7 +531,7 @@ void writeProcAddressing
         patchDistMap.reverseDistribute
         (
             map.oldPatchSizes().size(),
-            -1,
+            label(-1),
             patchMap
         );
     }

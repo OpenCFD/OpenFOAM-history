@@ -38,6 +38,7 @@ InfoSwitches
     writePrecision  6;
     writeJobInfo    0;
     writeDictionaries 0;
+    writeOptionalEntries 0;
 
     // Allow case-supplied C++ code (#codeStream, codedFixedValue)
     allowSystemOperations   1;
@@ -609,6 +610,7 @@ DebugSwitches
     meshCutAndRemove    0;
     meshCutter          0;
     meshModifier        0;
+    meshObject          0;
     meshRefinement      0;
     meshSearch          0;
     meshToMesh          0;

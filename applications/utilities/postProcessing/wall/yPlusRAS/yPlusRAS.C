@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -42,8 +42,6 @@ Description
 #include "fluidThermo.H"
 #include "compressible/RAS/RASModel/RASModel.H"
 #include "mutWallFunction/mutWallFunctionFvPatchScalarField.H"
-
-#include "wallDist.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -203,15 +201,6 @@ int main(int argc, char *argv[])
         runTime.setTime(timeDirs[timeI], timeI);
         Info<< "Time = " << runTime.timeName() << endl;
         fvMesh::readUpdateState state = mesh.readUpdate();
-
-        // Wall distance
-        if (timeI == 0 || state != fvMesh::UNCHANGED)
-        {
-            Info<< "Calculating wall distance\n" << endl;
-            wallDist y(mesh, true);
-            Info<< "Writing wall distance to field " << y.name() << nl << endl;
-            y.write();
-        }
 
         volScalarField yPlus
         (

@@ -30,10 +30,10 @@ Description
     Reference:
     \verbatim
         "Analysis of phase distribution in fully developed laminar bubbly
-        two-phase flow"
-        S P Antal, R T Lahey Jr and J E Flaherty
+         two-phase flow"
+        Antal, S.P., Lahey Jr, R.T., and Flaherty, J.E.
         International Journal of Multiphase Flow
-        Volume 17, Issue 5, Pages 635-652, September 1991
+        Volume 17, Issue 5, September 1991, pp. 635-652
     \endverbatim
 
 SourceFiles
@@ -64,8 +64,6 @@ class Antal
 :
     public wallLubricationModel
 {
-private:
-
     // Private data
 
         //- Coefficient 1

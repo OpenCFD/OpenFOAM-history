@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -59,20 +59,20 @@ class scotchDecomp
         label decompose
         (
             const fileName& meshPath,
-            const List<int>& adjncy,
-            const List<int>& xadj,
+            const List<label>& adjncy,
+            const List<label>& xadj,
             const scalarField& cWeights,
-            List<int>& finalDecomp
+            List<label>& finalDecomp
         );
 
         //- Decompose non-parallel
         label decomposeOneProc
         (
             const fileName& meshPath,
-            const List<int>& adjncy,
-            const List<int>& xadj,
+            const List<label>& adjncy,
+            const List<label>& xadj,
             const scalarField& cWeights,
-            List<int>& finalDecomp
+            List<label>& finalDecomp
         );
 
         //- Disallow default bitwise copy construct and assignment

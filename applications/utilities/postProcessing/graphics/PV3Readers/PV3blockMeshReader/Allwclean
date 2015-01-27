@@ -1,14 +1,17 @@
 #!/bin/sh
-cd ${0%/*} || exit 1    # run from this directory
+cd ${0%/*} || exit 1    # Run from this directory
 set -x
+
+# Source the wmake functions
+. $WM_DIR/scripts/wmakeFunctions
 
 # deal with client/server vs combined plugins
 rm -f $FOAM_LIBBIN/libPV3blockMeshReader*  2>/dev/null
 
 (
     # Where are the generated files stored?
-    depFile=`wdep dummy.C` && \
-    depDir=`dirname $depFile` && \
+    findObjectDir dummy.C
+    depDir="$objectsDir"
     rm -rf "$depDir"
 )
 wclean libso vtkPV3blockMesh

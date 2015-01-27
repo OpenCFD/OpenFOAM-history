@@ -98,7 +98,7 @@ Foam::fvPatchField<Type>::fvPatchField
     patchType_(ptf.patchType_)
 {
     // For unmapped faces set to internal field value (zero-gradient)
-    if (&iF && mapper.hasUnmapped())
+    if (notNull(iF) && mapper.hasUnmapped())
     {
         fvPatchField<Type>::operator=(this->patchInternalField());
     }
@@ -255,7 +255,7 @@ void Foam::fvPatchField<Type>::autoMap
             if
             (
                 mapper.direct()
-             && &mapper.directAddressing()
+             && notNull(mapper.directAddressing())
              && mapper.directAddressing().size()
             )
             {

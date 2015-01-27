@@ -370,6 +370,38 @@ void calc
 }
 
 
+autoPtr<functionObjectList> readFunctionObjects
+(
+    const argList& args,
+    const Time& runTime,
+    dictionary& folDict
+)
+{
+    autoPtr<functionObjectList> folPtr;
+
+    if (args.optionFound("dict"))
+    {
+        folDict = IOdictionary
+        (
+            IOobject
+            (
+                args["dict"],
+                runTime,
+                IOobject::MUST_READ_IF_MODIFIED
+            )
+        );
+        folPtr.reset(new functionObjectList(runTime, folDict));
+    }
+    else
+    {
+        folPtr.reset(new functionObjectList(runTime));
+    }
+    folPtr->start();
+
+    return folPtr;
+}
+
+
 int main(int argc, char *argv[])
 {
     Foam::timeSelector::addOptions();
@@ -391,31 +423,15 @@ int main(int argc, char *argv[])
     Foam::instantList timeDirs = Foam::timeSelector::select0(runTime, args);
     #include "createNamedMesh.H"
 
-    // Construct functionObjectList
-
-    autoPtr<functionObjectList> folPtr;
-    // Externally stored dictionary for if fol constructed not from runTime
+    // Externally stored dictionary for functionObjectList
+    // if not constructed from runTime
     dictionary folDict;
 
-    if (args.optionFound("dict"))
-    {
-        folDict = IOdictionary
-        (
-            IOobject
-            (
-                args["dict"],
-                runTime,
-                IOobject::MUST_READ_IF_MODIFIED
-            )
-        );
-        folPtr.reset(new functionObjectList(runTime, folDict));
-    }
-    else
-    {
-        folPtr.reset(new functionObjectList(runTime));
-    }
-    folPtr->start();
-
+    // Construct functionObjectList
+    autoPtr<functionObjectList> folPtr
+    (
+        readFunctionObjects(args, runTime, folDict)
+    );
 
     forAll(timeDirs, timeI)
     {
@@ -423,7 +439,11 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << endl;
 
-        mesh.readUpdate();
+        if (mesh.readUpdate() != polyMesh::UNCHANGED)
+        {
+            // Update functionObjectList if mesh changes
+            folPtr = readFunctionObjects(args, runTime, folDict);
+        }
 
         FatalIOError.throwExceptions();
 
