@@ -9,7 +9,6 @@ $(autoHexMeshDriver)/autoRefineDriver.C
 $(autoHexMeshDriver)/layerParameters/layerParameters.C
 $(autoHexMeshDriver)/refinementParameters/refinementParameters.C
 $(autoHexMeshDriver)/snapParameters/snapParameters.C
-$(autoHexMeshDriver)/pointData/pointData.C
 
 $(autoHexMesh)/meshRefinement/meshRefinementBaffles.C
 $(autoHexMesh)/meshRefinement/meshRefinement.C

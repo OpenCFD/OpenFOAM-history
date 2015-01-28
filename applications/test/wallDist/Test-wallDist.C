@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Description
-    Calculate distance to wall.
+    Calculate and write the distance-to-wall field for a moving mesh.
 
 \*---------------------------------------------------------------------------*/
 
@@ -47,6 +47,10 @@ int main(int argc, char *argv[])
         << " s\n" << endl << endl;
 
     Info<< "Time now = " << runTime.timeName() << endl;
+
+    // Wall-reflection vectors
+    const volVectorField& n = wallDist::New(mesh).n();
+    n.write();
 
     // Wall distance
     const volScalarField& y = wallDist::New(mesh).y();
@@ -74,8 +78,7 @@ int main(int argc, char *argv[])
 
     mesh.movePoints(newPoints);
     mesh.write();
-
-    y.correct();
+    n.write();
     y.write();
 
     Info<< "End\n" << endl;

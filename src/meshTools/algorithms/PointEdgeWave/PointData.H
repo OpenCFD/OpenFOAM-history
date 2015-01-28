@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,79 +22,87 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::pointData
+    Foam::PointData
 
 Description
-    Variant of pointEdgePoint with some transported additional data.
-    WIP - should be templated on data like wallDistData.
-    Passive vector v_ is not a coordinate (so no enterDomain/leaveDomain
-    transformation needed)
+    Variant of pointEdgePoint with some transported additional data. Templated
+    on the transported data type.
 
 SourceFiles
-    pointDataI.H
-    pointData.C
+    PointDataI.H
+    PointData.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef pointData_H
-#define pointData_H
+#ifndef PointData_H
+#define PointData_H
 
 #include "pointEdgePoint.H"
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+// Forward declaration of classes
+class Istream;
+class Ostream;
+template<class DataType>
+class PointData;
+
+// Forward declaration of friend functions and operators
+template<class DataType>
+Ostream& operator<<(Ostream&, const PointData<DataType>&);
+template<class DataType>
+Istream& operator>>(Istream&, PointData<DataType>&);
+
 /*---------------------------------------------------------------------------*\
-                           Class pointData Declaration
+                           Class PointData Declaration
 \*---------------------------------------------------------------------------*/
 
-class pointData
+template<class DataType>
+class PointData
 :
     public pointEdgePoint
 {
+private:
+
     // Private data
 
-        //- additional information.
-        scalar s_;
+        //- Additional transported data
+        DataType data_;
 
-        //- additional information.
-        vector v_;
 
 public:
 
     // Constructors
 
         //- Construct null
-        inline pointData();
+        inline PointData();
 
-        //- Construct from origin, distance
-        inline pointData
+        //- Construct from origin, distance and data
+        inline PointData
         (
             const point& origin,
             const scalar distSqr,
-            const scalar s,
-            const vector& v
+            const DataType& data
         );
 
         //- Construct as copy
-        inline pointData(const pointData&);
+        inline PointData(const PointData&);
 
 
     // Member Functions
 
         // Access
 
-            inline scalar s() const;
-
-            inline const vector& v() const;
+            //- Const access the data
+            inline const DataType& data() const;
 
 
         // Needed by meshWave
 
-            //- Apply rotation matrix to origin
+            //- Apply rotation matrix to the data
             template<class TrackingData>
             inline void transform
             (
@@ -109,7 +117,7 @@ public:
                 const polyMesh& mesh,
                 const label pointI,
                 const label edgeI,
-                const pointData& edgeInfo,
+                const PointData<DataType>& edgeInfo,
                 const scalar tol,
                 TrackingData& td
             );
@@ -121,7 +129,7 @@ public:
             (
                 const polyMesh& mesh,
                 const label pointI,
-                const pointData& newPointInfo,
+                const PointData<DataType>& newPointInfo,
                 const scalar tol,
                 TrackingData& td
             );
@@ -131,7 +139,7 @@ public:
             template<class TrackingData>
             inline bool updatePoint
             (
-                const pointData& newPointInfo,
+                const PointData<DataType>& newPointInfo,
                 const scalar tol,
                 TrackingData& td
             );
@@ -143,32 +151,46 @@ public:
                 const polyMesh& mesh,
                 const label edgeI,
                 const label pointI,
-                const pointData& pointInfo,
+                const PointData<DataType>& pointInfo,
                 const scalar tol,
                 TrackingData& td
             );
 
     // Member Operators
 
-        // Needed for List IO
-        inline bool operator==(const pointData&) const;
-        inline bool operator!=(const pointData&) const;
+        inline bool operator==(const PointData<DataType>&) const;
+        inline bool operator!=(const PointData<DataType>&) const;
 
 
     // IOstream Operators
 
-        friend Ostream& operator<<(Ostream&, const pointData&);
-        friend Istream& operator>>(Istream&, pointData&);
+        friend Ostream& operator<< <DataType>
+        (
+            Ostream&,
+            const PointData<DataType>&
+        );
+        friend Istream& operator>> <DataType>
+        (
+            Istream&,
+            PointData<DataType>&
+        );
 };
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//- Data associated with pointData as contiguous as pointEdgePoint
+//- Data associated with PointData types is contiguous
+
 template<>
-inline bool contiguous<pointData>()
+inline bool contiguous<PointData<scalar> >()
 {
-    return contiguous<pointEdgePoint>();
+    return true;
 }
 
+template<>
+inline bool contiguous<PointData<vector> >()
+{
+    return true;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -176,7 +198,11 @@ inline bool contiguous<pointData>()
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "pointDataI.H"
+#include "PointDataI.H"
+
+#ifdef NoRepository
+#   include "PointData.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
