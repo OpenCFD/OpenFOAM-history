@@ -75,7 +75,9 @@ Foam::velocityLaplacianFvMotionSolver::velocityLaplacianFvMotionSolver
     ),
     interpolationPtr_
     (
-        motionInterpolation::New(fvMesh_, coeffDict().lookup("interpolation"))
+        coeffDict().found("interpolation")
+      ? motionInterpolation::New(fvMesh_, coeffDict().lookup("interpolation"))
+      : motionInterpolation::New(fvMesh_)
     ),
     diffusivityPtr_
     (

@@ -25,7 +25,6 @@ velocityComponentLaplacianCoeffs
 {
     component       x;
     diffusivity     directional ( 1 200 0 );
-    interpolation   default;
 }
 
 

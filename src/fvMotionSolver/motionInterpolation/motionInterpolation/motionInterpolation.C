@@ -34,14 +34,6 @@ namespace Foam
     defineTypeNameAndDebug(motionInterpolation, 0);
 
     defineRunTimeSelectionTable(motionInterpolation, Istream);
-
-    addNamedToRunTimeSelectionTable
-    (
-        motionInterpolation,
-        motionInterpolation,
-        Istream,
-        default
-    );
 }
 
 
