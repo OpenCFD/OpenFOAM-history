@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,7 +32,7 @@ License
 #include "unitConversion.H"
 #include "PatchTools.H"
 #include "OBJstream.H"
-#include "pointData.H"
+#include "PointData.H"
 #include "zeroFixedValuePointPatchFields.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -56,7 +56,7 @@ namespace Foam
 // wall point for both vertices of edge.
 bool Foam::medialAxisMeshMover::isMaxEdge
 (
-    const List<pointData>& pointWallDist,
+    const List<PointData<vector> >& pointWallDist,
     const label edgeI,
     const scalar minCos
 ) const
@@ -101,7 +101,7 @@ bool Foam::medialAxisMeshMover::isMaxEdge
     //- Detect based on extrusion vector differing for both endpoints
     //  the idea is that e.g. a sawtooth wall can still be extruded
     //  successfully as long as it is done all to the same direction.
-    if ((pointWallDist[e[0]].v() & pointWallDist[e[1]].v()) < minCos)
+    if ((pointWallDist[e[0]].data() & pointWallDist[e[1]].data()) < minCos)
     {
         return true;
     }
@@ -223,7 +223,7 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // Distance to wall
-    List<pointData> pointWallDist(mesh().nPoints());
+    List<PointData<vector> > pointWallDist(mesh().nPoints());
 
     // Dummy additional info for PointEdgeWave
     int dummyTrackData = 0;
@@ -232,23 +232,22 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
     // 1. Calculate distance to points where displacement is specified.
     {
         // Seed data.
-        List<pointData> wallInfo(meshPoints.size());
+        List<PointData<vector> > wallInfo(meshPoints.size());
 
         forAll(meshPoints, patchPointI)
         {
             label pointI = meshPoints[patchPointI];
-            wallInfo[patchPointI] = pointData
+            wallInfo[patchPointI] = PointData<vector>
             (
                 points[pointI],
                 0.0,
-                pointI,                       // passive scalar
                 pointNormals[patchPointI]     // surface normals
             );
         }
 
         // Do all calculations
-        List<pointData> edgeWallDist(mesh().nEdges());
-        PointEdgeWave<pointData> wallDistCalc
+        List<PointData<vector> > edgeWallDist(mesh().nEdges());
+        PointEdgeWave<PointData<vector> > wallDistCalc
         (
             mesh(),
             meshPoints,
@@ -296,11 +295,11 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
     // 2. Find points with max distance and transport information back to
     //    wall.
     {
-        List<pointData> pointMedialDist(mesh().nPoints());
-        List<pointData> edgeMedialDist(mesh().nEdges());
+        List<pointEdgePoint> pointMedialDist(mesh().nPoints());
+        List<pointEdgePoint> edgeMedialDist(mesh().nEdges());
 
         // Seed point data.
-        DynamicList<pointData> maxInfo(meshPoints.size());
+        DynamicList<pointEdgePoint> maxInfo(meshPoints.size());
         DynamicList<label> maxPoints(meshPoints.size());
 
         // 1. Medial axis points
@@ -327,12 +326,10 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
                         maxPoints.append(pointI);
                         maxInfo.append
                         (
-                            pointData
+                            pointEdgePoint
                             (
                                 points[pointI],
-                                0.0,
-                                pointI,         // passive data
-                                vector::zero    // passive data
+                                0.0
                             )
                         );
                         pointMedialDist[pointI] = maxInfo.last();
@@ -383,12 +380,10 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
                             maxPoints.append(pointI);
                             maxInfo.append
                             (
-                                pointData
+                                pointEdgePoint
                                 (
                                     medialAxisPt,   //points[pointI],
-                                    magSqr(points[pointI]-medialAxisPt),//0.0,
-                                    pointI,         // passive data
-                                    vector::zero    // passive data
+                                    magSqr(points[pointI]-medialAxisPt)//0.0
                                 )
                             );
                             pointMedialDist[pointI] = maxInfo.last();
@@ -440,12 +435,10 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
                             maxPoints.append(pointI);
                             maxInfo.append
                             (
-                                pointData
+                                pointEdgePoint
                                 (
                                     points[pointI],
-                                    0.0,
-                                    pointI,         // passive data
-                                    vector::zero    // passive data
+                                    0.0
                                 )
                             );
                             pointMedialDist[pointI] = maxInfo.last();
@@ -486,7 +479,7 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
                             // Check if angle not too large.
                             scalar cosAngle =
                             (
-                               -pointWallDist[pointI].v()
+                               -pointWallDist[pointI].data()
                               & pointNormals[i]
                             );
                             if (cosAngle > slipFeatureAngleCos)
@@ -497,12 +490,10 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
                                 maxPoints.append(pointI);
                                 maxInfo.append
                                 (
-                                    pointData
+                                    pointEdgePoint
                                     (
                                         points[pointI],
-                                        0.0,
-                                        pointI,         // passive data
-                                        vector::zero    // passive data
+                                        0.0
                                     )
                                 );
                                 pointMedialDist[pointI] = maxInfo.last();
@@ -522,7 +513,7 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
         maxPoints.shrink();
 
         // Do all calculations
-        PointEdgeWave<pointData> medialDistCalc
+        PointEdgeWave<pointEdgePoint> medialDistCalc
         (
             mesh(),
             maxPoints,
@@ -565,7 +556,7 @@ void Foam::medialAxisMeshMover::update(const dictionary& coeffDict)
         }
         else
         {
-            dispVec_[i] = pointWallDist[i].v();
+            dispVec_[i] = pointWallDist[i].data();
         }
     }
 
@@ -1556,34 +1547,33 @@ void Foam::medialAxisMeshMover::calculateDisplacement
     // Dummy additional info for PointEdgeWave
     int dummyTrackData = 0;
 
-    List<pointData> pointWallDist(mesh().nPoints());
+    List<PointData<scalar> > pointWallDist(mesh().nPoints());
 
     const pointField& points = mesh().points();
     // 1. Calculate distance to points where displacement is specified.
     // This wave is used to transport layer thickness
     {
         // Distance to wall and medial axis on edges.
-        List<pointData> edgeWallDist(mesh().nEdges());
+        List<PointData<scalar> > edgeWallDist(mesh().nEdges());
         labelList wallPoints(meshPoints.size());
 
         // Seed data.
-        List<pointData> wallInfo(meshPoints.size());
+        List<PointData<scalar> > wallInfo(meshPoints.size());
 
         forAll(meshPoints, patchPointI)
         {
             label pointI = meshPoints[patchPointI];
             wallPoints[patchPointI] = pointI;
-            wallInfo[patchPointI] = pointData
+            wallInfo[patchPointI] = PointData<scalar>
             (
                 points[pointI],
                 0.0,
-                thickness[patchPointI],       // transport layer thickness
-                vector::zero                  // passive vector
+                thickness[patchPointI]        // transport layer thickness
             );
         }
 
         // Do all calculations
-        PointEdgeWave<pointData> wallDistCalc
+        PointEdgeWave<PointData<scalar> > wallDistCalc
         (
             mesh(),
             wallPoints,
@@ -1610,12 +1600,12 @@ void Foam::medialAxisMeshMover::calculateDisplacement
         {
             // 1) displacement on nearest wall point, scaled by medialRatio
             //    (wall distance / medial distance)
-            // 2) pointWallDist[pointI].s() is layer thickness transported
+            // 2) pointWallDist[pointI].data() is layer thickness transported
             //    from closest wall point.
             // 3) shrink in opposite direction of addedPoints
             displacement[pointI] =
                 -medialRatio_[pointI]
-                *pointWallDist[pointI].s()
+                *pointWallDist[pointI].data()
                 *dispVec_[pointI];
         }
     }

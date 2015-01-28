@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,13 +24,13 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "displacementLaplacianFvMotionSolver.H"
+#include "motionInterpolation.H"
 #include "motionDiffusivity.H"
 #include "fvmLaplacian.H"
 #include "addToRunTimeSelectionTable.H"
 #include "OFstream.H"
 #include "meshTools.H"
 #include "mapPolyMesh.H"
-#include "volPointInterpolation.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -77,6 +77,10 @@ Foam::displacementLaplacianFvMotionSolver::displacementLaplacianFvMotionSolver
         cellMotionBoundaryTypes<vector>(pointDisplacement_.boundaryField())
     ),
     pointLocation_(NULL),
+    interpolationPtr_
+    (
+        motionInterpolation::New(fvMesh_, coeffDict().lookup("interpolation"))
+    ),
     diffusivityPtr_
     (
         motionDiffusivity::New(fvMesh_, coeffDict().lookup("diffusivity"))
@@ -157,7 +161,7 @@ Foam::displacementLaplacianFvMotionSolver::diffusivity()
 Foam::tmp<Foam::pointField>
 Foam::displacementLaplacianFvMotionSolver::curPoints() const
 {
-    volPointInterpolation::New(fvMesh_).interpolate
+    interpolationPtr_->interpolate
     (
         cellDisplacement_,
         pointDisplacement_
