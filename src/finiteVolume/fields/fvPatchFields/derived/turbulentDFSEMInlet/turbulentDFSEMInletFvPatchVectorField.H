@@ -28,6 +28,15 @@ Group
     grpInletBoundaryConditions
 
 Description
+    Velocity boundary condition from synthesised eddies for use in LES
+
+    Reference:
+    \verbatim
+        Poletto, R., Craft, T., and Revell, A.,
+        "A New Divergence Free Synthetic Eddy Method for the Reproduction
+         of Inlet Flow Conditions for LES",
+        Flow Turbulence Combust (2013) 91:519-539
+    \endverbatim
 
 SeeAlso
 
