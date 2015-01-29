@@ -76,6 +76,7 @@ inline Foam::scalar Foam::species::thermo<Thermo, Type>::T
             )   << "Maximum number of iterations exceeded"
                 << abort(FatalError);
         }
+
     } while (mag(Tnew - Test) > Ttol);
 
     return Tnew;
@@ -289,7 +290,7 @@ template<class Thermo, template<class> class Type>
 inline Foam::scalar
 Foam::species::thermo<Thermo, Type>::K(const scalar p, const scalar T) const
 {
-    scalar arg = -this->nMoles()*this->g(p, T)/(this->RR*T);
+    scalar arg = -this->nMoles()*this->g(p, T)/(RR*T);
 
     if (arg < 600.0)
     {
@@ -320,7 +321,7 @@ Foam::species::thermo<Thermo, Type>::Kc(const scalar p, const scalar T) const
     }
     else
     {
-        return Kp(p, T)*pow(this->Pstd/(this->RR*T), this->nMoles());
+        return Kp(p, T)*pow(Pstd/(RR*T), this->nMoles());
     }
 }
 
@@ -338,7 +339,7 @@ inline Foam::scalar Foam::species::thermo<Thermo, Type>::Kx
     }
     else
     {
-        return Kp(p, T)*pow(this->Pstd/p, this->nMoles());
+        return Kp(p, T)*pow(Pstd/p, this->nMoles());
     }
 }
 
@@ -357,7 +358,7 @@ inline Foam::scalar Foam::species::thermo<Thermo, Type>::Kn
     }
     else
     {
-        return Kp(p, T)*pow(n*this->Pstd/p, this->nMoles());
+        return Kp(p, T)*pow(n*Pstd/p, this->nMoles());
     }
 }
 
