@@ -547,7 +547,8 @@ addLayersControls
         // before upon reaching a correct mesh.
         nRelaxIter 5;
 
-        // Create buffer region for new layer terminations
+        // Create buffer region for new layer terminations, i.e. gradually
+        // step down number of layers. Set to <0 to terminate layer in one go.
         nBufferCellsNoExtrude 0;
 
         // Overall max number of layer addition iterations. The mesher will
