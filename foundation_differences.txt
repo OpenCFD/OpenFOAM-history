@@ -1,4 +1,4 @@
-MEJ: breakdown of changes between our dev and foundation dev:
+MEJ: breakdown of differences between our dev and foundation dev:
 
 General:
 - headerOk() -> typeHeaderOk<IOdictionary>()
