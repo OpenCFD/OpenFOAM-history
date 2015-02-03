@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,73 +28,64 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-// Null constructor
-inline Foam::pointData::pointData()
+template<class DataType>
+inline Foam::PointData<DataType>::PointData()
 :
-    pointEdgePoint(),
-    s_(GREAT),
-    v_(point::max)
+    pointEdgePoint()
 {}
 
 
-// Construct from origin, distance
-inline Foam::pointData::pointData
+template<class DataType>
+inline Foam::PointData<DataType>::PointData
 (
     const point& origin,
     const scalar distSqr,
-    const scalar s,
-    const vector& v
+    const DataType& data
 )
 :
     pointEdgePoint(origin, distSqr),
-    s_(s),
-    v_(v)
+    data_(data)
 {}
 
 
-// Construct as copy
-inline Foam::pointData::pointData(const pointData& wpt)
+template<class DataType>
+inline Foam::PointData<DataType>::PointData(const PointData<DataType>& wpt)
 :
     pointEdgePoint(wpt),
-    s_(wpt.s()),
-    v_(wpt.v())
+    data_(wpt.data())
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline Foam::scalar Foam::pointData::s() const
+template<class DataType>
+inline const DataType& Foam::PointData<DataType>::data() const
 {
-    return s_;
+    return data_;
 }
 
 
-inline const Foam::vector& Foam::pointData::v() const
-{
-    return v_;
-}
-
-
+template<class DataType>
 template<class TrackingData>
-inline void Foam::pointData::transform
+inline void Foam::PointData<DataType>::transform
 (
     const tensor& rotTensor,
     TrackingData& td
 )
 {
     pointEdgePoint::transform(rotTensor, td);
-    v_ = Foam::transform(rotTensor, v_);
+    data_ = Foam::transform(rotTensor, data_);
 }
 
 
-// Update this with information from connected edge
+template<class DataType>
 template<class TrackingData>
-inline bool Foam::pointData::updatePoint
+inline bool Foam::PointData<DataType>::updatePoint
 (
     const polyMesh& mesh,
     const label pointI,
     const label edgeI,
-    const pointData& edgeInfo,
+    const PointData<DataType>& edgeInfo,
     const scalar tol,
     TrackingData& td
 )
@@ -112,8 +103,8 @@ inline bool Foam::pointData::updatePoint
         )
     )
     {
-        s_ = edgeInfo.s_;
-        v_ = edgeInfo.v_;
+        data_ = edgeInfo.data_;
+
         return true;
     }
     else
@@ -122,13 +113,14 @@ inline bool Foam::pointData::updatePoint
     }
 }
 
-// Update this with new information on same point
+
+template<class DataType>
 template<class TrackingData>
-inline bool Foam::pointData::updatePoint
+inline bool Foam::PointData<DataType>::updatePoint
 (
     const polyMesh& mesh,
     const label pointI,
-    const pointData& newPointInfo,
+    const PointData<DataType>& newPointInfo,
     const scalar tol,
     TrackingData& td
 )
@@ -145,8 +137,8 @@ inline bool Foam::pointData::updatePoint
         )
     )
     {
-        s_ = newPointInfo.s_;
-        v_ = newPointInfo.v_;
+        data_ = newPointInfo.data_;
+
         return true;
     }
     else
@@ -156,19 +148,19 @@ inline bool Foam::pointData::updatePoint
 }
 
 
-// Update this with new information on same point. No extra information.
+template<class DataType>
 template<class TrackingData>
-inline bool Foam::pointData::updatePoint
+inline bool Foam::PointData<DataType>::updatePoint
 (
-    const pointData& newPointInfo,
+    const PointData<DataType>& newPointInfo,
     const scalar tol,
     TrackingData& td
 )
 {
     if (pointEdgePoint::updatePoint(newPointInfo, tol, td))
     {
-        s_ = newPointInfo.s_;
-        v_ = newPointInfo.v_;
+        data_ = newPointInfo.data_;
+
         return true;
     }
     else
@@ -178,14 +170,14 @@ inline bool Foam::pointData::updatePoint
 }
 
 
-// Update this with information from connected point
+template<class DataType>
 template<class TrackingData>
-inline bool Foam::pointData::updateEdge
+inline bool Foam::PointData<DataType>::updateEdge
 (
     const polyMesh& mesh,
     const label edgeI,
     const label pointI,
-    const pointData& pointInfo,
+    const PointData<DataType>& pointInfo,
     const scalar tol,
     TrackingData& td
 
@@ -204,8 +196,8 @@ inline bool Foam::pointData::updateEdge
         )
     )
     {
-        s_ = pointInfo.s_;
-        v_ = pointInfo.v_;
+        data_ = pointInfo.data_;
+
         return true;
     }
     else
@@ -217,17 +209,22 @@ inline bool Foam::pointData::updateEdge
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
-inline bool Foam::pointData::operator==(const Foam::pointData& rhs)
+template<class DataType>
+inline bool Foam::PointData<DataType>::operator==
+(
+    const Foam::PointData<DataType>& rhs
+)
 const
 {
-    return
-        pointEdgePoint::operator==(rhs)
-     && (s() == rhs.s())
-     && (v() == rhs.v());
+    return pointEdgePoint::operator==(rhs) && (data() == rhs.data());
 }
 
 
-inline bool Foam::pointData::operator!=(const Foam::pointData& rhs)
+template<class DataType>
+inline bool Foam::PointData<DataType>::operator!=
+(
+    const Foam::PointData<DataType>& rhs
+)
 const
 {
     return !(*this == rhs);

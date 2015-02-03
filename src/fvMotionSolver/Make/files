@@ -26,6 +26,10 @@ motionDiffusivity/file/fileDiffusivity.C
 motionDiffusivity/manipulators/quadratic/quadraticDiffusivity.C
 motionDiffusivity/manipulators/exponential/exponentialDiffusivity.C
 
+motionInterpolation/motionInterpolation/motionInterpolation.C
+motionInterpolation/patchCorrected/patchCorrectedInterpolation.C
+motionInterpolation/patchTransformed/patchTransformedInterpolation.C
+
 fvPatchFields/derived/cellMotion/cellMotionFvPatchFields.C
 fvPatchFields/derived/surfaceSlipDisplacement/surfaceSlipDisplacementFvPatchFields.C
 

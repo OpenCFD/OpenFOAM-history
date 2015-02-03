@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "displacementSBRStressFvMotionSolver.H"
+#include "motionInterpolation.H"
 #include "motionDiffusivity.H"
 #include "fvmLaplacian.H"
 #include "addToRunTimeSelectionTable.H"
@@ -32,7 +33,6 @@ License
 #include "surfaceInterpolate.H"
 #include "fvcLaplacian.H"
 #include "mapPolyMesh.H"
-#include "volPointInterpolation.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -78,6 +78,12 @@ Foam::displacementSBRStressFvMotionSolver::displacementSBRStressFvMotionSolver
         ),
         cellMotionBoundaryTypes<vector>(pointDisplacement().boundaryField())
     ),
+    interpolationPtr_
+    (
+        coeffDict().found("interpolation")
+      ? motionInterpolation::New(fvMesh_, coeffDict().lookup("interpolation"))
+      : motionInterpolation::New(fvMesh_)
+    ),
     diffusivityPtr_
     (
         motionDiffusivity::New(fvMesh_, coeffDict().lookup("diffusivity"))
@@ -97,7 +103,7 @@ Foam::displacementSBRStressFvMotionSolver::
 Foam::tmp<Foam::pointField>
 Foam::displacementSBRStressFvMotionSolver::curPoints() const
 {
-    volPointInterpolation::New(fvMesh_).interpolate
+    interpolationPtr_->interpolate
     (
         cellDisplacement_,
         pointDisplacement_

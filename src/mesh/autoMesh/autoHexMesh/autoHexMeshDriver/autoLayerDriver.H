@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -47,7 +47,6 @@ class removePoints;
 class pointSet;
 class motionSmoother;
 class addPatchCellLayer;
-class pointData;
 class faceSet;
 class layerParameters;
 
@@ -481,13 +480,6 @@ private:
                     const PackedBoolList& isMasterEdge,
                     const labelList& fixedPoints,
                     pointVectorField& normals
-                ) const;
-
-                bool isMaxEdge
-                (
-                    const List<pointData>&,
-                    const label edgeI,
-                    const scalar minCos
                 ) const;
 
                 //- Stop layer growth where mesh wraps around edge with a
