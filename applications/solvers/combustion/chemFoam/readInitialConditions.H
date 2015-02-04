@@ -14,9 +14,9 @@
             << fractionBasis << abort(FatalError);
     }
 
-    scalar ShCoeff
+    scalar ShScaleFact
     (
-        initialConditions.lookupOrDefault("ShCoeff", scalar(1.0))
+        initialConditions.lookupOrDefault("ShScaleFact", scalar(1.0))
     );
 
     label nSpecie = Y.size();
