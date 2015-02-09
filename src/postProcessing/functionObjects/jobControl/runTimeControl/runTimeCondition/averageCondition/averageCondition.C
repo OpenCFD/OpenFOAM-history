@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -98,7 +98,6 @@ bool Foam::averageCondition::apply()
     forAll(fieldNames_, fieldI)
     {
         const word& fieldName(fieldNames_[fieldI]);
-        const word meanName(fieldName + "Mean");
 
         scalar Dt = totalTime_[fieldI];
         scalar alpha = (Dt - dt)/Dt;
@@ -120,13 +119,11 @@ bool Foam::averageCondition::apply()
         }
 
         bool processed = false;
-        calc<scalar>(fieldName, meanName, alpha, beta, satisfied, processed);
-        calc<vector>(fieldName, meanName, alpha, beta, satisfied, processed);
-        calc<sphericalTensor>
-            (fieldName, meanName, alpha, beta, satisfied, processed);
-        calc<symmTensor>
-            (fieldName, meanName, alpha, beta, satisfied, processed);
-        calc<tensor>(fieldName, meanName, alpha, beta, satisfied, processed);
+        calc<scalar>(fieldName, alpha, beta, satisfied, processed);
+        calc<vector>(fieldName, alpha, beta, satisfied, processed);
+        calc<sphericalTensor>(fieldName, alpha, beta, satisfied, processed);
+        calc<symmTensor>(fieldName, alpha, beta, satisfied, processed);
+        calc<tensor>(fieldName, alpha, beta, satisfied, processed);
 
         if (!processed)
         {
