@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -50,26 +50,14 @@ Foam::runTimeControl::runTimeControl
     functionObjectState(obr, name),
     obr_(obr),
     active_(true),
-    conditions_()
+    conditions_(),
+    groupMap_()
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
-    if (!isA<fvMesh>(obr_))
+    if (setActive<fvMesh>())
     {
-        active_ = false;
-        WarningIn
-        (
-            "runTimeControl::runTimeControl"
-            "("
-                "const word&, "
-                "const objectRegistry&, "
-                "const dictionary&, "
-                "const bool"
-            ")"
-        )   << "No fvMesh available, deactivating " << name_ << nl
-            << endl;
+        read(dict);
     }
-
-    read(dict);
 }
 
 
@@ -89,6 +77,10 @@ void Foam::runTimeControl::read(const dictionary& dict)
         const wordList conditionNames(conditionsDict.toc());
         conditions_.setSize(conditionNames.size());
 
+        groupMap_(conditions_.size());
+
+        label nGroup = 0;
+
         forAll(conditionNames, conditionI)
         {
             const word& conditionName = conditionNames[conditionI];
@@ -99,8 +91,13 @@ void Foam::runTimeControl::read(const dictionary& dict)
                 conditionI,
                 runTimeCondition::New(conditionName, obr_, dict, *this)
             );
-        }
 
+            label groupI = conditions_[conditionI].groupID();
+            if (groupMap_.found(groupI))
+            {
+                groupMap_.set(groupI, nGroup++);
+            }
+        }
     }
 }
 
@@ -109,18 +106,52 @@ void Foam::runTimeControl::execute()
 {
     if (active_)
     {
-        bool done = false;
-        DynamicList<label> IDs(10);
+        // IDs of satisfied conditions
+        DynamicList<label> IDs(conditions_.size());
+
+        // Run stops only if all conditions within a group are satisfied
+        List<bool> groupSatisfied(groupMap_.size(), true);
+
         forAll(conditions_, conditionI)
         {
-            bool conditionSatisfied = conditions_[conditionI].apply();
+            runTimeCondition& condition = conditions_[conditionI];
+
+            bool conditionSatisfied = condition.apply();
+
+            label groupI = condition.groupID();
+            Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
+
+            if (conditionIter == groupMap_.end())
+            {
+                FatalErrorIn("void Foam::runTimeControl::execute()")
+                    << "group " << groupI << " not found in map"
+                    << abort(FatalError);
+            }
 
             if (conditionSatisfied)
             {
                 IDs.append(conditionI);
-            }
 
-            done = done || conditionSatisfied;
+                if (groupI == -1)
+                {
+                    groupSatisfied[conditionIter()] = true;
+                    break;
+                }
+            }
+            else
+            {
+                groupSatisfied[conditionIter()] = false;
+            }
+        }
+
+        bool done = false;
+        forAll(groupSatisfied, groupI)
+        {
+            if (groupSatisfied[groupI])
+            {
+                done = true;
+                break;
+            }
         }
 
         if (done)
