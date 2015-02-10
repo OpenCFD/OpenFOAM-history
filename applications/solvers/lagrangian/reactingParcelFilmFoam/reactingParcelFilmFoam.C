@@ -34,7 +34,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "turbulenceModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "basicReactingCloud.H"
 #include "surfaceFilmModel.H"
 #include "psiCombustionModel.H"

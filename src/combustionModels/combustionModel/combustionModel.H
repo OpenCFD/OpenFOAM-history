@@ -36,7 +36,7 @@ SourceFiles
 #define combustionModel_H
 
 #include "IOdictionary.H"
-#include "turbulenceModel.H"
+#include "turbulentFluidThermoModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -34,8 +34,8 @@ Description
 
 #include "fvCFD.H"
 #include "rhoThermo.H"
-#include "turbulenceModel.H"
-#include "RASModel.H"
+#include "turbulentFluidThermoModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "LESModel.H"
 #include "radiationModel.H"
 #include "fvIOoptionList.H"

@@ -1,5 +1,4 @@
 EXE_INC = \
-    -DFULLDEBUG -g -O0  \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/parallel/distributed/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
@@ -9,7 +8,6 @@ EXE_INC = \
 EXE_LIBS = \
     -lmeshTools \
     -lfiniteVolume \
-    -lOpenFOAM \
     -lmeshTools \
     -ltriSurface \
     -ldistributed \

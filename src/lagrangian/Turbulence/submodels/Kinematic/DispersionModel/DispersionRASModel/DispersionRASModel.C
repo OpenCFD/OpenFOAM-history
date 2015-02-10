@@ -25,7 +25,7 @@ License
 
 #include "DispersionRASModel.H"
 #include "demandDrivenData.H"
-#include "turbulenceModel.H"
+#include "turbulentFluidThermoModel.H"
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
