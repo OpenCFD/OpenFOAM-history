@@ -16,4 +16,5 @@ LIB_LIBS = \
     -lsampling \
     -lmeshTools \
     -lturbulenceModels \
+    -lincompressibleTurbulenceModels \
     -lcompressibleTurbulenceModels
