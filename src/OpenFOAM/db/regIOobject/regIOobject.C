@@ -33,19 +33,6 @@ License
 namespace Foam
 {
     defineTypeNameAndDebug(regIOobject, 0);
-
-    template<>
-    const char* NamedEnum
-    <
-        regIOobject::fileCheckTypes,
-        4
-    >::names[] =
-    {
-        "timeStamp",
-        "timeStampMaster",
-        "inotify",
-        "inotifyMaster"
-    };
 }
 
 int Foam::regIOobject::fileModificationSkew
@@ -57,51 +44,6 @@ registerOptSwitch
     "fileModificationSkew",
     int,
     Foam::regIOobject::fileModificationSkew
-);
-
-
-const Foam::NamedEnum<Foam::regIOobject::fileCheckTypes, 4>
-    Foam::regIOobject::fileCheckTypesNames;
-
-// Default fileCheck type
-Foam::regIOobject::fileCheckTypes Foam::regIOobject::fileModificationChecking
-(
-    fileCheckTypesNames.read
-    (
-        debug::optimisationSwitches().lookup
-        (
-            "fileModificationChecking"
-        )
-    )
-);
-// Register re-reader
-class addfileModificationCheckingToOpt
-:
-    public ::Foam::simpleRegIOobject
-{
-public:
-    addfileModificationCheckingToOpt(const char* name)
-    :
-        ::Foam::simpleRegIOobject(Foam::debug::addOptimisationObject, name)
-    {}
-    virtual ~addfileModificationCheckingToOpt()
-    {}
-    virtual void readData(Foam::Istream& is)
-    {
-        Foam::regIOobject::fileModificationChecking =
-            Foam::regIOobject::fileCheckTypesNames.read(is);
-    }
-    virtual void writeData(Foam::Ostream& os) const
-    {
-        os <<   Foam::regIOobject::fileCheckTypesNames
-                [
-                    Foam::regIOobject::fileModificationChecking
-                ];
-    }
-};
-addfileModificationCheckingToOpt addfileModificationCheckingToOpt_
-(
-    "fileModificationChecking"
 );
 
 
