@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -64,6 +64,7 @@ Foam::uniformFixedGradientFvPatchField<Type>::uniformFixedGradientFvPatchField
     fixedGradientFvPatchField<Type>(ptf, p, iF, mapper),
     uniformGradient_(ptf.uniformGradient_().clone().ptr())
 {
+    // For safety re-evaluate
     const scalar t = this->db().time().timeOutputValue();
     this->gradient() = uniformGradient_->value(t);
 }
@@ -125,6 +126,7 @@ Foam::uniformFixedGradientFvPatchField<Type>::uniformFixedGradientFvPatchField
       : NULL
     )
 {
+    // For safety re-evaluate
     const scalar t = this->db().time().timeOutputValue();
 
     if (ptf.uniformGradient_.valid())
