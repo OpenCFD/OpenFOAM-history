@@ -1,3 +1,373 @@
+commit cb23867daa2b6a5e1ce9b54f502cbe265c775bf9
+Author: Henry <Henry>
+Date:   Thu Jan 29 08:16:59 2015 +0000
+
+    bin/tools/doxyFilter.sed: Add support for 2-line Class name:
+    
+     Class
+         Foam::className
+     =>
+     \\class Foam::className
+    
+     Class
+         Foam::namespaceName::
+             className
+     =>
+     \\class Foam::namespaceName::className
+    
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=252
+
+commit 4d142dacb584311a5a2b5d426b9e0b120547a777
+Author: Henry <Henry>
+Date:   Wed Jan 28 18:36:03 2015 +0000
+
+    tutorials/incompressible/simpleFoam/pitzDaily: Setup to run with range of turbulence models
+
+commit ad03953433750cd76ba802c89b13683122f4e83a
+Author: Henry <Henry>
+Date:   Wed Jan 28 18:02:56 2015 +0000
+
+    thermoSingleLayer: revert change to q function made shortly before the release of OpenFOAM-2.3.1
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1502
+
+commit eb4ed526cc4ec78275fc99fd312092c5f4becb1c
+Author: Henry <Henry>
+Date:   Wed Jan 28 16:37:36 2015 +0000
+
+    tutorials/multiphase/driftFluxFoam/ras/mixerVessel2D: add gravity in direction of drift
+
+commit cf26b7db6b3dee1ad7c5816137146a054b39b99c
+Author: Henry <Henry>
+Date:   Wed Jan 28 16:37:24 2015 +0000
+
+    Updated header
+
+commit e6123b4b95fb72b0c46b9121c7f4fb41e9ff5471
+Author: Henry <Henry>
+Date:   Wed Jan 28 16:37:09 2015 +0000
+
+    Minor style changes
+
+commit a788fa27642b1b841c456b3f0584f5ae26ed8686
+Author: Henry <Henry>
+Date:   Wed Jan 28 16:35:36 2015 +0000
+
+    regExp: Add support for case-insensitive patterns
+    From https://github.com/OpenFOAM/OpenFOAM-2.2.x/pull/1
+
+commit cb1e8f08ba509760ce16eed7ee6a852a7255b7c5
+Author: Henry <Henry>
+Date:   Wed Jan 28 16:35:15 2015 +0000
+
+    Add missing header
+
+commit 870d71db1f57efc5b3edc5d687122c2c4867c651
+Author: Henry <Henry>
+Date:   Wed Jan 28 16:34:18 2015 +0000
+
+    buoyantKEpsilon: filter sources depending on mag(g) so that it operates as kEpsilon if mag(g) = 0
+
+commit 3ecb02c4f042f76f867a9888ef5004b9e54f4a50
+Author: Henry <Henry>
+Date:   Wed Jan 28 09:19:20 2015 +0000
+
+    tutorials/incompressible/pimpleFoam/elipsekkLOmega: added non-orthogonal correctors to improve stability when running longer
+
+commit 53a0e4a2f3bf4f038f8021050f46d70ed1ee5ea5
+Author: Henry <Henry>
+Date:   Wed Jan 28 09:18:47 2015 +0000
+
+    Icc support: added floating-point exception trapping and accurate maths
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1432
+
+commit 96ab642efc447561b668db1c17b60431936ae66b
+Author: Henry <Henry>
+Date:   Wed Jan 28 09:18:06 2015 +0000
+
+    TurbulenceModels: Templated kOmega and instantiated both incompressible and compressible forms
+
+commit 62261c9822803eb5e4726eda23ba5297ce9b2f4d
+Author: Henry <Henry>
+Date:   Tue Jan 27 15:11:50 2015 +0000
+
+    kkLOmega.C: Corrected formatting error
+
+commit 2737053906275b6fea41b7d82905ffd774d16dc6
+Author: Henry <Henry>
+Date:   Tue Jan 27 15:09:03 2015 +0000
+
+    tutorials/incompressible/pimpleFoam/elipsekkLOmega: Updated
+
+commit 901d7cd579e3c964a0d69ccf0abe60e0121c1a06
+Author: Henry <Henry>
+Date:   Tue Jan 27 15:06:03 2015 +0000
+
+    src/TurbulenceModels/incompressible/turbulentTransportModels/RAS/kkLOmega: Corrected errors in implementation and from original paper according to
+        Furst, J. (2013).
+        Numerical simulation of transitional flows with laminar kinetic energy.
+        Engineering MECHANICS, 20(5), 379-388.
+    
+    Thanks to Jan-Niklas Klatt for analysing problems with and correcting
+    the implementation and testing corrections to the model proposed by
+    Furst.
+
+commit 94d113faf34eb3ffb54057c6d18b81ddec2df6f0
+Author: Henry <Henry>
+Date:   Tue Jan 27 15:04:56 2015 +0000
+
+    TurbulenceModels/incompressible: RNGkEpsilon now tepmlated
+
+commit ee213908ad652e106ad3742fbfc3b3d4cff22c3d
+Author: Henry <Henry>
+Date:   Tue Jan 27 15:04:32 2015 +0000
+
+    TurbulenceModels: Add compressible v2f
+
+commit 597343dfc7fd4c92317969ab3c80ea2419e1d7df
+Author: Henry <Henry>
+Date:   Tue Jan 27 10:49:23 2015 +0000
+
+    viewFactorsGen/shootRays: Allow the specification of maxDynListLength in viewFactorsDict
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1501
+
+commit 4f4b2e9112a9461de9fabb4be05375e8da1172b6
+Author: Henry <Henry>
+Date:   Mon Jan 26 10:30:58 2015 +0000
+
+    TurbulenceModels: separated v2fBase.H from v2f.H
+
+commit cda60031b9db0fc22fcf3f631ee47c0bde5fdd26
+Author: Henry <Henry>
+Date:   Sun Jan 25 22:52:33 2015 +0000
+
+    TurbulenceModels: ensure alphat is corrected after nut by arranging the call from correctNut
+    This is as temporary fix pending the completion of the selectable thermal transport layer
+
+commit 3e4a059e7dc5e6a7ce9037bde363e7876d0def3b
+Author: Henry <Henry>
+Date:   Sun Jan 25 22:31:14 2015 +0000
+
+    v2f: separate instantiation of v2fBase from fWallFunction
+
+commit d9e4918cdab2408c60d37b55e46370c674332301
+Author: Henry <Henry>
+Date:   Sun Jan 25 22:27:03 2015 +0000
+
+    Updated headers
+
+commit 924ddccad59018bdc32fbe95030c4df9c570951a
+Author: Henry <Henry>
+Date:   Sun Jan 25 22:26:16 2015 +0000
+
+    TurbulenceModels: Added templated v2f for incompressible and compressible flow
+
+commit f1dddcfa40a831a617086f926212c636cdef7b0a
+Author: Henry <Henry>
+Date:   Sun Jan 25 12:40:25 2015 +0000
+
+    TurbulenceModels: Updated documentation
+
+commit f50d23f859c45a0a2531f4b7efab65c1aba33ead
+Author: Henry <Henry>
+Date:   Sun Jan 25 12:37:37 2015 +0000
+
+    buoyantKEpsilon: Changed the additional buoyancy generation/dissipation
+    term to the more commonly used form of Henkes, R.A.W.M., Van Der Vlugt, F.F. & Hoogendoorn, C.J. (1991).
+
+commit 2fb88d3e4e2a1753496ec22d26cf49931810e74c
+Author: Henry <Henry>
+Date:   Sat Jan 24 22:49:04 2015 +0000
+
+    TurbulenceModels: Added RNGkEpsilon
+
+commit f8efe93ffd4efc273a68f6cae8d4f454c27b9d9f
+Author: Henry <Henry>
+Date:   Sat Jan 24 22:10:17 2015 +0000
+
+    TurbulenceModels: Added LRR model with Daly-Harlow generalized gradient diffusion
+
+commit 19b92a4931a1b841ec2e50ae545d1805379eb434
+Author: Henry <Henry>
+Date:   Sat Jan 24 18:44:44 2015 +0000
+
+    DeardorffDiffStress: updated to correspond more closely to the original paper
+    Added references to the generalized gradient diffusion model
+
+*OK* commit 980b5541663eab5fbd2c91cdf0599ca3e984cff0
+Author: Henry <Henry>
+Date:   Fri Jan 23 23:34:05 2015 +0000
+
+    Updated header
+
+*OK* commit b62acf9cb685d356b3dd61f32a4bea4c9e0a58bd
+Author: Henry <Henry>
+Date:   Fri Jan 23 23:32:38 2015 +0000
+
+    TurbulenceModels: Added DeardorffDiffStress LES model
+    Now using the Daly-Harlow generalized gradient diffusion model
+
+*OK* commit 070fe069ac722fcbb8f855cf0376572e2335cbd5
+Author: Henry <Henry>
+Date:   Fri Jan 23 14:06:02 2015 +0000
+
+    atmBoundaryLayer: updated for SP compilation
+
+*OK* commit 90e78229d5c729ddeccaf3ceeea5319a4dce0867
+Author: Henry <Henry>
+Date:   Fri Jan 23 09:21:39 2015 +0000
+
+    controlDict: change timeStampMaster -> timeStamp
+    Currently timeStampMaster does not support re-reading of IOdictionaries in parallel
+
+*OK* commit 9714a61e9e58f9485fafe6d591b791003535d90c
+Author: Henry <Henry>
+Date:   Fri Jan 23 09:21:26 2015 +0000
+
+    Updated header
+
+*OK* commit 26e9586324340981fa221fb3c742b75c0e7d1ae7
+Author: Henry <Henry>
+Date:   Fri Jan 23 09:21:01 2015 +0000
+
+    turbulenceModels: minor function reorganization
+
+*OK* commit 1f7b744212196951cb0f841e58654d4bd2e3b9ba
+Author: Henry <Henry>
+Date:   Fri Jan 23 09:18:36 2015 +0000
+
+    LESModel: correct delta
+
+*OK* commit a6b9d2a49014f9d741a6e183d4b1f84d6ab1beff
+Author: Henry <Henry>
+Date:   Fri Jan 23 09:17:33 2015 +0000
+
+    turbulenceModels/LES: Added WALE model
+    Changed the tutorials/incompressible/pimpleFoam/channel395 to demonstrate the WALE model
+
+*OK* commit 2de9246e246c8113b90c09d46020919c7de819ef
+Author: Henry <Henry>
+Date:   Thu Jan 22 13:32:30 2015 +0000
+
+    DataEntry/Table: provide dictionary to base-class to allow the specification of outOfBounds
+    Resolves bug-reports:
+        http://www.openfoam.org/mantisbt/view.php?id=888
+        http://www.openfoam.org/mantisbt/view.php?id=788
+
+*OK* commit b8145063e3c7d0de13337aebff7d3b17459d0716
+Author: Henry <Henry>
+Date:   Thu Jan 22 10:59:45 2015 +0000
+
+    twoPhaseEulerFoam/twoPhaseSystem/diameterModels/IATE: Added fvOptions support
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1402
+
+*OK* commit 5bf565c1122e2ea795bce21759bf0fd5eb50dbc2
+Author: Henry <Henry>
+Date:   Thu Jan 22 10:08:38 2015 +0000
+
+    Updated headers
+
+*OK* commit 9b411dd60e4611746a8a7c0ecf036fd724fbe839
+Author: Henry <Henry>
+Date:   Thu Jan 22 10:07:45 2015 +0000
+
+    Reorganized BCs and added Doc.H files
+
+*OK* commit 25a0a19ee369bccb69b21ec470fed8fab8f5447c
+Author: Henry <Henry>
+Date:   Thu Jan 22 08:53:10 2015 +0000
+
+    Added realizableKE to new turbulence library
+
+*OK* commit 45948394988fecc4efb3fe397de9645e75a44651
+Author: Henry <Henry>
+Date:   Wed Jan 21 21:09:34 2015 +0000
+
+    Combine yPlusRAS and yPlusLES into the single utility yPlus
+    which provides y+ values for the near-wall cells for laminar, LES and RAS
+
+*OK* commit 61bcea321b4edf6731b2b6324b10476e2eb44f7f
+Author: Henry <Henry>
+Date:   Wed Jan 21 21:08:19 2015 +0000
+
+    Add simulationType entry even for simpleFoam cases
+    so that generic utilities like yPlus select the appropriate turbulence model
+
+*OK* commit 9053fefa6c58736e3036e880ff0a65b726bf559d
+Author: Henry <Henry>
+Date:   Wed Jan 21 20:07:15 2015 +0000
+
+    multiphase solvers: print phase-name rather than alpha1/2 when printing max and min phase-fraction
+
+*OK* commit b77a5ec07905531680e6605826bf95d24c136c09
+Author: Henry <Henry>
+Date:   Wed Jan 21 19:52:42 2015 +0000
+
+    Remove references to mut and muSgs
+
+*OK* commit 7b3fa1a9299bc6bfcd6340e0273cd49e2c4c0047
+Author: Henry <Henry>
+Date:   Wed Jan 21 19:38:40 2015 +0000
+
+    Added updated nut.gz file
+
+
+*CHECK*: driftFluxFoam: added compressibleTurbulenceModels.C to instantiate on
+compressibleFluidThermo.
+*OK* commit 93732c8af4a545c617399600ee810081fdb42b07
+Author: Henry <Henry>
+Date:   Wed Jan 21 19:21:39 2015 +0000
+
+    Updated the whole of OpenFOAM to use the new templated TurbulenceModels library
+    
+    The old separate incompressible and compressible libraries have been removed.
+    
+    Most of the commonly used RANS and LES models have been upgraded to the
+    new framework but there are a few missing which will be added over the
+    next few days, in particular the realizable k-epsilon model.  Some of
+    the less common incompressible RANS models have been introduced into the
+    new library instantiated for incompressible flow only.  If they prove to
+    be generally useful they can be templated for compressible and
+    multiphase application.
+    
+    The Spalart-Allmaras DDES and IDDES models have been thoroughly
+    debugged, removing serious errors concerning the use of S rather than
+    Omega.
+    
+    The compressible instances of the models have been augmented by a simple
+    backward-compatible eddyDiffusivity model for thermal transport based on
+    alphat and alphaEff.  This will be replaced with a separate run-time
+    selectable thermal transport model framework in a few weeks.
+    
+    For simplicity and ease of maintenance and further development the
+    turbulent transport and wall modeling is based on nut/nuEff rather than
+    mut/muEff for compressible models so that all forms of turbulence models
+    can use the same wall-functions and other BCs.
+    
+    All turbulence model selection made in the constant/turbulenceProperties
+    dictionary with RAS and LES as sub-dictionaries rather than in separate
+    files which added huge complexity for multiphase.
+    
+    All tutorials have been updated so study the changes and update your own
+    cases by comparison with similar cases provided.
+    
+    Sorry for the inconvenience in the break in backward-compatibility but
+    this update to the turbulence modeling is an essential step in the
+    future of OpenFOAM to allow more models to be added and maintained for a
+    wider range of cases and physics.  Over the next weeks and months more
+    turbulence models will be added of single and multiphase flow, more
+    additional sub-models and further development and testing of existing
+    models.  I hope this brings benefits to all OpenFOAM users.
+    
+    Henry G. Weller
+
+*OK* commit 04d4f75f70323735b89a99e940c91d14a730ce9c
+Author: Henry <Henry>
+Date:   Wed Jan 21 09:35:38 2015 +0000
+
+    thermophysicalModels: Resolve issue with the construction of RR from physicoChemicalConstants which may or may not be already constructed
+    Solution: Move RR, Pstd and Tstd used by specie into thermodynamicConstants constructed in global.C
+    in the OpenFOAM library
+
 *OK* commit 7883c1bc362b7ec4b2b6f84ea18def7c21123923
 Author: Henry <Henry>
 Date:   Mon Jan 19 09:02:49 2015 +0000
