@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,7 +26,7 @@ License
 #include "regIOobject.H"
 #include "Time.H"
 #include "polyMesh.H"
-#include "registerOptSwitch.H"
+#include "registerSwitch.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -34,17 +34,76 @@ namespace Foam
 {
     defineTypeNameAndDebug(regIOobject, 0);
 
-    int regIOobject::fileModificationSkew
-    (
-        debug::optimisationSwitch("fileModificationSkew", 30)
-    );
-    registerOptSwitchWithName
-    (
-        Foam::regIOobject::fileModificationSkew,
-        fileModificationSkew,
-        "fileModificationSkew"
-    );
+    template<>
+    const char* NamedEnum
+    <
+        regIOobject::fileCheckTypes,
+        4
+    >::names[] =
+    {
+        "timeStamp",
+        "timeStampMaster",
+        "inotify",
+        "inotifyMaster"
+    };
 }
+
+int Foam::regIOobject::fileModificationSkew
+(
+    Foam::debug::optimisationSwitch("fileModificationSkew", 30)
+);
+registerOptSwitch
+(
+    "fileModificationSkew",
+    int,
+    Foam::regIOobject::fileModificationSkew
+);
+
+
+const Foam::NamedEnum<Foam::regIOobject::fileCheckTypes, 4>
+    Foam::regIOobject::fileCheckTypesNames;
+
+// Default fileCheck type
+Foam::regIOobject::fileCheckTypes Foam::regIOobject::fileModificationChecking
+(
+    fileCheckTypesNames.read
+    (
+        debug::optimisationSwitches().lookup
+        (
+            "fileModificationChecking"
+        )
+    )
+);
+// Register re-reader
+class addfileModificationCheckingToOpt
+:
+    public ::Foam::simpleRegIOobject
+{
+public:
+    addfileModificationCheckingToOpt(const char* name)
+    :
+        ::Foam::simpleRegIOobject(Foam::debug::addOptimisationObject, name)
+    {}
+    virtual ~addfileModificationCheckingToOpt()
+    {}
+    virtual void readData(Foam::Istream& is)
+    {
+        Foam::regIOobject::fileModificationChecking =
+            Foam::regIOobject::fileCheckTypesNames.read(is);
+    }
+    virtual void writeData(Foam::Ostream& os) const
+    {
+        os <<   Foam::regIOobject::fileCheckTypesNames
+                [
+                    Foam::regIOobject::fileModificationChecking
+                ];
+    }
+};
+addfileModificationCheckingToOpt addfileModificationCheckingToOpt_
+(
+    "fileModificationChecking"
+);
+
 
 bool Foam::regIOobject::masterOnlyReading = false;
 
@@ -65,6 +124,7 @@ Foam::regIOobject::regIOobject(const IOobject& io, const bool isTime)
     ),
     isPtr_(NULL)
 {
+    // Register with objectRegistry if requested
     if (registerObject())
     {
         checkIn();
