@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -393,6 +393,11 @@ void Foam::pairPatchAgglomeration:: agglomerate()
                     nCreatedLevels
                 );
 
+                if (!agglomOK)
+                {
+                    break;
+                }
+
                 restrictAddressing_.set(nCreatedLevels, finalAgglomPtr);
                 mapBaseToTopAgglom(nCreatedLevels);
                 setEdgeWeights(nCreatedLevels);
@@ -410,7 +415,7 @@ void Foam::pairPatchAgglomeration:: agglomerate()
             }
             else
             {
-                agglomOK = true;
+                break;
             }
             reduce(nCoarseFaces, sumOp<label>());
         }
