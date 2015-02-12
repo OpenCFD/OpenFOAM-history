@@ -76,7 +76,7 @@ turbulentHeatFluxTemperatureFvPatchScalarField
 )
 :
     fixedGradientFvPatchScalarField(p, iF),
-    temperatureCoupledBase(patch(), "undefined", "undefined", "undefined-K"),
+    temperatureCoupledBase(patch(), "fluidThermo", "undefined", "undefined-K"),
     heatSource_(hsPower),
     q_(p.size(), 0.0),
     QrName_("undefinedQr")

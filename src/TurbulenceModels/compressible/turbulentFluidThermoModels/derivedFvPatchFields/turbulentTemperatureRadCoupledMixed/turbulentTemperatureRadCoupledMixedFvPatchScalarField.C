@@ -46,7 +46,7 @@ turbulentTemperatureRadCoupledMixedFvPatchScalarField
 )
 :
     mixedFvPatchScalarField(p, iF),
-    temperatureCoupledBase(patch(), "undefined", "undefined", "undefined-K"),
+    temperatureCoupledBase(patch(), "fluidThermo", "undefined", "undefined-K"),
     TnbrName_("undefined-Tnbr"),
     QrNbrName_("undefined-QrNbr"),
     QrName_("undefined-Qr"),
@@ -104,9 +104,9 @@ turbulentTemperatureRadCoupledMixedFvPatchScalarField
             "turbulentTemperatureRadCoupledMixedFvPatchScalarField::"
             "turbulentTemperatureRadCoupledMixedFvPatchScalarField\n"
             "(\n"
-            "    const fvPatch& p,\n"
-            "    const DimensionedField<scalar, volMesh>& iF,\n"
-            "    const dictionary& dict\n"
+            "    const fvPatch&,\n"
+            "    const DimensionedField<scalar, volMesh>&,\n"
+            "    const dictionary&\n"
             ")\n"
         )   << "\n    patch type '" << p.type()
             << "' not type '" << mappedPatchBase::typeName << "'"
