@@ -14,6 +14,11 @@
             << fractionBasis << abort(FatalError);
     }
 
+    scalar ShScaleFact
+    (
+        initialConditions.lookupOrDefault("ShScaleFact", scalar(1.0))
+    );
+
     label nSpecie = Y.size();
     PtrList<gasHThermoPhysics> specieData(Y.size());
     forAll(specieData, i)
