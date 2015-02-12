@@ -9,50 +9,24 @@ FoamFile
 {
     version     2.0;
     format      binary;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    class       volScalarField;
+    location    "0";
+    object      nut;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-6
-(
-    maxY
+dimensions      [0 2 -1 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    walls
     {
-        type            wall;
-        nFaces          300;
-        startFace       8300;
+        type            nutkWallFunction;
+        value           uniform 0;
     }
-    minX
-    {
-        type            patch;
-        nFaces          100;
-        startFace       8600;
-    }
-    maxX
-    {
-        type            patch;
-        nFaces          100;
-        startFace       8700;
-    }
-    minY
-    {
-        type            wall;
-        nFaces          300;
-        startFace       8800;
-    }
-    minZ
-    {
-        type            wall;
-        nFaces          300;
-        startFace       9100;
-    }
-    maxZ
-    {
-        type            wall;
-        nFaces          300;
-        startFace       9400;
-    }
-)
+}
+
 
 // ************************************************************************* //

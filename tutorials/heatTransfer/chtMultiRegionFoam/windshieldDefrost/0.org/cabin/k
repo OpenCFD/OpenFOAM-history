@@ -38,12 +38,12 @@ boundaryField
     }
     walls
     {
-        type            compressible::kqRWallFunction;
+        type            kqRWallFunction;
         value           uniform 0.00015;
     }
     cabin_to_ice
     {
-        type            compressible::kqRWallFunction;
+        type            kqRWallFunction;
         value           uniform 0.00015;
     }
 }

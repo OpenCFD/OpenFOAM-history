@@ -8,47 +8,38 @@
 FoamFile
 {
     version     2.0;
-    format      binary;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      nut;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-5
-(
+dimensions      [0 2 -1 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    //- Set patchGroups for constraint patches
+    #include "${WM_PROJECT_DIR}/etc/caseDicts/setConstraintTypes"
+
+    walls
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
     inlet
     {
-        type            patch;
-        nFaces          70;
-        startFace       848067;
+        type            calculated;
+        value           uniform 0;
     }
     outlet
     {
-        type            patch;
-        nFaces          2250;
-        startFace       848137;
+        type            calculated;
+        value           uniform 0;
     }
-    atmosphere
-    {
-        type            patch;
-        nFaces          6600;
-        startFace       850387;
-    }
-    symmetry
-    {
-        type            symmetryPlane;
-        inGroups        1(symmetryPlane);
-        nFaces          5715;
-        startFace       856987;
-    }
-    walls
-    {
-        type            wall;
-        inGroups        1(wall);
-        nFaces          15071;
-        startFace       862702;
-    }
-)
+}
+
 
 // ************************************************************************* //

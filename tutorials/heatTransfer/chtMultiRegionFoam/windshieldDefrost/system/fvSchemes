@@ -40,7 +40,7 @@ divSchemes
 laplacianSchemes
 {
     default         none;
-    laplacian(muEff,U) Gauss linear corrected;
+    laplacian((rho*nuEff),U) Gauss linear corrected;
     laplacian(DkEff,k) Gauss linear corrected;
     laplacian(DomegaEff,omega) Gauss linear corrected;
     laplacian(rAUf,p_rgh) Gauss linear corrected;

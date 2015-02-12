@@ -44,12 +44,12 @@ boundaryField
     }
     walls
     {
-        type            compressible::kqRWallFunction;
+        type            kqRWallFunction;
         value           uniform 0.00015;
     }
     cabin_to_windshield
     {
-        type            compressible::kqRWallFunction;
+        type            kqRWallFunction;
         value           uniform 0.00015;
     }
 }
