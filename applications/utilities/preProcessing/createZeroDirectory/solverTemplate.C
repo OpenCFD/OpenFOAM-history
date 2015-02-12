@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -108,71 +108,54 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
     {
         word simulationType(word::null);
 
-        IOobject RASHeader
-        (
-            "RASProperties",
-            runTime.constant(),
-            regionName,
-            runTime,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        );
-
-        IOobject LESHeader
-        (
-            "LESProperties",
-            runTime.constant(),
-            regionName,
-            runTime,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        );
-
-
         if (turbulenceType == "turbulenceModel")
         {
-            IOobject turbulencePropertiesHeader
+            IOdictionary turbulenceProperties
             (
-                "turbulenceProperties",
-                runTime.constant(),
-                regionName,
-                runTime,
-                IOobject::MUST_READ,
-                IOobject::NO_WRITE
+                IOobject
+                (
+                    "turbulenceProperties",
+                    runTime.constant(),
+                    regionName,
+                    runTime,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE,
+                    false
+                )
             );
 
-            if (turbulencePropertiesHeader.typeHeaderOk<IOdictionary>(true))
+            turbulenceProperties.lookup("simulationType") >> simulationType;
+
+            if (simulationType == "laminar")
             {
-                const IOdictionary turbulenceProperties
-                (
-                    turbulencePropertiesHeader
-                );
-
-                turbulenceProperties.lookup("simulationType") >> simulationType;
-
-                if (simulationType == "RASModel")
-                {
-                    turbulenceModel = readFromDict(RASHeader, "RASModel");
-                }
-                else if (simulationType == "LESModel")
-                {
-                    turbulenceModel = readFromDict(LESHeader, "LESModel");
-                }
+                // Leave turbulenceModel as laminar
+            }
+            else if (simulationType == "RAS")
+            {
+                turbulenceProperties.subDict(simulationType).lookup("RASModel")
+                    >> turbulenceModel;
+            }
+            else if (simulationType == "LES")
+            {
+                turbulenceProperties.subDict(simulationType).lookup("LESModel")
+                    >> turbulenceModel;
             }
             else
             {
-                FatalError<< "Unable to open file "
-                    << turbulencePropertiesHeader.objectPath()
+                FatalErrorIn
+                (
+                    "Foam::dictionary "
+                    "Foam::solverTemplate::readFluidFieldTemplates"
+                    "("
+                        "const word&, "
+                        "const fileName&, "
+                        "const dictionary&, "
+                        "const Time&"
+                    ") const"
+                )   << "Unhandled turbulence model option " << simulationType
+                    << ". Valid options are laminar, RASModel, LESModel"
                     << exit(FatalError);
             }
-        }
-        else if (turbulenceType == "RASModel")
-        {
-            turbulenceModel = readFromDict(RASHeader, "RASModel");
-        }
-        else if (turbulenceType == "LESModel")
-        {
-            turbulenceModel = readFromDict(LESHeader, "LESModel");
         }
         else
         {
@@ -185,10 +168,9 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                     "const dictionary&, "
                     "const Time&"
                 ") const"
-            )
-                << "Unhandled turbulence model option.  Valid options are "
-                << "turbulenceModel, RASModel, LESModel"
-                << abort(FatalError);
+            )   << "Unhandled turbulence model option " << simulationType
+                << ". Valid options are laminar, RASModel, LESModel"
+                << exit(FatalError);
         }
     }
 
