@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -95,6 +95,7 @@ Foam::radiation::boundaryRadiationProperties::boundaryRadiationProperties
         );
     }
 }
+
 
 // * * * * * * * * * * * * * * * Member fucntions * * * * * * * * * * * * *  //
 
@@ -207,6 +208,8 @@ reflectivity(const label index, const label bandI) const
         return tmp<scalarField>(new scalarField());
     }
 }
+
+
 // * * * * * * * * * * * * * * * * Destructor * * * * * * * * * * * * * * * //
 
 Foam::radiation::boundaryRadiationProperties::~boundaryRadiationProperties()
