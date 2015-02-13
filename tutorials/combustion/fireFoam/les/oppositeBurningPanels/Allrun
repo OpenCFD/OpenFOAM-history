@@ -24,9 +24,12 @@ runApplication topoSet -dict system/fBurner.topoSetDict
 
 runApplication createPatch -overwrite
 
-decomposePar -force -constant > log.decomposePar.log 2>&1
+# Decompose mesh, constant/boundaryRadiationProperties and fields
+runApplication decomposePar -force -constant
 
-decomposePar -region panelRegion > log.decomposeParPanelRegion.log 2>&1
+# Decompose panel
+runApplication -l log.decomposeParPanelRegion decomposePar -region panelRegion
+
 
 runParallel `getApplication` 6
 

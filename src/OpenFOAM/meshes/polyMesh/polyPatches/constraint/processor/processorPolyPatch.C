@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -913,7 +913,7 @@ bool Foam::processorPolyPatch::order
                 faceMap
             );
 
-            // Try using face point average for matching
+            // Fallback: try using face point average for matching
             if (!matchedAll)
             {
                 const pointField& ppPoints = pp.points();
@@ -937,13 +937,16 @@ bool Foam::processorPolyPatch::order
                    *calcFaceTol(pp, pp.points(), facePointAverages)
                 );
 
+                // Note that we do not use the faceNormals anymore for
+                // comparison. Since we're
+                // having problems with the face centres (e.g. due to extreme
+                // aspect ratios) we will probably also have problems with
+                // reliable normals calculation
                 labelList faceMap2(faceMap.size(), -1);
                 matchedAll = matchPoints
                 (
                     facePointAverages,
                     masterFacePointAverages,
-                    pp.faceNormals(),
-                    masterNormals,
                     tols2,
                     true,
                     faceMap2
