@@ -31,20 +31,20 @@ License
 
 namespace Foam
 {
-defineTypeNameAndDebug(IOobject, 0);
+    defineTypeNameAndDebug(IOobject, 0);
 
-template<>
-const char* NamedEnum
-<
-    IOobject::fileCheckTypes,
-    4
->::names[] =
-{
-    "timeStamp",
-    "timeStampMaster",
-    "inotify",
-    "inotifyMaster"
-};
+    template<>
+    const char* NamedEnum
+    <
+        IOobject::fileCheckTypes,
+        4
+    >::names[] =
+    {
+        "timeStamp",
+        "timeStampMaster",
+        "inotify",
+        "inotifyMaster"
+    };
 }
 
 

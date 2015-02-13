@@ -360,27 +360,31 @@ public:
 
 #define makeInjectionModel(CloudType)                                         \
                                                                               \
-    typedef CloudType::kinematicCloudType kinematicCloudType;                 \
+    typedef Foam::CloudType::kinematicCloudType kinematicCloudType;           \
     defineNamedTemplateTypeNameAndDebug                                       \
     (                                                                         \
-        InjectionModel<kinematicCloudType>,                                   \
+        Foam::InjectionModel<kinematicCloudType>,                             \
         0                                                                     \
     );                                                                        \
-    defineTemplateRunTimeSelectionTable                                       \
-    (                                                                         \
-        InjectionModel<kinematicCloudType>,                                   \
-        dictionary                                                            \
-    );
+                                                                              \
+    namespace Foam                                                            \
+    {                                                                         \
+        defineTemplateRunTimeSelectionTable                                   \
+        (                                                                     \
+            InjectionModel<kinematicCloudType>,                               \
+            dictionary                                                        \
+        );                                                                    \
+    }
 
 
 #define makeInjectionModelType(SS, CloudType)                                 \
                                                                               \
-    typedef CloudType::kinematicCloudType kinematicCloudType;                 \
-    defineNamedTemplateTypeNameAndDebug(SS<kinematicCloudType>, 0);           \
+    typedef Foam::CloudType::kinematicCloudType kinematicCloudType;           \
+    defineNamedTemplateTypeNameAndDebug(Foam::SS<kinematicCloudType>, 0);     \
                                                                               \
-    InjectionModel<kinematicCloudType>::                                      \
-        adddictionaryConstructorToTable<SS<kinematicCloudType> >              \
-        add##SS##CloudType##kinematicCloudType##ConstructorToTable_;
+    Foam::InjectionModel<kinematicCloudType>::                                \
+        adddictionaryConstructorToTable<Foam::SS<kinematicCloudType> >        \
+            add##SS##CloudType##kinematicCloudType##ConstructorToTable_;
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

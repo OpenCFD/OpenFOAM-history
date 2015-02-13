@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "Boussinesq.H"
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -149,9 +148,8 @@ inline Foam::scalar Foam::Boussinesq<Specie>::cpMcv
     scalar
 ) const
 {
-    return this->RR;
+    return RR;
 }
-
 
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
@@ -171,6 +169,7 @@ Foam::Boussinesq<Specie>::operator=
 
     return *this;
 }
+
 
 template<class Specie>
 inline void Foam::Boussinesq<Specie>::operator+=

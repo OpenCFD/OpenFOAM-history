@@ -117,6 +117,7 @@ Foam::dimensioned<Type> Foam::Constant<Type>::dimIntegrate
     return dimensioned<Type>("dimensionedValue", dimensions_, (x2-x1)*value_);
 }
 
+
 // * * * * * * * * * * * * * *  IOStream operators * * * * * * * * * * * * * //
 
 #include "ConstantIO.C"

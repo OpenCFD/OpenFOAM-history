@@ -562,7 +562,7 @@ void Foam::ReactingMultiphaseParcel<ParcelType>::calcDevolatilisation
     {
         // Molar average molecular weight of carrier mix
         const scalar Wc =
-            max(SMALL, this->rhoc_*specie::RR*this->Tc_/this->pc_);
+            max(SMALL, this->rhoc_*RR*this->Tc_/this->pc_);
 
         // Note: hardcoded gaseous diffusivities for now
         // TODO: add to carrier thermo

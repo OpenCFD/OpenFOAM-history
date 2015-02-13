@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,8 +37,8 @@ Description
 
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
-#include "compressible/turbulenceModel/turbulenceModel.H"
-#include "incompressible/turbulenceModel/turbulenceModel.H"
+#include "turbulentTransportModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "wallDist.H"
 #include "processorFvPatchField.H"
 
@@ -243,25 +243,25 @@ void calcCompressible
         )
     );
 
-    tmp<volScalarField> tmut = turbulence->mut();
-
     // Calculate nut - reference nut is calculated by the turbulence model
     // on its construction
-    volScalarField& mut = tmut();
+    tmp<volScalarField> tnut = turbulence->nut();
+
+    volScalarField& nut = tnut();
     volScalarField S(mag(dev(symm(fvc::grad(U)))));
-    mut = (1 - mask)*mut + rho*mask*sqr(kappa*min(y, ybl))*::sqrt(2)*S;
+    nut = (1 - mask)*nut + mask*sqr(kappa*min(y, ybl))*::sqrt(2)*S;
 
     // Do not correct BC - wall functions will 'undo' manipulation above
     // by using nut from turbulence model
-    correctProcessorPatches(mut);
-    mut.write();
+    correctProcessorPatches(nut);
+    nut.write();
 
     tmp<volScalarField> k =
-        calcK(turbulence, mask, mut/rho, y, ybl, Cmu, kappa);
+        calcK(turbulence, mask, nut, y, ybl, Cmu, kappa);
     tmp<volScalarField> epsilon =
         calcEpsilon(turbulence, mask, k, y, ybl, Cmu, kappa);
     calcOmega(mesh, mask, k, epsilon);
-    setField(mesh, "muTilda", mut);
+    setField(mesh, "nuTilda", nut);
 }
 
 

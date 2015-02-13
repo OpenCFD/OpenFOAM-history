@@ -103,8 +103,7 @@ void Foam::fv::MRFSource::addSup
     const label fieldI
 )
 {
-    // Make sure the boundary velocity is consistent with the rotation
-    // (not needed for constant rotation)
+    // Update the velocity boundary conditions for changes in rotation speed
     mrfPtr_->correctBoundaryVelocity(const_cast<volVectorField&>(eqn.psi()));
 
     // Add to rhs of equation
@@ -119,8 +118,7 @@ void Foam::fv::MRFSource::addSup
     const label fieldI
 )
 {
-    // Make sure the boundary velocity is consistent with the rotation
-    // (not needed for constant rotation)
+    // Update the velocity boundary conditions for changes in rotation speed
     mrfPtr_->correctBoundaryVelocity(const_cast<volVectorField&>(eqn.psi()));
 
     // Add to rhs of equation

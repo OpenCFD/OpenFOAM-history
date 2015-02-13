@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -156,7 +156,7 @@ inline Foam::scalar Foam::hExponentialThermo<equationOfState>::ha
     const scalar p, const scalar T
 ) const
 {
-    scalar hOffset = integrateCp(specie::Tstd);
+    scalar hOffset = integrateCp(Tstd);
 
     return
     (
@@ -171,7 +171,7 @@ inline Foam::scalar Foam::hExponentialThermo<equationOfState>::hs
     const scalar p, const scalar T
 ) const
 {
-    scalar hOffset = integrateCp(specie::Tstd);
+    scalar hOffset = integrateCp(Tstd);
     return (integrateCp(T) - hOffset);
 }
 

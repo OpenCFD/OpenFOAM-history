@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -37,9 +37,9 @@ export CGAL_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cgal_v
 
 if [ "$FOAM_VERBOSE" -a "$PS1" ]
 then
-    echo "Using CGAL and boost"
-    echo "    $cgal_version at $CGAL_ARCH_PATH"
-    echo "    $boost_version at $BOOST_ARCH_PATH"
+    echo "Using CGAL and boost" 1>&2
+    echo "    $cgal_version at $CGAL_ARCH_PATH" 1>&2
+    echo "    $boost_version at $BOOST_ARCH_PATH" 1>&2
 fi
 
 if [ -d "$CGAL_ARCH_PATH" ]

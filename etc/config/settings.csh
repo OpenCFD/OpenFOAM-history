@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -180,7 +180,7 @@ setenv FOAM_UTILITIES $FOAM_APP/utilities
 setenv FOAM_SOLVERS $FOAM_APP/solvers
 setenv FOAM_RUN $WM_PROJECT_USER_DIR/run
 
-# add wmake to the path - not required for runtime only environment
+# add wmake to the path - not required for runtime-only environment
 if ( -d "${WM_DIR}" ) setenv PATH ${WM_DIR}:${PATH}
 # add OpenFOAM scripts to the path
 setenv PATH ${WM_PROJECT_DIR}/bin:${PATH}

@@ -19,14 +19,19 @@ applications/utilities/
 
 src/combustionModels
 - no change
+
 src/conversion
 - Ensight symmTensor handling
+
 src/dummyThirdParty
+- no recent change
+
 src/dynamicFvMesh
 - no recent change
 
 src/dynamicMesh
 - pointSmoothers: new framework for pointSmoothers
+
 src/edgeMesh
 - extendedEdgeMesh: added new functionality
 

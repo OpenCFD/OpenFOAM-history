@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "alphatFilmWallFunctionFvPatchScalarField.H"
-#include "RASModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "surfaceFilmModel.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
@@ -170,14 +170,23 @@ void alphatFilmWallFunctionFvPatchScalarField::updateCoeffs()
     filmModel.toPrimary(filmPatchI, mDotFilmp);
 
     // Retrieve RAS turbulence model
-    const RASModel& rasModel = db().lookupObject<RASModel>("RASProperties");
+    const turbulenceModel& turbModel = db().lookupObject<turbulenceModel>
+    (
+        IOobject::groupName
+        (
+            turbulenceModel::propertiesName,
+            dimensionedInternalField().group()
+        )
+    );
 
-    const scalarField& y = rasModel.y()[patchI];
-    const scalarField& rhow = rasModel.rho().boundaryField()[patchI];
-    const tmp<volScalarField> tk = rasModel.k();
+    const scalarField& y = turbModel.y()[patchI];
+    const scalarField& rhow = turbModel.rho().boundaryField()[patchI];
+    const tmp<volScalarField> tk = turbModel.k();
     const volScalarField& k = tk();
-    const scalarField& muw = rasModel.mu().boundaryField()[patchI];
-    const scalarField& alphaw = rasModel.alpha().boundaryField()[patchI];
+    const tmp<scalarField> tmuw = turbModel.mu(patchI);
+    const scalarField& muw = tmuw();
+    const tmp<scalarField> talpha = turbModel.alpha(patchI);
+    const scalarField& alphaw = talpha();
 
     const scalar Cmu25 = pow(Cmu_, 0.25);
 

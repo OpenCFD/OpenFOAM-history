@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -54,6 +54,7 @@ Foam::RASModel<BasicTurbulenceModel>::RASModel
 :
     BasicTurbulenceModel
     (
+        type,
         alpha,
         rho,
         U,
@@ -174,13 +175,6 @@ Foam::RASModel<BasicTurbulenceModel>::New
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-void Foam::RASModel<BasicTurbulenceModel>::correct()
-{
-    BasicTurbulenceModel::correct();
-}
-
-
-template<class BasicTurbulenceModel>
 bool Foam::RASModel<BasicTurbulenceModel>::read()
 {
     if (turbulenceModel::read())
@@ -203,6 +197,13 @@ bool Foam::RASModel<BasicTurbulenceModel>::read()
     {
         return false;
     }
+}
+
+
+template<class BasicTurbulenceModel>
+void Foam::RASModel<BasicTurbulenceModel>::correct()
+{
+    BasicTurbulenceModel::correct();
 }
 
 

@@ -36,7 +36,7 @@ Description
 #include "fvCFD.H"
 #include "engineTime.H"
 #include "engineMesh.H"
-#include "turbulenceModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "basicSprayCloud.H"
 #include "psiCombustionModel.H"
 #include "radiationModel.H"

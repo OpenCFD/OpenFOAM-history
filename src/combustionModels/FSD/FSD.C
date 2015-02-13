@@ -26,6 +26,8 @@ License
 #include "FSD.H"
 #include "addToRunTimeSelectionTable.H"
 #include "LESModel.H"
+#include "fvcGrad.H"
+#include "fvcDiv.H"
 
 namespace Foam
 {
