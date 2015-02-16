@@ -31,8 +31,7 @@ Foam::eddy::eddy()
 :
     position_(vector::zero),
     sigma_(vector::zero),
-    sigmaXMax_(-1),
-    alpha_(vector::zero),
+    alphaAve_(0),
     Rpg_(tensor::zero),
     c1_(-1)
 {}
@@ -49,40 +48,36 @@ Foam::eddy::eddy
 :
     position_(position),
     sigma_(vector::zero),
-    sigmaXMax_(-1),
-    alpha_(vector::zero),
+    alphaAve_(0),
     Rpg_(tensor::zero),
     c1_(-1)
 {
-    // random length scale ratio, gamma = sigmax/sigmay = sigmax/sigmaz
+    // Random length scale ratio, gamma = sigmax/sigmay = sigmax/sigmaz
     // - using gamma^2 to ease lookup of c2 coefficient
     label gamma2 = rndGen.position<label>(1, 8);
 
     static const scalar gamma2VsC2[8] =
         {2, 1.875, 1.737, 1.75, 0.91, 0.825, 0.806, 1.5};
 
-    // c2 coefficient looked up from array
+    // c2 coefficient retrieved up from array
     scalar c2 = gamma2VsC2[gamma2 - 1];
 
-    // length scale in x direction
+    // Length scale in x direction
     sigma_.x() = sigmaX;
 
-    // length scale in y = z; given as function of gamma
+    // Length scale in y = z; given as function of gamma
     sigma_.y() = sigma_.x()/Foam::sqrt(scalar(gamma2));
     sigma_.z() = sigma_.y();
 
-    // principal stresses
+    // Principal stresses
     vector lambda = eigenValues(R);
 
-    // eddy rotation from principal-to-global axes
-    // - given by the 3 eigen vectors of the Reynold stress tensor
+    // Eddy rotation from principal-to-global axes
+    // - given by the 3 Eigenvectors of the Reynold stress tensor
     Rpg_ = eigenVectors(R, lambda).T();
 
-    // distance when eddy passes out of eddy box in local principal axes system
-    sigmaXMax_ = n & (sigma_ & Rpg_);
-
-    // intensity (eq. 13)
-    scalar alphaAve =
+    // Time-averaged intensity (eq. 13)
+    alphaAve_ =
         sqrt
         (
             max
@@ -93,15 +88,10 @@ Foam::eddy::eddy
             )
         );
 
-    alpha_.x() = eps(rndGen)*alphaAve;
-    alpha_.y() = eps(rndGen)*alphaAve;
-    alpha_.z() = eps(rndGen)*alphaAve;
-
     if (0)
     {
         Pout<< "gamma2:" << gamma2 << " c2:" << c2 << " sigma:" << sigma_
-            << " lambda:" << lambda << " sigmaXMax:" << sigmaXMax_
-            << " alpha:" << alpha_ << endl;
+            << " lambda:" << lambda << " alphaAve:" << alphaAve_ << endl;
     }
 }
 
@@ -110,11 +100,44 @@ Foam::eddy::eddy(const eddy& e)
 :
     position_(e.position_),
     sigma_(e.sigma_),
-    sigmaXMax_(e.sigmaXMax_),
-    alpha_(e.alpha_),
+    alphaAve_(e.alphaAve_),
     Rpg_(e.Rpg_),
     c1_(e.c1_)
 {}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::vector Foam::eddy::uDash(const point& xp, cachedRandom& rndGen) const
+{
+    vector u(vector::zero);
+
+    // Relative position inside eddy
+    vector r = cmptDivide(xp - position_, sigma_);
+
+    scalar d2 = magSqr(r);
+
+    if (d2 < 1)
+    {
+        // Intensities
+        vector alpha = this->alpha(rndGen);
+
+        for (label beta = 0; beta < 3; beta++)
+        {
+            label j = (beta + 1) % 3;
+            label l = (j + 1) % 3;
+
+            u[beta] += r[j]*alpha[l];
+            u[beta] -= r[l]*alpha[j];
+        }
+
+        // Fluctuating velocity in principal axes system (eq. 8)
+        u = cmptMultiply(sigma_*(scalar(1) - d2), u);
+    }
+
+    // Convert into eddy box system (eq. 10)
+    return c1_*(Rpg_ & u);
+}
 
 
 // ************************************************************************* //
