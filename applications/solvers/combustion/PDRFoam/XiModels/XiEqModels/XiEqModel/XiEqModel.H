@@ -27,11 +27,11 @@ Class
 Description
     Base-class for all XiEq models used by the b-XiEq combustion model.
     The available models are :
-                                \link basicXiSubXiEq.H \endlink
-                                \link Gulder.H \endlink
-                                \link instabilityXiEq.H \endlink
-                                \link SCOPEBlendXiEq.H \endlink
-                                \link SCOPEXiEq.H \endlink
+        \link basicXiSubXiEq.H \endlink
+        \link Gulder.H \endlink
+        \link instabilityXiEq.H \endlink
+        \link SCOPEBlendXiEq.H \endlink
+        \link SCOPEXiEq.H \endlink
 
 SourceFiles
     XiEqModel.C
@@ -149,7 +149,6 @@ public:
         {
             return turbulence_.muEff();
         }
-
 
         //- Return the sub-grid Schelkin effect
         tmp<volScalarField> calculateSchelkinEffect(const scalar) const;

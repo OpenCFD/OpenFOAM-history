@@ -76,6 +76,7 @@ bool Foam::XiEqModel::read(const dictionary& XiEqProperties)
 
 void Foam::XiEqModel::writeFields() const
 {
+    //***HGW It is not clear why B is written here
     if (Su_.mesh().foundObject<volSymmTensorField>("B"))
     {
         const volSymmTensorField& B =
@@ -84,13 +85,13 @@ void Foam::XiEqModel::writeFields() const
     }
 }
 
+
 Foam::tmp<Foam::volScalarField>
 Foam::XiEqModel::calculateSchelkinEffect(const scalar uPrimeCoef) const
 {
     const fvMesh& mesh = Su_.mesh();
 
     const volVectorField& U = mesh.lookupObject<volVectorField>("U");
-
     const volSymmTensorField& CT = mesh.lookupObject<volSymmTensorField>("CT");
     const volScalarField& Nv = mesh.lookupObject<volScalarField>("Nv");
     const volSymmTensorField& nsv =
@@ -158,11 +159,11 @@ Foam::XiEqModel::calculateSchelkinEffect(const scalar uPrimeCoef) const
 
     const scalarField deltaUp(upLocal*(max(scalar(1.0), pow(nr, 0.5)) - 1.0));
 
-    //Re use tN
+    // Re use tN
     N.internalField() = upLocal*(max(scalar(1.0), pow(nr, 0.5)) - 1.0);
 
     return tN;
-
 }
+
 
 // ************************************************************************* //
