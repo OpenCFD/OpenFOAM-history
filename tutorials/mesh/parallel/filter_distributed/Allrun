@@ -24,6 +24,10 @@ runApplication createBaffles -overwrite
 runParallel redistributePar 3 -decompose -cellDist
 
 
+#- NOTE: requires timeStampMaster/inotifyMaster to find all the dictionaries
+#        (system/* etc.). Otherwise they need to be copied from the master
+
+
 # Move to separate directories (could be on separate disks/machines)
 mkdir -p diskB/filter_distributed
 mv processor1 diskB/filter_distributed

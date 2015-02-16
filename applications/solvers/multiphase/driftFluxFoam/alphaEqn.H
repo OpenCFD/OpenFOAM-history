@@ -19,21 +19,12 @@
             ).fvmDiv(phi, alpha1)
         );
 
-        solve
-        (
-            alpha1Eqn
-          - fv::gaussLaplacianScheme<scalar, scalar>
-            (
-                mesh,
-                linear<scalar>(mesh),
-                fv::uncorrectedSnGrad<scalar>(mesh)
-            ).fvmLaplacian(fvc::interpolate(turbulence->nut()), alpha1)
-        );
+        solve(alpha1Eqn);
 
         Info<< "Phase-1 volume fraction = "
             << alpha1.weightedAverage(mesh.Vsc()).value()
-            << "  Min(alpha1) = " << min(alpha1).value()
-            << "  Max(alpha1) = " << max(alpha1).value()
+            << "  Min(" << alpha1.name() << ") = " << min(alpha1).value()
+            << "  Max(" << alpha1.name() << ") = " << max(alpha1).value()
             << endl;
 
         tmp<surfaceScalarField> tphiAlphaUD(alpha1Eqn.flux());
@@ -42,6 +33,7 @@
         if (alphaApplyPrevCorr && tphiAlphaCorr0.valid())
         {
             Info<< "Applying the previous iteration correction flux" << endl;
+
             #ifdef LTSSOLVE
             MULES::LTScorrect
             (
@@ -158,7 +150,7 @@
 
     Info<< "Phase-1 volume fraction = "
         << alpha1.weightedAverage(mesh.Vsc()).value()
-        << "  Min(alpha1) = " << min(alpha1).value()
-        << "  Max(alpha1) = " << max(alpha1).value()
+        << "  Min(" << alpha1.name() << ") = " << min(alpha1).value()
+        << "  Max(" << alpha1.name() << ") = " << max(alpha1).value()
         << endl;
 }

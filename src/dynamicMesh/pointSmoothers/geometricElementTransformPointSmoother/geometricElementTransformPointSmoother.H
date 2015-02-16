@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,6 +28,22 @@ Description
     Geometric Element Transformation Method (GETMe) point smoother. Points are
     moved in a direction normal to the face of the dual element. This tends to
     orthogonalise elements. This method can "push" as well as "pull".
+
+    The original references for this method only formulate it for a limited
+    variety of specific polyhedra. This version is written for arbitrary
+    polyhedra, and most closely follows the following reference:
+
+    \verbatim
+        "Fast smoothing of mixed volume meshes based on the effective geometric
+        element transformation method"
+        Dimitris Vartziotis, Joachim Wipper,
+        Comput. Methods Appl. Mech. Engrg. 201-204 (2012) 65-81
+    \endverbatim
+
+    This implementation does not include the various specific measures employed
+    in the referred article to improve the quality of types of irregular
+    polyhedra. It also does not use the same quality criteria as these are only
+    suitable for cell vertices with exactly three connecting edges.
 
 SourceFiles
     geometricElementTransformPointSmoother.C

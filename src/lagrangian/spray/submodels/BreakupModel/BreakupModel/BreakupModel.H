@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -199,26 +199,30 @@ public:
 
 #define makeBreakupModel(CloudType)                                           \
                                                                               \
-    typedef CloudType::sprayCloudType sprayCloudType;                         \
+    typedef Foam::CloudType::sprayCloudType sprayCloudType;                   \
     defineNamedTemplateTypeNameAndDebug                                       \
     (                                                                         \
-        BreakupModel<sprayCloudType>,                                         \
+        Foam::BreakupModel<sprayCloudType>,                                   \
         0                                                                     \
     );                                                                        \
-    defineTemplateRunTimeSelectionTable                                       \
-    (                                                                         \
-        BreakupModel<sprayCloudType>,                                         \
-        dictionary                                                            \
-    );
+                                                                              \
+    namespace Foam                                                            \
+    {                                                                         \
+        defineTemplateRunTimeSelectionTable                                   \
+        (                                                                     \
+            BreakupModel<sprayCloudType>,                                     \
+            dictionary                                                        \
+        );                                                                    \
+    }
 
 
 #define makeBreakupModelType(SS, CloudType)                                   \
                                                                               \
-    typedef CloudType::sprayCloudType sprayCloudType;                         \
-    defineNamedTemplateTypeNameAndDebug(SS<sprayCloudType>, 0);               \
+    typedef Foam::CloudType::sprayCloudType sprayCloudType;                   \
+    defineNamedTemplateTypeNameAndDebug(Foam::SS<sprayCloudType>, 0);         \
                                                                               \
-    BreakupModel<sprayCloudType>::                                            \
-        adddictionaryConstructorToTable<SS<sprayCloudType> >                  \
+    Foam::BreakupModel<sprayCloudType>::                                      \
+        adddictionaryConstructorToTable<Foam::SS<sprayCloudType> >            \
             add##SS##CloudType##sprayCloudType##ConstructorToTable_;
 
 

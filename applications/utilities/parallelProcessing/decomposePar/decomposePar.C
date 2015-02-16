@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -835,16 +835,6 @@ int main(int argc, char *argv[])
 
 
                 processorDb.setTime(runTime);
-
-                // remove files remnants that can cause horrible problems
-                // - mut and nut are used to mark the new turbulence models,
-                //   their existence prevents old models from being upgraded
-                {
-                    fileName timeDir(processorDb.path()/processorDb.timeName());
-
-                    rm(timeDir/"mut");
-                    rm(timeDir/"nut");
-                }
 
                 // read the mesh
                 if (!procMeshList.set(procI))

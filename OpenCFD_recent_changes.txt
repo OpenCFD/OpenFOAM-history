@@ -1,0 +1,148 @@
+Changes to dev inbetween Sept 2014 and Jan 2015 originating from OpenCFD:
+
+applications/solvers/
+- pisoFoam: added variable timestep
+- chtMultiRegionFoam: support for anisotropic conduction
+
+applications/utilities/
+- foamToEnsight: symmTensor ordering
+- surfaceInflate: new application
+- redistributePar: -newtimes option
+- applyBoundaryLayer: fixed parallel running
+- subsetMesh: select patches for exposed faces
+- sample: added patchSeed option, ensight time collation
+- surfacePatch: support for re-patching according to box
+- surfaceBooleanFeatures: cgal support
+- snappyHexMesh: various
+- checkMesh: optionally reconstruct and write face/cellSets
+- viewFactorsGen: add solarLoad
+
+src/combustionModels
+- no change
+
+src/conversion
+- Ensight symmTensor handling
+
+src/dummyThirdParty
+- no recent change
+
+src/dynamicFvMesh
+- no recent change
+
+src/dynamicMesh
+- pointSmoothers: new framework for pointSmoothers
+
+src/edgeMesh
+- extendedEdgeMesh: added new functionality
+
+src/engine
+- no recent change
+
+src/fileFormats
+- Ensight symmTensor
+
+src/finiteVolume
+- volPointInterpolation: update in-place
+- MULES subcycling (Mantis #1471, Will)
+- fix pointLinear on proc patches
+- timeVaryingMapped: added option to use nearest only
+
+src/fvAgglomerationMethods
+- no recent change
+
+src/fvMotionSolver
+- added pointSmoothers as motion solvers
+ 
+src/fvOptions
+- aded solidificationMeltingSource
+
+src/genericPatchFields
+- no recent change
+
+src/lagrangian
+- ReactingParcel, ThermoParcel, SprayParcel: various bug fixes
+- KinematicParcel: enable limiting of length and time scales
+- CompositionModel: added functions to return mass fractions in global thermo addressing
+- CloudToVTK: new CloudFunctionObject to dump tracks to VTK
+
+src/mesh
+- autoHexMesh: various 
+
+src/meshTools
+- AMIInterpolation: more robust addressing calculation, fix lagrangian handling
+- momentOfInertia: optional parallel operation
+- triSurfaceMesh: speed up inside/outside
+- searchableRotatedBox: new - box with orientation
+- coordinateRotation: add clone
+
+src/ODE
+- no recent change
+
+src/OpenFOAM
+- triangle: templated triangle clipping
+- IOobject: additional constructors
+- tensor: eigenVector calculations
+
+
+src/OSspecific
+- no recent change
+
+src/parallel
+- decompositionModel: abstraction of decompositionMethod+IO
+
+src/postProcessing
+- streamLine*: cleanup, optional clipping
+- fluxSummeary: new functionObject
+- all: consistent log file writing
+- runTimePostProcessing: rendering of results
+
+src/Pstream
+- removed GAMMA
+
+src/randomProcesses
+- no recent change
+
+src/regionCoupled
+- no recent change
+
+src/regionModels
+- surfaceFilmModels: various (region option, pyrolysis) 
+
+src/renumber
+- no recent change
+
+src/sampling
+- isoSurface: optional clipping, memory error
+- sampledSets: fix moving mesh sampling
+- meshToMesh: fix nearest searching
+- Ensight: optionally collate time steps
+
+src/sixDoFRigidBodyMotion
+- no recent change
+
+src/surfMesh
+- no recent change
+
+src/thermophysicalModels
+- solidChemistryModel: handle differing species
+- chemistryModel: made nSpecie, nReaction virtual
+- solarLoad: new radiation source term
+- radiation: sub-models for patch transmissivity
+
+src/topoChangerFvMesh
+- dynamicMotionSolverTopoFvMesh: mesh motion and topology changes
+
+src/transportModels
+- no recent change
+
+src/triSurface
+- added free-form NAS reading
+
+src/turbulenceModels
+- temperature bcs with kappa layers: refactored
+- SSGRSM: new turbulence model
+- porousBafflePressure: added support for not having a transportProperties (potentialFoam)
+
+src/TurbulenceModels
+- instantiate on compressibleTransportModel instead of fluidThermo
+

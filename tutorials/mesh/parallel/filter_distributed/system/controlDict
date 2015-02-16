@@ -15,13 +15,6 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//DebugSwitches
-//{
-//    IFstream 1;
-//    cloud   1;
-//}
-
-
 application     reactingParcelFoam;
 
 startFrom       latestTime;
@@ -57,13 +50,5 @@ adjustTimeStep  yes;
 maxCo           1.0;
 
 maxDeltaT       1;
-
-libs
-(
-    "libOpenFOAM.so"
-    "libcompressibleTurbulenceModel.so"
-    "libcompressibleRASModels.so"
-    "libradiationModels.so"
-);
 
 // ************************************************************************* //

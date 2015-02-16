@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -30,8 +30,9 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "transform.H"
 #include "surfaceInterpolate.H"
-#include "compressible/turbulenceModel/turbulenceModel.H"
-#include "incompressible/turbulenceModel/turbulenceModel.H"
+#include "turbulenceModel.H"
+#include "turbulentTransportModel.H"
+#include "turbulentFluidThermoModel.H"
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
@@ -350,7 +351,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
                 const incompressible::turbulenceModel& turbModel =
                     mesh().lookupObject<incompressible::turbulenceModel>
                     (
-                        "turbulenceModel"
+                        turbulenceModel::propertiesName
                     );
 
                 const scalarField nu(turbModel.nu(), cells_);
@@ -363,7 +364,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
                 const compressible::turbulenceModel& turbModel =
                     mesh().lookupObject<compressible::turbulenceModel>
                     (
-                        "turbulenceModel"
+                        turbulenceModel::propertiesName
                     );
 
                 const scalarField mu(turbModel.mu(),cells_);
@@ -409,7 +410,7 @@ void Foam::fv::directionalPressureGradientExplicitSource::correct
                 const compressible::turbulenceModel& turbModel =
                     mesh().lookupObject<compressible::turbulenceModel>
                     (
-                        "turbulenceModel"
+                        turbulenceModel::propertiesName
                     );
                 const scalarField rho(turbModel.rho(),cells_);
                 const scalarField cv(mesh_.V(), cells_);

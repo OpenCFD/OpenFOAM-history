@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -57,8 +57,7 @@ int main(int argc, char *argv[])
     //linearInterpolationWeights interpolator
     splineInterpolationWeights interpolator
     (
-        samples,
-        interpolationWeights::WARN
+        samples
     );
     labelList indices;
     scalarField weights;

@@ -34,7 +34,7 @@ Description
 
 #include "fvCFD.H"
 #include "rhoThermo.H"
-#include "turbulenceModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "fixedGradientFvPatchFields.H"
 #include "regionProperties.H"
 #include "solidThermo.H"

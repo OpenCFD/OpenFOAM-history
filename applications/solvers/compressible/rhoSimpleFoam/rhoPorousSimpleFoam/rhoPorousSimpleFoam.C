@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,7 +36,7 @@ Description
 
 #include "fvCFD.H"
 #include "rhoThermo.H"
-#include "RASModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "fvIOoptionList.H"
 #include "IOporosityModelList.H"
 #include "simpleControl.H"

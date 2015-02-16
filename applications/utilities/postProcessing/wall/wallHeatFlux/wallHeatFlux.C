@@ -32,7 +32,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "turbulenceModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "solidThermo.H"
 #include "wallFvPatch.H"
 

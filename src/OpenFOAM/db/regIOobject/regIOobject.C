@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,24 +26,26 @@ License
 #include "regIOobject.H"
 #include "Time.H"
 #include "polyMesh.H"
+#include "registerSwitch.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
     defineTypeNameAndDebug(regIOobject, 0);
-
-    int regIOobject::fileModificationSkew
-    (
-        debug::optimisationSwitch("fileModificationSkew", 30)
-    );
-    registerOptSwitchWithName
-    (
-        Foam::regIOobject::fileModificationSkew,
-        fileModificationSkew,
-        "fileModificationSkew"
-    );
 }
+
+int Foam::regIOobject::fileModificationSkew
+(
+    Foam::debug::optimisationSwitch("fileModificationSkew", 30)
+);
+registerOptSwitch
+(
+    "fileModificationSkew",
+    int,
+    Foam::regIOobject::fileModificationSkew
+);
+
 
 bool Foam::regIOobject::masterOnlyReading = false;
 
@@ -64,6 +66,7 @@ Foam::regIOobject::regIOobject(const IOobject& io, const bool isTime)
     ),
     isPtr_(NULL)
 {
+    // Register with objectRegistry if requested
     if (registerObject())
     {
         checkIn();

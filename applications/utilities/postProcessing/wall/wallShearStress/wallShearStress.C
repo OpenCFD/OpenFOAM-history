@@ -34,12 +34,9 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-
+#include "turbulentTransportModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "incompressible/singlePhaseTransportModel/singlePhaseTransportModel.H"
-#include "incompressible/RAS/RASModel/RASModel.H"
-
-#include "fluidThermo.H"
-#include "compressible/RAS/RASModel/RASModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

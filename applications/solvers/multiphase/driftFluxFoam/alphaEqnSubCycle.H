@@ -50,7 +50,6 @@
 
     // Apply the diffusion term separately to allow implicit solution
     // and boundedness of the explicit advection
-    if (!MULESCorr)
     {
         fvScalarMatrix alpha1Eqn
         (
@@ -65,8 +64,8 @@
 
         Info<< "Phase-1 volume fraction = "
             << alpha1.weightedAverage(mesh.Vsc()).value()
-            << "  Min(alpha1) = " << min(alpha1).value()
-            << "  Max(alpha1) = " << max(alpha1).value()
+            << "  Min(" << alpha1.name() << ") = " << min(alpha1).value()
+            << "  Max(" << alpha1.name() << ") = " << max(alpha1).value()
             << endl;
     }
 
