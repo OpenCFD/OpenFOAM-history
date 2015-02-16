@@ -49,6 +49,7 @@ Description
 #include "twoPhaseMixtureThermo.H"
 #include "turbulentFluidThermoModel.H"
 #include "pimpleControl.H"
+#include "CorrectPhi.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -66,7 +67,6 @@ int main(int argc, char *argv[])
     #include "createFields.H"
     #include "createUf.H"
     #include "readControls.H"
-    #include "createPrghCorrTypes.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 

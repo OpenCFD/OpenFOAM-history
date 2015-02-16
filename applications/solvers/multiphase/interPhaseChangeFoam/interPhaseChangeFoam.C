@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
     #include "createFields.H"
     #include "createFvOptions.H"
     #include "readTimeControls.H"
-    #include "createPrghCorrTypes.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
