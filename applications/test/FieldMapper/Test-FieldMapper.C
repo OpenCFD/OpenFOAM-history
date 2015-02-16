@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,8 +44,8 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
 
-#   include "setRootCase.H"
-#   include "createTime.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
 
 
     // Test mapDistributeBase
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     // Read a mesh and get all cellCentres onto the master
     {
-#       include "createPolyMesh.H"
+        #include "createPolyMesh.H"
 
         // Get all cell centres on the master
         globalIndex globalNumbering(mesh.nCells());

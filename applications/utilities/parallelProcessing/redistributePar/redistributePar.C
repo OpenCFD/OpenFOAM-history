@@ -2117,8 +2117,8 @@ int main(int argc, char *argv[])
     // enable -constant ... if someone really wants it
     // enable -zeroTime to prevent accidentally trashing the initial fields
     timeSelector::addOptions(true, true);
-#   include "addRegionOption.H"
-#   include "addOverwriteOption.H"
+    #include "addRegionOption.H"
+    #include "addOverwriteOption.H"
     argList::addBoolOption("decompose", "decompose case");
     argList::addBoolOption("reconstruct", "reconstruct case");
     argList::addOption
@@ -2272,7 +2272,7 @@ int main(int argc, char *argv[])
     // Construct time
     // ~~~~~~~~~~~~~~
 
-#   include "createTime.H"
+    #include "createTime.H"
     runTime.functionObjects().off();
 
 
