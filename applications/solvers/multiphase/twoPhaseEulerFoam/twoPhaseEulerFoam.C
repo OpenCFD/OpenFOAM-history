@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
             (
                 "contErr2",
                 fvc::ddt(alpha2, rho2) + fvc::div(alphaRhoPhi2)
-               - (fvOptions(alpha2, rho2)&rho2)
+              - (fvOptions(alpha2, rho2)&rho2)
             );
 
 
