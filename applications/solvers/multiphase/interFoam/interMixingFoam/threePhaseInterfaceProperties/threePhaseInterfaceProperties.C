@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,14 +21,6 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Application
-    threePhaseInterfaceProperties
-
-Description
-    Properties to aid interFoam :
-    1. Correct the alpha boundary condition for dynamic contact angle.
-    2. Calculate interface curvature.
-
 \*---------------------------------------------------------------------------*/
 
 #include "threePhaseInterfaceProperties.H"
@@ -46,12 +38,6 @@ const Foam::scalar Foam::threePhaseInterfaceProperties::convertToRad =
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-// Correction for the boundary condition on the unit normal nHat on
-// walls to produce the correct contact angle.
-
-// The dynamic contact angle is calculated from the component of the
-// velocity on the direction of the interface, parallel to the wall.
 
 void Foam::threePhaseInterfaceProperties::correctContactAngle
 (
@@ -158,9 +144,9 @@ void Foam::threePhaseInterfaceProperties::calculateK()
 
     // Complex expression for curvature.
     // Correction is formally zero but numerically non-zero.
-    //volVectorField nHat = gradAlpha/(mag(gradAlpha) + deltaN_);
-    //nHat.boundaryField() = nHatfv.boundaryField();
-    //K_ = -fvc::div(nHatf_) + (nHat & fvc::grad(nHatfv) & nHat);
+    // volVectorField nHat = gradAlpha/(mag(gradAlpha) + deltaN_);
+    // nHat.boundaryField() = nHatfv.boundaryField();
+    // K_ = -fvc::div(nHatf_) + (nHat & fvc::grad(nHatfv) & nHat);
 }
 
 
@@ -237,7 +223,6 @@ Foam::threePhaseInterfaceProperties::nearInterface() const
         pos(mixture_.alpha2() - 0.01)*pos(0.99 - mixture_.alpha2())
     );
 }
-
 
 
 // ************************************************************************* //
