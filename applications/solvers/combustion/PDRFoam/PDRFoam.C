@@ -90,6 +90,9 @@ int main(int argc, char *argv[])
 
     #include "createTime.H"
     #include "createMesh.H"
+
+    pimpleControl pimple(mesh);
+
     #include "readCombustionProperties.H"
     #include "readGravitationalAcceleration.H"
     #include "createFields.H"
@@ -97,8 +100,6 @@ int main(int argc, char *argv[])
     #include "readTimeControls.H"
     #include "compressibleCourantNo.H"
     #include "setInitialDeltaT.H"
-
-    pimpleControl pimple(mesh);
 
     scalar StCoNum = 0.0;
 

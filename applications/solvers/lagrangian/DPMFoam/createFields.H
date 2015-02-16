@@ -86,13 +86,7 @@
 
     label pRefCell = 0;
     scalar pRefValue = 0.0;
-    setRefCell
-    (
-        p,
-        pimple.dict(),
-        pRefCell,
-        pRefValue
-    );
+    setRefCell(p, pimple.dict(), pRefCell, pRefValue);
 
     Info<< "Creating turbulence model\n" << endl;
 
