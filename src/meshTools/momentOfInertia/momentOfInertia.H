@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    momentOfInertia
+    Foam::momentOfInertia
 
 Description
     Calculates the inertia tensor and principal axes and moments of a
