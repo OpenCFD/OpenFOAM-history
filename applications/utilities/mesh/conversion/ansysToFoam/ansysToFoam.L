@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
 
     const scalar scaleFactor = args.optionLookupOrDefault("scale", 1.0);
 
-#   include "createTime.H"
+    #include "createTime.H"
 
     fileName ansysFile(args.additionalArgs()[0]);
     ifstream ansysStream(ansysFile.c_str());

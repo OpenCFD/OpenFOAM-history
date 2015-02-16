@@ -624,9 +624,9 @@ int main(int argc, char *argv[])
 {
     argList::noParallel();
 
-#   include "setRootCase.H"
-#   include "createTime.H"
-#   include "createPolyMesh.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createPolyMesh.H"
 
     // If nessecary add oldInternalFaces patch
     label newPatchI = addPatch(mesh, "oldInternalFaces");
