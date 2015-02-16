@@ -19,7 +19,7 @@ actions
 (
     // filter
     {
-        name    filterCells;
+        name    filterCellSet;
         type    cellSet;
         action  new;
         source  boxToCell;
@@ -35,13 +35,13 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set filterCells;
+            set filterCellSet;
         }
     }
 
 
     {
-        name    leftFluidCells;
+        name    leftFluidCellSet;
         type    cellSet;
         action  new;
         source  boxToCell;
@@ -57,11 +57,11 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set leftFluidCells;
+            set leftFluidCellSet;
         }
     }
     {
-        name    rightFluidCells;
+        name    rightFluidCellSet;
         type    cellSet;
         action  new;
         source  boxToCell;
@@ -77,35 +77,35 @@ actions
         source  setToCellZone;
         sourceInfo
         {
-            set rightFluidCells;
+            set rightFluidCellSet;
         }
     }
 
 
     // cycLeft
     {
-        name    cycLeftFaces;
+        name    cycLeftFaceSet;
         type    faceSet;
         action  new;
         source  cellToFace;
         sourceInfo
         {
-            set     filterCells;
+            set     filterCellSet;
             option  all;
         }
     }
     {
-        name    cycLeftFaces;
+        name    cycLeftFaceSet;
         type    faceSet;
         action  subset;
         source  cellToFace;
         sourceInfo
         {
-            set     leftFluid;
+            set     leftFluidCellSet;
             option  all;
         }
     }
-    // Create faceZone from cycLeftFaces
+    // Create faceZone from cycLeft
     {
         name    cycLeft;
         type    faceZoneSet;
@@ -113,30 +113,30 @@ actions
         source  setToFaceZone;
         sourceInfo
         {
-            faceSet cycLeftFaces;    // name of faceSet
+            faceSet cycLeftFaceSet;
         }
     }
 
     // cycRight
     {
-        name    cycRightFaces;
+        name    cycRightFaceSet;
         type    faceSet;
         action  new;
         source  cellToFace;
         sourceInfo
         {
-            set     filterCells;
+            set     filterCellSet;
             option  all;
         }
     }
     {
-        name    cycRightFaces;
+        name    cycRightFaceSet;
         type    faceSet;
         action  subset;
         source  cellToFace;
         sourceInfo
         {
-            set     rightFluidCells;
+            set     rightFluidCellSet;
             option  all;
         }
     }
@@ -148,10 +148,10 @@ actions
         source  setToFaceZone;
         sourceInfo
         {
-            faceSet cycRightFaces;   // name of faceSet
+            faceSet cycRightFaceSet;
         }
     }
-
 );
+
 
 // ************************************************************************* //
