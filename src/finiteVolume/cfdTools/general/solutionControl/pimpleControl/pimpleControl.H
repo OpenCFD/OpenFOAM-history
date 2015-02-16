@@ -28,6 +28,9 @@ Description
     PIMPLE control class to supply convergence information/checks for
     the PIMPLE loop.
 
+    May also be used to for PISO-based algorithms as PISO controls are a
+    sub-set of PIMPLE controls.
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef pimpleControl_H
@@ -48,6 +51,15 @@ class pimpleControl
 :
     public solutionControl
 {
+    // Private member functions
+
+        //- Disallow default bitwise copy construct
+        pimpleControl(const pimpleControl&);
+
+        //- Disallow default bitwise assignment
+        void operator=(const pimpleControl&);
+
+
 protected:
 
     // Protected data
@@ -78,15 +90,8 @@ protected:
         //- Return true if all convergence checks are satisfied
         virtual bool criteriaSatisfied();
 
-        //- Disallow default bitwise copy construct
-        pimpleControl(const pimpleControl&);
-
-        //- Disallow default bitwise assignment
-        void operator=(const pimpleControl&);
-
 
 public:
-
 
     // Static Data Members
 
