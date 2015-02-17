@@ -29,9 +29,8 @@ License
 
 // Kinematic
 #include "makeThermoParcelForces.H" // thermo variant
-#include "makeThermoParcelTurbulenceForces.H" // add turbulence variant
 #include "makeParcelDispersionModels.H"
-#include "makeParcelTurbulenceDispersionModels.H" // add turbulence variant
+#include "makeParcelDispersionModels.H" // add turbulence variant
 #include "makeSprayParcelInjectionModels.H" // Spray variant
 #include "makeParcelPatchInteractionModels.H"
 #include "makeSprayParcelStochasticCollisionModels.H" // Spray variant
@@ -55,9 +54,7 @@ makeParcelCloudFunctionObjects(basicSprayCloud);
 
 // Kinematic sub-models
 makeThermoParcelForces(basicSprayCloud);
-makeThermoParcelTurbulenceForces(basicSprayCloud);
 makeParcelDispersionModels(basicSprayCloud);
-makeParcelTurbulenceDispersionModels(basicSprayCloud);
 makeSprayParcelInjectionModels(basicSprayCloud);
 makeParcelPatchInteractionModels(basicSprayCloud);
 makeSprayParcelStochasticCollisionModels(basicSprayCloud);
