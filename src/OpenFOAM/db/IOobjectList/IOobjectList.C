@@ -26,7 +26,7 @@ License
 #include "IOobjectList.H"
 #include "Time.H"
 #include "OSspecific.H"
-
+#include "IOList.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 

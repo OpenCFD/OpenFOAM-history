@@ -26,7 +26,7 @@ License
 #include "GeometricField.H"
 #include "Time.H"
 #include "demandDrivenData.H"
-#include "dictionary.H"
+#include "localIOdictionary.H"
 #include "data.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
