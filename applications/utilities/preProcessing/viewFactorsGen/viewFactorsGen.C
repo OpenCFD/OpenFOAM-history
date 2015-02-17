@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -376,8 +376,6 @@ int main(int argc, char *argv[])
         const label patchID = viewFactorsPatches[i];
 
         const polyPatch& pp = patches[patchID];
-        //if (pp.size() > 0)
-        //{
         const labelList& agglom = finalAgglom[patchID];
 
         if (agglom.size() > 0)
