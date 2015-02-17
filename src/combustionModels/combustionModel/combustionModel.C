@@ -60,7 +60,7 @@ Foam::combustionModel::combustionModel
 {}
 
 
-// * * * * * * * * * * * * * * * * Destructors * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 Foam::combustionModel::~combustionModel()
 {

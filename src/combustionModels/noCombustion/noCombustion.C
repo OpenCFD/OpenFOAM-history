@@ -40,7 +40,7 @@ Foam::combustionModels::noCombustion<CombThermoType>::noCombustion
 {}
 
 
-// * * * * * * * * * * * * * * * * Destructors * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class CombThermoType>
 Foam::combustionModels::noCombustion<CombThermoType>::~noCombustion()
