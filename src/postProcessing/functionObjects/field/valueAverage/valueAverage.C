@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,41 +23,39 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "averageCondition.H"
-#include "addToRunTimeSelectionTable.H"
+#include "valueAverage.H"
 #include "Time.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(averageCondition, 0);
-    addToRunTimeSelectionTable(runTimeCondition, averageCondition, dictionary);
+    defineTypeNameAndDebug(valueAverage, 0);
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::averageCondition::averageCondition
+Foam::valueAverage::valueAverage
 (
     const word& name,
     const objectRegistry& obr,
     const dictionary& dict,
-    functionObjectState& state
+    const bool loadFromFiles
 )
 :
-    runTimeCondition(name, obr, dict, state),
+    functionObjectState(obr, name),
+    functionObjectFile(obr, name, typeName),
+    obr_(obr),
     functionObjectName_(dict.lookup("functionObjectName")),
     fieldNames_(dict.lookup("fields")),
-    variation_(readScalar(dict.lookup("variation"))),
     window_(dict.lookupOrDefault<scalar>("window", -1)),
     totalTime_(fieldNames_.size(), obr_.time().deltaTValue()),
-    resetOnRestart_(false)
+    resetOnRestart_(false),
+    log_(true)
 {
     if (resetOnRestart_)
     {
-        const dictionary& dict = conditionDict();
-
         forAll(fieldNames_, fieldI)
         {
             const word& fieldName = fieldNames_[fieldI];
@@ -74,30 +72,60 @@ Foam::averageCondition::averageCondition
 
 // * * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * //
 
-Foam::averageCondition::~averageCondition()
+Foam::valueAverage::~valueAverage()
 {}
 
 
 // * * * * * * * * * * * * * * Public Member Functions * * * * * * * * * * * //
 
-bool Foam::averageCondition::apply()
+void Foam::valueAverage::read(const dictionary& dict)
+{
+    if (active_)
+    {
+        functionObjectFile::read(dict);
+
+        log_ = dict.lookupOrDefault<Switch>("log", true);
+
+    }
+}
+
+
+void Foam::valueAverage::writeFileHeader(const label i)
+{
+    writeHeader(file(), "Value averages");
+    writeCommented(file(), "Time");
+    forAll(fieldNames_, fieldI)
+    {
+        writeTabbed(file(), fieldNames_[fieldI]);
+    }
+    file() << endl;
+}
+
+
+void Foam::valueAverage::execute()
 {
     if (!active_)
     {
-        return false;
+        return;
+    }
+
+    if (Pstream::master())
+    {
+        functionObjectFile::write();
     }
 
     scalar dt = obr_.time().deltaTValue();
 
     Info(log_)<< type() << ": " << name_ << " averages:" << nl;
 
-    bool satisfied = true;
+    file() << obr_.time().timeName();
 
     DynamicList<label> unprocessedFields(fieldNames_.size());
 
     forAll(fieldNames_, fieldI)
     {
         const word& fieldName(fieldNames_[fieldI]);
+        const word meanName(fieldName + "Mean");
 
         scalar Dt = totalTime_[fieldI];
         scalar alpha = (Dt - dt)/Dt;
@@ -110,32 +138,29 @@ bool Foam::averageCondition::apply()
                 alpha = (window_ - dt)/window_;
                 beta = dt/window_;
             }
-            else
-            {
-                // ensure that averaging is performed over window time
-                // before condition can be satisfied
-                satisfied = false;
-            }
         }
 
         bool processed = false;
-        calc<scalar>(fieldName, alpha, beta, satisfied, processed);
-        calc<vector>(fieldName, alpha, beta, satisfied, processed);
-        calc<sphericalTensor>(fieldName, alpha, beta, satisfied, processed);
-        calc<symmTensor>(fieldName, alpha, beta, satisfied, processed);
-        calc<tensor>(fieldName, alpha, beta, satisfied, processed);
+        calc<scalar>(fieldName, meanName, alpha, beta, processed);
+        calc<vector>(fieldName, meanName, alpha, beta, processed);
+        calc<sphericalTensor>(fieldName, meanName, alpha, beta, processed);
+        calc<symmTensor>(fieldName, meanName, alpha, beta, processed);
+        calc<tensor>(fieldName, meanName, alpha, beta, processed);
 
         if (!processed)
         {
             unprocessedFields.append(fieldI);
+            file() << tab << "n/a";
         }
 
         totalTime_[fieldI] += dt;
     }
 
+    file()<< endl;
+
     if (unprocessedFields.size())
     {
-        WarningIn("bool Foam::averageCondition::apply()")
+        WarningIn("bool Foam::valueAverage::execute()")
             << "Unprocessed fields:" << nl;
 
         forAll(unprocessedFields, i)
@@ -143,35 +168,31 @@ bool Foam::averageCondition::apply()
             label fieldI = unprocessedFields[i];
             Info<< "        " << fieldNames_[fieldI] << nl;
         }
+        Info<< endl;
     }
 
     Info(log_) << endl;
-
-    return satisfied;
 }
 
 
-void Foam::averageCondition::write()
+void Foam::valueAverage::end()
 {
-    dictionary& conditionDict = this->conditionDict();
-
-    forAll(fieldNames_, fieldI)
+    if (active_)
     {
-        const word& fieldName = fieldNames_[fieldI];
-
-        // value dictionary should be present - mean values are written there
-        if (conditionDict.found(fieldName))
-        {
-            dictionary& valueDict = conditionDict.subDict(fieldName);
-            valueDict.add("totalTime", totalTime_[fieldI], true);
-        }
-        else
-        {
-            dictionary valueDict;
-            valueDict.add("totalTime", totalTime_[fieldI], true);
-            conditionDict.add(fieldName, valueDict);
-        }
+        execute();
     }
+}
+
+
+void Foam::valueAverage::timeSet()
+{
+    // Do nothing
+}
+
+
+void Foam::valueAverage::write()
+{
+    // Do nothing
 }
 
 

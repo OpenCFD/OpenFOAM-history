@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -287,8 +287,6 @@ void thermoSingleLayer::solveEnergy()
         Info<< "thermoSingleLayer::solveEnergy()" << endl;
     }
 
-    updateSurfaceTemperatures();
-
     solve
     (
         fvm::ddt(deltaRho_, hs_)
@@ -305,6 +303,9 @@ void thermoSingleLayer::solveEnergy()
 
     // evaluate viscosity from user-model
     viscosity_->correct(pPrimary_, T_);
+
+    // Update film wall and surface temperatures
+    updateSurfaceTemperatures();
 }
 
 
@@ -624,9 +625,9 @@ void thermoSingleLayer::preEvolveRegion()
         Info<< "thermoSingleLayer::preEvolveRegion()" << endl;
     }
 
-//    correctHsForMappedT();
-
     kinematicSingleLayer::preEvolveRegion();
+
+    updateSurfaceTemperatures();
 
     // Update phase change
     primaryMassPCTrans_ == dimensionedScalar("zero", dimMass, 0.0);
@@ -640,15 +641,6 @@ void thermoSingleLayer::evolveRegion()
     {
         Info<< "thermoSingleLayer::evolveRegion()" << endl;
     }
-
-    // Update film coverage indicator
-    correctAlpha();
-
-    // Update film wall and surface velocities
-    updateSurfaceVelocities();
-
-    // Update film wall and surface temperatures
-    updateSurfaceTemperatures();
 
     // Update sub-models to provide updated source contributions
     updateSubmodels();
@@ -683,9 +675,6 @@ void thermoSingleLayer::evolveRegion()
 
     // Update temperature using latest hs_
     T_ == T(hs_);
-
-    // Reset source terms for next time integration
-    resetPrimaryRegionSourceTerms();
 }
 
 

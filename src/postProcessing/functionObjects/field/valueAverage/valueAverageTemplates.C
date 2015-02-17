@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,42 +26,32 @@ License
 // * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
 template<class Type>
-void Foam::averageCondition::calc
+void Foam::valueAverage::calc
 (
     const word& fieldName,
+    const word& meanName,
     const scalar alpha,
     const scalar beta,
-    bool& satisfied,
     bool& processed
 )
 {
-    const word valueType =
-        state_.objectResultType(functionObjectName_, fieldName);
+    const word valueType = objectResultType(functionObjectName_, fieldName);
 
     if (pTraits<Type>::typeName != valueType)
     {
         return;
     }
 
-    Type currentValue =
-        state_.getObjectResult<Type>(functionObjectName_, fieldName);
+    Type currentValue = getObjectResult<Type>(functionObjectName_, fieldName);
 
-    const word meanName(fieldName + "Mean");
-
-    Type meanValue = state_.getResult<Type>(meanName);
+    Type meanValue = getResult<Type>(meanName);
     meanValue = alpha*meanValue + beta*currentValue;
 
-    scalar delta = mag(meanValue - currentValue);
+    setResult(meanName, meanValue);
 
-    Info(log_)<< "    " << meanName << ": " << meanValue
-        << ", variation: " << delta << nl;
+    file() << tab << meanValue;
 
-    state_.setResult(meanName, meanValue);
-
-    if (delta > variation_)
-    {
-        satisfied = false;
-    }
+    Info(log_) << "    " << meanName << ": " << meanValue << nl;
 
     processed = true;
 }

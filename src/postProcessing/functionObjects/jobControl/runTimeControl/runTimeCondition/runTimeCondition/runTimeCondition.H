@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -77,6 +77,10 @@ protected:
         //- Switch to send output to Info
         Switch log_;
 
+        //- Group index - if applied, all conditions in a group must be
+        //  satisfield before condition is met
+        label groupID_;
+
 
     // Protected Member Functions
 
@@ -135,8 +139,11 @@ public:
 
     // Public Member Functions
 
-        // Return the condition name
+        //- Return the condition name
         virtual const word& name() const;
+
+        //- Return the group index
+        virtual label groupID() const;
 
         //- Apply the condition
         virtual bool apply() = 0;

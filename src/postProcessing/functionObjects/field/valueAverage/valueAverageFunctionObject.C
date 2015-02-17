@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,48 +23,20 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
+#include "valueAverageFunctionObject.H"
 
-template<class Type>
-void Foam::averageCondition::calc
-(
-    const word& fieldName,
-    const scalar alpha,
-    const scalar beta,
-    bool& satisfied,
-    bool& processed
-)
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam
 {
-    const word valueType =
-        state_.objectResultType(functionObjectName_, fieldName);
+    defineNamedTemplateTypeNameAndDebug(valueAverageFunctionObject, 0);
 
-    if (pTraits<Type>::typeName != valueType)
-    {
-        return;
-    }
-
-    Type currentValue =
-        state_.getObjectResult<Type>(functionObjectName_, fieldName);
-
-    const word meanName(fieldName + "Mean");
-
-    Type meanValue = state_.getResult<Type>(meanName);
-    meanValue = alpha*meanValue + beta*currentValue;
-
-    scalar delta = mag(meanValue - currentValue);
-
-    Info(log_)<< "    " << meanName << ": " << meanValue
-        << ", variation: " << delta << nl;
-
-    state_.setResult(meanName, meanValue);
-
-    if (delta > variation_)
-    {
-        satisfied = false;
-    }
-
-    processed = true;
+    addToRunTimeSelectionTable
+    (
+        functionObject,
+        valueAverageFunctionObject,
+        dictionary
+    );
 }
-
 
 // ************************************************************************* //

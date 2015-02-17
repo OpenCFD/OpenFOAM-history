@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,15 +37,18 @@ inline const Foam::vector& Foam::eddy::sigma() const
 }
 
 
-inline Foam::scalar Foam::eddy::sigmaXMax() const
+inline Foam::scalar Foam::eddy::alphaAve() const
 {
-    return sigmaXMax_;
+    return alphaAve_;
 }
 
 
-inline const Foam::vector& Foam::eddy::alpha() const
+inline Foam::vector Foam::eddy::alpha(cachedRandom& rndGen) const
 {
-    return alpha_;
+    // Random vectors of 1's and -1's
+    vector a(eps(rndGen), eps(rndGen), eps(rndGen));
+
+    return a/mag(a)*alphaAve_;
 }
 
 
@@ -70,26 +73,29 @@ inline Foam::scalar Foam::eddy::c1() const
 
 inline void Foam::eddy::initialise(const label nEddy, const scalar v0)
 {
-    // normalisation coefficient (eq. 11)
-    c1_ = Foam::sqrt(10*v0)*sigmaAve()/(Foam::sqrt(scalar(nEddy))*volume());
+    // Normalisation coefficient (eq. 11)
+    c1_ =
+        Foam::sqrt(10*v0)*sigmaAve()
+       /(Foam::sqrt(scalar(nEddy))*boxVolume())
+       *cmptMin(sigma_);
 }
 
 
-inline Foam::scalar Foam::eddy::volume() const
+inline Foam::scalar Foam::eddy::boxVolume() const
 {
-    return sigma_.x()*sigma_.y()*sigma_.z();
+    return cmptProduct(sigma_);
 }
 
 
 inline Foam::scalar Foam::eddy::sigmaAve() const
 {
-    return (sigma_.x() + sigma_.y() + sigma_.z())/scalar(3);
+    return cmptAv(sigma_);
 }
 
 
 Foam::scalar Foam::eddy::eps(cachedRandom& rndGen) const
 {
-    // random number with zero mean and unit variance
+    // Random number with zero mean and unit variance
     scalar e = rndGen.sample01<scalar>() > 0.5 ? 1 : -1;
 
     return e;

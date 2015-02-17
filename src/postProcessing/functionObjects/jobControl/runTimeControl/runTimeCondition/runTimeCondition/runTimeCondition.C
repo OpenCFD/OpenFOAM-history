@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -76,7 +76,8 @@ Foam::runTimeCondition::runTimeCondition
     state_(state),
     active_(dict.lookupOrDefault<bool>("active", true)),
     conditionDict_(setConditionDict()),
-    log_(dict.lookupOrDefault("log", true))
+    log_(dict.lookupOrDefault("log", true)),
+    groupID_(dict.lookupOrDefault("groupID", -1))
 {}
 
 
@@ -91,6 +92,12 @@ Foam::runTimeCondition::~runTimeCondition()
 const Foam::word& Foam::runTimeCondition::name() const
 {
     return name_;
+}
+
+
+Foam::label Foam::runTimeCondition::groupID() const
+{
+    return groupID_;
 }
 
 

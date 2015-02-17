@@ -620,7 +620,7 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
             }
         }
 
-        delayedVolume_ = delayedVolume;
+        delayedVolume_ = returnReduce(delayedVolume, sumOp<scalar>());
     }
 
     postInjectCheck(parcelsAdded, massAdded);

@@ -148,7 +148,7 @@ class turbulentDFSEMInletFvPatchVectorField
         void convectEddies(const scalar deltaT);
 
         //- Calculate the velocity fluctuation at a point
-        vector uDashEddy(const point& globalX) const;
+        vector uDashEddy(const point& globalX);
 
 
 public:

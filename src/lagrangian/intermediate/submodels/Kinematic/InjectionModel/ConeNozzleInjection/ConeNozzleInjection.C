@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,16 +43,6 @@ void Foam::ConeNozzleInjection<CloudType>::setInjectionMethod()
     else if (injectionMethodType == "point")
     {
         injectionMethod_ = imPoint;
-
-        // Set/cache the injector cell
-        this->findCellAtPosition
-        (
-            injectorCell_,
-            tetFaceI_,
-            tetPtI_,
-            position_,
-            false
-        );
     }
     else
     {
@@ -170,8 +160,11 @@ Foam::ConeNozzleInjection<CloudType>::ConeNozzleInjection
                 "CloudType&, "
                 "const word&"
             ")"
-        )<< "innerNozzleDiameter >= outerNozzleDiameter" << nl
-         << exit(FatalError);
+        )
+            << "Inner diameter must be less than the outer diameter:" << nl
+            << "    innerDiameter: " << innerDiameter_ << nl
+            << "    outerDiameter: " << outerDiameter_
+            << exit(FatalError);
     }
 
     duration_ = owner.db().time().userTimeToTime(duration_);
@@ -265,7 +258,7 @@ void Foam::ConeNozzleInjection<CloudType>::updateMesh()
         }
         default:
         {
-            // do nothing
+            // Do nothing
         }
     }
 }
@@ -344,18 +337,24 @@ void Foam::ConeNozzleInjection<CloudType>::setPositionAndCell
         }
         case imDisc:
         {
-            scalar frac = rndGen.sample01<scalar>();
-            scalar dr = outerDiameter_ - innerDiameter_;
-            scalar r = 0.5*(innerDiameter_ + frac*dr);
-            position = position_ + r*normal_;
+            if (Pstream::master())
+            {
+                scalar frac = rndGen.sample01<scalar>();
+                scalar dr = outerDiameter_ - innerDiameter_;
+                scalar r = 0.5*(innerDiameter_ + frac*dr);
+
+                position = position_ + r*normal_;
+            }
+
+            // Ensure that all procssors set the same position
+            reduce(position, maxMagSqrOp<vector>());
 
             this->findCellAtPosition
             (
                 cellOwner,
                 tetFaceI,
                 tetPtI,
-                position,
-                false
+                position
             );
             break;
         }
@@ -391,7 +390,7 @@ void Foam::ConeNozzleInjection<CloudType>::setProperties
 {
     cachedRandom& rndGen = this->owner().rndGen();
 
-    // set particle velocity
+    // Set particle velocity
     const scalar deg2Rad = mathematical::pi/180.0;
 
     scalar t = time - this->SOI_;
@@ -441,7 +440,7 @@ void Foam::ConeNozzleInjection<CloudType>::setProperties
         }
     }
 
-    // set particle diameter
+    // Set particle diameter
     parcel.d() = sizeDistribution_->sample();
 }
 

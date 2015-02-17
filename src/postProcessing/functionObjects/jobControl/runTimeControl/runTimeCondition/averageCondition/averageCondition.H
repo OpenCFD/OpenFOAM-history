@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,7 +26,7 @@ Class
 
 Description
     Average run time condition - satisfied when average does not change by
-    more than a given value over an averaging period.
+    more than a given value.
 
 SourceFiles
     averageCondition.H
@@ -84,7 +84,6 @@ protected:
         void calc
         (
             const word& fieldName,
-            const word& meanName,
             const scalar alpha,
             const scalar beta,
             bool& satisfied,

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,26 +22,51 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::runTimeControl
+    Foam::yPlusLES
 
 Group
-    grpJobControlFunctionObjects
+    grpUtilitiesFunctionObjects
 
 Description
-    This function object controls when the calculation is terminated based on
-    satisfying user-specified conditions.
+    This function object evaluates and outputs turbulence y+ for turbulence
+    models. The field is stored on the mesh database so that it can be
+    retrieved and used for other applications.
+
+    Example of function object specification to calculate the y+ (LES):
+    \verbatim
+    yPlusLES1
+    {
+        type        yPlus;
+        functionObjectLibs ("libutilityFunctionObjects.so");
+        ...
+    }
+    \endverbatim
+
+    \heading Function object usage
+    \table
+        Property     | Description             | Required    | Default value
+        type         | Type name: yPlus        | yes         |
+        phiName      | Name of flux field      | no          | phi
+        UName        | Name of velocity field  | no          | U
+        resultName   | Name of y+ field        | no          | <function name>
+        log          | Log to standard output  | no          | yes
+    \endtable
+
 
 SourceFiles
-    runTimeControl.C
-    IOrunTimeControl.H
+    yPlusLES.C
+    IOyPlusLES.H
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef runTimeControl_H
-#define runTimeControl_H
+#ifndef yPlus_H
+#define yPlus_H
 
-#include "functionObjectState.H"
-#include "Map.H"
+#include "functionObjectFile.H"
+#include "volFieldsFwd.H"
+#include "Switch.H"
+#include "OFstream.H"
+#include "Switch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -53,54 +78,72 @@ class objectRegistry;
 class dictionary;
 class polyMesh;
 class mapPolyMesh;
-class runTimeCondition;
+class fvMesh;
 
 /*---------------------------------------------------------------------------*\
-                       Class runTimeControl Declaration
+                            Class yPlus Declaration
 \*---------------------------------------------------------------------------*/
 
-class runTimeControl
+class yPlus
 :
-    public functionObjectState
+    public functionObjectFile
 {
     // Private data
 
-        //- Name of this set of runTimeControl objects
+        //- Name of this set of yPlusLES objects
         word name_;
 
-        //- Reference to the database
         const objectRegistry& obr_;
 
-        //- On/off switch
+        //- on/off switch
         bool active_;
 
-        //- List of conditions to satisfy
-        PtrList<runTimeCondition> conditions_;
+        //- Name of mass/volume flux field (optional, default = phi)
+        word phiName_;
 
-        //- Map to define group IDs
-        Map<label> groupMap_;
+        //- Name of velocity field
+        word UName_;
+
+        //- Result name
+        word resultName_;
+
+        //- Switch to send output to Info as well as to file
+        Switch log_;
 
 
     // Private Member Functions
 
+        //- File header information
+        virtual void writeFileHeader(const label i);
+
+        //- Calculate y+
+        template<class TurbulenceModel>
+        void calcYPlus
+        (
+            const TurbulenceModel& turbulenceModel,
+            const fvMesh& mesh,
+            const volVectorField& U,
+            volScalarField& yPlus
+        );
+
         //- Disallow default bitwise copy construct
-        runTimeControl(const runTimeControl&);
+        yPlus(const yPlus&);
 
         //- Disallow default bitwise assignment
-        void operator=(const runTimeControl&);
+        void operator=(const yPlus&);
 
 
 public:
 
     //- Runtime type information
-    TypeName("runTimeControl");
+    TypeName("yPlus");
 
 
     // Constructors
 
         //- Construct for given objectRegistry and dictionary.
         //  Allow the possibility to load fields from files
-        runTimeControl
+        yPlus
         (
             const word& name,
             const objectRegistry&,
@@ -110,18 +153,18 @@ public:
 
 
     //- Destructor
-    virtual ~runTimeControl();
+    virtual ~yPlus();
 
 
     // Member Functions
 
-        //- Return name of the set of runTimeControl
+        //- Return name of the set of yPlusLES
         virtual const word& name() const
         {
             return name_;
         }
 
-        //- Read the runTimeControl data
+        //- Read the yPlusLES data
         virtual void read(const dictionary&);
 
         //- Execute, currently does nothing
@@ -133,7 +176,7 @@ public:
         //- Called when time was set at the end of the Time::operator++
         virtual void timeSet();
 
-        //- Calculate the runTimeControl and write
+        //- Calculate the yPlusLES and write
         virtual void write();
 
         //- Update for changes of mesh
@@ -149,6 +192,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "yPlusTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

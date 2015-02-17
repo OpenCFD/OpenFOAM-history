@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,65 +21,34 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Application
-    testMapIterators
+Typedef
+    Foam::valueAverageFunctionObject
 
 Description
-    Test mapping
+    FunctionObject wrapper around valueAverageFunctionObject to allow them
+    to be created via the functions entry within controlDict.
+
+SourceFiles
+    fieldMinMaxFunctionObject.C
 
 \*---------------------------------------------------------------------------*/
 
-#include "Map.H"
-#include <map>
-#include "IOstreams.H"
+#ifndef valueAverageFunctionObject_H
+#define valueAverageFunctionObject_H
 
-using namespace Foam;
+#include "valueAverage.H"
+#include "OutputFilterFunctionObject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-int main(int argc, char *argv[])
+namespace Foam
 {
-    Map<bool> banana;
-
-    banana.insert(5, true);
-
-    // Taking a const iterator from find does not work!
-    // Also, fails later on op==
-    Map<bool>::const_iterator bananaIter = banana.find(5);
-
-    // This works but now I can change the value.
-    //Map<bool>::iterator bananaIter = banana.find(5);
-
-    if (bananaIter == banana.end())
-    {
-        Info<< "not found" << endl;
-    }
-    else
-    {
-        Info<< "5 is " << bananaIter() << endl;
-    }
-
-    // Same with STL
-    Info<< "Same with STL" << endl;
-
-    std::map<label, bool> STLbanana;
-    STLbanana[5] = true;
-    std::map<label, bool>::const_iterator STLbananaIter = STLbanana.find(5);
-
-    if (STLbananaIter == STLbanana.end())
-    {
-        Info<< "not found" << endl;
-    }
-    else
-    {
-        Info<< "5 is " << STLbananaIter->second << endl;
-    }
-
-
-    Info<< "End\n" << endl;
-
-    return 0;
+    typedef OutputFilterFunctionObject<valueAverage>
+        valueAverageFunctionObject;
 }
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
