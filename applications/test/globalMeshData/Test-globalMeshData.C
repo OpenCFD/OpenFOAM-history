@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,6 +34,7 @@ Description
 #include "polyMesh.H"
 #include "Time.H"
 #include "mapDistribute.H"
+#include "IOmapDistribute.H"
 
 using namespace Foam;
 
@@ -44,9 +45,89 @@ using namespace Foam;
 
 int main(int argc, char *argv[])
 {
-#   include "setRootCase.H"
-#   include "createTime.H"
-#   include "createPolyMesh.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createPolyMesh.H"
+
+    {
+        // Test a bit of copying
+        const mapDistribute& globalPointSlavesMap =
+            mesh.globalData().globalPointSlavesMap();
+
+        mapDistribute cp(globalPointSlavesMap);
+        Debug(cp.constructSize());
+    }
+
+    const mapDistribute& someMap = mesh.globalData().globalPointSlavesMap();
+    {
+        // Test writing
+        IOmapDistribute map
+        (
+            IOobject
+            (
+                "myMap",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            someMap
+        );
+
+        map.write();
+    }
+    {
+        // Test Reading
+        IOmapDistribute map
+        (
+            IOobject
+            (
+                "myMap",
+                runTime.timeName(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE
+            )
+        );
+
+        if
+        (
+            map.subMap() != someMap.subMap()
+         && map.constructMap() != someMap.constructMap()
+         && map.constructSize() != someMap.constructSize()
+        )
+        {
+            FatalErrorIn(args.executable())
+                << "map:" << map << exit(FatalError);
+        }
+
+
+        // Test Transfer
+        IOmapDistribute map2
+        (
+            IOobject
+            (
+                "myMap",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            map.xfer()
+        );
+
+        if
+        (
+            map2.subMap() != someMap.subMap()
+         && map2.constructMap() != someMap.constructMap()
+         && map2.constructSize() != someMap.constructSize()
+        )
+        {
+            FatalErrorIn(args.executable())
+                << "map2:" << map2 << exit(FatalError);
+        }
+    }
+
 
     const globalMeshData& globalData = mesh.globalData();
     const indirectPrimitivePatch& coupledPatch = globalData.coupledPatch();
