@@ -280,6 +280,18 @@ inline tmp<volVectorField> kinematicSingleLayer::gTan() const
     return tgTan;
 }
 
+inline tmp<vectorField> kinematicSingleLayer::gTan
+(
+    const label patchI
+) const
+{
+    const vectorField& nH = nHat().boundaryField()[patchI];
+    const vector& g = g_.value();
+    tmp<vectorField> tgTan(new vectorField(g - nH*(g & nH)));
+
+    return tgTan;
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

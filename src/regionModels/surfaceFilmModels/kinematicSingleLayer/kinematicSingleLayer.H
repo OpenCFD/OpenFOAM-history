@@ -495,6 +495,9 @@ public:
             //- Return the gravity tangential component contributions
             inline tmp<volVectorField> gTan() const;
 
+            //- Return the gravity tangential component contributions for patchI
+            inline tmp<vectorField> gTan(const label patchI) const;
+
 
         // Evolution
 
