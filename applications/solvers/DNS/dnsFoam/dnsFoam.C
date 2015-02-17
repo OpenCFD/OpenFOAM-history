@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -33,12 +33,12 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "pimpleControl.H"
 #include "Kmesh.H"
 #include "UOprocess.H"
 #include "fft.H"
 #include "calcEk.H"
 #include "graph.H"
+#include "pisoControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMeshNoClear.H"
 
-    pimpleControl piso(mesh, "PISO");
+    pisoControl piso(mesh);
 
     #include "readTransportProperties.H"
     #include "createFields.H"
@@ -89,7 +89,6 @@ int main(int argc, char *argv[])
         }
 
         // --- PISO loop
-
         while (piso.correct())
         {
             volScalarField rAU(1.0/UEqn.A());

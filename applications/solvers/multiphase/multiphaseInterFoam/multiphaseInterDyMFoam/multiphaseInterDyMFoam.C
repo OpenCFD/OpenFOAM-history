@@ -41,8 +41,8 @@ Description
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
+#include "CorrectPhi.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
-#include "incompressibleCorrectPhi.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
     pimpleControl pimple(mesh);
 
     #include "createFields.H"
+    #include "createFvOptions.H"
     #include "readTimeControls.H"
-    #include "createPrghCorrTypes.H"
 
     volScalarField rAU
     (

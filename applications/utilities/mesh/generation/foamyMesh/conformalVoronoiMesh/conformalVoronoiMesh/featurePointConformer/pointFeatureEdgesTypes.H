@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    pointFeatureEdgesTypes
+    Foam::pointFeatureEdgesTypes
 
 Description
     Holds information on the types of feature edges attached to feature points.
@@ -58,7 +58,7 @@ class pointFeatureEdgesTypes
         //- Reference to the feature edge mesh
         const extendedFeatureEdgeMesh& feMesh_;
 
-        //- label of the point
+        //- Label of the point
         label pointLabel_;
 
 

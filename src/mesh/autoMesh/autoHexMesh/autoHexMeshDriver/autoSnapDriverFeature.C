@@ -949,7 +949,7 @@ void Foam::autoSnapDriver::featureAttractionUsingReconstruction
     // Bin according to surface normal
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    //- bins of differing normals:
+    //- Bins of differing normals:
     //  - one normal   : flat(tish) surface
     //  - two normals  : geometric feature edge
     //  - three normals: geometric feature point
@@ -957,7 +957,7 @@ void Foam::autoSnapDriver::featureAttractionUsingReconstruction
     surfacePoints.clear();
     surfaceNormals.clear();
 
-    //- from face to above normals bin
+    //- From face to above normals bin
     faceToNormalBin.setSize(pfDisp.size());
     faceToNormalBin = -1;
 

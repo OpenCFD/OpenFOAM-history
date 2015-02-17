@@ -64,17 +64,18 @@ Description
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
-#include "pimpleControl.H"
+#include "pisoControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
+
     #include "createTime.H"
     #include "createMesh.H"
 
-    pimpleControl piso(mesh, "PISO");
+    pisoControl piso(mesh);
 
     #include "createFields.H"
     #include "initContinuityErrs.H"
@@ -110,7 +111,6 @@ int main(int argc, char *argv[])
             }
 
             // --- PISO loop
-
             while (piso.correct())
             {
                 volScalarField rAU(1.0/UEqn.A());

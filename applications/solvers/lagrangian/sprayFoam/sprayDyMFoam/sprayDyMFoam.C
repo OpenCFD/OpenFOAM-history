@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,18 +29,19 @@ Group
 
 Description
     Transient PIMPLE solver for compressible, laminar or turbulent flow with
-    spray parcels on moving and changing meshes.
+    spray parcels and support for moving meshes.
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
-#include "turbulentFluidThermoModel.H"
+#include "turbulenceModel.H"
 #include "basicSprayCloud.H"
 #include "psiCombustionModel.H"
 #include "radiationModel.H"
 #include "SLGThermo.H"
 #include "pimpleControl.H"
+#include "CorrectPhi.H"
 #include "fvIOoptionList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -57,9 +58,8 @@ int main(int argc, char *argv[])
     #include "readTimeControls.H"
     #include "readGravitationalAcceleration.H"
     #include "createFields.H"
-    #include "createFvOptions.H"
-    #include "createPcorrTypes.H"
     #include "createRhoUf.H"
+    #include "createFvOptions.H"
     #include "createClouds.H"
     #include "createRadiationModel.H"
     #include "compressibleCourantNo.H"
@@ -72,9 +72,6 @@ int main(int argc, char *argv[])
     while (runTime.run())
     {
         #include "readControls.H"
-        #include "compressibleCourantNo.H"
-
-        #include "setDeltaT.H"
 
         {
             // Store divrhoU from the previous time-step/mesh for the correctPhi
@@ -83,6 +80,9 @@ int main(int argc, char *argv[])
                 "divrhoU",
                 fvc::div(fvc::absolute(phi, rho, U))
             );
+
+            #include "compressibleCourantNo.H"
+            #include "setDeltaT.H"
 
             runTime++;
 

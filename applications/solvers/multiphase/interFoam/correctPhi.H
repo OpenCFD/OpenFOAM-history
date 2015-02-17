@@ -1,12 +1,11 @@
-{
-    incompressibleCorrectPhi
-    (
-        phi,
-        U,
-        p_rgh,
-        dimensionedScalar("rAUf", dimTime/rho.dimensions(), 1.0),
-        geometricZeroField(),
-        pimple
-    );
-    #include "continuityErrs.H"
-}
+CorrectPhi
+(
+    U,
+    phi,
+    p_rgh,
+    dimensionedScalar("rAUf", dimTime/rho.dimensions(), 1),
+    geometricZeroField(),
+    pimple
+);
+
+#include "continuityErrs.H"

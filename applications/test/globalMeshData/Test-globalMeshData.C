@@ -128,7 +128,6 @@ int main(int argc, char *argv[])
         }
     }
 
-
     const globalMeshData& globalData = mesh.globalData();
     const indirectPrimitivePatch& coupledPatch = globalData.coupledPatch();
     const globalIndexAndTransform& transforms = globalData.globalTransforms();

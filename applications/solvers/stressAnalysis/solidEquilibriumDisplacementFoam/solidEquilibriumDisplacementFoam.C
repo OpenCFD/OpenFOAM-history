@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -45,15 +45,14 @@ Description
 
 int main(int argc, char *argv[])
 {
+    #include "setRootCase.H"
 
-#   include "setRootCase.H"
+    #include "createTime.H"
+    #include "createMesh.H"
+    #include "readMechanicalProperties.H"
+    #include "createFields.H"
 
-#   include "createTime.H"
-#   include "createMesh.H"
-#   include "readMechanicalProperties.H"
-#   include "createFields.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nCalculating displacement field\n" << endl;
 
@@ -61,7 +60,7 @@ int main(int argc, char *argv[])
     {
         Info<< "Iteration: " << runTime.value() << nl << endl;
 
-#       include "readSteadyStressFoamControls.H"
+        #include "readSteadyStressFoamControls.H"
 
         solve
         (
@@ -81,8 +80,8 @@ int main(int argc, char *argv[])
             sigmaD += accFac*(mu*twoSymm(gradDcorr) + (lambda*I)*tr(gradDcorr));
         }
 
-#       include "calculateStress.H"
-#       include "kineticEnergyLimiter.H"
+        #include "calculateStress.H"
+        #include "kineticEnergyLimiter.H"
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"

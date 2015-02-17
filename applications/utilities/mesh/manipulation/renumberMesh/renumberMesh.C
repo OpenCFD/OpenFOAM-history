@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anispulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,7 +51,7 @@ Description
 #include "pointSet.H"
 
 #ifdef FOAM_USE_ZOLTAN
-#   include "zoltanRenumber.H"
+    #include "zoltanRenumber.H"
 #endif
 
 
@@ -628,10 +628,10 @@ int main(int argc, char *argv[])
         "Renumber mesh to minimise bandwidth"
     );
 
-#   include "addRegionOption.H"
-#   include "addOverwriteOption.H"
-#   include "addTimeOptions.H"
-#   include "addDictOption.H"
+    #include "addRegionOption.H"
+    #include "addOverwriteOption.H"
+    #include "addTimeOptions.H"
+    #include "addDictOption.H"
     argList::addBoolOption
     (
         "frontWidth",
@@ -639,8 +639,8 @@ int main(int argc, char *argv[])
     );
 
 
-#   include "setRootCase.H"
-#   include "createTime.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
     runTime.functionObjects().off();
 
 
@@ -656,11 +656,11 @@ int main(int argc, char *argv[])
     instantList Times = runTime.times();
 
     // set startTime and endTime depending on -time and -latestTime options
-#   include "checkTimeOptions.H"
+    #include "checkTimeOptions.H"
 
     runTime.setTime(Times[startTime], startTime);
 
-#   include "createNamedMesh.H"
+    #include "createNamedMesh.H"
     const word oldInstance = mesh.pointsInstance();
 
     const bool readDict = args.optionFound("dict");

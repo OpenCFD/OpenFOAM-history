@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -196,6 +196,21 @@ DimensionedField<Type, GeoMesh>::DimensionedField
 template<class Type, class GeoMesh>
 DimensionedField<Type, GeoMesh>::DimensionedField
 (
+    const IOobject& io,
+    DimensionedField<Type, GeoMesh>& df,
+    bool reUse
+)
+:
+    regIOobject(io, df),
+    Field<Type>(df, reUse),
+    mesh_(df.mesh_),
+    dimensions_(df.dimensions_)
+{}
+
+
+template<class Type, class GeoMesh>
+DimensionedField<Type, GeoMesh>::DimensionedField
+(
     const word& newName,
     const DimensionedField<Type, GeoMesh>& df
 )
@@ -216,21 +231,6 @@ DimensionedField<Type, GeoMesh>::DimensionedField
 )
 :
     regIOobject(newName, df, true),
-    Field<Type>(df, reUse),
-    mesh_(df.mesh_),
-    dimensions_(df.dimensions_)
-{}
-
-
-template<class Type, class GeoMesh>
-DimensionedField<Type, GeoMesh>::DimensionedField
-(
-    const IOobject& io,
-    DimensionedField<Type, GeoMesh>& df,
-    bool reUse
-)
-:
-    regIOobject(io, df),
     Field<Type>(df, reUse),
     mesh_(df.mesh_),
     dimensions_(df.dimensions_)

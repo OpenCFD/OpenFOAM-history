@@ -1,20 +1,877 @@
+*OK* commit c328c5468013f7b4a9dbc849e463f7d8f4c27b45
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:55:02 2015 +0000
+
+    tutorials: Simplify rhoMax and rhoMin specification
+
+*OK* commit b0bd25ad3217072043ab30893429a9bb67f5eede
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:49:07 2015 +0000
+
+    tutorials/compressible/rhoPorousSimpleFoam/angledDuctImplicit: simplify rhoMax and rhoMin specification
+
+*OK* commit 5804b901c5c7ca0159bbd9250ea195125895411a
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:48:36 2015 +0000
+
+    RectangularMatrix: Corrected documentation
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1535
+
+*ALREADY DONE* commit c7f5b4ce171f211a4b4498e05ce7f4ed948ef7ac
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:47:34 2015 +0000
+
+    applications/solvers: Update trans-sonic option in pEqns to by consistent with sonic-solvers
+
+*OK* commit 50a2e36cf84d46ec76f3f73602d12dc10b9b92e5
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:16:01 2015 +0000
+
+    dimensionedType: Extend lookupOrDefault to handle any form of dimensioned type input
+    e.g.
+         Not specified: default used.
+         Fully specified: rhoMax          rhoMax [ 1 -3 0 0 0 ] 2.0;
+         Without name:    rhoMax          [ 1 -3 0 0 0 ] 2.0;
+         Value only:      rhoMax          2.0;
+
+*ALREADY DONE* commit da42029f98a3792f6c8ca693bcf85c4a56a41714
+Author: Henry <Henry>
+Date:   Mon Feb 16 22:16:50 2015 +0000
+
+    seulex: Reduce the underflow time-step
+
+*OK* commit cc6341a9d3cf400b7a580d041033bf853df74746
+Author: Henry <Henry>
+Date:   Mon Feb 16 22:16:21 2015 +0000
+
+    int??IO: handle overflow errors
+
+*OK* commit 9617b8f55962f755bf87d91cec7eefc83a0f0f82
+Author: Henry <Henry>
+Date:   Mon Feb 16 22:15:54 2015 +0000
+
+    surfaceCheck: Make -blockMesh output easier to parse
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1534
+
+*OK* commit e8e0c997906ed060efcf7eb2a0b69a333b7b780c
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:48:00 2015 +0000
+
+    DyM solvers: rationalized handling of time update
+
+*OK* commit 74990ee91545fc8586c1e24ae78535c4d0327ebb
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:47:15 2015 +0000
+
+    Rationalized sprayFoam family of solvers and added sprayDyMFoam
+
+*OK* commit 5a9fc9a3e91d9118e5e0bc62a038d99820b50903
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:45:28 2015 +0000
+
+    Rationalized pEqn in sprayFoam solvers
+
+*OK* commit cec56de03e14ee67bf1e9b26140225cb91f1a0ac
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:43:40 2015 +0000
+
+    Compressible solvers: rhoMax and rhoMin now optional and may be supplied without dimensions
+
+*OK* commit cd5ade6c4404312c69b29c58d180a4802632f44e
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:42:09 2015 +0000
+
+    compressibleInterDyMFoam and interPhaseChangeDyMFoam: cache divU before time advancement to ensure the old-time meshPhi are used to make phi absolute
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1531
+
+*OK* commit f99884de0052105fb9b18a96185139ccc1160de6
+Author: Henry <Henry>
+Date:   Mon Feb 16 09:24:01 2015 +0000
+
+    turbulenceModels/RAS/kOmegaSSTSAS/kOmegaSSTSAS: Added the k-omega-SST-SAS model
+        Egorov, Y., & Menter F.R. (2008).
+        Development and Application of SST-SAS Model in the DESIDER Project.
+        Advances in Hybrid RANS-LES Modelling,
+        Notes on Num. Fluid Mech. And Multidisciplinary Design,
+        Volume 97, 261-270.
+
+*OK* commit 913e515fef3d327e85ff712159431ad499a4fdd1
+Author: Henry <Henry>
+Date:   Mon Feb 16 09:22:59 2015 +0000
+
+    turbulenceModels/LES/dynamicLagrangian/dynamicLagrangian: Removed unused declaration
+
+*OK* commit af43b377c92089590281f1d139256897acbc6f31
+Author: Henry <Henry>
+Date:   Sat Feb 14 22:50:59 2015 +0000
+
+    refineWallLayer: Rationalize and add support for operating on a list of patch name regular expressions
+    Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1525
+
+*OK* commit e7777787624dafddf3ff7e6723b47fa4cf460d64
+Author: Henry <Henry>
+Date:   Sat Feb 14 22:50:28 2015 +0000
+
+    polyMeshModifier: Corrected member function documentation
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1143
+
+*OK* commit cec7f52d9657fe3f5e9c92d9c06dcd5dcd224f6d
+Author: Henry <Henry>
+Date:   Sat Feb 14 17:19:35 2015 +0000
+
+    Update header
+
+*OK* commit de6ef3d55165b587eac19e7657a6f5a779143d9f
+Author: Henry <Henry>
+Date:   Sat Feb 14 17:19:01 2015 +0000
+
+    grpIcoRASBoundaryConditions -> grpRASBoundaryConditions
+
+*ALREADY DONE* commit 885125e3338f9f691141f6497385e5d6864ec38e
+Author: Henry <Henry>
+Date:   Sat Feb 14 17:11:23 2015 +0000
+
+    atomicWeights: Put in ascending order
+
+*ALREADY DONE* commit 7dfad7a74f63539ef0005671625a4f9c43367f70
+Author: Henry <Henry>
+Date:   Sat Feb 14 17:09:29 2015 +0000
+
+    atomicWeights: Put in ascending order
+
+*ALREADY DONE* commit 9ac15414bf7004b67d67b8c12da1e95571bfcf7c
+Author: Henry <Henry>
+Date:   Sat Feb 14 17:09:21 2015 +0000
+
+    Update header
+
+*ALREADY DONE* commit e44376d3638a3186a7db7334acd28a9d44a1ae5a
+Author: Henry <Henry>
+Date:   Sat Feb 14 17:09:07 2015 +0000
+
+    Correct Info message
+
+*OK* commit f9a8cb7cfc66608534ba47eb6997d673d1cbf58d
+Author: Henry <Henry>
+Date:   Sat Feb 14 16:43:27 2015 +0000
+
+    dynamicLagrangian: Added template include
+
+*OK* commit 74a8a6f99634c2f6642dfa5ac35d4039f67c853b
+Author: Henry <Henry>
+Date:   Sat Feb 14 16:04:01 2015 +0000
+
+    doc/Doxygen/Allwmake: Automated the setting of FOAM_ONLINE_REPO
+    Patch provided by Bruno Santos
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1528
+
+*OK* commit d9cc06f9f3e79af73c6772f150e4c77d2ad18094
+Author: Henry <Henry>
+Date:   Sat Feb 14 15:58:09 2015 +0000
+
+    solidBodyMotionFunctions/SDA: Corrected the "See also"
+    Resolved bug-report http://www.openfoam.org/mantisbt/view.php?id=1529
+
+*OK* commit 0ddae8ba2cdbeac4092ed0755df47d3a6e64ced1
+Author: Henry <Henry>
+Date:   Sat Feb 14 15:52:08 2015 +0000
+
+    turbulenceModels/LES/dynamicLagrangian: Added the Lagrangian averaged form of the dynamic Smagorinsky eddy-viscosity SGS model for LES
+
+*OK* commit f58fd1427100727c8ff6f82d76e56fd836e6274c
+Author: Henry <Henry>
+Date:   Sat Feb 14 13:10:15 2015 +0000
+
+    Corrected capitalization of Doxygen documentation comments
+
+*OK* commit fb68661de82834702f7df393522e399e451eba72
+Author: Henry <Henry>
+Date:   Sat Feb 14 13:08:08 2015 +0000
+
+    turbulenceModels/LES/dynamicKEqn/dynamicKEqn: Added dynamic version of the one-equation SGS model
+
+*ALREADY DONE* commit 3f7e377240b6eb9d4513f39e5eedce339b7ae519
+Author: Henry <Henry>
+Date:   Sat Feb 14 11:07:57 2015 +0000
+
+    Minor correction
+
+*OK* commit cdadf4865de4808d6fe5c2a7eb5f5deaefe83b66
+Author: Henry <Henry>
+Date:   Sat Feb 14 11:03:37 2015 +0000
+
+    potentialFoam: Solve for velocity potential named Phi rather than using the pressure field for this purpose
+
+    The Phi field is read if available otherwise created automatically with
+    boundary conditions obtained automatically from the pressure field if
+    available (with optional name) otherwise inferred from the velocity
+    field.  Phi Laplacian scheme and solver specification are required.  See
+    tutorials for examples.
+
+*OK* commit 2edacf0cebf3813b5f50802a66789401af4ded39
+Author: Henry <Henry>
+Date:   Sat Feb 14 10:59:29 2015 +0000
+
+    Correct Doxygen multiline comments
+
+*OK* commit 0c86872fd8d8632a96c4eafe574421ade53a8e7a
+Author: Henry <Henry>
+Date:   Sat Feb 14 10:13:55 2015 +0000
+
+    tutorials: removed empty files
+
+*OK* commit 4c9897879e344b9156d1766cde17db7c5748389b
+Author: Henry <Henry>
+Date:   Sat Feb 14 10:13:11 2015 +0000
+
+    tutorials/heatTransfer/chtMultiRegionSimpleFoam/heatExchanger/system/air/topoSetDict.1: further correction to avoid duplicate registration
+
+*OK* commit 31fd2512fb9bdb2716b432bb7571a8de247351cf
+Author: Henry <Henry>
+Date:   Fri Feb 13 21:40:45 2015 +0000
+
+    GeometricField: Do not transfer registration of a GeometricField to a copy unless it is being transferred from a tmp
+    This avoids loosing the registration of non-tmp fields
+
+*ALREADY DONE* commit aee9511710d0c77ddf7c20b0627d4b144ce2b55b
+Author: Henry <Henry>
+Date:   Fri Feb 13 21:39:48 2015 +0000
+
+    porousInterFoam is no longer needed
+    Use interFoam with fvOptions
+
+*OK* commit f17071cf7040ad7250561e7d435c2ad27e252d5e
+Author: Henry <Henry>
+Date:   Fri Feb 13 12:41:34 2015 +0000
+
+    constTransport: Avoid /0 in + and - operators averaging 1/Pr when the number of moles = 0
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1348
+
+*ALREADY DONE* commit d57fcc90a0f53f5b19b47cf891b7ad16072c3302
+Author: Henry <Henry>
+Date:   Fri Feb 13 12:41:10 2015 +0000
+
+    mapFields: Corrected handling of fixed value BCs
+    Fix provided by Mattijs Janssens
+
+*OK* commit 8da1e21e44d04cf014ddf3323c74913bde039252
+Author: Henry <Henry>
+Date:   Fri Feb 13 12:09:00 2015 +0000
+
+    Upgrade to clang-3.5.1 and OpenMPI-1.8.4
+
+*OK* commit e13210a6d632449b3e1af01253d23846f2748562
+Author: Henry <Henry>
+Date:   Fri Feb 13 09:23:22 2015 +0000
+
+    twoPhaseEulerFoam/twoPhaseSystem/diameterModels/IATE: Corrected sign of random coalescence source
+    Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1382
+
+*OK* commit 0cf51e4217a49361e4ca2df6eb177d83aa48077a
+Author: Henry <Henry>
+Date:   Thu Feb 12 22:14:02 2015 +0000
+
+    utilities: Correct "End" statement to be consistent with all other applications
+
+*OK* commit 6ad58dc0aa3b156131383db6337ac1e45ed73908
+Author: Henry <Henry>
+Date:   Thu Feb 12 22:01:06 2015 +0000
+
+    tutorials/lagrangian/reactingParcelFilmFoam/hotBoxes/patchifyObstacles: another change to avoid duplicate registration
+
+*OK* commit 63938fb3d31c2a7fe1a3aaa7ef6271af8b6f6e86
+Author: Henry <Henry>
+Date:   Thu Feb 12 21:59:17 2015 +0000
+
+    decomposePar: Do not register Lagrangian IOFields as the names may conflict with those of volFields
+    Required change to IOobjectList to support the optional no-registration specification
+
+*OK* commit c187132816643b305576f173f14974b83685cfbd
+Author: Henry <Henry>
+Date:   Thu Feb 12 21:58:19 2015 +0000
+
+    conformalVoronoiMesh: Name extendedFeatureEdgeMesh correctly
+
+*OK* commit e636b7c73b48d10db01fd675d81e797bbe5a7f5d
+Author: Henry <Henry>
+Date:   Thu Feb 12 21:57:29 2015 +0000
+
+    Correct section comment: there can only be one destructor
+
+*OK* commit bbc8ef076bf5bc2cf30018cf8a2ee0366d19c71e
+Author: Henry <Henry>
+Date:   Thu Feb 12 16:46:37 2015 +0000
+
+    tutorials/lagrangian/reactingParcelFilmFoam/hotBoxes: Avoid using the same same for different objects in setSet
+
+*ALREADY DONE* commit 53a2a040c28e0282d59e658fe04076420dd0a95e
+Author: Henry <Henry>
+Date:   Thu Feb 12 15:10:29 2015 +0000
+
+    Update headers
+
+*ALREADY DONE* commit c539718f40e5ea3acc593d74aa01c60529f6d487
+Author: Henry <Henry>
+Date:   Thu Feb 12 15:08:57 2015 +0000
+
+    thermophysicalModels: Don't register derived fields such as Cp to avoid name conflicts in the objectRegistry
+
+*OK* commit 87de4f028c838559845bef5eb6af99fcce1ced35
+Author: Henry <Henry>
+Date:   Thu Feb 12 13:24:51 2015 +0000
+
+    Avoid registration of variables which may generate name conflicts
+
+*ALREADY DONE* commit cf94b78e62d1b5bc790ad316232e76844009d211
+Author: Henry <Henry>
+Date:   Thu Feb 12 13:20:20 2015 +0000
+
+    Avoid registration of variables which may generate name conflicts
+
+*ALREADY DONE* commit 862697d49f3d4badc428d4fa293e3af08bd5b721
+Author: Henry <Henry>
+Date:   Thu Feb 12 13:19:47 2015 +0000
+
+    Update header
+
+*ALREADY DONE* commit ef0d2397aec13a04b4d5b231bf7dd45a88f8af42
+Author: Henry <Henry>
+Date:   Thu Feb 12 13:19:28 2015 +0000
+
+    Name intermediate fields to avoid duplicate registration
+
+*OK* commit d6ca208a500b515316f598a6e2d315f3e11416fa
+Author: Henry <Henry>
+Date:   Thu Feb 12 13:17:28 2015 +0000
+
+    rhoCentralDyMFoam: Name intermediate fields to avoid duplicate registration
+    Updated mesh-motion functionality
+
+*OK* commit 7d3f1067c7066c605d4377f67d2de878db2e9359
+Author: Henry <Henry>
+Date:   Thu Feb 12 12:34:27 2015 +0000
+
+    Update headers
+
+*OK* commit 018de2e37addc0336b91ed5b35f86d86475f603a
+Author: Henry <Henry>
+Date:   Thu Feb 12 12:33:45 2015 +0000
+
+    Name fields to avoid duplicate registration
+
+*OK* commit a4f46eb5e62bf147335e95ca8f4b272a3429fd48
+Author: Henry <Henry>
+Date:   Thu Feb 12 10:42:17 2015 +0000
+
+    pEqn: DO NOT constrain the pressure equation as this will lead to continuity errors
+
+*OK* commit d63a9fa589af09b561b7ec43c77cf69c2d1328e4
+Author: Henry <Henry>
+Date:   Thu Feb 12 10:01:31 2015 +0000
+
+    Tutorials: change topoSetDicts to avoid duplicate names
+
+*OK* commit 017855b877d75b7272bf4bd709d9445169158847
+Author: Henry <Henry>
+Date:   Thu Feb 12 10:01:10 2015 +0000
+
+    Update headers
+
+*OK* commit 40038875175e5fd40b52aec199e7debdfd32418f
+Author: Henry <Henry>
+Date:   Thu Feb 12 10:00:53 2015 +0000
+
+    Do not register temporaries
+
+*OK* commit a4cca549e2253dbd5e814d224ffdc5ebfbaa2b9d
+Author: Henry <Henry>
+Date:   Thu Feb 12 09:59:52 2015 +0000
+
+    Explicitly name derived fields to improve readability of diagnostic messages and avoid duplicate registration
+
+*OK* commit 356cbd27f7c9e4e77314ee0441663fc4270942b8
+Author: Henry <Henry>
+Date:   Thu Feb 12 09:58:17 2015 +0000
+
+    TurbulenceModels: No need to explicitly correct for boundedness, use the "bounded" scheme instead
+
+*OK* commit 6f63b722e09e3097705cadf8e71448b1c35d3e16
+Author: Henry <Henry>
+Date:   Thu Feb 12 09:57:45 2015 +0000
+
+    TurbulenceModels: Do not register temporaries
+
+*OK* commit ee9bef30fe2ab190d336c27ae92b19a6a39bfed6
+Author: Henry <Henry>
+Date:   Thu Feb 12 09:56:47 2015 +0000
+
+    TurbulenceModels/turbulenceModels/RAS/v2f: Name the Ts variable Ts
+
+*OK* commit 43012d383311fe439f82ded91ac419064dfe2f53
+Author: Henry <Henry>
+Date:   Thu Feb 12 09:55:52 2015 +0000
+
+    kOmegaSST: correct nut from the S2 already available
+
+*OK* commit 92e0c46ad1fc4752ebe205a1d0fb9c4058e31f43
+Author: Henry <Henry>
+Date:   Wed Feb 11 16:51:44 2015 +0000
+
+    kineticTheoryModel: Name intermediate variable and avoid duplicate registration
+
+*OK* commit c13136511a07d00a294eafcd93831638fa0a674e
+Author: Henry <Henry>
+Date:   Wed Feb 11 15:59:16 2015 +0000
+
+    kOmegaSST: Updated to be consistent with the latest version in OpenFOAM-2.3.x
+
+*ALREADY DONE* commit 5a896b95dfd636680b8ad4d2d154242684d9e7d2
+Author: Henry <Henry>
+Date:   Wed Feb 11 14:49:23 2015 +0000
+
+    driftFluxFoam: Name ghf correctly
+    Avoids problem of duplicate registration
+
+*ALREADY DONE* commit bdd5c4b8d38e63dfc6666d4df58468ef0569fe0e
+Author: Henry <Henry>
+Date:   Wed Feb 11 14:48:34 2015 +0000
+
+    twoPhaseEulerFoam/twoPhaseSystem/diameterModels/constantDiameter: Do not register the temporary diameter field
+
+*OK* commit e939d1de79805aebc5fe75acb58de3d64ad88c39
+Author: Henry <Henry>
+Date:   Wed Feb 11 13:22:24 2015 +0000
+
+    Solvers: Rationalized correctPhi
+
+*OK* commit def52a306a9f80e7ce9ef8ef74a094b24a4bc4bb
+Author: Henry <Henry>
+Date:   Tue Feb 10 20:35:50 2015 +0000
+
+    Formatting: Rationalized the indentation of #include
+
+*OK* commit 4a3dce9e8ff4076bc80dddb284ac4b54ab61115e
+Author: Henry <Henry>
+Date:   Tue Feb 10 18:33:45 2015 +0000
+
+    solvers: rationalize the construction of the fvOptions
+
+*OK* commit 1b56ed238b9
+253472333877e88c98c4aef9ac27b
+Author: Henry <Henry>
+Date:   Tue Feb 10 18:20:42 2015 +0000
+
+    solvers: rationalize the return statement
+
+*OK* commit a47b212da1d8404c1e1e17bf10d39cc0d632f978
+Author: Henry <Henry>
+Date:   Tue Feb 10 17:44:18 2015 +0000
+
+    threePhaseInterfaceProperties: Update constructor to be consistent with the two-phase interfaceProperties
+    Avoids problem of duplicate registration of K
+
+*OK* commit 50c38dfdaac3b91b03ff52ef4e79fc908066c8bf
+Author: Henry <Henry>
+Date:   Tue Feb 10 17:33:04 2015 +0000
+
+    LESModel and RASModel: Call read for immediate base-class rather than for the turbulenceModel class
+
+*OK* commit 5944f12a387ca5537d5adc9f9284817339918993
+Author: Henry <Henry>
+Date:   Tue Feb 10 17:32:27 2015 +0000
+
+    turbulenceModel: Correct handling of IOdictionary writing to support timeStampMaster
+
+*OK* commit 6a1803d4aa7ba4b98a53fe8ab6374b2be44828a0
+Author: Henry <Henry>
+Date:   Tue Feb 10 17:31:38 2015 +0000
+
+    Use old PISO control structure for teaching solvers icoFoam and nonNewtonianIcoFoam
+
+*OK* commit 78f8e84d0130a63dcef86fac01797e46196cfa0a
+Author: Henry <Henry>
+Date:   Tue Feb 10 13:47:18 2015 +0000
+
+    pimpleControl and pisoControl: Rationalize PISO and PIMPLE control
+
+*OK* commit 927498accbdcd63ac4a12c56ed0c5cb46200472d
+Author: Henry <Henry>
+Date:   Mon Feb 9 22:15:26 2015 +0000
+
+    Applications: use pimpleControl.dict() and simpleControl.dict() instead of looking-up the sub-dict
+
+*OK* commit ae4cdef8b5a25d898ae60d2fc4c145f08f1af0a1
+Author: Henry <Henry>
+Date:   Mon Feb 9 18:06:35 2015 +0000
+
+    Doxygen: Updated scripts and css files to process OpenFOAM header files more robustly
+    and generate cleaner HTML files.
+    Thanks to Bruno Santos for various fixes and improvements.
+    Resolves bug reports:
+        http://www.openfoam.org/mantisbt/view.php?id=1516
+        http://www.openfoam.org/mantisbt/view.php?id=1016
+        http://www.openfoam.org/mantisbt/view.php?id=1512
+
+*OK* commit ca026b5dc75ae76fe2859b358f54341fe4f7f3cd
+Author: Henry <Henry>
+Date:   Mon Feb 9 14:43:11 2015 +0000
+
+    Updated headers to ensure the class name declared to Doxygen is in the appropriate namespace
+    Also moved global classes which should be in the Foam namespace into it.
+
+*OK* commit 121a8f32bda4e9c55fe8bf9ca6e51c180bf86dbc
+Author: Henry <Henry>
+Date:   Sun Feb 8 20:27:22 2015 +0000
+
+    Corrected typo
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1514
+
+*OK* commit 1a05f2ad42d7e45f20bc0a0b173cbb9ed508cafd
+Author: Henry <Henry>
+Date:   Fri Feb 6 23:08:45 2015 +0000
+
+    turbulenceModels/RAS/SSG: Added Speziale, Sarkar and Gatski pressure-strain based Reynolds-stress turbulence model
+
+*OK* commit e5d9392caadf609f9574b0b50c62be7a8eb6c3a9
+Author: Henry <Henry>
+Date:   Fri Feb 6 20:50:20 2015 +0000
+
+    turbulenceModels/RAS/LRR: Added re-reading of wall-reflection coefficients
+
+*OK* commit e18ebd2a3863e7aed341f582ae840a0ea01e55e4
+Author: Henry <Henry>
+Date:   Fri Feb 6 20:41:33 2015 +0000
+
+    LRR: added comment
+
+*OK* commit b255f54120775b82226a950b7bd33d9f1c928983
+Author: Henry <Henry>
+Date:   Fri Feb 6 17:38:04 2015 +0000
+
+    turbulenceModels/RAS/LRR: Added optional Gibson-Launder wall-reflection
+
+*OK* commit 9d575335e113664a66a627721423b5c64a924484
+Author: Henry <Henry>
+Date:   Fri Feb 6 15:30:47 2015 +0000
+
+    regionCoupledBase: corrected output name for nbrRegionName_
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1511
+
+*OK* commit 94804cc55b0d1320bea9925da61beb9692c1ee7e
+Author: Henry <Henry>
+Date:   Fri Feb 6 10:11:42 2015 +0000
+
+    Update headers
+
+*OK* commit c2c62c4b0001aee89f86a038dbec8575c29f76e4
+Author: Henry <Henry>
+Date:   Fri Feb 6 10:09:13 2015 +0000
+
+    Rationalize foamJob and foamExec
+    Patches provided by Bruno Santos
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=231
+
+*OK* commit e72b2557d50085a3c089a042fe89b6e502e9de09
+Author: Henry <Henry>
+Date:   Fri Feb 6 09:57:20 2015 +0000
+
+    PolynomialEntry: Templated polynomial DataEntry to support all basic field types from scalar to tensor
+    This allows polynomial functions for e.g. velocity to be specified in the uniformFixedValue BC
+
+    Consider a linear function for Ux(t) with Uy and Uz = 0:
+
+        inlet
+        {
+            type            uniformFixedValue;
+            uniformValue    polynomial
+            (
+                ((10 0 0)   (0 0 0))
+                ((100 0 0)  (1 0 0))
+            );
+        }
+
+    Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=1508
+
+*OK* commit c628b79d10170a6d7d91daba45664b2382b10e4f
+Author: Henry <Henry>
+Date:   Thu Feb 5 19:18:31 2015 +0000
+
+    paraview: Standardize the naming of the ParaView installation directory
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1201
+
+*OK* commit 0b7c2ee470d1b74a081734125b2c4418a8bc28a4
+Author: Henry <Henry>
+Date:   Thu Feb 5 18:10:42 2015 +0000
+
+    registerSwitch: rationalization of info and optimization switch registration
+    plus support for other than integer types
+
+*OK* commit 8e77fbc222d15fd330ada710ca8e7179942f5aee
+Author: Henry <Henry>
+Date:   Thu Feb 5 16:31:29 2015 +0000
+
+    primitiveMeshTools: stabilize with VSMALL rather than SMALL to avoid problems with very small meshes
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1509
+
+*OK* commit 608145622b826f9ad514dc36f5dfb805708be421
+Author: Henry <Henry>
+Date:   Thu Feb 5 12:27:46 2015 +0000
+
+    fvMotionSolverEngineMesh: construct the motionSolver from the engineTime IOdictionary
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=774
+
+*OK* commit 98bc2ef829c598535767fb7895d44b8dd03bc204
+Author: Henry <Henry>
+Date:   Thu Feb 5 12:12:20 2015 +0000
+
+    foamUpgradeFvSolution: No longer maintained
+
+*OK* commit c328c6863820a1d35d52be19ff25057c7e71ae50
+Author: Henry <Henry>
+Date:   Thu Feb 5 12:11:55 2015 +0000
+
+    gradingDescriptor: support SP compilation
+
+*ALREADY DONE* commit bbb6944e77f718e54defc1c76602b5a5fca73b90
+Author: Henry <Henry>
+Date:   Thu Feb 5 12:11:47 2015 +0000
+
+    Updated header
+
+*ALREADY DONE* commit c2aee2f2e2daea31383459ffce73afee6eaf9920
+Author: Henry <Henry>
+Date:   Thu Feb 5 12:09:34 2015 +0000
+
+    mapFields: Minimum hack provided by Mattijs to get mapFields working again
+    This version is very inefficient in parallel and does not provide the
+    -parallelSource or -parallelTarget options which will need to be
+    reinstanted in the future or we could revert mapFields to the
+    OpenFOAM-2.2 version.
+
+*OK* commit 02ba39d93ca03824438dfc60de969237eb9aba9c
+Author: Henry <Henry>
+Date:   Thu Feb 5 10:43:10 2015 +0000
+
+    Rationalized handling of debug, info and opt switches
+
+*OK* commit ec922fb41915fa020de9b61083cc215860506cf1
+Author: Henry <Henry>
+Date:   Wed Feb 4 23:06:31 2015 +0000
+
+    isoSurfaceCellTemplates: Skip undefined tets
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1506
+
+*OK* commit ebc88a46809bf5dd3e199205f68d984b55202d33
+Author: Henry <Henry>
+Date:   Wed Feb 4 23:03:45 2015 +0000
+
+    MRFSource: Update the velocity boundary conditions for changes in rotation speed
+
+*OK* commit c481b625ef9c4cff32e27f8e58822d6c6b6682fb
+Author: Henry <Henry>
+Date:   Wed Feb 4 22:11:15 2015 +0000
+
+    kLowReWallFunction: Limit k to avoid failure of the turbulence model due to division by k
+
+*OK* commit 287e970b182b11fb616576da7a5cabd3478ac897
+Author: Henry <Henry>
+Date:   Wed Feb 4 22:11:06 2015 +0000
+
+    Update headers
+
+*OK* commit 2c25b8db52c1e81e7e708455d709b8cb4b967baa
+Author: Henry <Henry>
+Date:   Wed Feb 4 22:08:27 2015 +0000
+
+    Add support for reading and updating the debug switches of templated
+    classes in the DebugSwitches sub-dictionary of system/controlDict
+
+*OK* commit 0296a4ed9eb251728b4764dbe37c406537a73c1a
+Author: Henry <Henry>
+Date:   Wed Feb 4 16:33:26 2015 +0000
+
+    Updated headers
+
+*OK* commit a716ef7d82d06db881c92db206216eceadb1eeff
+Author: Henry <Henry>
+Date:   Wed Feb 4 16:33:12 2015 +0000
+
+    UILList: Updated
+
+*OK* commit 2e2c223afad3d497a037ec8101df81f82c45358f
+Author: Henry <Henry>
+Date:   Wed Feb 4 16:33:02 2015 +0000
+
+    Updated headers
+
+*OK* commit d62a13e89eeb8c3c8a42f0626aeb7f86afed1722
+Author: Henry <Henry>
+Date:   Wed Feb 4 16:32:36 2015 +0000
+
+    applications/test: Updated to compile with Clang-3.5
+
+*OK* commit 8777c3b308a3549b4d4267b6d0324346920e6fae
+Author: Henry <Henry>
+Date:   Wed Feb 4 16:31:54 2015 +0000
+
+    applications/test/LduMatrix: no longer compiles and needs replacing
+
+*OK* commit 076fde91b99516e1547bccefa16222c33a937306
+Author: Henry <Henry>
+Date:   Tue Feb 3 12:12:07 2015 +0000
+
+    Update headers
+
+*OK* commit 86d7f7208ad0e8eaa60bca8fc95d7cd15088e25a
+Author: Henry <Henry>
+Date:   Tue Feb 3 12:01:55 2015 +0000
+
+    blockMesh: Add support for multi/sectional grading in a block
+
+    Consider a block describing a channel with two opposite walls.
+    Currently in order to grade the mesh towards the walls and have a
+    uniform region in the centre the channel would need to be spit into 3
+    blocks.  With the new multi/sectional grading this can be achieved in a
+    single block e.g.
+
+    blocks
+    (
+        hex (0 1 2 3 4 5 6 7) (20 60 20)
+        simpleGrading
+        (
+            1
+            ((0.2 0.3 4) (0.6 0.4 1) (0.2 0.3 0.25))
+            1
+        )
+    );
+
+    In this example the block is divided uniformly in the x and z -directions
+    and split into three grading sections in the y-direction described by
+    three triples:  ((0.2 0.3 4) (0.6 0.4 1) (0.2 0.3 0.25)).  Each of the
+    grading sections is described by a triple consisting of the fraction of
+    the block, the fraction of the divisions and the grading ratio (size of
+    first division/size of last division).  Both the fraction of the block
+    and the fraction of the divisions are normalized automatically so they
+    can be specified scaled in anyway, e.g. as percentages:
+
+    blocks
+    (
+        hex (0 1 2 3 4 5 6 7) (20 60 20)
+        simpleGrading
+        (
+            1
+            ((2 3 4) (6 4 1) (2 3 0.25))
+            1
+        )
+    );
+
+    and they need not sum to 1 or 100.
+
+    This is very new functionality and not well tested but backward
+    compatibility has been well tested so all existing blockMeshDicts should
+    parse correctly.
+
+*OK* commit 3b60a978318d3bbe047d559d9dfe1acd1c0550de
+Author: Henry <Henry>
+Date:   Tue Feb 3 11:59:43 2015 +0000
+
+    POSIX.C findEtcFiles: Revert change to read system/controlDict
+    Causes problems if the controlDict contains # entries
+
+*OK* commit 5eafa16bc60294cba03e0a37ed9a2f62d057ee2a
+Author: Henry <Henry>
+Date:   Mon Feb 2 12:23:31 2015 +0000
+
+    porousBafflePressure: Corrected and added support for compressible flow
+
+*OK* commit a79b912a319fe68fee696377345d92fe9aeb079e
+Author: Henry <Henry>
+Date:   Mon Feb 2 12:22:52 2015 +0000
+
+    fixedShearStressFvPatchVectorField: Remove rhoName and phiName which are no longer needed
+
+*OK* commit 11aed736785fb9ccd0b339ef8b326a9df570091e
+Author: Henry <Henry>
+Date:   Mon Feb 2 09:45:25 2015 +0000
+
+    Remove duplicate include
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1507
+
+*OK* commit baf914f390149c57d014a69778904d653d581d3b
+Author: Henry <Henry>
+Date:   Mon Feb 2 09:44:59 2015 +0000
+
+    transform: Handle codirectional and contradirectional transformation vectors
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=416
+
+*OK* commit c79d2566b0b29d05def1f50772eb6aa8066ab6f0
+Author: Henry <Henry>
+Date:   Mon Feb 2 09:44:18 2015 +0000
+
+    twoPhaseEulerFoam: Corrected EoH2
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1505
+
+*OK* commit 1471d3df875ea1019d5cb79c0baf19c47ff1d154
+Author: Henry <Henry>
+Date:   Sun Feb 1 12:38:50 2015 +0000
+
+    eddyViscosity: Allow external classes to modify nut
+
+*OK* commit 3d8f0aa575f50204bb36143d2e36f6566d2abf16
+Author: Henry <Henry>
+Date:   Sun Feb 1 12:38:39 2015 +0000
+
+    Update header
+
+*OK* commit 9eff3f968db1c3ee724318ab96b2d7e9695a0f1c
+Author: Henry <Henry>
+Date:   Sun Feb 1 12:38:23 2015 +0000
+
+    Relocate LESeddyViscosity
+
+*ALREADY DONE* commit d9b1ea4dea26916d1476830c917f120eb4244bb3
+Author: Henry <Henry>
+Date:   Sun Feb 1 12:38:12 2015 +0000
+
+    Updated header
+
+*OK* commit d77218b427c34d959e32d8b7f4ce29d3426a1954
+Author: Henry <Henry>
+Date:   Sun Feb 1 12:34:19 2015 +0000
+
+    POSIX/debug: Add ./system on the list of etc directories
+    in particular to pick-up the DebugSwitches from system/controlDict at
+    global construction time.
+
+    Disadvantage is that system/controlDict is only picked-up if the
+    OpenFOAM application is executed IN the case directory.  The directory
+    provided by the -case option is not yet known as the arguments have not
+    yet been parsed.
+
+*OK* commit 88a021bd4f5aac7623eedd8cd40da67c295d2582
+Author: Henry <Henry>
+Date:   Sat Jan 31 22:39:23 2015 +0000
+
+    foamInstallationTest: Add support for gcc named with extension
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=452
+
 *OK* commit cb23867daa2b6a5e1ce9b54f502cbe265c775bf9
 Author: Henry <Henry>
 Date:   Thu Jan 29 08:16:59 2015 +0000
 
     bin/tools/doxyFilter.sed: Add support for 2-line Class name:
-    
+
      Class
          Foam::className
      =>
      \\class Foam::className
-    
+
      Class
          Foam::namespaceName::
              className
      =>
      \\class Foam::namespaceName::className
-    
+
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=252
 
 *OK* commit 4d142dacb584311a5a2b5d426b9e0b120547a777
@@ -106,7 +963,7 @@ Date:   Tue Jan 27 15:06:03 2015 +0000
         Furst, J. (2013).
         Numerical simulation of transitional flows with laminar kinetic energy.
         Engineering MECHANICS, 20(5), 379-388.
-    
+
     Thanks to Jan-Niklas Klatt for analysing problems with and correcting
     the implementation and testing corrections to the model proposed by
     Furst.
@@ -318,9 +1175,9 @@ Author: Henry <Henry>
 Date:   Wed Jan 21 19:21:39 2015 +0000
 
     Updated the whole of OpenFOAM to use the new templated TurbulenceModels library
-    
+
     The old separate incompressible and compressible libraries have been removed.
-    
+
     Most of the commonly used RANS and LES models have been upgraded to the
     new framework but there are a few missing which will be added over the
     next few days, in particular the realizable k-epsilon model.  Some of
@@ -328,28 +1185,28 @@ Date:   Wed Jan 21 19:21:39 2015 +0000
     new library instantiated for incompressible flow only.  If they prove to
     be generally useful they can be templated for compressible and
     multiphase application.
-    
+
     The Spalart-Allmaras DDES and IDDES models have been thoroughly
     debugged, removing serious errors concerning the use of S rather than
     Omega.
-    
+
     The compressible instances of the models have been augmented by a simple
     backward-compatible eddyDiffusivity model for thermal transport based on
     alphat and alphaEff.  This will be replaced with a separate run-time
     selectable thermal transport model framework in a few weeks.
-    
+
     For simplicity and ease of maintenance and further development the
     turbulent transport and wall modeling is based on nut/nuEff rather than
     mut/muEff for compressible models so that all forms of turbulence models
     can use the same wall-functions and other BCs.
-    
+
     All turbulence model selection made in the constant/turbulenceProperties
     dictionary with RAS and LES as sub-dictionaries rather than in separate
     files which added huge complexity for multiphase.
-    
+
     All tutorials have been updated so study the changes and update your own
     cases by comparison with similar cases provided.
-    
+
     Sorry for the inconvenience in the break in backward-compatibility but
     this update to the turbulence modeling is an essential step in the
     future of OpenFOAM to allow more models to be added and maintained for a
@@ -357,7 +1214,7 @@ Date:   Wed Jan 21 19:21:39 2015 +0000
     turbulence models will be added of single and multiphase flow, more
     additional sub-models and further development and testing of existing
     models.  I hope this brings benefits to all OpenFOAM users.
-    
+
     Henry G. Weller
 
 *OK* commit 04d4f75f70323735b89a99e940c91d14a730ce9c
@@ -659,16 +1516,16 @@ Author: Henry <Henry>
 Date:   Thu Jan 8 10:40:23 2015 +0000
 
     wallDist: now a MeshObject cached and updated automatically with a run-time selected algorithm
-    
+
     When using models which require the wallDist e.g. kOmegaSST it will
     request the method to be used from the wallDist sub-dictionary in
     fvSchemes e.g.
-    
+
     wallDist
     {
         method meshWave;
     }
-    
+
     specifies the mesh-wave method as hard-coded in previous OpenFOAM versions.
 
 *OK* commit 2028973e19af2b840729c9f8e78528953bde7ef9
@@ -770,7 +1627,7 @@ Date:   Fri Jan 2 16:43:32 2015 +0000
 
     fvcSurfaceIntegrate: add support for sub-cycling with mesh-motion
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1471
-    
+
     Note:
         In order to avoid unexpectedly poor results I think it would be
         better if sub-cycling in time were limited to static meshes and
@@ -863,25 +1720,25 @@ Author: Henry <Henry>
 Date:   Wed Dec 31 19:02:52 2014 +0000
 
     Added and verified support for 64bit labels
-    
+
     To compile with 64bit labels set
-    
+
     WM_LABEL_SIZE=64
-    
+
     in ~/OpenFOAM/dev/prefs.sh
-    
+
     source ~/.bashrc
-    
+
     then Allwmake in OpenFOAM-dev.
-    
+
     This will build into for example OpenFOAM-dev/platforms/linux64ClangDPInt64Opt
-    
+
     If WM_LABEL_SIZE is unset or set to 32:
-    
+
     WM_LABEL_SIZE=32
-    
+
     the build would be placed into OpenFOAM-dev/platforms/linux64ClangDPInt32Opt
-    
+
     Thus both 32bit and 64bit label builds can coexist without problem.
 
 *OK* commit ff52b0c4852df597865e9e8c3d62f85695f57de1

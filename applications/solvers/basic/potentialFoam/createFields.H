@@ -1,4 +1,4 @@
-    Info<< "Reading field U\n" << endl;
+    Info<< "Reading velocity field U\n" << endl;
     volVectorField U
     (
         IOobject
@@ -39,6 +39,8 @@
     // If it is available read it otherwise construct from the velocity BCs
     // converting fixed-value BCs to zero-gradient and vice versa.
     word pName("p");
+
+    // Update name of the pressure field from the command-line option
     args.optionReadIfPresent("pName", pName);
 
     wordList pTypes
@@ -47,15 +49,15 @@
         fixedValueFvPatchScalarField::typeName
     );
 
-    for (label i=0; i<U.boundaryField().size(); i++)
+    forAll(U.boundaryField(), patchi)
     {
-        if (U.boundaryField()[i].fixesValue())
+        if (U.boundaryField()[patchi].fixesValue())
         {
-            pTypes[i] = zeroGradientFvPatchScalarField::typeName;
+            pTypes[patchi] = zeroGradientFvPatchScalarField::typeName;
         }
     }
 
-    Info<< "Constructing field " << pName << nl << endl;
+    Info<< "Constructing pressure field " << pName << nl << endl;
     volScalarField p
     (
         IOobject
@@ -78,14 +80,14 @@
         setRefCell
         (
             p,
-            potentialFlow,
+            potentialFlow.dict(),
             pRefCell,
             pRefValue
         );
     }
 
 
-    Info<< "Constructing field Phi\n" << endl;
+    Info<< "Constructing velocity potential field Phi\n" << endl;
     volScalarField Phi
     (
         IOobject
@@ -106,7 +108,7 @@
     setRefCell
     (
         Phi,
-        potentialFlow,
+        potentialFlow.dict(),
         PhiRefCell,
         PhiRefValue
     );

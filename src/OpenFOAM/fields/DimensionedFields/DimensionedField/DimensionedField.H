@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -191,6 +191,14 @@ public:
             const DimensionedField<Type, GeoMesh>&
         );
 
+        //- Construct as copy resetting IO parameters and re-use as specified.
+        DimensionedField
+        (
+            const IOobject&,
+            DimensionedField<Type, GeoMesh>&,
+            bool reUse
+        );
+
         //- Construct as copy resetting name
         DimensionedField
         (
@@ -202,14 +210,6 @@ public:
         DimensionedField
         (
             const word& newName,
-            DimensionedField<Type, GeoMesh>&,
-            bool reUse
-        );
-
-        //- Construct as copy resetting IO parameters and re-use as specified.
-        DimensionedField
-        (
-            const IOobject&,
             DimensionedField<Type, GeoMesh>&,
             bool reUse
         );

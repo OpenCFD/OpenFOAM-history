@@ -59,7 +59,7 @@ class sampledIsoSurfaceCell
         //- Field to get isoSurface of
         const word isoField_;
 
-        //- iso value
+        //- Iso value
         const scalar isoVal_;
 
         //- Optional bounding box to trim triangles against
@@ -74,7 +74,7 @@ class sampledIsoSurfaceCell
         //- If restricted to zones, name of this zone or a regular expression
         keyType zoneKey_;
 
-        //- triangles converted to faceList
+        //- Triangles converted to faceList
         mutable autoPtr<faceList> facesPtr_;
 
 
@@ -93,7 +93,7 @@ class sampledIsoSurfaceCell
         //  Do nothing (and return false) if no update was needed
         bool updateGeometry() const;
 
-        //- sample field on faces
+        //- Sample field on faces
         template<class Type>
         tmp<Field<Type> > sampleField
         (
@@ -166,62 +166,62 @@ public:
         }
 
 
-        //- sample field on surface
+        //- Sample field on surface
         virtual tmp<scalarField> sample
         (
             const volScalarField&
         ) const;
 
-        //- sample field on surface
+        //- Sample field on surface
         virtual tmp<vectorField> sample
         (
             const volVectorField&
         ) const;
 
-        //- sample field on surface
+        //- Sample field on surface
         virtual tmp<sphericalTensorField> sample
         (
             const volSphericalTensorField&
         ) const;
 
-        //- sample field on surface
+        //- Sample field on surface
         virtual tmp<symmTensorField> sample
         (
             const volSymmTensorField&
         ) const;
 
-        //- sample field on surface
+        //- Sample field on surface
         virtual tmp<tensorField> sample
         (
             const volTensorField&
         ) const;
 
 
-        //- interpolate field on surface
+        //- Interpolate field on surface
         virtual tmp<scalarField> interpolate
         (
             const interpolation<scalar>&
         ) const;
 
-        //- interpolate field on surface
+        //- Interpolate field on surface
         virtual tmp<vectorField> interpolate
         (
             const interpolation<vector>&
         ) const;
 
-        //- interpolate field on surface
+        //- Interpolate field on surface
         virtual tmp<sphericalTensorField> interpolate
         (
             const interpolation<sphericalTensor>&
         ) const;
 
-        //- interpolate field on surface
+        //- Interpolate field on surface
         virtual tmp<symmTensorField> interpolate
         (
             const interpolation<symmTensor>&
         ) const;
 
-        //- interpolate field on surface
+        //- Interpolate field on surface
         virtual tmp<tensorField> interpolate
         (
             const interpolation<tensor>&

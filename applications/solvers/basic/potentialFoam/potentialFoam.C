@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -87,6 +87,7 @@ Description
 
 #include "fvCFD.H"
 #include "fvIOoptionList.H"
+#include "pisoControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -120,7 +121,9 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
-    #include "readControls.H"
+
+    pisoControl potentialFlow(mesh, "potentialFlow");
+
     #include "createFields.H"
     #include "createFvOptions.H"
 
@@ -136,7 +139,8 @@ int main(int argc, char *argv[])
 
     adjustPhi(phi, U, Phi);
 
-    for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+    // Non-orthogonal velocity potential corrector loop
+    while (potentialFlow.correctNonOrthogonal())
     {
         fvScalarMatrix PhiEqn
         (
@@ -148,7 +152,7 @@ int main(int argc, char *argv[])
         PhiEqn.setReference(PhiRefCell, PhiRefValue);
         PhiEqn.solve();
 
-        if (nonOrth == nNonOrthCorr)
+        if (potentialFlow.finalNonOrthogonalIter())
         {
             phi -= PhiEqn.flux();
         }
@@ -156,14 +160,14 @@ int main(int argc, char *argv[])
 
     fvOptions.makeAbsolute(phi);
 
-    Info<< "continuity error = "
+    Info<< "Continuity error = "
         << mag(fvc::div(phi))().weightedAverage(mesh.V()).value()
         << endl;
 
     U = fvc::reconstruct(phi);
     U.correctBoundaryConditions();
 
-    Info<< "Interpolated U error = "
+    Info<< "Interpolated velocity error = "
         << (sqrt(sum(sqr((fvc::interpolate(U) & mesh.Sf()) - phi)))
           /sum(mesh.magSf())).value()
         << endl;
@@ -172,6 +176,7 @@ int main(int argc, char *argv[])
     U.write();
     phi.write();
 
+    // Optionally write Phi
     if (args.optionFound("writePhi"))
     {
         Phi.write();
@@ -197,7 +202,7 @@ int main(int argc, char *argv[])
             )
         );
 
-        for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+        while (potentialFlow.correctNonOrthogonal())
         {
             fvScalarMatrix pEqn(fvm::laplacian(p) + divDivUU);
 
