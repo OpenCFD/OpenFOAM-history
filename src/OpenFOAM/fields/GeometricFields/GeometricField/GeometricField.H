@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -370,6 +370,15 @@ public:
             const GeometricField<Type, PatchField, GeoMesh>&
         );
 
+        //- Construct as copy of tmp<GeometricField> resetting IO parameters
+        #ifdef ConstructFromTmp
+        GeometricField
+        (
+            const IOobject&,
+            const tmp<GeometricField<Type, PatchField, GeoMesh> >&
+        );
+        #endif
+
         //- Construct as copy resetting name
         GeometricField
         (
@@ -382,15 +391,6 @@ public:
         GeometricField
         (
             const word& newName,
-            const tmp<GeometricField<Type, PatchField, GeoMesh> >&
-        );
-        #endif
-
-        //- Construct as copy resetting IO parameters
-        #ifdef ConstructFromTmp
-        GeometricField
-        (
-            const IOobject&,
             const tmp<GeometricField<Type, PatchField, GeoMesh> >&
         );
         #endif
