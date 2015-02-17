@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    FoamFoam::atmBoundaryLayer
+    Foam::atmBoundaryLayer
 
 Group
     grpRASBoundaryConditions grpInletBoundaryConditions
@@ -137,7 +137,7 @@ class atmBoundaryLayer
         //- Direction of the z-coordinate
         vector zDir_;
 
-        //- von Karman constant
+        //- Von Karman constant
         const scalar kappa_;
 
         //- Turbulent viscosity coefficient

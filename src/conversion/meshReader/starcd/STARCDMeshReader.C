@@ -148,7 +148,7 @@ void Foam::meshReaders::STARCD::readPoints
     points_.setSize(nPoints);
     mapToFoamPointId_.setSize(maxId+1);
 
-    //- original Point number for a given vertex
+    //- Original Point number for a given vertex
     // might need again in the future
     ////     labelList origPointId(nPoints);
     ////     origPointId = -1;

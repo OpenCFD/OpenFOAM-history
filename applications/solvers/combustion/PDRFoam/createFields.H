@@ -132,7 +132,7 @@
             mesh.facesInstance(),
             mesh,
             IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh
     );
@@ -146,7 +146,7 @@
             mesh.facesInstance(),
             mesh,
             IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh
     );

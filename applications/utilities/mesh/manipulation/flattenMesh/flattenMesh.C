@@ -41,9 +41,9 @@ using namespace Foam;
 
 int main(int argc, char *argv[])
 {
-#   include "setRootCase.H"
-#   include "createTime.H"
-#   include "createPolyMesh.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createPolyMesh.H"
 
     pointIOField points
     (

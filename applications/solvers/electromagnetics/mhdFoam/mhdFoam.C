@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -52,18 +52,19 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "pimpleControl.H"
+#include "pisoControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
+
     #include "createTime.H"
     #include "createMesh.H"
 
-    pimpleControl piso(mesh, "PISO");
-    pimpleControl bpiso(mesh, "BPISO");
+    pisoControl piso(mesh);
+    pisoControl bpiso(mesh, "BPISO");
 
     #include "createFields.H"
     #include "initContinuityErrs.H"
@@ -93,8 +94,8 @@ int main(int argc, char *argv[])
                 solve(UEqn == -fvc::grad(p));
             }
 
-            // --- PISO loop
 
+            // --- PISO loop
             while (piso.correct())
             {
                 volScalarField rAU(1.0/UEqn.A());
@@ -119,7 +120,6 @@ int main(int argc, char *argv[])
                     );
 
                     pEqn.setReference(pRefCell, pRefValue);
-
                     pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
 
                     if (piso.finalNonOrthogonalIter())
@@ -136,7 +136,6 @@ int main(int argc, char *argv[])
         }
 
         // --- B-PISO loop
-
         while (bpiso.correct())
         {
             fvVectorMatrix BEqn
@@ -162,7 +161,7 @@ int main(int argc, char *argv[])
                     fvm::laplacian(rABf, pB) == fvc::div(phiB)
                 );
 
-                pBEqn.solve();
+                pBEqn.solve(mesh.solver(pB.select(bpiso.finalInnerIter())));
 
                 if (bpiso.finalNonOrthogonalIter())
                 {

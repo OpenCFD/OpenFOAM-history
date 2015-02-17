@@ -40,9 +40,9 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
 
-#   include "addOverwriteOption.H"
-#   include "setRootCase.H"
-#   include "createTime.H"
+    #include "addOverwriteOption.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
 
     const bool overwrite = args.optionFound("overwrite");
 

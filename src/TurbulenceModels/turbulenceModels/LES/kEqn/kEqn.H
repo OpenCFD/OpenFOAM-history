@@ -28,7 +28,7 @@ Group
     grpLESTurbulence
 
 Description
-    One Equation Eddy Viscosity Model
+    One equation eddy-viscosity model
 
     Eddy viscosity SGS model using a modeled balance equation to simulate the
     behaviour of k.

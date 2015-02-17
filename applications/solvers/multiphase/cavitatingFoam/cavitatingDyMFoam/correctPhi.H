@@ -1,25 +1,4 @@
-if (mesh.changing())
-{
-    forAll(U.boundaryField(), patchi)
-    {
-        if (U.boundaryField()[patchi].fixesValue())
-        {
-            U.boundaryField()[patchi].initEvaluate();
-        }
-    }
-
-    forAll(U.boundaryField(), patchi)
-    {
-        if (U.boundaryField()[patchi].fixesValue())
-        {
-            U.boundaryField()[patchi].evaluate();
-
-            phi.boundaryField()[patchi] =
-                U.boundaryField()[patchi]
-              & mesh.Sf().boundaryField()[patchi];
-        }
-    }
-}
+correctUphiBCs(U, phi);
 
 {
     volScalarField pcorr

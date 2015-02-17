@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
 
     dimensionedScalar v_zero("v_zero", dimVolume/dimTime, 0.0);
 
+    // Courant numbers used to adjust the time-step
     scalar CoNum = 0.0;
     scalar meanCoNum = 0.0;
 
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
         // estimated by the central scheme
         amaxSf = max(mag(aphiv_pos), mag(aphiv_neg));
 
-        #include "compressibleCourantNo.H"
+        #include "centralCourantNo.H"
         #include "readTimeControls.H"
         #include "setDeltaT.H"
 

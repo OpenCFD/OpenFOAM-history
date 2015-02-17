@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
     PtrList<volTensorField> volTensorFields;
     ReadFields(mesh, objects, volTensorFields);
 
-    //- uncomment if you want to interpolate surface fields (usually bad idea)
+    //- Uncomment if you want to interpolate surface fields (usually bad idea)
     //Info<< "Reading all current surfaceFields" << endl;
     //PtrList<surfaceScalarField> surfaceScalarFields;
     //ReadFields(mesh, objects, surfaceScalarFields);

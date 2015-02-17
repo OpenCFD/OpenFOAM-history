@@ -465,7 +465,7 @@ public:
                 inline iterator operator++(int);
         };
 
-        //- iterator set to the beginning of the HashTable
+        //- Iterator set to the beginning of the HashTable
         inline iterator begin();
 
 

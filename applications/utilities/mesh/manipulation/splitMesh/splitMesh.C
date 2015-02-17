@@ -112,16 +112,16 @@ void checkPatch(const polyBoundaryMesh& bMesh, const word& name)
 int main(int argc, char *argv[])
 {
     argList::noParallel();
-#   include "addOverwriteOption.H"
+    #include "addOverwriteOption.H"
 
     argList::validArgs.append("faceSet");
     argList::validArgs.append("masterPatch");
     argList::validArgs.append("slavePatch");
 
-#   include "setRootCase.H"
-#   include "createTime.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
     runTime.functionObjects().off();
-#   include "createPolyMesh.H"
+    #include "createPolyMesh.H"
     const word oldInstance = mesh.pointsInstance();
 
     const word setName = args[1];

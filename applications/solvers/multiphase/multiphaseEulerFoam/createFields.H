@@ -87,13 +87,7 @@
 
     label pRefCell = 0;
     scalar pRefValue = 0.0;
-    setRefCell
-    (
-        p,
-        pimple.dict(),
-        pRefCell,
-        pRefValue
-    );
+    setRefCell(p, pimple.dict(), pRefCell, pRefValue);
 
     // Construct incompressible turbulence model
     autoPtr<incompressible::turbulenceModel> turbulence

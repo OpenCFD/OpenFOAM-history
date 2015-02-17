@@ -50,7 +50,7 @@ infinitelyFastChemistry<CombThermoType, ThermoType>::infinitelyFastChemistry
 {}
 
 
-// * * * * * * * * * * * * * * * * Destructors * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class CombThermoType, class ThermoType>
 infinitelyFastChemistry<CombThermoType, ThermoType>::~infinitelyFastChemistry()

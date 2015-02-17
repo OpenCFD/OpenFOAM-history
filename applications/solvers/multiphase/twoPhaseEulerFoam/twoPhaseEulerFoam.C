@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -82,15 +82,18 @@ int main(int argc, char *argv[])
 
             volScalarField contErr1
             (
+                "contErr1",
                 fvc::ddt(alpha1, rho1) + fvc::div(alphaRhoPhi1)
               - (fvOptions(alpha1, rho1)&rho1)
             );
 
             volScalarField contErr2
             (
+                "contErr2",
                 fvc::ddt(alpha2, rho2) + fvc::div(alphaRhoPhi2)
-               - (fvOptions(alpha2, rho2)&rho2)
+              - (fvOptions(alpha2, rho2)&rho2)
             );
+
 
             #include "UEqns.H"
             #include "EEqns.H"

@@ -400,10 +400,10 @@ int main(int argc, char *argv[])
         "enableFunctionEntries",
         "enable expansion of dictionary directives - #include, #codeStream etc"
     );
-#   include "addRegionOption.H"
+    #include "addRegionOption.H"
 
-#   include "setRootCase.H"
-#   include "createTime.H"
+    #include "setRootCase.H"
+    #include "createTime.H"
 
 
     // Make sure we do not use the master-only reading since we read

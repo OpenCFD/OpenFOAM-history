@@ -52,7 +52,7 @@ diffusion<CombThermoType, ThermoType>::diffusion
 {}
 
 
-// * * * * * * * * * * * * * * * * Destructors * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class CombThermoType, class ThermoType>
 diffusion<CombThermoType, ThermoType>::~diffusion()

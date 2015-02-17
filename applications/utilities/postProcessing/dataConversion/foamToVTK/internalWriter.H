@@ -126,7 +126,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#   include "internalWriterTemplates.C"
+    #include "internalWriterTemplates.C"
 #endif
 
 

@@ -36,7 +36,7 @@ namespace Foam
 {
     defineTypeNameAndDebug(regionSizeDistribution, 0);
 
-    //- plus op for FixedList<scalar>
+    //- Plus op for FixedList<scalar>
     template<class T, unsigned Size>
     class ListPlusEqOp
     {

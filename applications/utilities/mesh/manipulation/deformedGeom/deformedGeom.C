@@ -44,12 +44,12 @@ int main(int argc, char *argv[])
 {
     argList::validArgs.append("scaling factor");
 
-#   include "setRootCase.H"
+    #include "setRootCase.H"
 
     const scalar scaleFactor = args.argRead<scalar>(1);
 
-#   include "createTime.H"
-#   include "createMesh.H"
+    #include "createTime.H"
+    #include "createMesh.H"
 
     volPointInterpolation pInterp(mesh);
 

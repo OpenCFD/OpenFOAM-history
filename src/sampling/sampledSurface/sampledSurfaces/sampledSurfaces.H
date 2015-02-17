@@ -85,7 +85,7 @@ class sampledSurfaces
 
     // Static data members
 
-        //- output verbosity
+        //- Output verbosity
         static bool verbose_;
 
         //- Tolerance for merging points (fraction of mesh bounding box)
@@ -100,7 +100,7 @@ class sampledSurfaces
         //- Load fields from files (not from objectRegistry)
         const bool loadFromFiles_;
 
-        //- output path
+        //- Output path
         fileName outputPath_;
 
 
@@ -210,7 +210,7 @@ public:
             return name_;
         }
 
-        //- set verbosity level
+        //- Set verbosity level
         void verbose(const bool verbosity = true);
 
         //- Execute, currently does nothing

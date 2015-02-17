@@ -95,7 +95,7 @@ singleStepCombustion<CombThermoType, ThermoType>::singleStepCombustion
 }
 
 
-// * * * * * * * * * * * * * * * * Destructors * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class CombThermoType, class ThermoType>
 singleStepCombustion<CombThermoType, ThermoType>::~singleStepCombustion()
