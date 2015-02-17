@@ -47,6 +47,5 @@ EXE_LIBS = \
     -lsurfaceFilmModels \
     -lsurfaceFilmDerivedFvPatchFields \
     -llagrangianIntermediate \
-    -llagrangianTurbulence \
     -lODE \
     -lcombustionModels

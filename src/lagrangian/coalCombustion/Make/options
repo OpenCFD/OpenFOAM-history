@@ -27,7 +27,6 @@ LIB_LIBS = \
     -lmeshTools \
     -llagrangian \
     -llagrangianIntermediate \
-    -llagrangianTurbulence \
     -ldistributionModels \
     -lspecie \
     -lfluidThermophysicalModels \
