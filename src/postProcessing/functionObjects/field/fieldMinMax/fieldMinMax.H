@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -41,7 +41,7 @@ Description
         type        fieldMinMax;
         functionObjectLibs ("libfieldFunctionObjects.so");
         ...
-        write       yes;
+        writeToFile yes;
         log         yes;
         mode        magnitude;
         fields
@@ -56,19 +56,23 @@ Description
     \table
         Property     | Description             | Required    | Default value
         type         | type name: fieldMinMax  | yes         |
-        write        | write min/max data to file |  no      | yes
-        log          | write min/max data to standard output | no | no
+        writeToFile  | write min/max data to file | no       | yes
+        log          | write min/max data to standard output | no | yes
         mode         | calculation mode: magnitude or component | no | magnitude
+        fields       | list of fields to process | yes       |
     \endtable
 
     Output data is written to the file \<timeDir\>/fieldMinMax.dat
 
 SeeAlso
     Foam::functionObject
+    Foam::functionObjectFile
+    Foam::functionObjectState
     Foam::OutputFilterFunctionObject
 
 SourceFiles
     fieldMinMax.C
+    fieldMinMaxTemplates.C
     IOfieldMinMax.H
 
 \*---------------------------------------------------------------------------*/
@@ -120,7 +124,7 @@ protected:
         //- Mode type names
         static const NamedEnum<modeType, 2> modeTypeNames_;
 
-        //- Refence to the database
+        //- Reference to the database
         const objectRegistry& obr_;
 
         //- Switch to send output to Info as well
@@ -183,12 +187,6 @@ public:
 
 
     // Member Functions
-
-        //- Return name of the set of field min/max
-        virtual const word& name() const
-        {
-            return name_;
-        }
 
         //- Read the field min/max data
         virtual void read(const dictionary&);

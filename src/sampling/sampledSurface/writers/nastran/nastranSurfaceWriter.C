@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -65,11 +65,11 @@ void Foam::nastranSurfaceWriter::formatOS(OFstream& os) const
     switch (writeFormat_)
     {
         case (wfShort):
-        case (wfFree):
         {
             prec = 8 - offset;
             break;
         }
+        case (wfFree):
         case (wfLong):
         {
             prec = 16 - offset;

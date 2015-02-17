@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -139,8 +139,7 @@ void Foam::inclinedFilmNusseltHeightFvPatchScalarField::updateCoeffs()
     // note: normal pointing into the domain
     const vectorField n(-patch().nf());
 
-    // TODO: currently re-evaluating the entire gTan field to return this patch
-    const scalarField gTan(film.gTan()().boundaryField()[patchI] & n);
+    const scalarField gTan(film.gTan(patchI) & n);
 
     if (patch().size() && (max(mag(gTan)) < SMALL))
     {

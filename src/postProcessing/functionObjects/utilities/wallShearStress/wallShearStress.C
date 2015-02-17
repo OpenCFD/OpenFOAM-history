@@ -26,8 +26,8 @@ License
 #include "wallShearStress.H"
 #include "volFields.H"
 #include "surfaceFields.H"
-#include "incompressible/turbulenceModel/turbulenceModel.H"
-#include "compressible/turbulenceModel/turbulenceModel.H"
+#include "turbulentTransportModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "wallPolyPatch.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //

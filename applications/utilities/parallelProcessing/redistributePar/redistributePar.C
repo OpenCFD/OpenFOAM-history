@@ -2643,6 +2643,19 @@ int main(int argc, char *argv[])
                 distMap,
                 selectedLagrangianFields
             );
+
+            // If there are any "uniform" directories copy them from
+            // the master processor
+            if (Pstream::master())
+            {
+                fileName uniformDir0 = runTime.timePath()/"uniform";
+                if (isDir(uniformDir0))
+                {
+                    Info<< "Detected additional non-decomposed files in "
+                        << uniformDir0 << endl;
+                    cp(uniformDir0, baseRunTime.timePath());
+                }
+            }
         }
     }
     else
@@ -2848,6 +2861,20 @@ int main(int argc, char *argv[])
             distMap,
             clouds
         );
+
+
+        // Copy any uniform data
+        const fileName uniformDir("uniform");
+        if (isDir(baseRunTime.timePath()/uniformDir))
+        {
+            Info<< "Detected additional non-decomposed files in "
+                << baseRunTime.timePath()/uniformDir << endl;
+            cp
+            (
+                baseRunTime.timePath()/uniformDir,
+                runTime.timePath()/uniformDir
+            );
+        }
     }
 
 

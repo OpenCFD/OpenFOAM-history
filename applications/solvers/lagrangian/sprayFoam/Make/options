@@ -32,7 +32,6 @@ EXE_LIBS = \
     -lcompressibleTurbulenceModels \
     -llagrangian \
     -llagrangianIntermediate \
-    -llagrangianTurbulence \
     -llagrangianSpray \
     -lspecie \
     -lfluidThermophysicalModels \

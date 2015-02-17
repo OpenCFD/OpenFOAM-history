@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,8 +32,7 @@ Foam::eddy::eddy(Istream& is)
 :
     position_(is),
     sigma_(is),
-    sigmaXMax_(readScalar(is)),
-    alpha_(is),
+    alphaAve_(readScalar(is)),
     Rpg_(is),
     c1_(readScalar(is))
 {
@@ -47,8 +46,7 @@ void Foam::eddy::operator=(const eddy& e)
 {
     position_ = e.position_;
     sigma_ = e.sigma_;
-    sigmaXMax_ = e.sigmaXMax_;
-    alpha_ = e.alpha_;
+    alphaAve_ = e.alphaAve_;
     Rpg_ = e.Rpg_;
     c1_ = e.c1_;
 }
@@ -66,8 +64,7 @@ Foam::Istream& Foam::operator>>(Istream& is, eddy& e)
 
     is  >> e.position_
         >> e.sigma_
-        >> e.sigmaXMax_
-        >> e.alpha_
+        >> e.alphaAve_
         >> e.Rpg_
         >> e.c1_;
 
@@ -91,8 +88,7 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const eddy& e)
 
     os  << e.position_
         << e.sigma_
-        << e.sigmaXMax_
-        << e.alpha_
+        << e.alphaAve_
         << e.Rpg_
         << e.c1_;
 

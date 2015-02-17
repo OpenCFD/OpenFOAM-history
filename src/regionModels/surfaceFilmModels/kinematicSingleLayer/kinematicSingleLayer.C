@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -427,6 +427,9 @@ void kinematicSingleLayer::solveThickness
     U_ -= nHat()*(nHat() & U_);
 
     U_.correctBoundaryConditions();
+
+    // Update film wall and surface velocities
+    updateSurfaceVelocities();
 
     // Continuity check
     continuityCheck();
@@ -871,6 +874,10 @@ void kinematicSingleLayer::preEvolveRegion()
 
     transferPrimaryRegionSourceFields();
 
+    updateSurfaceVelocities();
+
+    correctAlpha();
+
     // Reset transfer fields
 //    availableMass_ = mass();
     availableMass_ = netMass();
@@ -885,12 +892,6 @@ void kinematicSingleLayer::evolveRegion()
     {
         Info<< "kinematicSingleLayer::evolveRegion()" << endl;
     }
-
-    // Update film coverage indicator
-    correctAlpha();
-
-    // Update film wall and surface velocities
-    updateSurfaceVelocities();
 
     // Update sub-models to provide updated source contributions
     updateSubmodels();
@@ -919,6 +920,15 @@ void kinematicSingleLayer::evolveRegion()
 
     // Update deltaRho_ with new delta_
     deltaRho_ == delta_*rho_;
+}
+
+
+void kinematicSingleLayer::postEvolveRegion()
+{
+    if (debug)
+    {
+        Info<< "kinematicSingleLayer::postEvolveRegion()" << endl;
+    }
 
     // Reset source terms for next time integration
     resetPrimaryRegionSourceTerms();
@@ -1092,8 +1102,7 @@ void kinematicSingleLayer::info()
     addedMassTotal += returnReduce(addedMassTotal_, sumOp<scalar>());
 
     Info<< indent << "added mass         = " << addedMassTotal << nl
-        << indent << "current mass       = "
-        << gSum((deltaRho_*magSf())()) << nl
+        << indent << "current mass       = " << sum(mass()).value() << nl
         << indent << "min/max(mag(U))    = " << gMin(mag(Uinternal)) << ", "
         << gMax(mag(Uinternal)) << nl
         << indent << "min/max(delta)     = " << gMin(deltaInternal) << ", "
