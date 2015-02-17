@@ -1,4 +1,90 @@
-commit f99884de0052105fb9b18a96185139ccc1160de6
+*OK* commit c328c5468013f7b4a9dbc849e463f7d8f4c27b45
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:55:02 2015 +0000
+
+    tutorials: Simplify rhoMax and rhoMin specification
+
+*OK* commit b0bd25ad3217072043ab30893429a9bb67f5eede
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:49:07 2015 +0000
+
+    tutorials/compressible/rhoPorousSimpleFoam/angledDuctImplicit: simplify rhoMax and rhoMin specification
+
+*OK* commit 5804b901c5c7ca0159bbd9250ea195125895411a
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:48:36 2015 +0000
+
+    RectangularMatrix: Corrected documentation
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1535
+
+*ALREADY DONE* commit c7f5b4ce171f211a4b4498e05ce7f4ed948ef7ac
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:47:34 2015 +0000
+
+    applications/solvers: Update trans-sonic option in pEqns to by consistent with sonic-solvers
+
+*OK* commit 50a2e36cf84d46ec76f3f73602d12dc10b9b92e5
+Author: Henry <Henry>
+Date:   Tue Feb 17 10:16:01 2015 +0000
+
+    dimensionedType: Extend lookupOrDefault to handle any form of dimensioned type input
+    e.g.
+         Not specified: default used.
+         Fully specified: rhoMax          rhoMax [ 1 -3 0 0 0 ] 2.0;
+         Without name:    rhoMax          [ 1 -3 0 0 0 ] 2.0;
+         Value only:      rhoMax          2.0;
+
+*ALREADY DONE* commit da42029f98a3792f6c8ca693bcf85c4a56a41714
+Author: Henry <Henry>
+Date:   Mon Feb 16 22:16:50 2015 +0000
+
+    seulex: Reduce the underflow time-step
+
+*OK* commit cc6341a9d3cf400b7a580d041033bf853df74746
+Author: Henry <Henry>
+Date:   Mon Feb 16 22:16:21 2015 +0000
+
+    int??IO: handle overflow errors
+
+*OK* commit 9617b8f55962f755bf87d91cec7eefc83a0f0f82
+Author: Henry <Henry>
+Date:   Mon Feb 16 22:15:54 2015 +0000
+
+    surfaceCheck: Make -blockMesh output easier to parse
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1534
+
+*OK* commit e8e0c997906ed060efcf7eb2a0b69a333b7b780c
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:48:00 2015 +0000
+
+    DyM solvers: rationalized handling of time update
+
+*OK* commit 74990ee91545fc8586c1e24ae78535c4d0327ebb
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:47:15 2015 +0000
+
+    Rationalized sprayFoam family of solvers and added sprayDyMFoam
+
+*OK* commit 5a9fc9a3e91d9118e5e0bc62a038d99820b50903
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:45:28 2015 +0000
+
+    Rationalized pEqn in sprayFoam solvers
+
+*OK* commit cec56de03e14ee67bf1e9b26140225cb91f1a0ac
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:43:40 2015 +0000
+
+    Compressible solvers: rhoMax and rhoMin now optional and may be supplied without dimensions
+
+*OK* commit cd5ade6c4404312c69b29c58d180a4802632f44e
+Author: Henry <Henry>
+Date:   Mon Feb 16 21:42:09 2015 +0000
+
+    compressibleInterDyMFoam and interPhaseChangeDyMFoam: cache divU before time advancement to ensure the old-time meshPhi are used to make phi absolute
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1531
+
+*OK* commit f99884de0052105fb9b18a96185139ccc1160de6
 Author: Henry <Henry>
 Date:   Mon Feb 16 09:24:01 2015 +0000
 
@@ -9,69 +95,69 @@ Date:   Mon Feb 16 09:24:01 2015 +0000
         Notes on Num. Fluid Mech. And Multidisciplinary Design,
         Volume 97, 261-270.
 
-commit 913e515fef3d327e85ff712159431ad499a4fdd1
+*OK* commit 913e515fef3d327e85ff712159431ad499a4fdd1
 Author: Henry <Henry>
 Date:   Mon Feb 16 09:22:59 2015 +0000
 
     turbulenceModels/LES/dynamicLagrangian/dynamicLagrangian: Removed unused declaration
 
-commit af43b377c92089590281f1d139256897acbc6f31
+*OK* commit af43b377c92089590281f1d139256897acbc6f31
 Author: Henry <Henry>
 Date:   Sat Feb 14 22:50:59 2015 +0000
 
     refineWallLayer: Rationalize and add support for operating on a list of patch name regular expressions
     Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1525
 
-commit e7777787624dafddf3ff7e6723b47fa4cf460d64
+*OK* commit e7777787624dafddf3ff7e6723b47fa4cf460d64
 Author: Henry <Henry>
 Date:   Sat Feb 14 22:50:28 2015 +0000
 
     polyMeshModifier: Corrected member function documentation
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1143
 
-commit cec7f52d9657fe3f5e9c92d9c06dcd5dcd224f6d
+*OK* commit cec7f52d9657fe3f5e9c92d9c06dcd5dcd224f6d
 Author: Henry <Henry>
 Date:   Sat Feb 14 17:19:35 2015 +0000
 
     Update header
 
-commit de6ef3d55165b587eac19e7657a6f5a779143d9f
+*OK* commit de6ef3d55165b587eac19e7657a6f5a779143d9f
 Author: Henry <Henry>
 Date:   Sat Feb 14 17:19:01 2015 +0000
 
     grpIcoRASBoundaryConditions -> grpRASBoundaryConditions
 
-commit 885125e3338f9f691141f6497385e5d6864ec38e
+*ALREADY DONE* commit 885125e3338f9f691141f6497385e5d6864ec38e
 Author: Henry <Henry>
 Date:   Sat Feb 14 17:11:23 2015 +0000
 
     atomicWeights: Put in ascending order
 
-commit 7dfad7a74f63539ef0005671625a4f9c43367f70
+*ALREADY DONE* commit 7dfad7a74f63539ef0005671625a4f9c43367f70
 Author: Henry <Henry>
 Date:   Sat Feb 14 17:09:29 2015 +0000
 
     atomicWeights: Put in ascending order
 
-commit 9ac15414bf7004b67d67b8c12da1e95571bfcf7c
+*ALREADY DONE* commit 9ac15414bf7004b67d67b8c12da1e95571bfcf7c
 Author: Henry <Henry>
 Date:   Sat Feb 14 17:09:21 2015 +0000
 
     Update header
 
-commit e44376d3638a3186a7db7334acd28a9d44a1ae5a
+*ALREADY DONE* commit e44376d3638a3186a7db7334acd28a9d44a1ae5a
 Author: Henry <Henry>
 Date:   Sat Feb 14 17:09:07 2015 +0000
 
     Correct Info message
 
-commit f9a8cb7cfc66608534ba47eb6997d673d1cbf58d
+*OK* commit f9a8cb7cfc66608534ba47eb6997d673d1cbf58d
 Author: Henry <Henry>
 Date:   Sat Feb 14 16:43:27 2015 +0000
 
     dynamicLagrangian: Added template include
 
-commit 74a8a6f99634c2f6642dfa5ac35d4039f67c853b
+*OK* commit 74a8a6f99634c2f6642dfa5ac35d4039f67c853b
 Author: Henry <Henry>
 Date:   Sat Feb 14 16:04:01 2015 +0000
 
@@ -79,26 +165,26 @@ Date:   Sat Feb 14 16:04:01 2015 +0000
     Patch provided by Bruno Santos
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1528
 
-commit d9cc06f9f3e79af73c6772f150e4c77d2ad18094
+*OK* commit d9cc06f9f3e79af73c6772f150e4c77d2ad18094
 Author: Henry <Henry>
 Date:   Sat Feb 14 15:58:09 2015 +0000
 
     solidBodyMotionFunctions/SDA: Corrected the "See also"
     Resolved bug-report http://www.openfoam.org/mantisbt/view.php?id=1529
 
-commit 0ddae8ba2cdbeac4092ed0755df47d3a6e64ced1
+*OK* commit 0ddae8ba2cdbeac4092ed0755df47d3a6e64ced1
 Author: Henry <Henry>
 Date:   Sat Feb 14 15:52:08 2015 +0000
 
     turbulenceModels/LES/dynamicLagrangian: Added the Lagrangian averaged form of the dynamic Smagorinsky eddy-viscosity SGS model for LES
 
-commit f58fd1427100727c8ff6f82d76e56fd836e6274c
+*OK* commit f58fd1427100727c8ff6f82d76e56fd836e6274c
 Author: Henry <Henry>
 Date:   Sat Feb 14 13:10:15 2015 +0000
 
     Corrected capitalization of Doxygen documentation comments
 
-commit fb68661de82834702f7df393522e399e451eba72
+*OK* commit fb68661de82834702f7df393522e399e451eba72
 Author: Henry <Henry>
 Date:   Sat Feb 14 13:08:08 2015 +0000
 
