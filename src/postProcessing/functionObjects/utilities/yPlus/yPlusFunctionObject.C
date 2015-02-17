@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,29 +21,22 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Typedef
-    Foam::IOyPlusRAS
-
-Description
-    Instance of the generic IOOutputFilter for yPlusRAS.
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef IOyPlusRAS_H
-#define IOyPlusRAS_H
+#include "yPlusFunctionObject.H"
 
-#include "yPlusRAS.H"
-#include "IOOutputFilter.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef IOOutputFilter<yPlusRAS> IOyPlusRAS;
+    defineNamedTemplateTypeNameAndDebug(yPlusFunctionObject, 0);
+
+    addToRunTimeSelectionTable
+    (
+        functionObject,
+        yPlusFunctionObject,
+        dictionary
+    );
 }
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

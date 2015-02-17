@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,33 +21,22 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Typedef
-    Foam::yPlusRASFunctionObject
-
-Description
-    FunctionObject wrapper around yPlusRAS to allow it to be created
-    via the functions entry within controlDict.
-
-SourceFiles
-    yPlusRASFunctionObject.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef yPlusRASFunctionObject_H
-#define yPlusRASFunctionObject_H
+#include "valueAverageFunctionObject.H"
 
-#include "yPlusRAS.H"
-#include "OutputFilterFunctionObject.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef OutputFilterFunctionObject<yPlusRAS> yPlusRASFunctionObject;
+    defineNamedTemplateTypeNameAndDebug(valueAverageFunctionObject, 0);
+
+    addToRunTimeSelectionTable
+    (
+        functionObject,
+        valueAverageFunctionObject,
+        dictionary
+    );
 }
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

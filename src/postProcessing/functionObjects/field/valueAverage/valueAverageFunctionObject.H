@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,28 +22,29 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Typedef
-    Foam::yPlusLESFunctionObject
+    Foam::valueAverageFunctionObject
 
 Description
-    FunctionObject wrapper around yPlusLES to allow it to be created
-    via the functions entry within controlDict.
+    FunctionObject wrapper around valueAverageFunctionObject to allow them
+    to be created via the functions entry within controlDict.
 
 SourceFiles
-    yPlusLESFunctionObject.C
+    fieldMinMaxFunctionObject.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef yPlusLESFunctionObject_H
-#define yPlusLESFunctionObject_H
+#ifndef valueAverageFunctionObject_H
+#define valueAverageFunctionObject_H
 
-#include "yPlusLES.H"
+#include "valueAverage.H"
 #include "OutputFilterFunctionObject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef OutputFilterFunctionObject<yPlusLES> yPlusLESFunctionObject;
+    typedef OutputFilterFunctionObject<valueAverage>
+        valueAverageFunctionObject;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,29 +21,40 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Typedef
-    Foam::IOyPlusLES
-
-Description
-    Instance of the generic IOOutputFilter for yPlusLES.
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef IOyPlusLES_H
-#define IOyPlusLES_H
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
-#include "yPlusLES.H"
-#include "IOOutputFilter.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
+template<class Type>
+void Foam::valueAverage::calc
+(
+    const word& fieldName,
+    const word& meanName,
+    const scalar alpha,
+    const scalar beta,
+    bool& processed
+)
 {
-    typedef IOOutputFilter<yPlusLES> IOyPlusLES;
+    const word valueType = objectResultType(functionObjectName_, fieldName);
+
+    if (pTraits<Type>::typeName != valueType)
+    {
+        return;
+    }
+
+    Type currentValue = getObjectResult<Type>(functionObjectName_, fieldName);
+
+    Type meanValue = getResult<Type>(meanName);
+    meanValue = alpha*meanValue + beta*currentValue;
+
+    setResult(meanName, meanValue);
+
+    file() << tab << meanValue;
+
+    Info(log_) << "    " << meanName << ": " << meanValue << nl;
+
+    processed = true;
 }
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

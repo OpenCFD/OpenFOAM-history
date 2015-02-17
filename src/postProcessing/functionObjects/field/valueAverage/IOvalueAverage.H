@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,22 +21,29 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Typedef
+    Foam::IOvalueAverage
+
+Description
+    Instance of the generic IOOutputFilter for valueAverage.
+
 \*---------------------------------------------------------------------------*/
 
-#include "yPlusLESFunctionObject.H"
+#ifndef IOvalueAverage_H
+#define IOvalueAverage_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "valueAverage.H"
+#include "IOOutputFilter.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineNamedTemplateTypeNameAndDebug(yPlusLESFunctionObject, 0);
-
-    addToRunTimeSelectionTable
-    (
-        functionObject,
-        yPlusLESFunctionObject,
-        dictionary
-    );
+    typedef IOOutputFilter<valueAverage> IOvalueAverage;
 }
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

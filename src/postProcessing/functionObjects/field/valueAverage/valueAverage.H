@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,48 +22,61 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::yPlusRAS
+    Foam::valueAverage
 
 Group
-    grpUtilitiesFunctionObjects
+    grpFieldFunctionObjects
 
 Description
-    This function object evaluates and outputs turbulence y+ for RAS models.
-    The field is stored on the mesh database so that it can be retrieved and
-    used for other applications.
+    This function object calculates the avarage value from the output of
+    function objects that generate singular values.
 
-    Example of function object specification to calculate the y+ (RAS):
+    Example of function object specification:
     \verbatim
-    yPlusRAS1
+    valueAverage1
     {
-        type        yPlusRAS;
-        functionObjectLibs ("libutilityFunctionObjects.so");
+        type        valueAverage;
+        functionObjectLibs ("libfieldFunctionObjects.so");
         ...
+        writeToFile yes;
+        log         yes;
+        functionObjectName forceCoeffs1;
+        fields      (Cm Cd Cl);
+        window      0.5;
     }
     \endverbatim
 
     \heading Function object usage
     \table
         Property     | Description             | Required    | Default value
-        type         | Type name: yPlusRAS     | yes         |
-        phiName      | Name of flux field      | no          | phi
-        resultName   | Name of y+ field        | no          | <function name>
-        log          | Log to standard output  | no          | yes
+        type         | type name: valueAverage | yes         |
+        writeToFile  | write average data to file |  no      | yes
+        log          | write average data to standard output | no | yes
+        fields       | list of fields to process | yes       |
     \endtable
 
+    Output data is written to the file \<timeDir\>/fieldMinMax.dat
+
+SeeAlso
+    Foam::functionObject
+    Foam::functionObjectFile
+    Foam::functionObjectState
+    Foam::OutputFilterFunctionObject
+
 SourceFiles
-    yPlusRAS.C
-    IOyPlusRAS.H
+    valueAverage.C
+    valueAverageTemplates.C
+    IOvalueAverage.H
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef yPlusRAS_H
-#define yPlusRAS_H
+#ifndef valueAverage_H
+#define valueAverage_H
 
+#include "functionObjectState.H"
 #include "functionObjectFile.H"
-#include "volFieldsFwd.H"
 #include "Switch.H"
-#include "OFstream.H"
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,83 +88,86 @@ class objectRegistry;
 class dictionary;
 class polyMesh;
 class mapPolyMesh;
-class fvMesh;
 
 /*---------------------------------------------------------------------------*\
-                          Class yPlusRAS Declaration
+                        Class valueAverage Declaration
 \*---------------------------------------------------------------------------*/
 
-class yPlusRAS
+class valueAverage
 :
+    public functionObjectState,
     public functionObjectFile
 {
-    // Private data
+protected:
 
-        //- Name of this set of yPlusRAS objects
-        word name_;
+    // Protected data
 
+        //- Reference to the database
         const objectRegistry& obr_;
 
-        //- on/off switch
-        bool active_;
+        //- Name of function object to retrueve data from
+        word functionObjectName_;
 
-        //- Name of mass/volume flux field (optional, default = phi)
-        word phiName_;
+        //- List of fields on which to operate
+        wordList fieldNames_;
 
-        //- Result name
-        word resultName_;
+        //- Averaging window
+        const scalar window_;
 
-        //- Switch to send output to Info as well as to file
+        //- Average time per field
+        List<scalar> totalTime_;
+
+        //- Reset the averaging process on restart flag
+        Switch resetOnRestart_;
+
+        //- Switch to send output to Info as well
         Switch log_;
 
 
-    // Private Member Functions
+    // Protected Member Functions
 
-        //- File header information
-        virtual void writeFileHeader(const label i);
-
-        //- Calculate y+
-        void calcYPlus(const fvMesh& mesh, volScalarField& yPlus);
+        //- Templated function to calculate the average
+        template<class Type>
+        void calc
+        (
+            const word& fieldName,
+            const word& meanName,
+            const scalar alpha,
+            const scalar beta,
+            bool& processed
+        );
 
         //- Disallow default bitwise copy construct
-        yPlusRAS(const yPlusRAS&);
+        valueAverage(const valueAverage&);
 
         //- Disallow default bitwise assignment
-        void operator=(const yPlusRAS&);
+        void operator=(const valueAverage&);
+
+        //- Output file header information
+        virtual void writeFileHeader(const label i);
 
 
 public:
 
     //- Runtime type information
-    TypeName("yPlusRAS");
+    TypeName("valueAverage");
 
-
-    // Constructors
-
-        //- Construct for given objectRegistry and dictionary.
-        //  Allow the possibility to load fields from files
-        yPlusRAS
-        (
-            const word& name,
-            const objectRegistry&,
-            const dictionary&,
-            const bool loadFromFiles = false
-        );
-
+    //- Constructor
+    valueAverage
+    (
+        const word& name,
+        const objectRegistry& obr,
+        const dictionary& dict,
+       const bool loadFromFiles = false
+    );
 
     //- Destructor
-    virtual ~yPlusRAS();
+    virtual ~valueAverage();
 
 
-    // Member Functions
+    // Public Member Functions
 
-        //- Return name of the set of yPlusRAS
-        virtual const word& name() const
-        {
-            return name_;
-        }
-
-        //- Read the yPlusRAS data
+        //- Read the field min/max data
         virtual void read(const dictionary&);
 
         //- Execute, currently does nothing
@@ -163,7 +179,7 @@ public:
         //- Called when time was set at the end of the Time::operator++
         virtual void timeSet();
 
-        //- Calculate the yPlusRAS and write
+        //- Write the fieldMinMax
         virtual void write();
 
         //- Update for changes of mesh
@@ -179,6 +195,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "valueAverageTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

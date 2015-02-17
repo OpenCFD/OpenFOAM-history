@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,15 +28,15 @@ Group
     grpUtilitiesFunctionObjects
 
 Description
-    This function object evaluates and outputs turbulence y+ for LES models.
-    The field is stored on the mesh database so that it can be retrieved and
-    used for other applications.
+    This function object evaluates and outputs turbulence y+ for turbulence
+    models. The field is stored on the mesh database so that it can be
+    retrieved and used for other applications.
 
     Example of function object specification to calculate the y+ (LES):
     \verbatim
     yPlusLES1
     {
-        type        yPlusLES;
+        type        yPlus;
         functionObjectLibs ("libutilityFunctionObjects.so");
         ...
     }
@@ -45,7 +45,7 @@ Description
     \heading Function object usage
     \table
         Property     | Description             | Required    | Default value
-        type         | Type name: yPlusLES     | yes         |
+        type         | Type name: yPlus        | yes         |
         phiName      | Name of flux field      | no          | phi
         UName        | Name of velocity field  | no          | U
         resultName   | Name of y+ field        | no          | <function name>
@@ -59,8 +59,8 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef yPlusLES_H
-#define yPlusLES_H
+#ifndef yPlus_H
+#define yPlus_H
 
 #include "functionObjectFile.H"
 #include "volFieldsFwd.H"
@@ -81,10 +81,10 @@ class mapPolyMesh;
 class fvMesh;
 
 /*---------------------------------------------------------------------------*\
-                          Class yPlusLES Declaration
+                            Class yPlus Declaration
 \*---------------------------------------------------------------------------*/
 
-class yPlusLES
+class yPlus
 :
     public functionObjectFile
 {
@@ -116,40 +116,34 @@ class yPlusLES
         //- File header information
         virtual void writeFileHeader(const label i);
 
-        //- Calculate incompressible form of y+
-        void calcIncompressibleYPlus
+        //- Calculate y+
+        template<class TurbulenceModel>
+        void calcYPlus
         (
-            const fvMesh& mesh,
-            const volVectorField& U,
-            volScalarField& yPlus
-        );
-
-        //- Calculate compressible form of y+
-        void calcCompressibleYPlus
-        (
+            const TurbulenceModel& turbulenceModel,
             const fvMesh& mesh,
             const volVectorField& U,
             volScalarField& yPlus
         );
 
         //- Disallow default bitwise copy construct
-        yPlusLES(const yPlusLES&);
+        yPlus(const yPlus&);
 
         //- Disallow default bitwise assignment
-        void operator=(const yPlusLES&);
+        void operator=(const yPlus&);
 
 
 public:
 
     //- Runtime type information
-    TypeName("yPlusLES");
+    TypeName("yPlus");
 
 
     // Constructors
 
         //- Construct for given objectRegistry and dictionary.
         //  Allow the possibility to load fields from files
-        yPlusLES
+        yPlus
         (
             const word& name,
             const objectRegistry&,
@@ -159,7 +153,7 @@ public:
 
 
     //- Destructor
-    virtual ~yPlusLES();
+    virtual ~yPlus();
 
 
     // Member Functions
@@ -198,6 +192,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "yPlusTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

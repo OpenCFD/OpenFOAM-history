@@ -51,8 +51,8 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef compressibleNutSpalartAllmarasWallFunctionFvPatchScalarField_H
-#define compressibleNutSpalartAllmarasWallFunctionFvPatchScalarField_H
+#ifndef nutkFilmWallFunctionFvPatchScalarField_H
+#define nutkFilmWallFunctionFvPatchScalarField_H
 
 #include "nutkWallFunctionFvPatchScalarField.H"
 
