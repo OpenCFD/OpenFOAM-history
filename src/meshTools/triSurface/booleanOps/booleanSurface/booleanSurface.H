@@ -207,7 +207,7 @@ public:
 
     // Member Functions
 
-        //- new to old face map. >0: surface 1 face label. <0: surface 2. Negate
+        //- New to old face map. >0: surface 1 face label. <0: surface 2. Negate
         //  and subtract 1 to get face label on surface 2.
         const labelList& faceMap() const
         {

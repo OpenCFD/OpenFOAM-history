@@ -124,7 +124,7 @@ private:
         void determineTransformPermutations();
 
         //- Determine which patch uses which transform (if any) and which
-        //- sign to use
+        //- Sign to use
         void determinePatchTransformSign();
 
         //- Test a list of reference transforms to see if the test

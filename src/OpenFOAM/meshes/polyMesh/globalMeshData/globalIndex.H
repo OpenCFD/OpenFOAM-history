@@ -113,7 +113,7 @@ public:
 
         // Queries relating to my processor (using world communicator)
 
-            //- my local size
+            //- My local size
             inline label localSize() const;
 
             //- From local to global

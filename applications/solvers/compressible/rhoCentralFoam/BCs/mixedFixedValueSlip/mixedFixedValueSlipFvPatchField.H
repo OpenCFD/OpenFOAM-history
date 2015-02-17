@@ -85,7 +85,7 @@ public:
         );
 
         //- Construct by mapping given mixedFixedValueSlipFvPatchField
-        //- onto a new patch
+        //  onto a new patch
         mixedFixedValueSlipFvPatchField
         (
             const mixedFixedValueSlipFvPatchField<Type>&,

@@ -224,7 +224,7 @@ protected:
 
         //- Hit wall faces in the current cell if the
         //- wallImpactDistance is non-zero.  They may not be in
-        //- different tets to the current.
+        //- Different tets to the current.
         template<class CloudType>
         inline void hitWallFaces
         (

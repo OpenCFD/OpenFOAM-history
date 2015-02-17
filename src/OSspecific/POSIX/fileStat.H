@@ -112,13 +112,13 @@ public:
 
         // Check
 
-            //- compare two fileStats for same device
+            //- Compare two fileStats for same device
             bool sameDevice(const fileStat& stat2) const;
 
-            //- compare two fileStats for same Inode
+            //- Compare two fileStats for same Inode
             bool sameINode(const fileStat& stat2) const;
 
-            //- compare state against inode
+            //- Compare state against inode
             bool sameINode(const label iNode) const;
 
 

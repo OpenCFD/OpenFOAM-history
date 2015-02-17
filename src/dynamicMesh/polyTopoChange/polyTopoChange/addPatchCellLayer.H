@@ -324,7 +324,7 @@ public:
                 const labelListList& layerFaces
             );
 
-            //- added cells given current mesh & layerfaces.
+            //- Added cells given current mesh & layerfaces.
             labelListList addedCells() const;
 
 
