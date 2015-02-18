@@ -201,7 +201,7 @@ Author: Henry <Henry>
 Date:   Sat Feb 14 11:03:37 2015 +0000
 
     potentialFoam: Solve for velocity potential named Phi rather than using the pressure field for this purpose
-    
+
     The Phi field is read if available otherwise created automatically with
     boundary conditions obtained automatically from the pressure field if
     available (with optional name) otherwise inferred from the velocity
@@ -577,9 +577,9 @@ Date:   Fri Feb 6 09:57:20 2015 +0000
 
     PolynomialEntry: Templated polynomial DataEntry to support all basic field types from scalar to tensor
     This allows polynomial functions for e.g. velocity to be specified in the uniformFixedValue BC
-    
+
     Consider a linear function for Ux(t) with Uy and Uz = 0:
-    
+
         inlet
         {
             type            uniformFixedValue;
@@ -589,7 +589,7 @@ Date:   Fri Feb 6 09:57:20 2015 +0000
                 ((100 0 0)  (1 0 0))
             );
         }
-    
+
     Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=1508
 
 *OK* commit c628b79d10170a6d7d91daba45664b2382b10e4f
@@ -727,13 +727,13 @@ Author: Henry <Henry>
 Date:   Tue Feb 3 12:01:55 2015 +0000
 
     blockMesh: Add support for multi/sectional grading in a block
-    
+
     Consider a block describing a channel with two opposite walls.
     Currently in order to grade the mesh towards the walls and have a
     uniform region in the centre the channel would need to be spit into 3
     blocks.  With the new multi/sectional grading this can be achieved in a
     single block e.g.
-    
+
     blocks
     (
         hex (0 1 2 3 4 5 6 7) (20 60 20)
@@ -744,7 +744,7 @@ Date:   Tue Feb 3 12:01:55 2015 +0000
             1
         )
     );
-    
+
     In this example the block is divided uniformly in the x and z -directions
     and split into three grading sections in the y-direction described by
     three triples:  ((0.2 0.3 4) (0.6 0.4 1) (0.2 0.3 0.25)).  Each of the
@@ -753,7 +753,7 @@ Date:   Tue Feb 3 12:01:55 2015 +0000
     first division/size of last division).  Both the fraction of the block
     and the fraction of the divisions are normalized automatically so they
     can be specified scaled in anyway, e.g. as percentages:
-    
+
     blocks
     (
         hex (0 1 2 3 4 5 6 7) (20 60 20)
@@ -764,9 +764,9 @@ Date:   Tue Feb 3 12:01:55 2015 +0000
             1
         )
     );
-    
+
     and they need not sum to 1 or 100.
-    
+
     This is very new functionality and not well tested but backward
     compatibility has been well tested so all existing blockMeshDicts should
     parse correctly.
@@ -842,7 +842,7 @@ Date:   Sun Feb 1 12:34:19 2015 +0000
     POSIX/debug: Add ./system on the list of etc directories
     in particular to pick-up the DebugSwitches from system/controlDict at
     global construction time.
-    
+
     Disadvantage is that system/controlDict is only picked-up if the
     OpenFOAM application is executed IN the case directory.  The directory
     provided by the -case option is not yet known as the arguments have not
@@ -860,18 +860,18 @@ Author: Henry <Henry>
 Date:   Thu Jan 29 08:16:59 2015 +0000
 
     bin/tools/doxyFilter.sed: Add support for 2-line Class name:
-    
+
      Class
          Foam::className
      =>
      \\class Foam::className
-    
+
      Class
          Foam::namespaceName::
              className
      =>
      \\class Foam::namespaceName::className
-    
+
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=252
 
 *OK* commit 4d142dacb584311a5a2b5d426b9e0b120547a777
@@ -963,7 +963,7 @@ Date:   Tue Jan 27 15:06:03 2015 +0000
         Furst, J. (2013).
         Numerical simulation of transitional flows with laminar kinetic energy.
         Engineering MECHANICS, 20(5), 379-388.
-    
+
     Thanks to Jan-Niklas Klatt for analysing problems with and correcting
     the implementation and testing corrections to the model proposed by
     Furst.
@@ -1175,9 +1175,9 @@ Author: Henry <Henry>
 Date:   Wed Jan 21 19:21:39 2015 +0000
 
     Updated the whole of OpenFOAM to use the new templated TurbulenceModels library
-    
+
     The old separate incompressible and compressible libraries have been removed.
-    
+
     Most of the commonly used RANS and LES models have been upgraded to the
     new framework but there are a few missing which will be added over the
     next few days, in particular the realizable k-epsilon model.  Some of
@@ -1185,28 +1185,28 @@ Date:   Wed Jan 21 19:21:39 2015 +0000
     new library instantiated for incompressible flow only.  If they prove to
     be generally useful they can be templated for compressible and
     multiphase application.
-    
+
     The Spalart-Allmaras DDES and IDDES models have been thoroughly
     debugged, removing serious errors concerning the use of S rather than
     Omega.
-    
+
     The compressible instances of the models have been augmented by a simple
     backward-compatible eddyDiffusivity model for thermal transport based on
     alphat and alphaEff.  This will be replaced with a separate run-time
     selectable thermal transport model framework in a few weeks.
-    
+
     For simplicity and ease of maintenance and further development the
     turbulent transport and wall modeling is based on nut/nuEff rather than
     mut/muEff for compressible models so that all forms of turbulence models
     can use the same wall-functions and other BCs.
-    
+
     All turbulence model selection made in the constant/turbulenceProperties
     dictionary with RAS and LES as sub-dictionaries rather than in separate
     files which added huge complexity for multiphase.
-    
+
     All tutorials have been updated so study the changes and update your own
     cases by comparison with similar cases provided.
-    
+
     Sorry for the inconvenience in the break in backward-compatibility but
     this update to the turbulence modeling is an essential step in the
     future of OpenFOAM to allow more models to be added and maintained for a
@@ -1214,7 +1214,7 @@ Date:   Wed Jan 21 19:21:39 2015 +0000
     turbulence models will be added of single and multiphase flow, more
     additional sub-models and further development and testing of existing
     models.  I hope this brings benefits to all OpenFOAM users.
-    
+
     Henry G. Weller
 
 *OK* commit 04d4f75f70323735b89a99e940c91d14a730ce9c
@@ -1516,16 +1516,16 @@ Author: Henry <Henry>
 Date:   Thu Jan 8 10:40:23 2015 +0000
 
     wallDist: now a MeshObject cached and updated automatically with a run-time selected algorithm
-    
+
     When using models which require the wallDist e.g. kOmegaSST it will
     request the method to be used from the wallDist sub-dictionary in
     fvSchemes e.g.
-    
+
     wallDist
     {
         method meshWave;
     }
-    
+
     specifies the mesh-wave method as hard-coded in previous OpenFOAM versions.
 
 *OK* commit 2028973e19af2b840729c9f8e78528953bde7ef9
@@ -1627,7 +1627,7 @@ Date:   Fri Jan 2 16:43:32 2015 +0000
 
     fvcSurfaceIntegrate: add support for sub-cycling with mesh-motion
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1471
-    
+
     Note:
         In order to avoid unexpectedly poor results I think it would be
         better if sub-cycling in time were limited to static meshes and
@@ -1720,25 +1720,25 @@ Author: Henry <Henry>
 Date:   Wed Dec 31 19:02:52 2014 +0000
 
     Added and verified support for 64bit labels
-    
+
     To compile with 64bit labels set
-    
+
     WM_LABEL_SIZE=64
-    
+
     in ~/OpenFOAM/dev/prefs.sh
-    
+
     source ~/.bashrc
-    
+
     then Allwmake in OpenFOAM-dev.
-    
+
     This will build into for example OpenFOAM-dev/platforms/linux64ClangDPInt64Opt
-    
+
     If WM_LABEL_SIZE is unset or set to 32:
-    
+
     WM_LABEL_SIZE=32
-    
+
     the build would be placed into OpenFOAM-dev/platforms/linux64ClangDPInt32Opt
-    
+
     Thus both 32bit and 64bit label builds can coexist without problem.
 
 *OK* commit ff52b0c4852df597865e9e8c3d62f85695f57de1

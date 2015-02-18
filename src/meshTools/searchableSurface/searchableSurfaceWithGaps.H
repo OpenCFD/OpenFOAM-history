@@ -34,6 +34,22 @@ Description
     - extend the test vector slightly (with SMALL) to account for numerical
       inaccuracies.
 
+    \verbatim
+    sphere.stl
+    {
+        type triSurfaceMesh;
+    }
+
+    sphere
+    {
+        type searchableSurfaceWithGaps;
+        // Underlying surface
+        surface sphere.stl;
+        // Perturb distance
+        gap 1e-3;
+    }
+    \endverbatim
+
 SourceFiles
     searchableSurfaceWithGaps.C
 
