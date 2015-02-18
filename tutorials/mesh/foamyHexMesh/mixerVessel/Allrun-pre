@@ -68,8 +68,7 @@ runApplication surfaceFeatureExtract
 
 runParallel foamyHexMesh $nProcs
 
-runParallel collapseEdges $nProcs -collapseFaces -latestTime
-mv log.collapseEdges log.collapseFaces
+runParallel -l log.collapseFaces collapseEdges $nProcs -collapseFaces -latestTime
 
 #\cp system/collapseDict.indirectPatchFaces system/collapseDict
 #runParallel collapseEdges $nProcs -collapseFaceSet indirectPatchFaces -latestTime
