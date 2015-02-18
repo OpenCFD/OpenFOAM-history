@@ -53,6 +53,7 @@ Description
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"
+#include "CorrectPhi.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -62,14 +63,14 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createDynamicFvMesh.H"
-    #include "readGravitationalAcceleration.H"
-    #include "initContinuityErrs.H"
 
     pimpleControl pimple(mesh);
 
+    #include "readGravitationalAcceleration.H"
+    #include "initContinuityErrs.H"
     #include "createFields.H"
+    #include "createFvOptions.H"
     #include "readTimeControls.H"
-    #include "createPcorrTypes.H"
 
     volScalarField rAU
     (
@@ -96,6 +97,12 @@ int main(int argc, char *argv[])
     while (runTime.run())
     {
         #include "../interFoam/interDyMFoam/readControls.H"
+
+        // Store divU from the previous mesh so that it can be mapped
+        // and used in correctPhi to ensure the corrected phi has the
+        // same divergence
+        volScalarField divU("divU0", fvc::div(fvc::absolute(phi, U)));
+
         #include "CourantNo.H"
         #include "setDeltaT.H"
 
@@ -108,12 +115,6 @@ int main(int argc, char *argv[])
         {
             if (pimple.firstIter() || moveMeshOuterCorrectors)
             {
-                // Store divU from the previous mesh for the correctPhi
-                volScalarField divU
-                (
-                    "div(phi0)", fvc::div(fvc::absolute(phi, U))
-                );
-
                 scalar timeBeforeMeshUpdate = runTime.elapsedCpuTime();
 
                 mesh.update();
@@ -133,7 +134,6 @@ int main(int argc, char *argv[])
                     // Calculate absolute flux from the mapped surface velocity
                     phi = mesh.Sf() & Uf;
 
-                    #define divUCorr -divU
                     #include "correctPhi.H"
 
                     // Make the flux relative to the mesh motion

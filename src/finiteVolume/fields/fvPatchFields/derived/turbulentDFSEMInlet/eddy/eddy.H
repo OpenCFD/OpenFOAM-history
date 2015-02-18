@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -60,11 +60,8 @@ class eddy
         //- Length scales in 3-D space
         vector sigma_;
 
-        //- Maximum length in steeamwise direction in global axes
-        scalar sigmaXMax_;
-
-        //- Intensities in 3-D space
-        vector alpha_;
+        //- Time-averaged intensity
+        scalar alphaAve_;
 
         //- Co-ordinate system transformation from local principal to global
         //  axes
@@ -109,11 +106,11 @@ public:
             //- Return the lLength scales in 3-D space
             inline const vector& sigma() const;
 
-            //- Return the maximum length in steeamwise direction in global axes
-            inline scalar sigmaXMax() const;
+            //- Return the time-averaged intensity
+            inline scalar alphaAve() const;
 
             //- Return the intensities in 3-D space
-            inline const vector& alpha() const;
+            inline vector alpha(cachedRandom& rndGen) const;
 
             //- Return the co-ordinate system transformation from local
             //  principal to global axes
@@ -128,7 +125,7 @@ public:
             inline void initialise(const label nEddy, const scalar v0);
 
             //- Box volume
-            inline scalar volume() const;
+            inline scalar boxVolume() const;
 
             //- Average length scale
             inline scalar sigmaAve() const;
@@ -138,6 +135,12 @@ public:
 
             //- Move the eddy
             inline void move(const scalar dx);
+
+
+        // Evaluate
+
+            //- Return the fluctuating velocity contribution at local point xp
+            vector uDash(const point& xp, cachedRandom& rndGen) const;
 
 
     // Member Operators
@@ -152,8 +155,7 @@ public:
             return
                 a.position_ == b.position_
              && a.sigma_ == b.sigma_
-             && a.sigmaXMax_ == b.sigmaXMax_
-             && a.alpha_ == b.alpha_
+             && a.alphaAve_ == b.alphaAve_
              && a.Rpg_ == b.Rpg_
              && a.c1_ == b.c1_;
         }

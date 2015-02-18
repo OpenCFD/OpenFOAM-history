@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,7 +29,6 @@ template<class Type>
 void Foam::averageCondition::calc
 (
     const word& fieldName,
-    const word& meanName,
     const scalar alpha,
     const scalar beta,
     bool& satisfied,
@@ -47,21 +46,19 @@ void Foam::averageCondition::calc
     Type currentValue =
         state_.getObjectResult<Type>(functionObjectName_, fieldName);
 
+    const word meanName(fieldName + "Mean");
+
     Type meanValue = state_.getResult<Type>(meanName);
     meanValue = alpha*meanValue + beta*currentValue;
 
-    Type meanMeanValue = state_.getResult<Type>(meanName + "Mean");
-    meanMeanValue = alpha*meanMeanValue + beta*meanValue;
-
-    scalar var = mag(meanMeanValue - meanValue);
+    scalar delta = mag(meanValue - currentValue);
 
     Info(log_)<< "    " << meanName << ": " << meanValue
-        << ", variation: " << var << nl;
+        << ", variation: " << delta << nl;
 
     state_.setResult(meanName, meanValue);
-    state_.setResult(meanName + "Mean", meanMeanValue);
 
-    if (var > variation_)
+    if (delta > variation_)
     {
         satisfied = false;
     }

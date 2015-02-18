@@ -27,16 +27,11 @@ EXE_INC = \
     -I$(LIB_SRC)/fvOptions/lnInclude \
     -I$(LIB_SRC)/combustionModels/lnInclude
 
-
 EXE_LIBS = \
-    -lfiniteVolume \
-    -lmeshTools \
-    -lsampling \
     -lturbulenceModels \
     -lcompressibleTurbulenceModels \
     -llagrangian \
     -llagrangianIntermediate \
-    -llagrangianTurbulence \
     -llagrangianSpray \
     -lspecie \
     -lfluidThermophysicalModels \
@@ -52,5 +47,8 @@ EXE_LIBS = \
     -lODE \
     -lregionModels \
     -lsurfaceFilmModels \
+    -lcombustionModels \
+    -lfiniteVolume \
     -lfvOptions \
-    -lcombustionModels
+    -lmeshTools \
+    -lsampling

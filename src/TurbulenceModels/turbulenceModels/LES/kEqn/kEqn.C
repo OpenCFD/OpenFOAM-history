@@ -109,6 +109,8 @@ kEqn<BasicTurbulenceModel>::kEqn
         )
     )
 {
+    bound(k_, this->kMin_);
+
     if (type == typeName)
     {
         correctNut();
@@ -183,7 +185,6 @@ void kEqn<BasicTurbulenceModel>::correct()
     (
         fvm::ddt(alpha, rho, k_)
       + fvm::div(alphaRhoPhi, k_)
-      - fvm::Sp(fvc::ddt(alpha, rho) + fvc::div(alphaRhoPhi), k_)
       - fvm::laplacian(alpha*rho*DkEff(), k_)
      ==
         alpha*rho*G

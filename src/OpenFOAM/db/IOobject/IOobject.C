@@ -62,35 +62,42 @@ Foam::IOobject::fileCheckTypes Foam::IOobject::fileModificationChecking
         )
     )
 );
-// Register re-reader
-class addfileModificationCheckingToOpt
-:
-    public ::Foam::simpleRegIOobject
+
+namespace Foam
 {
-public:
-    addfileModificationCheckingToOpt(const char* name)
+    // Register re-reader
+    class addfileModificationCheckingToOpt
     :
-        ::Foam::simpleRegIOobject(Foam::debug::addOptimisationObject, name)
-    {}
-    virtual ~addfileModificationCheckingToOpt()
-    {}
-    virtual void readData(Foam::Istream& is)
+        public ::Foam::simpleRegIOobject
     {
-        Foam::IOobject::fileModificationChecking =
-            Foam::IOobject::fileCheckTypesNames.read(is);
-    }
-    virtual void writeData(Foam::Ostream& os) const
-    {
-        os <<   Foam::IOobject::fileCheckTypesNames
-                [
-                    Foam::IOobject::fileModificationChecking
-                ];
-    }
-};
-addfileModificationCheckingToOpt addfileModificationCheckingToOpt_
-(
-    "fileModificationChecking"
-);
+    public:
+
+        addfileModificationCheckingToOpt(const char* name)
+        :
+            ::Foam::simpleRegIOobject(Foam::debug::addOptimisationObject, name)
+        {}
+
+        virtual ~addfileModificationCheckingToOpt()
+        {}
+
+        virtual void readData(Foam::Istream& is)
+        {
+            IOobject::fileModificationChecking =
+                IOobject::fileCheckTypesNames.read(is);
+        }
+
+        virtual void writeData(Foam::Ostream& os) const
+        {
+            os <<  IOobject::fileCheckTypesNames
+                [IOobject::fileModificationChecking];
+        }
+    };
+
+    addfileModificationCheckingToOpt addfileModificationCheckingToOpt_
+    (
+        "fileModificationChecking"
+    );
+}
 
 
 // * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * * //

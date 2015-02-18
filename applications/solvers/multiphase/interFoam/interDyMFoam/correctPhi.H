@@ -1,12 +1,11 @@
-{
-    incompressibleCorrectPhi
-    (
-        phi,
-        U,
-        p_rgh,
-        fvc::interpolate(rAU),
-        geometricZeroField(),
-        pimple
-    );
-    #include "continuityErrs.H"
-}
+CorrectPhi
+(
+    U,
+    phi,
+    p_rgh,
+    surfaceScalarField("rAUf", fvc::interpolate(rAU)),
+    geometricZeroField(),
+    pimple
+);
+
+#include "continuityErrs.H"

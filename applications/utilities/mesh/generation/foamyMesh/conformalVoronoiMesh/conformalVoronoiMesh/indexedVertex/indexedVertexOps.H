@@ -21,8 +21,8 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    indexedVertexOps
+Namespace
+    CGAL::indexedVertexOps
 
 Description
 
@@ -67,7 +67,7 @@ inline bool uninitialised(const VertexType& v);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#   include "indexedVertexOpsTemplates.C"
+    #include "indexedVertexOpsTemplates.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

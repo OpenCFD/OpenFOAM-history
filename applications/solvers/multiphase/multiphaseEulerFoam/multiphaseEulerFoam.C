@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -42,14 +42,15 @@ Description
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "IOMRFZoneList.H"
+#include "CorrectPhi.H"
 #include "fixedFluxPressureFvPatchScalarField.H"
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
+
     #include "createTime.H"
     #include "createMesh.H"
 
@@ -59,7 +60,6 @@ int main(int argc, char *argv[])
     #include "createMRFZones.H"
     #include "initContinuityErrs.H"
     #include "readTimeControls.H"
-    #include "createPcorrTypes.H"
     #include "correctPhi.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"

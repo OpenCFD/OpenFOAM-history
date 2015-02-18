@@ -40,6 +40,7 @@ Description
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
+#include "CorrectPhi.H"
 #include "fvIOoptionList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -57,7 +58,6 @@ int main(int argc, char *argv[])
     #include "createUf.H"
     #include "createFvOptions.H"
     #include "readTimeControls.H"
-    #include "createPcorrTypes.H"
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 

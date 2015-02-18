@@ -35,6 +35,9 @@ streamLine/streamLineParticle.C
 streamLine/streamLineParticleCloud.C
 streamLine/streamLineFunctionObject.C
 
+valueAverage/valueAverage.C
+valueAverage/valueAverageFunctionObject.C
+
 wallBoundedStreamLine/wallBoundedStreamLine.C
 wallBoundedStreamLine/wallBoundedStreamLineFunctionObject.C
 wallBoundedStreamLine/wallBoundedStreamLineParticle.C

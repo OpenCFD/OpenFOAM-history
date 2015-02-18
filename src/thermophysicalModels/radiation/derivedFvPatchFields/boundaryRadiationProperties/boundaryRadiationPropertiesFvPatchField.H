@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    boundaryRadiationPropertiesFvPatchField
+    Foam::boundaryRadiationPropertiesFvPatchField
 
 Description
     Common functions to emissivity. It gets supplied from lookup into a

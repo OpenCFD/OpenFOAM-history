@@ -285,7 +285,7 @@ private:
                     List<extrudeMode>& extrudeStatus
                 ) const;
 
-                //- for truncateDisplacement: find strings of edges
+                //- For truncateDisplacement: find strings of edges
                 bool sameEdgeNeighbour
                 (
                     const labelListList& globalEdgeFaces,
@@ -294,7 +294,7 @@ private:
                     const label edgeI
                 ) const;
 
-                //- for truncateDisplacement: find strings of edges
+                //- For truncateDisplacement: find strings of edges
                 void getVertexString
                 (
                     const indirectPrimitivePatch& pp,

@@ -124,7 +124,8 @@ const labelIOList& procAddressing
                     procMesh.meshSubDir,
                     procMesh,
                     IOobject::MUST_READ,
-                    IOobject::NO_WRITE
+                    IOobject::NO_WRITE,
+                    false
                 )
             )
         );
@@ -292,7 +293,8 @@ int main(int argc, char *argv[])
                         regionDir,          // use region if non-standard
                         runTime,
                         IOobject::MUST_READ_IF_MODIFIED,
-                        IOobject::NO_WRITE
+                        IOobject::NO_WRITE,
+                        false
                     ),
                     decompDictFile
                 )
@@ -605,7 +607,10 @@ int main(int argc, char *argv[])
                 (
                     mesh,
                     runTime.timeName(),
-                    cloud::prefix/cloudDirs[i]
+                    cloud::prefix/cloudDirs[i],
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE,
+                    false
                 );
 
                 IOobject* positionsPtr = sprayObjs.lookup(word("positions"));
@@ -687,7 +692,10 @@ int main(int argc, char *argv[])
                     (
                         mesh,
                         runTime.timeName(),
-                        cloud::prefix/cloudDirs[cloudI]
+                        cloud::prefix/cloudDirs[cloudI],
+                        IOobject::MUST_READ,
+                        IOobject::NO_WRITE,
+                        false
                     );
 
                     lagrangianFieldDecomposer::readFields
