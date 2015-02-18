@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -27,6 +27,7 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "UPtrList.H"
 #include "OSspecific.H"
 
 #include "scalar.H"
@@ -76,6 +77,15 @@ public:
 
 int main(int argc, char *argv[])
 {
+
+
+{
+    List<label> a(3, 123);
+    UPtrList<label> b(a);
+    Pout<< "b:" << b << endl;
+}
+
+
     PtrList<Scalar> list1(10);
     PtrList<Scalar> list2(15);
     PtrList<Scalar> listApp;
@@ -84,6 +94,11 @@ int main(int argc, char *argv[])
     {
         list1.set(i, new Scalar(1.3*i));
     }
+    {
+        UPtrList<Scalar> ulist1(list1);
+        Pout<< "ulist1:" << ulist1 << endl;
+    }
+
 
     forAll(list2, i)
     {
@@ -94,6 +109,8 @@ int main(int argc, char *argv[])
     {
         listApp.append(new Scalar(1.3*i));
     }
+
+
 
     Info<<"list1: " << list1 << endl;
     Info<<"list2: " << list2 << endl;
