@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -70,19 +70,20 @@ Foam::BreakupModel<CloudType>::BreakupModel
 :
     CloudSubModelBase<CloudType>(owner, dict, typeName, type),
     solveOscillationEq_(solveOscillationEq),
-    y0_(this->coeffDict().template lookupOrDefault<scalar>("y0", 0.0)),
-    yDot0_(this->coeffDict().template lookupOrDefault<scalar>("yDot0", 0.0)),
-    TABComega_(8),
-    TABCmu_(5),
-    TABtwoWeCrit_(12)
+    y0_(0.0),
+    yDot0_(0.0),
+    TABComega_(0.0),
+    TABCmu_(0.0),
+    TABtwoWeCrit_(0.0)
 {
-    if (solveOscillationEq_ && dict.found("TABCoeffs"))
+    if (solveOscillationEq_)
     {
         const dictionary coeffs(dict.subDict("TABCoeffs"));
-        coeffs.lookup("Comega") >> TABComega_;
-        coeffs.lookup("Cmu") >> TABCmu_;
-        scalar WeCrit(readScalar(coeffs.lookup("WeCrit")));
-        TABtwoWeCrit_ = 2*WeCrit;
+        y0_ = coeffs.template lookupOrDefault<scalar>("y0", 0.0);
+        yDot0_ = coeffs.template lookupOrDefault<scalar>("yDot0", 0.0);
+        TABComega_ = coeffs.template lookupOrDefault<scalar>("Comega", 8.0);
+        TABCmu_ = coeffs.template lookupOrDefault<scalar>("Cmu", 10.0);
+        TABtwoWeCrit_ = coeffs.template lookupOrDefault<scalar>("WeCrit", 12.0);
     }
 }
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,19 +22,19 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::initialResidualDivergenceCondition
+    Foam::equationMaxIterCondition
 
 Description
-    Initial residual run time condition
+    Maximum number of equation iterations run time condition
 
 SourceFiles
-    initialResidualDivergenceCondition.H
-    initialResidualDivergenceCondition.C
+    equationMaxIterCondition.H
+    equationMaxIterCondition.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef initialResidualDivergenceCondition_H
-#define initialResidualDivergenceCondition_H
+#ifndef equationMaxIterCondition_H
+#define equationMaxIterCondition_H
 
 #include "runTimeCondition.H"
 #include "NamedEnum.H"
@@ -45,10 +45,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-             Class initialResidualDivergenceCondition Declaration
+                  Class equationMaxIterCondition Declaration
 \*---------------------------------------------------------------------------*/
 
-class initialResidualDivergenceCondition
+class equationMaxIterCondition
 :
     public runTimeCondition
 {
@@ -59,8 +59,8 @@ protected:
         //- Field name
         const wordList fieldNames_;
 
-        //- Value to compare
-        const scalar value_;
+        //- Threshold for maximum number of iterations
+        const label threshold_;
 
         //- Start checking from iteration - always skips first iteration
         label startIter_;
@@ -69,10 +69,10 @@ protected:
 public:
 
     //- Runtime type information
-    TypeName("initialResidualDivergence");
+    TypeName("equationMaxIter");
 
     //- Constructor
-    initialResidualDivergenceCondition
+    equationMaxIterCondition
     (
         const word& name,
         const objectRegistry& obr,
@@ -81,7 +81,7 @@ public:
     );
 
     //- Destructor
-    virtual ~initialResidualDivergenceCondition();
+    virtual ~equationMaxIterCondition();
 
 
     // Public Member Functions
