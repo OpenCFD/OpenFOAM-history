@@ -87,14 +87,6 @@ void Foam::radiation::fvDOM::initialise()
     // 2D
     else if (mesh_.nSolutionD() == 2)
     {
-        // Currently 2D solution is limited to the x-y plane
-        if (mesh_.solutionD()[vector::Z] != -1)
-        {
-            FatalErrorIn("fvDOM::initialise()")
-                << "Currently 2D solution is limited to the x-y plane"
-                << exit(FatalError);
-        }
-
         scalar thetai = piByTwo;
         scalar deltaTheta = pi;
         nRay_ = 4*nPhi_;
@@ -127,14 +119,6 @@ void Foam::radiation::fvDOM::initialise()
     // 1D
     else
     {
-        // Currently 1D solution is limited to the x-direction
-        if (mesh_.solutionD()[vector::X] != 1)
-        {
-            FatalErrorIn("fvDOM::initialise()")
-                << "Currently 1D solution is limited to the x-direction"
-                << exit(FatalError);
-        }
-
         scalar thetai = piByTwo;
         scalar deltaTheta = pi;
         nRay_ = 2;
@@ -221,8 +205,8 @@ void Foam::radiation::fvDOM::initialise()
         {
             omegaMax_ = IRay_[rayId].omega();
         }
-        Info<< '\t' << IRay_[rayId].I().name() << " : " << "omega : "
-            << '\t' << IRay_[rayId].omega() << nl;
+        Info<< '\t' << IRay_[rayId].I().name() << " : " << "dAve : "
+            << '\t' << IRay_[rayId].dAve() << nl;
     }
 
     Info<< endl;
@@ -339,7 +323,11 @@ Foam::radiation::fvDOM::fvDOM(const volScalarField& T)
     cacheDiv_(coeffs_.lookupOrDefault<bool>("cacheDiv", false)),
     omegaMax_(0),
     useSolarLoad_(false),
-    solarLoad_()
+    solarLoad_(),
+    meshOrientation_
+    (
+        coeffs_.lookupOrDefault<vector>("meshOrientation", vector::zero)
+    )
 {
     initialise();
 }
@@ -430,7 +418,11 @@ Foam::radiation::fvDOM::fvDOM
     cacheDiv_(coeffs_.lookupOrDefault<bool>("cacheDiv", false)),
     omegaMax_(0),
     useSolarLoad_(false),
-    solarLoad_()
+    solarLoad_(),
+    meshOrientation_
+    (
+        coeffs_.lookupOrDefault<vector>("meshOrientation", vector::zero)
+    )
 {
     initialise();
 }

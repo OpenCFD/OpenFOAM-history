@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -101,13 +101,13 @@ void Foam::solarCalculator::calculateBetaTetha()
     scalar L = degToRad(readScalar(dict_.lookup("latitude")));
 
     scalar deltaRad = degToRad(delta);
-    beta_ = asin(cos(L)*cos(deltaRad)*cos(H) + sin(L)*sin(deltaRad));
+    beta_ = max(asin(cos(L)*cos(deltaRad)*cos(H) + sin(L)*sin(deltaRad)), 1e-3);
     tetha_ = acos((sin(beta_)*sin(L) - sin(deltaRad))/(cos(beta_)*cos(L)));
 
     if (debug)
     {
-        Info << "altitude : " << radToDeg(beta_) << endl;
-        Info << "azimuth : " << radToDeg(tetha_) << endl;
+        Info << tab << "altitude : " << radToDeg(beta_) << endl;
+        Info << tab << "azimuth  : " << radToDeg(tetha_) << endl;
     }
 }
 
