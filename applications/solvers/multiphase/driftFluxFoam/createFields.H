@@ -29,7 +29,7 @@
     #include "createPhi.H"
 
 
-    Info<< "Constructing incompressibleTwoPhaseInteractingMixture\n" << endl;
+    Info<< "Reading incompressibleTwoPhaseInteractingMixture\n" << endl;
     incompressibleTwoPhaseInteractingMixture mixture(U, phi);
 
     volScalarField& alpha1(mixture.alpha1());
@@ -83,10 +83,10 @@
     // Construct compressible turbulence model
     autoPtr
     <
-        CompressibleTurbulenceModel<compressibleTransportModel>
+        CompressibleTurbulenceModel<incompressibleTwoPhaseInteractingMixture>
     > turbulence
     (
-        CompressibleTurbulenceModel<compressibleTransportModel>
+        CompressibleTurbulenceModel<incompressibleTwoPhaseInteractingMixture>
         ::New(rho, U, rhoPhi, mixture)
     );
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "CompressibleTurbulenceModel.H"
-#include "compressibleTransportModel.H"
+#include "incompressibleTwoPhaseInteractingMixture.H"
 #include "addToRunTimeSelectionTable.H"
 #include "makeTurbulenceModel.H"
 
@@ -38,25 +38,30 @@ makeBaseTurbulenceModel
     volScalarField,
     compressibleTurbulenceModel,
     CompressibleTurbulenceModel,
-    compressibleTransportModel
+    incompressibleTwoPhaseInteractingMixture
 );
 
 #define makeRASModel(Type)                                                     \
     makeTemplatedTurbulenceModel                                               \
-    (compressibleTransportModelCompressibleTurbulenceModel, RAS, Type)
+    (                                                                          \
+        incompressibleTwoPhaseInteractingMixtureCompressibleTurbulenceModel,   \
+        RAS,                                                                   \
+        Type                                                                   \
+    )
 
 #define makeLESModel(Type)                                                     \
     makeTemplatedTurbulenceModel                                               \
-    (compressibleTransportModelCompressibleTurbulenceModel, LES, Type)
+    (                                                                          \
+        incompressibleTwoPhaseInteractingMixtureCompressibleTurbulenceModel,   \
+        LES,                                                                   \
+        Type                                                                   \
+    )
 
 #include "kEpsilon.H"
 makeRASModel(kEpsilon);
 
 #include "buoyantKEpsilon.H"
 makeRASModel(buoyantKEpsilon);
-
-#include "kOmegaSST.H"
-makeRASModel(kOmegaSST);
 
 #include "Smagorinsky.H"
 makeLESModel(Smagorinsky);
