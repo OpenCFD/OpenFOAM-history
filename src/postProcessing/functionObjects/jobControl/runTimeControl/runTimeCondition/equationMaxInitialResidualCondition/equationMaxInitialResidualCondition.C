@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "initialResidualDivergenceCondition.H"
+#include "equationMaxInitialResidualCondition.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvMesh.H"
 #include "Time.H"
@@ -32,11 +32,11 @@ License
 
 namespace Foam
 {
-    defineTypeNameAndDebug(initialResidualDivergenceCondition, 0);
+    defineTypeNameAndDebug(equationMaxInitialResidualCondition, 0);
     addToRunTimeSelectionTable
     (
         runTimeCondition,
-        initialResidualDivergenceCondition,
+        equationMaxInitialResidualCondition,
         dictionary
     );
 }
@@ -44,7 +44,7 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::initialResidualDivergenceCondition::initialResidualDivergenceCondition
+Foam::equationMaxInitialResidualCondition::equationMaxInitialResidualCondition
 (
     const word& name,
     const objectRegistry& obr,
@@ -61,8 +61,8 @@ Foam::initialResidualDivergenceCondition::initialResidualDivergenceCondition
     {
         WarningIn
         (
-            "Foam::initialResidualDivergenceCondition::"
-            "initialResidualDivergenceCondition"
+            "Foam::equationMaxInitialResidualCondition::"
+            "equationMaxInitialResidualCondition"
             "("
                 "const word&, "
                 "const objectRegistry&, "
@@ -81,13 +81,14 @@ Foam::initialResidualDivergenceCondition::initialResidualDivergenceCondition
 
 // * * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * //
 
-Foam::initialResidualDivergenceCondition::~initialResidualDivergenceCondition()
+Foam::equationMaxInitialResidualCondition::
+~equationMaxInitialResidualCondition()
 {}
 
 
 // * * * * * * * * * * * * * * Public Member Functions * * * * * * * * * * * //
 
-bool Foam::initialResidualDivergenceCondition::apply()
+bool Foam::equationMaxInitialResidualCondition::apply()
 {
     bool satisfied = false;
 
@@ -129,7 +130,7 @@ bool Foam::initialResidualDivergenceCondition::apply()
     {
         if (result[i] < 0)
         {
-            WarningIn("bool Foam::initialResidualDivergenceCondition::apply()")
+            WarningIn("bool Foam::equationMaxInitialResidualCondition::apply()")
                 << "Initial residual data not found for field "
                 << fieldNames_[i] << endl;
         }
@@ -141,7 +142,7 @@ bool Foam::initialResidualDivergenceCondition::apply()
 
     if (!valid)
     {
-        WarningIn("bool Foam::initialResidualDivergenceCondition::apply()")
+        WarningIn("bool Foam::equationMaxInitialResidualCondition::apply()")
             << "Initial residual data not found for any fields: "
             << "deactivating" << endl;
 
@@ -170,7 +171,7 @@ bool Foam::initialResidualDivergenceCondition::apply()
 }
 
 
-void Foam::initialResidualDivergenceCondition::write()
+void Foam::equationMaxInitialResidualCondition::write()
 {
     // do nothing
 }
