@@ -16,5 +16,6 @@ LIB_LIBS = \
     -lsolidSpecie \
     -lturbulenceModels \
     -lspecie \
+    -lliquidProperties \
     -lfiniteVolume \
     -lmeshTools
