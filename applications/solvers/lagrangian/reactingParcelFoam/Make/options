@@ -8,6 +8,7 @@ EXE_INC = \
     -I$(LIB_SRC)/lagrangian/coalCombustion/lnInclude \
     -I$(LIB_SRC)/lagrangian/distributionModels/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/properties/liquidProperties/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/properties/liquidMixtureProperties/lnInclude \
@@ -19,7 +20,6 @@ EXE_INC = \
     -I$(LIB_SRC)/thermophysicalModels/chemistryModel/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/radiation/lnInclude \
     -I$(LIB_SRC)/ODE/lnInclude \
-    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
     -I$(LIB_SRC)/regionModels/regionModel/lnInclude \
     -I$(LIB_SRC)/regionModels/surfaceFilmModels/lnInclude \
     -I$(LIB_SRC)/combustionModels/lnInclude \
@@ -35,6 +35,7 @@ EXE_LIBS = \
     -lcompressibleTurbulenceModels \
     -llagrangian \
     -llagrangianIntermediate \
+    -llagrangianTurbulence \
     -lspecie \
     -lfluidThermophysicalModels \
     -lliquidProperties \
