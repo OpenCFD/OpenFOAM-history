@@ -402,17 +402,25 @@ void Foam::SprayParcel<ParcelType>::solveTABEq
         scalar rhoc = this->rhoc();
         scalar We = this->We(this->U(), r, rhoc, sigma_)/TABtwoWeCrit;
 
-        // Initial values for y and yDot
-        scalar y0 = this->y() - We;
-        scalar yDot0 = this->yDot() + y0*rtd;
+        scalar y1 = this->y() - We;
+        scalar y2 = this->yDot()/omega;
 
         // Update distortion parameters
         scalar c = cos(omega*dt);
         scalar s = sin(omega*dt);
         scalar e = exp(-rtd*dt);
+        y2 = (this->yDot() + y1*rtd)/omega;
 
-        this->y() = We + e*(y0*c + (yDot0/omega)*s);
-        this->yDot() = (We - this->y())*rtd + e*(yDot0*c - omega*y0*s);
+        this->y() = We + e*(y1*c + y2*s);
+        if (this->y() < 0)
+        {
+            this->y() = 0.0;
+            this->yDot() = 0.0;
+        }
+        else
+        {
+            this->yDot() = (We - this->y())*rtd + e*omega*(y2*c - y1*s);
+        }
     }
     else
     {
