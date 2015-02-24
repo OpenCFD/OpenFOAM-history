@@ -74,10 +74,10 @@ public:
 
         // Per specie properties
 
-            //- Number of moles []
+            //- Number of moles of the given specie []
             virtual scalar nMoles(const label speciei) const;
 
-            //- Molecular weight [kg/kmol]
+            //- Molecular weight of the given specie [kg/kmol]
             virtual scalar W(const label speciei) const;
 
 
@@ -180,7 +180,7 @@ public:
             //- Density [kg/m3]
             virtual scalar rho
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const;

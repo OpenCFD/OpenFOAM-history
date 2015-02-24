@@ -23,6 +23,13 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+inline const Foam::speciesTable&
+Foam::basicMultiComponentMixture::species() const
+{
+    return species_;
+}
+
+
 inline Foam::PtrList<Foam::volScalarField>&
 Foam::basicMultiComponentMixture::Y()
 {

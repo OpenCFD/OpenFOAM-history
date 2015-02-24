@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,6 +32,7 @@ namespace Foam
     defineTypeNameAndDebug(basicSpecieMixture, 0);
 }
 
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::basicSpecieMixture::basicSpecieMixture
@@ -52,7 +53,7 @@ Foam::tmp<Foam::volScalarField> Foam::basicSpecieMixture::W() const
 {
     const PtrList<volScalarField>& Y(basicMultiComponentMixture::Y());
 
-    tmp<volScalarField> tmpOneByW
+    tmp<volScalarField> trW
     (
         new volScalarField
         (
@@ -67,14 +68,16 @@ Foam::tmp<Foam::volScalarField> Foam::basicSpecieMixture::W() const
         )
     );
 
-    volScalarField& oneByW = tmpOneByW();
+    volScalarField& rW = trW();
 
     forAll(Y, i)
     {
-        oneByW += Y[i]/W(i);
+        rW += Y[i]/W(i);
     }
 
-    return scalar(1)/oneByW;
+    rW = 1.0/rW;
+
+    return trW;
 }
 
 

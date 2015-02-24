@@ -158,7 +158,7 @@ public:
         void read(const dictionary&);
 
         //- Return thermo based on index
-        const ThermoType& getLocalThermo(const label specieI) const;
+        const ThermoType& getLocalThermo(const label speciei) const;
 };
 
 

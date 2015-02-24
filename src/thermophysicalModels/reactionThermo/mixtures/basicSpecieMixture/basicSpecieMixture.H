@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,7 +25,8 @@ Class
     Foam::basicSpecieMixture
 
 Description
-    Specie mixture.
+    Specialization of basicMultiComponentMixture for a mixture consisting
+    of a number for molecular species.
 
 SourceFiles
     basicSpecieMixture.C
@@ -81,13 +82,13 @@ public:
 
         // Per specie properties
 
-            //- Number of moles []
-            virtual scalar nMoles(const label specieI) const = 0;
+            //- Number of moles of the given specie []
+            virtual scalar nMoles(const label speciei) const = 0;
 
-            //- Molecular weight [kg/kmol]
-            virtual scalar W(const label specieI) const = 0;
+            //- Molecular weight of the given specie [kg/kmol]
+            virtual scalar W(const label speciei) const = 0;
 
-            //- Average moleculat weight of the mixture [kg/kmol]
+            //- Molecular weight of the mixture [kg/kmol]
             tmp<volScalarField> W() const;
 
 
@@ -96,7 +97,7 @@ public:
             //- Heat capacity at constant pressure [J/(kg K)]
             virtual scalar Cp
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -104,7 +105,7 @@ public:
             //- Heat capacity at constant volume [J/(kg K)]
             virtual scalar Cv
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -112,7 +113,7 @@ public:
             //- Absolute enthalpy [J/kg]
             virtual scalar Ha
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -120,18 +121,18 @@ public:
             //- Sensible enthalpy [J/kg]
             virtual scalar Hs
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
 
             //- Chemical enthalpy [J/kg]
-            virtual scalar Hc(const label specieI) const = 0;
+            virtual scalar Hc(const label speciei) const = 0;
 
             //- Entropy [J/(kg K)]
             virtual scalar S
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -139,7 +140,7 @@ public:
             //- Sensible internal energy [J/kg]
             virtual scalar Es
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -147,7 +148,7 @@ public:
             //- Gibbs free energy [J/kg]
             virtual scalar G
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -155,7 +156,7 @@ public:
             //- Helmholtz free energy [J/kg]
             virtual scalar A
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -166,7 +167,7 @@ public:
             //- Dynamic viscosity [kg/m/s]
             virtual scalar mu
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -174,7 +175,7 @@ public:
             //- Thermal conductivity [W/m/K]
             virtual scalar kappa
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -182,7 +183,7 @@ public:
             //- Thermal diffusivity of enthalpy [kg/m/s]
             virtual scalar alphah
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
@@ -190,7 +191,7 @@ public:
             //- Density [kg/m3]
             virtual scalar rho
             (
-                const label specieI,
+                const label speciei,
                 const scalar p,
                 const scalar T
             ) const = 0;
