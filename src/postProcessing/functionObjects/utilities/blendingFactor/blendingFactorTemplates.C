@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -104,15 +104,34 @@ void Foam::blendingFactor::calc()
             << exit(FatalError);
     }
 
-    // retrieve the face-based blending factor
+    // Retrieve the face-based blending factor
     const blendedSchemeBase<Type>& blendedScheme =
         refCast<const blendedSchemeBase<Type> >(interpScheme);
     const surfaceScalarField factorf(blendedScheme.blendingFactor(field));
 
-    // convert into vol field whose values represent the local face maxima
+    // Convert into vol field whose values represent the local face maxima
     volScalarField& factor = this->factor(field);
     factor = fvc::cellReduce(factorf, maxEqOp<scalar>());
     factor.correctBoundaryConditions();
+
+    // Output the number of blended cells, i.e. where factor != 0, 1
+    label nCells = 0;
+    forAll(factor, cellI)
+    {
+        scalar f = factor[cellI];
+
+        if ((f < (1 - tolerance_)) && (f > tolerance_))
+        {
+            nCells++;
+        }
+    }
+
+    reduce(nCells, sumOp<label>());
+
+    Info(log_)
+        << type() << " " << name_ << " output:" << nl
+        << "    blended cells:  " << nCells << nl
+        << endl;
 }
 
 
