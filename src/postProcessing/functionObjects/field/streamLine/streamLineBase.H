@@ -132,13 +132,13 @@ protected:
 
         // Generated data
 
-            //- All tracks. Per particle the points it passed through
+            //- All tracks. Per track the points it passed through
             DynamicList<List<point> > allTracks_;
 
-            //- Per scalarField, per particle, the sampled value.
+            //- Per scalarField, per track, the sampled values
             List<DynamicList<scalarList> > allScalars_;
 
-            //- Per scalarField, per particle, the sampled value.
+            //- Per vectorField, per track, the sampled values
             List<DynamicList<vectorList> > allVectors_;
 
 
@@ -168,7 +168,17 @@ protected:
             DynamicList<point>& newTrack,
             DynamicList<List<scalar> >& newScalars,
             DynamicList<List<vector> >& newVectors
-        );
+        ) const;
+
+        //- Trim and possibly split a track
+        void trimToBox
+        (
+            const treeBoundBox& bb,
+            const label trackI,
+            PtrList<DynamicList<point> >& newTracks,
+            PtrList<DynamicList<scalarList> >& newScalars,
+            PtrList<DynamicList<vectorList> >& newVectors
+        ) const;
 
         //- Trim tracks to bounding box
         void trimToBox(const treeBoundBox& bb);
