@@ -42,6 +42,8 @@ Description
 
 #include "fvCFD.H"
 #include "CMULES.H"
+#include "EulerDdtScheme.H"
+#include "CrankNicolsonDdtScheme.H"
 #include "subCycle.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
