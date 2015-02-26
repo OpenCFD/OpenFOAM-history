@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -178,6 +178,13 @@ bool Foam::OutputFilterFunctionObject<OutputFilter>::execute
         {
             destroyFilter();
         }
+    }
+    else if (enabled_ && time_.value() > timeEnd_)
+    {
+        // End early if the time is controlled by the user timeEnd entry
+        end();
+
+        enabled_ = false;
     }
 
     return true;
