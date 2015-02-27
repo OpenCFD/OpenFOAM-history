@@ -43,6 +43,7 @@ Description
 #include "fvCFD.H"
 #include "CMULES.H"
 #include "EulerDdtScheme.H"
+#include "localEulerDdtScheme.H"
 #include "CrankNicolsonDdtScheme.H"
 #include "subCycle.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
