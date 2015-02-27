@@ -277,7 +277,7 @@ void Foam::streamLineBase::storePoint
     DynamicList<point>& newTrack,
     DynamicList<scalarList>& newScalars,
     DynamicList<vectorList>& newVectors
-)
+) const
 {
     label sz = newTrack.size();
 
@@ -311,156 +311,220 @@ void Foam::streamLineBase::storePoint
 }
 
 
+// Can split a track into multiple tracks
+void Foam::streamLineBase::trimToBox
+(
+    const treeBoundBox& bb,
+    const label trackI,
+    PtrList<DynamicList<point> >& newTracks,
+    PtrList<DynamicList<scalarList> >& newScalars,
+    PtrList<DynamicList<vectorList> >& newVectors
+) const
+{
+    const List<point>& track = allTracks_[trackI];
+    if (track.size())
+    {
+        for
+        (
+            label segmentI = 1;
+            segmentI < track.size();
+            segmentI++
+        )
+        {
+            const point& startPt = track[segmentI-1];
+            const point& endPt = track[segmentI];
+
+            const vector d(endPt-startPt);
+            scalar magD = mag(d);
+            if (magD > ROOTVSMALL)
+            {
+                if (bb.contains(startPt))
+                {
+                    // Store 1.0*track[segmentI-1]+0*track[segmentI]
+                    storePoint
+                    (
+                        trackI,
+
+                        0.0,
+                        segmentI-1,
+                        segmentI,
+
+                        newTracks.last(),
+                        newScalars.last(),
+                        newVectors.last()
+                    );
+
+                    if (!bb.contains(endPt))
+                    {
+                        point clipPt;
+                        if (bb.intersects(endPt, startPt, clipPt))
+                        {
+                            // End of track. Store point and interpolated
+                            // values
+                            storePoint
+                            (
+                                trackI,
+
+                                mag(clipPt-startPt)/magD,
+                                segmentI-1,
+                                segmentI,
+
+                                newTracks.last(),
+                                newScalars.last(),
+                                newVectors.last()
+                            );
+
+                            newTracks.last().shrink();
+                            newScalars.last().shrink();
+                            newVectors.last().shrink();
+                        }
+                    }
+                }
+                else
+                {
+                    // startPt outside box. New track. Get starting point
+
+                    point clipPt;
+                    if (bb.intersects(startPt, endPt, clipPt))
+                    {
+                        // New track
+                        newTracks.append
+                        (
+                            new DynamicList<point>(track.size()/10)
+                        );
+                        newScalars.append
+                        (
+                            new DynamicList<scalarList>(track.size()/10)
+                        );
+                        newVectors.append
+                        (
+                            new DynamicList<vectorList>(track.size()/10)
+                        );
+
+                        // Store point and interpolated values
+                        storePoint
+                        (
+                            trackI,
+
+                            mag(clipPt-startPt)/magD,
+                            segmentI-1,
+                            segmentI,
+
+                            newTracks.last(),
+                            newScalars.last(),
+                            newVectors.last()
+                        );
+
+                        if (!bb.contains(endPt))
+                        {
+                            bb.intersects
+                            (
+                                endPt,
+                                point(clipPt),
+                                clipPt
+                            );
+
+                            // Store point and interpolated values
+                            storePoint
+                            (
+                                trackI,
+
+                                mag(clipPt-startPt)/magD,
+                                segmentI-1,
+                                segmentI,
+
+                                newTracks.last(),
+                                newScalars.last(),
+                                newVectors.last()
+                            );
+
+                            newTracks.last().shrink();
+                            newScalars.last().shrink();
+                            newVectors.last().shrink();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Last point
+        if (bb.contains(track.last()))
+        {
+            storePoint
+            (
+                trackI,
+
+                1.0,
+                track.size()-2,
+                track.size()-1,
+
+                newTracks.last(),
+                newScalars.last(),
+                newVectors.last()
+            );
+        }
+    }
+}
+
+
 void Foam::streamLineBase::trimToBox(const treeBoundBox& bb)
 {
+    // Storage for new tracks. Per track, per sample the coordinate (newTracks)
+    // or values for all the sampled fields (newScalars, newVectors)
+    PtrList<DynamicList<point> > newTracks;
+    PtrList<DynamicList<scalarList> > newScalars;
+    PtrList<DynamicList<vectorList> > newVectors;
+
     forAll(allTracks_, trackI)
     {
         const List<point>& track = allTracks_[trackI];
 
         if (track.size())
         {
-            // Storage for new track
-            DynamicList<point> newTrack(track.size());
-            DynamicList<scalarList> newScalars(track.size());
-            DynamicList<vectorList> newVectors(track.size());
+            // New track. Assume it consists of the whole track
+            newTracks.append(new DynamicList<point>(track.size()));
+            newScalars.append(new DynamicList<scalarList>(track.size()));
+            newVectors.append(new DynamicList<vectorList>(track.size()));
 
-            for
-            (
-                label segmentI = 1;
-                segmentI < track.size();
-                segmentI++
-            )
+            // Trim, split and append to newTracks
+            trimToBox(bb, trackI, newTracks, newScalars, newVectors);
+        }
+    }
+
+    // Transfer newTracks to allTracks_
+    allTracks_.setSize(newTracks.size());
+    forAll(allTracks_, trackI)
+    {
+        allTracks_[trackI].transfer(newTracks[trackI]);
+    }
+    // Replace track scalars
+    forAll(allScalars_, scalarI)
+    {
+        DynamicList<scalarList>& fieldVals = allScalars_[scalarI];
+        fieldVals.setSize(newTracks.size());
+
+        forAll(fieldVals, trackI)
+        {
+            scalarList& trackVals = allScalars_[scalarI][trackI];
+            trackVals.setSize(newScalars[trackI].size());
+            forAll(trackVals, sampleI)
             {
-                const point& startPt = track[segmentI-1];
-                const point& endPt = track[segmentI];
-
-                const vector d(endPt-startPt);
-                scalar magD = mag(d);
-                if (magD > ROOTVSMALL)
-                {
-                    if (bb.contains(startPt))
-                    {
-                        // Store 1.0*track[segmentI-1]+0*track[segmentI]
-                        storePoint
-                        (
-                            trackI,
-
-                            0.0,
-                            segmentI-1,
-                            segmentI,
-
-                            newTrack,
-                            newScalars,
-                            newVectors
-                        );
-                        if (!bb.contains(endPt))
-                        {
-                            point clipPt;
-                            bb.intersects(endPt, startPt, clipPt);
-
-                            // Store point and interpolated values
-                            storePoint
-                            (
-                                trackI,
-
-                                mag(clipPt-startPt)/magD,
-                                segmentI-1,
-                                segmentI,
-
-                                newTrack,
-                                newScalars,
-                                newVectors
-                            );
-                        }
-                    }
-                    else
-                    {
-                        // startPt outside box. Get starting point
-
-                        point clipPt;
-                        if (bb.intersects(startPt, endPt, clipPt))
-                        {
-                            // Store point and interpolated values
-                            storePoint
-                            (
-                                trackI,
-
-                                mag(clipPt-startPt)/magD,
-                                segmentI-1,
-                                segmentI,
-
-                                newTrack,
-                                newScalars,
-                                newVectors
-                            );
-
-                            if (!bb.contains(endPt))
-                            {
-                                bb.intersects
-                                (
-                                    endPt,
-                                    point(clipPt),
-                                    clipPt
-                                );
-
-                                // Store point and interpolated values
-                                storePoint
-                                (
-                                    trackI,
-
-                                    mag(clipPt-startPt)/magD,
-                                    segmentI-1,
-                                    segmentI,
-
-                                    newTrack,
-                                    newScalars,
-                                    newVectors
-                                );
-                            }
-                        }
-                    }
-                }
+                trackVals[sampleI] = newScalars[trackI][sampleI][scalarI];
             }
-
-            // Last point
-            if (bb.contains(track.last()))
+        }
+    }
+    // Replace track vectors
+    forAll(allVectors_, vectorI)
+    {
+        DynamicList<vectorList>& fieldVals = allVectors_[vectorI];
+        fieldVals.setSize(newTracks.size());
+        forAll(fieldVals, trackI)
+        {
+            vectorList& trackVals = allVectors_[vectorI][trackI];
+            trackVals.setSize(newVectors[trackI].size());
+            forAll(trackVals, sampleI)
             {
-                storePoint
-                (
-                    trackI,
-
-                    1.0,
-                    track.size()-2,
-                    track.size()-1,
-
-                    newTrack,
-                    newScalars,
-                    newVectors
-                );
-            }
-
-
-            // Replace track points
-            allTracks_[trackI].transfer(newTrack);
-            // Replace track scalars
-            forAll(allScalars_, scalarI)
-            {
-                scalarList& trackVals = allScalars_[scalarI][trackI];
-                trackVals.setSize(newScalars.size());
-                forAll(newScalars, segmentI)
-                {
-                    trackVals[segmentI] = newScalars[segmentI][scalarI];
-                }
-            }
-            // Replace track vectors
-            forAll(allVectors_, vectorI)
-            {
-                vectorList& trackVals = allVectors_[vectorI][trackI];
-                trackVals.setSize(newVectors.size());
-                forAll(newVectors, segmentI)
-                {
-                    trackVals[segmentI] = newVectors[segmentI][vectorI];
-                }
+                trackVals[sampleI] = newVectors[trackI][sampleI][vectorI];
             }
         }
     }

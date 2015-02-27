@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,7 +44,7 @@ const Foam::scalar Foam::cyclicACMIPolyPatch::tolerance_ = 1e-6;
 
 void Foam::cyclicACMIPolyPatch::initPatchFaceAreas() const
 {
-    if (!empty() && faceAreas0_.empty())
+    if (!empty() && (faceAreas0_.empty() || boundaryMesh().mesh().moving()))
     {
         faceAreas0_ = faceAreas();
     }
@@ -52,9 +52,13 @@ void Foam::cyclicACMIPolyPatch::initPatchFaceAreas() const
     const cyclicACMIPolyPatch& nbrACMI =
         refCast<const cyclicACMIPolyPatch>(this->neighbPatch());
 
-    if (!nbrACMI.empty() && nbrACMI.faceAreas0().empty())
+    if
+    (
+        !nbrACMI.empty()
+     && (nbrACMI.faceAreas0().empty() || boundaryMesh().mesh().moving())
+    )
     {
-        nbrACMI.initPatchFaceAreas();
+        nbrACMI.faceAreas0_ = nbrACMI.faceAreas();
     }
 }
 
