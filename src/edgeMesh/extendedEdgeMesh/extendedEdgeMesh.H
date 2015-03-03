@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -138,7 +138,7 @@ protected:
         static label externalStart_;
 
 
-    // Private data
+    // Protected data
 
         //- Index of the start of the concave feature points
         label concaveStart_;
@@ -200,15 +200,23 @@ protected:
         mutable PtrList<indexedOctree<treeDataEdge> > edgeTreesByType_;
 
 
-    // Private Member Functions
+    // Protected Member Functions
 
-        //- Classify the type of feature point.  Requires valid stored member
+        //- Classify the type of feature point. Requires valid stored member
         //  data for edges and normals.
         pointStatus classifyFeaturePoint(label ptI) const;
 
         //- Cut edges with surface. Return map from cut points&edges back
         //  to original
-        void cut(const searchableSurface&, labelList& pMap, labelList& eMap);
+        void cut
+        (
+            const searchableSurface&,
+            labelList& pMap,
+            labelList& eMap,
+            labelList& pointsFromEdge,  // new points created by cutting
+            labelList& oldEdge,         // the orginal edge
+            labelList& surfTri          // the surface triangle index
+        );
 
         //- Remove outside/inside edges. volType denotes which side to keep
         void select
@@ -522,11 +530,29 @@ public:
                 const labelList& edgeMap
             );
 
-            //- Trim to surface. Keep volType side.
+            //- Trim to surface. Keep volType side. Return map from current back
+            //  to original points (-1 for newly introduced points), edges
             void trim
             (
                 const searchableSurface& surf,
                 const volumeType volType,
+                labelList& pointMap,
+                labelList& edgeMap
+            );
+
+            //- Order according to point and edge status
+            void setFromStatus
+            (
+                const List<extendedEdgeMesh::pointStatus>& pointStat,
+                const List<extendedEdgeMesh::edgeStatus>& edgeStat,
+                labelList& sortedToOriginalPoint,
+                labelList& sortedToOriginalEdge
+            );
+
+            //- Geometric merge points. Returns true if any points merged
+            bool mergePoints
+            (
+                const scalar mergeDist,
                 labelList& pointMap,
                 labelList& edgeMap
             );
@@ -560,6 +586,24 @@ public:
             const List<vector>& norms,
             const labelList& edNorms,
             const vector& fC0tofC1
+        );
+
+        //- Determine the ordering
+        static void sortedOrder
+        (
+            const List<extendedEdgeMesh::pointStatus>& pointStat,
+            const List<extendedEdgeMesh::edgeStatus>& edgeStat,
+            labelList& sortedToOriginalPoint,
+            labelList& sortedToOriginalEdge,
+
+            label& pointConcaveStart,
+            label& pointMixedStart,
+            label& pointNonFeatStart,
+
+            label& edgeInternalStart,
+            label& edgeFlatStart,
+            label& edgeOpenStart,
+            label& edgeMultipleStart
         );
 
 
