@@ -31,7 +31,7 @@ inline const Foam::fvMesh& Foam::combustionModel::mesh() const
 }
 
 
-inline const Foam::surfaceScalarField& Foam::combustionModel::phi() const
+inline Foam::tmp<Foam::surfaceScalarField> Foam::combustionModel::phi() const
 {
     if (turbulencePtr_)
     {
@@ -53,7 +53,7 @@ inline const Foam::surfaceScalarField& Foam::combustionModel::phi() const
 }
 
 
-inline const Foam::compressible::turbulenceModel&
+inline const Foam::compressibleTurbulenceModel&
 Foam::combustionModel::turbulence() const
 {
     if (turbulencePtr_)
@@ -84,10 +84,13 @@ inline const Foam::Switch& Foam::combustionModel::active() const
 
 inline void Foam::combustionModel::setTurbulence
 (
-    compressible::turbulenceModel& turbModel
+   compressibleTurbulenceModel& turbModel
 )
 {
-    turbulencePtr_ = &turbModel;
+    if (!turbulencePtr_)
+    {
+        turbulencePtr_ = &turbModel;
+    }
 }
 
 
