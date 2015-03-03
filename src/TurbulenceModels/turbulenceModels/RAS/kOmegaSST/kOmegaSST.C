@@ -65,6 +65,7 @@ tmp<volScalarField> kOmegaSST<BasicTurbulenceModel>::kOmegaSST::F1
     return tanh(pow4(arg1));
 }
 
+
 template<class BasicTurbulenceModel>
 tmp<volScalarField> kOmegaSST<BasicTurbulenceModel>::kOmegaSST::F2() const
 {
@@ -81,6 +82,7 @@ tmp<volScalarField> kOmegaSST<BasicTurbulenceModel>::kOmegaSST::F2() const
     return tanh(sqr(arg2));
 }
 
+
 template<class BasicTurbulenceModel>
 tmp<volScalarField> kOmegaSST<BasicTurbulenceModel>::kOmegaSST::F3() const
 {
@@ -92,6 +94,7 @@ tmp<volScalarField> kOmegaSST<BasicTurbulenceModel>::kOmegaSST::F3() const
 
     return 1 - tanh(pow4(arg3));
 }
+
 
 template<class BasicTurbulenceModel>
 tmp<volScalarField> kOmegaSST<BasicTurbulenceModel>::kOmegaSST::F23() const
