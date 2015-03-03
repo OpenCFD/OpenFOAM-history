@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,6 +49,7 @@ Foam::blendingFactor::blendingFactor
     active_(true),
     phiName_("phi"),
     fieldName_("unknown-fieldName"),
+    tolerance_(0.001),
     log_(true)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
@@ -88,6 +89,14 @@ void Foam::blendingFactor::read(const dictionary& dict)
 
         dict.readIfPresent("phiName", phiName_);
         dict.lookup("fieldName") >> fieldName_;
+        dict.readIfPresent("tolerance", tolerance_);
+
+        if ((tolerance_ < 0) || (tolerance_ > 1))
+        {
+            FatalErrorIn("void Foam::blendingFactor::read(const dictionary&)")
+                << "tolerance must be in the range 0 to 1.  Supplied value: "
+                << tolerance_ << exit(FatalError);
+        }
     }
 }
 

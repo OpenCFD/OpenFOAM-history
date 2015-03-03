@@ -1055,14 +1055,14 @@ int main(int argc, char *argv[])
                 // Periodic
                 size_t n = name.rfind("-SIDE-1");
 
-                if (n != string::npos)
+                if (n != std::string::npos)
                 {
                     neighbPatchName = name.substr(0, n) + "-SIDE-2";
                 }
                 else
                 {
                     n = name.rfind("-SIDE-2");
-                    if (n != string::npos)
+                    if (n != std::string::npos)
                     {
                         neighbPatchName = name.substr(0, n) + "-SIDE-1";
                     }

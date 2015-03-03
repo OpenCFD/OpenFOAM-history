@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -46,8 +46,9 @@ Description
     \table
         Property     | Description             | Required    | Default value
         type         | Type name: blendingFactor | yes       |
-        fieldName    | Name of field to evaluate | yes       |
         phiName      | Name of flux field      | no          | phi
+        fieldName    | Name of field to evaluate | yes       |
+        tolerance    | Tolerance for number of bleneded cells | no | 0.001
         log          | Log to standard output  | no          | yes
     \endtable
 
@@ -77,7 +78,7 @@ class polyMesh;
 class mapPolyMesh;
 
 /*---------------------------------------------------------------------------*\
-                          Class blendingFactor Declaration
+                       Class blendingFactor Declaration
 \*---------------------------------------------------------------------------*/
 
 class blendingFactor
@@ -98,6 +99,9 @@ class blendingFactor
 
         //- Field name
         word fieldName_;
+
+        //- Tolerance used when calculating the number of blended cells
+        scalar tolerance_;
 
         //- Switch to send output to Info as well as to file
         Switch log_;
