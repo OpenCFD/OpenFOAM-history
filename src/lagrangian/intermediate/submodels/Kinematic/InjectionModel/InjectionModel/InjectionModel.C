@@ -514,10 +514,10 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
     scalar massAdded = 0.0;
     label newParcels = 0;
     scalar newVolumeFraction = 0.0;
+    scalar delayedVolume = 0;
 
     if (prepareForNextTimeStep(time, newParcels, newVolumeFraction))
     {
-        scalar delayedVolume = 0;
 
         const scalar trackTime = this->owner().solution().trackTime();
         const polyMesh& mesh = this->owner().mesh();
@@ -619,9 +619,9 @@ void Foam::InjectionModel<CloudType>::inject(TrackData& td)
                 }
             }
         }
-
-        delayedVolume_ = returnReduce(delayedVolume, sumOp<scalar>());
     }
+
+    delayedVolume_ = returnReduce(delayedVolume, sumOp<scalar>());
 
     postInjectCheck(parcelsAdded, massAdded);
 }

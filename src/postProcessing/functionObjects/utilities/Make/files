@@ -6,10 +6,9 @@ codedFunctionObject/codedFunctionObject.C
 CourantNo/CourantNo.C
 CourantNo/CourantNoFunctionObject.C
 
-/*
 DESModelRegions/DESModelRegions.C
 DESModelRegions/DESModelRegionsFunctionObject.C
-*/
+
 dsmcFields/dsmcFields.C
 dsmcFields/dsmcFieldsFunctionObject.C
 
@@ -47,5 +46,7 @@ yPlus/yPlus.C
 yPlus/yPlusFunctionObject.C
 
 setTimeStep/setTimeStepFunctionObject.C
+
+reactionSensitivityAnalysis/reactionsSensitivityAnalysisFunctionObject.C
 
 LIB = $(FOAM_LIBBIN)/libutilityFunctionObjects

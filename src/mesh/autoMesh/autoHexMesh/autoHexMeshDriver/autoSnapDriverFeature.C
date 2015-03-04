@@ -2045,8 +2045,7 @@ void Foam::autoSnapDriver::avoidDiagonalAttraction
                     label minPointI = f[minFp];
                     patchAttraction[minPointI] =
                         mid-pp.localPoints()[minPointI];
-                    patchConstraints[minPointI] =
-                        patchConstraints[f[diag[0]]];
+                    patchConstraints[minPointI] = patchConstraints[f[diag[0]]];
                 }
             }
             else
@@ -2131,8 +2130,7 @@ Foam::autoSnapDriver::findNearFeatureEdge
         edgeConstraints[featI][nearInfo.index()].append(c);
 
         // Store for later use
-        patchAttraction[pointI] =
-            nearInfo.hitPoint()-pp.localPoints()[pointI];
+        patchAttraction[pointI] = nearInfo.hitPoint()-pp.localPoints()[pointI];
         patchConstraints[pointI] = c;
     }
     return Tuple2<label, pointIndexHit>(featI, nearInfo);
@@ -2161,6 +2159,8 @@ Foam::autoSnapDriver::findNearFeaturePoint
 ) const
 {
     const refinementFeatures& features = meshRefiner_.features();
+
+    // Search for for featurePoints only! This ignores any non-feature points.
 
     labelList nearFeat;
     List<pointIndexHit> nearInfo;
@@ -2203,8 +2203,7 @@ Foam::autoSnapDriver::findNearFeaturePoint
 
                 // Store for later use
                 patchAttraction[pointI] = featPt-pt;
-                patchConstraints[pointI] =
-                    pointConstraints[featI][featPointI];
+                patchConstraints[pointI] = pointConstraints[featI][featPointI];
 
                 // Reset oldPointI to nearest on feature edge
                 patchAttraction[oldPointI] = vector::zero;
@@ -2274,6 +2273,8 @@ void Foam::autoSnapDriver::determineFeatures
     autoPtr<OBJstream> featureEdgeStr;
     autoPtr<OBJstream> missedEdgeStr;
     autoPtr<OBJstream> featurePointStr;
+    autoPtr<OBJstream> missedMP0Str;
+    autoPtr<OBJstream> missedMP1Str;
 
     if (debug&meshRefinement::ATTRACTION)
     {
@@ -2309,6 +2310,28 @@ void Foam::autoSnapDriver::determineFeatures
         );
         Info<< "Dumping feature-point sampling to "
             << featurePointStr().name() << endl;
+
+        missedMP0Str.reset
+        (
+            new OBJstream
+            (
+                meshRefiner_.mesh().time().path()
+              / "missedFeatureEdgeFromMPEdge_" + name(iter) + ".obj"
+            )
+        );
+        Info<< "Dumping region-edges that are too far away to "
+            << missedMP0Str().name() << endl;
+
+        missedMP1Str.reset
+        (
+            new OBJstream
+            (
+                meshRefiner_.mesh().time().path()
+              / "missedFeatureEdgeFromMPPoint_" + name(iter) + ".obj"
+            )
+        );
+        Info<< "Dumping region-points that are too far away to "
+            << missedMP1Str().name() << endl;
     }
 
 
@@ -2319,6 +2342,15 @@ void Foam::autoSnapDriver::determineFeatures
     forAll(pp.localPoints(), pointI)
     {
         const point& pt = pp.localPoints()[pointI];
+
+
+        // Determine the geometric planes the point is (approximately) on.
+        // This is returned as a
+        // - attraction vector
+        // - and a constraint
+        //   (1: attract to surface, constraint is normal of plane
+        //    2: attract to feature line, constraint is feature line direction
+        //    3: attract to feature point, constraint is zero)
 
         vector attraction = vector::zero;
         pointConstraint constraint;
@@ -2346,6 +2378,35 @@ void Foam::autoSnapDriver::determineFeatures
             attraction,
             constraint
         );
+
+        // Now combine the reconstruction with the current state of the
+        // point. The logic is quite complicated:
+        // - the new constraint (from reconstruction) will only win if
+        //   - the constraint is higher (feature-point wins from feature-edge
+        //     etc.)
+        //   - or the constraint is the same but the attraction distance is less
+        //
+        // - then this will be combined with explicit searching on the
+        //   features and optionally the analysis of the patches using the
+        //   point. This analysis can do three thing:
+        //      - the point is not on multiple patches
+        //      - the point is on multiple patches but these are also
+        //        different planes (so the region feature is also a geometric
+        //        feature)
+        //      - the point is on multiple patches some of which are on
+        //        the same plane. This is the problem one - do we assume it is
+        //        an additional constraint (feat edge upgraded to region point,
+        //        see below)?
+        //
+        //      Reconstruction  MultiRegionFeatureSnap          Attraction
+        //      -------         ----------------------          -----------
+        //      surface         false                           surface
+        //      surface         true                            region edge
+        //      feat edge       false                           feat edge
+        //      feat edge       true and no planar regions      feat edge
+        //      feat edge       true and yes planar regions     region point
+        //      feat point      false                           feat point
+        //      feat point      true                            region point
 
 
         if
@@ -2386,7 +2447,7 @@ void Foam::autoSnapDriver::determineFeatures
                         Tuple2<label, pointIndexHit> nearInfo =
                         findNearFeatureEdge
                         (
-                            true,                       // isRegionPoint
+                            true,                       // isRegionEdge
                             pp,
                             snapDist,
                             pointI,
@@ -2417,7 +2478,7 @@ void Foam::autoSnapDriver::determineFeatures
                             {
                                 missedEdgeStr().write
                                 (
-                                    linePointRef(pt, info.missPoint())
+                                    linePointRef(pt, multiPatchPt.hitPoint())
                                 );
                             }
                         }
@@ -2451,10 +2512,10 @@ void Foam::autoSnapDriver::determineFeatures
                     {
                         if (multiPatchPt.index() == 0)
                         {
-                            // Geometric feature edge is also region edge
+                            // Region edge is also a geometric feature edge
                             nearInfo = findNearFeatureEdge
                             (
-                                true,               // isRegionPoint
+                                true,               // isRegionEdge
                                 pp,
                                 snapDist,
                                 pointI,
@@ -2467,11 +2528,28 @@ void Foam::autoSnapDriver::determineFeatures
                                 patchConstraints
                             );
                             hasSnapped = true;
+
+                            // Debug: dump missed feature point
+                            if
+                            (
+                                missedMP0Str.valid()
+                            && !nearInfo.second().hit()
+                            )
+                            {
+                                missedMP0Str().write
+                                (
+                                    linePointRef(pt, estimatedPt)
+                                );
+                            }
                         }
                         else
                         {
                             // One of planes of feature contains multiple
-                            // regions
+                            // regions. We assume (contentious!) that the
+                            // separation between
+                            // the regions is not aligned with the geometric
+                            // feature so is an additional constraint on the
+                            // point -> is region-feature-point.
                             nearInfo = findNearFeaturePoint
                             (
                                 true,           // isRegionPoint
@@ -2491,6 +2569,47 @@ void Foam::autoSnapDriver::determineFeatures
                                 patchConstraints
                             );
                             hasSnapped = true;
+
+                            // More contentious: if we don't find
+                            // a near feature point we will never find the
+                            // attraction to a feature edge either since
+                            // the edgeAttractors/edgeConstraints do not get
+                            // filled and we're using reverse attraction
+                            // Note that we're in multiRegionFeatureSnap which
+                            // where findMultiPatchPoint can decide the
+                            // wrong thing. So: if failed finding a near
+                            // feature point try for a feature edge
+                            if (!nearInfo.second().hit())
+                            {
+                                nearInfo = findNearFeatureEdge
+                                (
+                                    true,           // isRegionEdge
+                                    pp,
+                                    snapDist,
+                                    pointI,
+                                    estimatedPt,
+
+                                    // Feature-edge to pp point
+                                    edgeAttractors,
+                                    edgeConstraints,
+                                    // pp point to nearest feature
+                                    patchAttraction,
+                                    patchConstraints
+                                );
+                            }
+
+                            // Debug: dump missed feature point
+                            if
+                            (
+                                missedMP1Str.valid()
+                            && !nearInfo.second().hit()
+                            )
+                            {
+                                missedMP1Str().write
+                                (
+                                    linePointRef(pt, estimatedPt)
+                                );
+                            }
                         }
                     }
                 }
@@ -2551,7 +2670,7 @@ void Foam::autoSnapDriver::determineFeatures
                     {
                         missedEdgeStr().write
                         (
-                            linePointRef(pt, info.missPoint())
+                            linePointRef(pt, estimatedPt)
                         );
                     }
                 }

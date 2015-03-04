@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,9 +25,10 @@ License
 
 #include "FSD.H"
 #include "addToRunTimeSelectionTable.H"
-#include "LESModel.H"
+//#include "LESModel.H"
 #include "fvcGrad.H"
 #include "fvcDiv.H"
+#include "turbulentFluidThermoModel.H"
 
 namespace Foam
 {
@@ -189,7 +190,13 @@ void FSD<CombThermoType, ThermoType>::calculateSourceNorm()
 
     // Calculation of the mixture fraction variance (ftVar)
     const compressible::LESModel& lesModel =
-        YO2.db().lookupObject<compressible::LESModel>("LESProperties");
+        refCast<const compressible::LESModel>
+        (
+            YO2.db().lookupObject<compressible::turbulenceModel>
+            (
+                turbulenceModel::propertiesName
+            )
+        );
 
     const volScalarField& delta = lesModel.delta();
     const volScalarField ftVar(Cv_*sqr(delta)*sqr(mgft));

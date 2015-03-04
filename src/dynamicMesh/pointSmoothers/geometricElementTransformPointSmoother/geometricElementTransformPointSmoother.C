@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -70,7 +70,7 @@ Foam::pointSmoothers::geometricElementTransformPointSmoother::
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::pointSmoothers::geometricElementTransformPointSmoother::update
+void Foam::pointSmoothers::geometricElementTransformPointSmoother::calculate
 (
     const labelList& facesToMove,
     const pointField& oldPoints,

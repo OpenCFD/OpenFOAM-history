@@ -99,8 +99,7 @@ bool buoyantKEpsilon<BasicTurbulenceModel>::read()
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField>
-buoyantKEpsilon<BasicTurbulenceModel>::Gcoef() const
+tmp<volScalarField> buoyantKEpsilon<BasicTurbulenceModel>::Gcoef() const
 {
     const uniformDimensionedVectorField& g =
         this->mesh_.objectRegistry::template
@@ -113,8 +112,7 @@ buoyantKEpsilon<BasicTurbulenceModel>::Gcoef() const
 
 
 template<class BasicTurbulenceModel>
-tmp<fvScalarMatrix>
-buoyantKEpsilon<BasicTurbulenceModel>::kSource() const
+tmp<fvScalarMatrix> buoyantKEpsilon<BasicTurbulenceModel>::kSource() const
 {
     const uniformDimensionedVectorField& g =
         this->mesh_.objectRegistry::template
@@ -132,8 +130,7 @@ buoyantKEpsilon<BasicTurbulenceModel>::kSource() const
 
 
 template<class BasicTurbulenceModel>
-tmp<fvScalarMatrix>
-buoyantKEpsilon<BasicTurbulenceModel>::epsilonSource() const
+tmp<fvScalarMatrix> buoyantKEpsilon<BasicTurbulenceModel>::epsilonSource() const
 {
     const uniformDimensionedVectorField& g =
         this->mesh_.objectRegistry::template

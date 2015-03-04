@@ -40,7 +40,7 @@ laplacianSchemes
     default         none;
     laplacian((rho*nuEff),U) Gauss linear corrected;
     laplacian(rhorAUf,p_rgh) Gauss linear corrected;
-    laplacian(alphaEff,h) Gauss linear corrected;
+    laplacian(thermo:alpha,h) Gauss linear corrected;
 }
 
 interpolationSchemes

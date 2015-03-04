@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,81 +22,93 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::initialResidualDivergenceCondition
+    Foam::DESModel
 
 Description
-    Initial residual run time condition
+    Templated abstract base class for DES models
 
 SourceFiles
-    initialResidualDivergenceCondition.H
-    initialResidualDivergenceCondition.C
+    DESModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef initialResidualDivergenceCondition_H
-#define initialResidualDivergenceCondition_H
+#ifndef DESModel_H
+#define DESModel_H
 
-#include "runTimeCondition.H"
-#include "NamedEnum.H"
+#include "DESModelBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+namespace LESModels
+{
 
 /*---------------------------------------------------------------------------*\
-             Class initialResidualDivergenceCondition Declaration
+                          Class DESModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class initialResidualDivergenceCondition
+template<class BasicTurbulenceModel>
+class DESModel
 :
-    public runTimeCondition
+    public DESModelBase,
+    public LESeddyViscosity<BasicTurbulenceModel>
 {
-protected:
 
-    // Protected data
+private:
 
-        //- Field name
-        const wordList fieldNames_;
+    // Private Member Functions
 
-        //- Value to compare
-        const scalar value_;
+        //- Disallow default bitwise copy construct
+        DESModel(const DESModel&);
 
-        //- Start checking from iteration - always skips first iteration
-        label startIter_;
+        //- Disallow default bitwise assignment
+        DESModel& operator=(const DESModel&);
 
 
 public:
 
-    //- Runtime type information
-    TypeName("initialResidualDivergence");
+    typedef typename BasicTurbulenceModel::alphaField alphaField;
+    typedef typename BasicTurbulenceModel::rhoField rhoField;
+    typedef typename BasicTurbulenceModel::transportModel transportModel;
 
-    //- Constructor
-    initialResidualDivergenceCondition
-    (
-        const word& name,
-        const objectRegistry& obr,
-        const dictionary& dict,
-        functionObjectState& state
-    );
+    // Constructors
+
+        //- Construct from components
+        DESModel
+        (
+            const word& type,
+            const alphaField& alpha,
+            const rhoField& rho,
+            const volVectorField& U,
+            const surfaceScalarField& alphaRhoPhi,
+            const surfaceScalarField& phi,
+            const transportModel& transport,
+            const word& propertiesName = turbulenceModel::propertiesName
+        );
+
 
     //- Destructor
-    virtual ~initialResidualDivergenceCondition();
+    virtual ~DESModel();
 
 
     // Public Member Functions
 
-        //- Apply the condition
-        virtual bool apply();
-
-        //- Write
-        virtual void write();
+        //- Return the LES field indicator
+        virtual tmp<volScalarField> LESRegion() const = 0;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace LESModels
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "DESModel.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -35,7 +35,7 @@ namespace Foam
     makeSurfaceWriterType(nastranSurfaceWriter);
     addToRunTimeSelectionTable(surfaceWriter, nastranSurfaceWriter, wordDict);
 
-    // create write methods
+    // Create write methods
     defineSurfaceWriterWriteFields(nastranSurfaceWriter);
 
     template<>
@@ -46,8 +46,19 @@ namespace Foam
         "free"
     };
 
+
     const NamedEnum<nastranSurfaceWriter::writeFormat, 3>
         nastranSurfaceWriter::writeFormatNames_;
+
+    template<>
+    const char* NamedEnum<nastranSurfaceWriter::dataFormat, 2>::names[] =
+    {
+        "PLOAD2",
+        "PLOAD4"
+    };
+
+    const NamedEnum<nastranSurfaceWriter::dataFormat, 2>
+        nastranSurfaceWriter::dataFormatNames_;
 }
 
 
@@ -57,7 +68,7 @@ void Foam::nastranSurfaceWriter::formatOS(OFstream& os) const
 {
     os.setf(ios_base::scientific);
 
-    // capitalise the E marker
+    // Capitalise the E marker
     os.setf(ios_base::uppercase);
 
     label prec = 0;
@@ -84,6 +95,37 @@ void Foam::nastranSurfaceWriter::formatOS(OFstream& os) const
 }
 
 
+void Foam::nastranSurfaceWriter::writeKeyword
+(
+    const word& keyword,
+    Ostream& os
+) const
+{
+    os.setf(ios_base::left);
+
+    switch (writeFormat_)
+    {
+        case wfShort:
+        {
+            os  << setw(8) << keyword;
+            break;
+        }
+        case wfLong:
+        {
+            os  << setw(8) << word(keyword + '*');
+            break;
+        }
+        case wfFree:
+        {
+            os  << keyword;
+            break;
+        }
+    }
+
+    os.unsetf(ios_base::left);
+}
+
+
 void Foam::nastranSurfaceWriter::writeCoord
 (
     const point& p,
@@ -102,19 +144,27 @@ void Foam::nastranSurfaceWriter::writeCoord
     // 8 PS   : single point constraints             (blank)
     // 9 SEID : super-element ID
 
+
+    writeKeyword("GRID", os);
+
+    os  << separator_;
+
+    os.setf(ios_base::right);
+
+    writeValue(pointI + 1, os);
+    os  << separator_;
+    writeValue("", os);
+    os  << separator_;
+    writeValue(p.x(), os);
+    os  << separator_;
+    writeValue(p.y(), os);
+    os  << separator_;
+
     switch (writeFormat_)
     {
         case wfShort:
         {
-            os.setf(ios_base::left);
-            os  << setw(8) << "GRID";
-            os.unsetf(ios_base::left);
-            os.setf(ios_base::right);
-            os  << setw(8) << pointI + 1
-                << "        " 
-                << setw(8) << p.x()
-                << setw(8) << p.y()
-                << setw(8) << p.z()
+            os  << setw(8) << p.z()
                 << nl;
             os.unsetf(ios_base::right);
 
@@ -122,35 +172,19 @@ void Foam::nastranSurfaceWriter::writeCoord
         }
         case wfLong:
         {
-            os.setf(ios_base::left);
-            os  << setw(8) << "GRID*";
-            os.unsetf(ios_base::left);
-            os.setf(ios_base::right);
-            os  << setw(16) << pointI + 1
-                << "                "
-                << setw(16) << p.x()
-                << setw(16) << p.y()
-                << nl;
+            os  << nl;
             os.unsetf(ios_base::right);
-            os.setf(ios_base::left);
-            os  << setw(8) << "*";
-            os.unsetf(ios_base::left);
+            writeKeyword("", os);
             os.setf(ios_base::right);
-            os  << setw(16) << p.z()
-                << nl;
-            os.unsetf(ios_base::right);
+            writeValue(p.z(), os);
+            os  << nl;
 
             break;
         }
         case wfFree:
         {
-            os  << "GRID"
-                << ',' << pointI + 1
-                << ','
-                << ',' << p.x()
-                << ',' << p.y()
-                << ',' << p.z()
-                << nl;
+            writeValue(p.z(), os);
+            os  << nl;
 
             break;
         }
@@ -166,6 +200,8 @@ void Foam::nastranSurfaceWriter::writeCoord
             )   << "Unknown writeFormat enumeration" << abort(FatalError);
         }
     }
+
+    os.unsetf(ios_base::right);
 }
 
 
@@ -191,66 +227,54 @@ void Foam::nastranSurfaceWriter::writeFace
 
     // For CTRIA3 elements, cols 7 onwards are not used
 
+    label PID = 1;
+
+    writeKeyword(faceType, os);
+
+    os  << separator_;
+
+    os.setf(ios_base::right);
+
+    writeValue(nFace++, os);
+
+    os  << separator_;
+
+    writeValue(PID, os);
+
     switch (writeFormat_)
     {
         case wfShort:
         {
-            os.setf(ios_base::left);
-            os  << setw(8) << faceType;
-            os.unsetf(ios_base::left);
-            os.setf(ios_base::right);
-            os  << setw(8) << nFace++
-                << "        ";
-
             forAll(facePts, i)
             {
-                os  << setw(8) << facePts[i] + 1;
+                writeValue(facePts[i] + 1, os);
             }
-
-            os  << nl;
-            os.unsetf(ios_base::right);
 
             break;
         }
         case wfLong:
         {
-            os.setf(ios_base::left);
-            os  << setw(8) << word(faceType + "*");
-            os.unsetf(ios_base::left);
-            os.setf(ios_base::right);
-            os  << setw(16) << nFace++
-                << "                ";
-
             forAll(facePts, i)
             {
-                os  << setw(16) << facePts[i] + 1;
+                writeValue(facePts[i] + 1, os);
                 if (i == 1)
                 {
                     os  << nl;
                     os.unsetf(ios_base::right);
-                    os.setf(ios_base::left);
-                    os  << setw(8) << "*";
-                    os.unsetf(ios_base::left);
+                    writeKeyword("", os);
                     os.setf(ios_base::right);
                 }
             }
-
-            os  << nl;
-            os.unsetf(ios_base::right);
 
             break;
         }
         case wfFree:
         {
-            os  << faceType << ','
-                << ++nFace << ',';
-
             forAll(facePts, i)
             {
-                os  << ',' << facePts[i] + 1;
+                os  << separator_;
+                writeValue(facePts[i] + 1, os);
             }
-
-            os  << nl;
 
             break;
         }
@@ -269,6 +293,8 @@ void Foam::nastranSurfaceWriter::writeFace
         }
     }
 
+    os  << nl;
+    os.unsetf(ios_base::right);
 }
 
 
@@ -280,7 +306,7 @@ void Foam::nastranSurfaceWriter::writeGeometry
     OFstream& os
 ) const
 {
-    // write points
+    // Write points
 
     os  << "$" << nl
         << "$ Points" << nl
@@ -292,7 +318,7 @@ void Foam::nastranSurfaceWriter::writeGeometry
     }
 
 
-    // write faces
+    // Write faces
 
     os  << "$" << nl
         << "$ Faces" << nl
@@ -316,7 +342,7 @@ void Foam::nastranSurfaceWriter::writeGeometry
         }
         else
         {
-            // decompose poly face into tris
+            // Decompose poly face into tris
             label nTri = 0;
             faceList triFaces;
             f.triangles(points, nTri, triFaces);
@@ -328,6 +354,42 @@ void Foam::nastranSurfaceWriter::writeGeometry
             }
         }
     }
+}
+
+
+void Foam::nastranSurfaceWriter::writeFooter(Ostream& os) const
+{
+    label PID = 1;
+
+    writeKeyword("PSHELL", os);
+
+    os  << separator_;
+
+    writeValue(PID, os);
+
+    for (label i = 0; i < 7; i++)
+    {
+        // Dummy values
+        os  << separator_;
+        writeValue(1, os);
+    }
+
+    os  << nl;
+    writeKeyword("MAT1", os);
+    os  << separator_;
+
+    label MID = 1;
+
+    writeValue(MID, os);
+
+    for (label i = 0; i < 7; i++)
+    {
+        // Dummy values
+        os  << separator_;
+        writeValue("", os);
+    }
+
+    os << nl;
 }
 
 
@@ -347,18 +409,26 @@ Foam::nastranSurfaceWriter::nastranSurfaceWriter(const dictionary& options)
     surfaceWriter(),
     writeFormat_(wfLong),
     fieldMap_(),
-    scale_(options.lookupOrDefault("scale", 1.0))
+    scale_(options.lookupOrDefault("scale", 1.0)),
+    separator_("")
 {
     if (options.found("format"))
     {
         writeFormat_ = writeFormatNames_.read(options.lookup("format"));
     }
 
+    if (writeFormat_ == wfFree)
+    {
+        separator_ = ",";
+    }
+
     List<Tuple2<word, word> > fieldSet(options.lookup("fields"));
 
     forAll(fieldSet, i)
     {
-        fieldMap_.insert(fieldSet[i].first(), fieldSet[i].second());
+        dataFormat format = dataFormatNames_[fieldSet[i].second()];
+
+        fieldMap_.insert(fieldSet[i].first(), format);
     }
 }
 
@@ -385,7 +455,7 @@ Foam::fileName Foam::nastranSurfaceWriter::write
         mkDir(outputDir);
     }
 
-    OFstream os(outputDir/surfaceName + ".dat");
+    OFstream os(outputDir/surfaceName + ".nas");
     formatOS(os);
 
     if (verbose)
@@ -405,6 +475,8 @@ Foam::fileName Foam::nastranSurfaceWriter::write
     {
         mkDir(outputDir);
     }
+
+    writeFooter(os);
 
     os  << "ENDDATA" << endl;
 

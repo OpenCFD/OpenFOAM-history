@@ -47,7 +47,7 @@ Foam::scalar Foam::primitiveMeshTools::faceSkewness
     // Skewness vector
     vector sv =
         Cpf
-      - ((fAreas[faceI] & Cpf)/((fAreas[faceI] & d) + VSMALL))*d;
+      - ((fAreas[faceI] & Cpf)/((fAreas[faceI] & d) + ROOTVSMALL))*d;
     vector svHat = sv/(mag(sv) + VSMALL);
 
     // Normalisation distance calculated as the approximate distance

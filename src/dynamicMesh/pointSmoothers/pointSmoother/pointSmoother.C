@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "pointSmoother.H"
+#include "pointConstraints.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -160,6 +161,26 @@ Foam::pointSmoother::New
 
 Foam::pointSmoother::~pointSmoother()
 {}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+void Foam::pointSmoother::update
+(
+    const labelList& facesToMove,
+    const pointField& oldPoints,
+    const pointField& currentPoints,
+    polyMeshGeometry& meshGeometry
+
+)
+{
+    calculate(facesToMove, oldPoints, currentPoints, meshGeometry);
+
+    pointConstraints::New
+    (
+        pointDisplacement().mesh()
+    ).constrainDisplacement(pointDisplacement());
+}
 
 
 // ************************************************************************* //

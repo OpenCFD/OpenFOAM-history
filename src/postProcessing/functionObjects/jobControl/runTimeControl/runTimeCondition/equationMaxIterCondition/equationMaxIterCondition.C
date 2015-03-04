@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "initialResidualDivergenceCondition.H"
+#include "equationMaxIterCondition.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvMesh.H"
 #include "Time.H"
@@ -32,11 +32,11 @@ License
 
 namespace Foam
 {
-    defineTypeNameAndDebug(initialResidualDivergenceCondition, 0);
+    defineTypeNameAndDebug(equationMaxIterCondition, 0);
     addToRunTimeSelectionTable
     (
         runTimeCondition,
-        initialResidualDivergenceCondition,
+        equationMaxIterCondition,
         dictionary
     );
 }
@@ -44,7 +44,7 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::initialResidualDivergenceCondition::initialResidualDivergenceCondition
+Foam::equationMaxIterCondition::equationMaxIterCondition
 (
     const word& name,
     const objectRegistry& obr,
@@ -54,15 +54,15 @@ Foam::initialResidualDivergenceCondition::initialResidualDivergenceCondition
 :
     runTimeCondition(name, obr, dict, state),
     fieldNames_(dict.lookup("fields")),
-    value_(readScalar(dict.lookup("value"))),
+    threshold_(readLabel(dict.lookup("threshold"))),
     startIter_(dict.lookupOrDefault("startIter", 2))
 {
     if (!fieldNames_.size())
     {
         WarningIn
         (
-            "Foam::initialResidualDivergenceCondition::"
-            "initialResidualDivergenceCondition"
+            "Foam::equationMaxIterCondition::"
+            "equationMaxIterCondition"
             "("
                 "const word&, "
                 "const objectRegistry&, "
@@ -81,13 +81,13 @@ Foam::initialResidualDivergenceCondition::initialResidualDivergenceCondition
 
 // * * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * //
 
-Foam::initialResidualDivergenceCondition::~initialResidualDivergenceCondition()
+Foam::equationMaxIterCondition::~equationMaxIterCondition()
 {}
 
 
 // * * * * * * * * * * * * * * Public Member Functions * * * * * * * * * * * //
 
-bool Foam::initialResidualDivergenceCondition::apply()
+bool Foam::equationMaxIterCondition::apply()
 {
     bool satisfied = false;
 
@@ -105,7 +105,7 @@ bool Foam::initialResidualDivergenceCondition::apply()
     const fvMesh& mesh = refCast<const fvMesh>(obr_);
     const dictionary& solverDict = mesh.solverPerformanceDict();
 
-    List<scalar> result(fieldNames_.size(), -VGREAT);
+    List<label> result(fieldNames_.size(), -1);
 
     forAll(fieldNames_, fieldI)
     {
@@ -114,10 +114,10 @@ bool Foam::initialResidualDivergenceCondition::apply()
         if (solverDict.found(fieldName))
         {
             const List<solverPerformance> sp(solverDict.lookup(fieldName));
-            const scalar residual = sp.first().initialResidual();
-            result[fieldI] = residual;
+            const label nIterations = sp.first().nIterations();
+            result[fieldI] = nIterations;
 
-            if (residual > value_)
+            if (nIterations > threshold_)
             {
                 satisfied = true;
             }
@@ -129,8 +129,8 @@ bool Foam::initialResidualDivergenceCondition::apply()
     {
         if (result[i] < 0)
         {
-            WarningIn("bool Foam::initialResidualDivergenceCondition::apply()")
-                << "Initial residual data not found for field "
+            WarningIn("bool Foam::equationMaxIterCondition::apply()")
+                << "Number of iterations data not found for field "
                 << fieldNames_[i] << endl;
         }
         else
@@ -141,8 +141,8 @@ bool Foam::initialResidualDivergenceCondition::apply()
 
     if (!valid)
     {
-        WarningIn("bool Foam::initialResidualDivergenceCondition::apply()")
-            << "Initial residual data not found for any fields: "
+        WarningIn("bool Foam::equationMaxIterCondition::apply()")
+            << "Number of iterations data not found for any fields: "
             << "deactivating" << endl;
 
         active_ = false;
@@ -152,15 +152,15 @@ bool Foam::initialResidualDivergenceCondition::apply()
     {
         Info(log_)
             << type() << ": " << name_
-            << ": satisfied using threshold value: " << value_ << nl;
+            << ": satisfied using threshold value: " << threshold_ << nl;
 
         forAll(result, resultI)
         {
-            if (result[resultI] > 0)
+            if (result[resultI] != -1)
             {
                 Info(log_)
                     << "    field: " << fieldNames_[resultI]
-                    << ", residual: " << result[resultI] << nl;
+                    << ", iterations: " << result[resultI] << nl;
             }
         }
         Info(log_)<< endl;
@@ -170,7 +170,7 @@ bool Foam::initialResidualDivergenceCondition::apply()
 }
 
 
-void Foam::initialResidualDivergenceCondition::write()
+void Foam::equationMaxIterCondition::write()
 {
     // do nothing
 }

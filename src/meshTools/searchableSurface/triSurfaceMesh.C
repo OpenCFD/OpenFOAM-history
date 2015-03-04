@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -241,7 +241,7 @@ Foam::triSurfaceMesh::triSurfaceMesh(const IOobject& io, const triSurface& s)
         )
     ),
     triSurface(s),
-    triSurfaceRegionSearch(s),
+    triSurfaceRegionSearch(static_cast<const triSurface&>(*this)),
     minQuality_(-1),
     surfaceClosed_(-1),
     outsideVolType_(volumeType::UNKNOWN)

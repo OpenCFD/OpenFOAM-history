@@ -8,48 +8,53 @@
 FoamFile
 {
     version     2.0;
-    format      binary;
+    format      ascii;
     class       volScalarField;
-    location    "0/cabin";
-    object      mut;
+    location    "0/air";
+    object      p;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 -1 -1 0 0 0 0];
+dimensions      [ 1 -1 -2 0 0 0 0 ];
 
-internalField   uniform 0;
+internalField   uniform 100000;
 
 boundaryField
 {
-    inlet
+    maxY
     {
         type            calculated;
-        value           uniform 0;
+        value           uniform 100000;
     }
-    outlet
+    minX
     {
         type            calculated;
-        value           uniform 0;
+        value           uniform 100000;
     }
-    symmetry
+    maxX
     {
-        type            symmetryPlane;
+        type            calculated;
+        value           uniform 100000;
     }
-    walls
+    minY
     {
-        type            mutkWallFunction;
-        Cmu             0.09;
-        kappa           0.41;
-        E               9.8;
-        value           uniform 0;
+        type            calculated;
+        value           uniform 100000;
     }
-    cabin_to_windshield
+    maxZ
     {
-        type            mutkWallFunction;
-        Cmu             0.09;
-        kappa           0.41;
-        E               9.8;
-        value           uniform 0;
+        type            calculated;
+        value           uniform 100000;
+    }
+    air_to_floor
+    {
+        type            calculated;
+        value           uniform 100000;
+    }
+    air_to_solid
+    {
+        type            calculated;
+        value           uniform 100000;
     }
 }
 

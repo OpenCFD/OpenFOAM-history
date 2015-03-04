@@ -393,29 +393,27 @@ void Foam::pairPatchAgglomeration:: agglomerate()
                     nCreatedLevels
                 );
 
-                if (!agglomOK)
+                if (agglomOK)
                 {
-                    break;
-                }
+                    restrictAddressing_.set(nCreatedLevels, finalAgglomPtr);
+                    mapBaseToTopAgglom(nCreatedLevels);
+                    setEdgeWeights(nCreatedLevels);
 
-                restrictAddressing_.set(nCreatedLevels, finalAgglomPtr);
-                mapBaseToTopAgglom(nCreatedLevels);
-                setEdgeWeights(nCreatedLevels);
+                    if (nPairLevels % mergeLevels_)
+                    {
+                        combineLevels(nCreatedLevels);
+                    }
+                    else
+                    {
+                        nCreatedLevels++;
+                    }
 
-                if (nPairLevels % mergeLevels_)
-                {
-                    combineLevels(nCreatedLevels);
+                    nPairLevels++;
                 }
-                else
-                {
-                    nCreatedLevels++;
-                }
-
-                nPairLevels++;
             }
             else
             {
-                break;
+                agglomOK = true;
             }
             reduce(nCoarseFaces, sumOp<label>());
         }

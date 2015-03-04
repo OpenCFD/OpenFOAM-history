@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -33,6 +33,11 @@ Note
     by user-time conversions. For example, Foam::engineTime might cause \a
     writeInterval to be degrees crank angle, but the functionObject
     execution \a interval would still be in timestep.
+
+    The function object can be limited to operate within a time range using
+    the timeStart and timEnd options.  All objects are read (and optionally
+    allocated) on construction.  However, if a timeEnd is supplied, the
+    object will call the 'end' function at the timeEnd time and deactivate.
 
 SourceFiles
     OutputFilterFunctionObject.C

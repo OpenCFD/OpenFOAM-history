@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -33,6 +33,7 @@ License
 #include "edgeMeshFormatsCore.H"
 #include "IOmanip.H"
 #include "searchableSurface.H"
+#include "triSurfaceMesh.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -119,7 +120,6 @@ Foam::wordHashSet Foam::extendedEdgeMesh::writeTypes()
 }
 
 
-
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 bool Foam::extendedEdgeMesh::canReadType
@@ -177,7 +177,7 @@ Foam::extendedEdgeMesh::classifyFeaturePoint
     label ptI
 ) const
 {
-    labelList ptEds(pointEdges()[ptI]);
+    const labelList& ptEds(pointEdges()[ptI]);
 
     label nPtEds = ptEds.size();
     label nExternal = 0;
@@ -222,8 +222,11 @@ void Foam::extendedEdgeMesh::cut
 (
     const searchableSurface& surf,
 
-    labelList& pointMap,    // from all to original point
-    labelList& edgeMap      // from all to original edge
+    labelList& pointMap,
+    labelList& edgeMap,
+    labelList& pointsFromEdge,
+    labelList& oldEdge,
+    labelList& surfTri
 )
 {
     const edgeList& edges = this->edges();
@@ -262,6 +265,11 @@ void Foam::extendedEdgeMesh::cut
     newEdges.setCapacity(newEdges.size()+nHits);
     newToOldEdge.setCapacity(newEdges.capacity());
 
+    // Information on additional points
+    DynamicList<label> dynPointsFromEdge(nHits);
+    DynamicList<label> dynOldEdge(nHits);
+    DynamicList<label> dynSurfTri(nHits);
+
     forAll(edgeHits, edgeI)
     {
         const List<pointIndexHit>& eHits = edgeHits[edgeI];
@@ -275,6 +283,9 @@ void Foam::extendedEdgeMesh::cut
 
                 newPoints.append(eHits[eHitI].hitPoint());
                 newToOldPoint.append(edges[edgeI][0]);  // map from start point
+                dynPointsFromEdge.append(newPtI);
+                dynOldEdge.append(edgeI);
+                dynSurfTri.append(eHits[eHitI].index());
 
                 if (eHitI == 0)
                 {
@@ -300,6 +311,11 @@ void Foam::extendedEdgeMesh::cut
     allEdges.transfer(newEdges);
     edgeMap.transfer(newToOldEdge);
 
+    pointsFromEdge.transfer(dynPointsFromEdge);
+    oldEdge.transfer(dynOldEdge);
+    surfTri.transfer(dynSurfTri);
+
+    // Update local information
     autoMap(allPoints, allEdges, pointMap, edgeMap);
 }
 
@@ -406,10 +422,7 @@ Foam::extendedEdgeMesh::extendedEdgeMesh()
 {}
 
 
-Foam::extendedEdgeMesh::extendedEdgeMesh
-(
-    const extendedEdgeMesh& fem
-)
+Foam::extendedEdgeMesh::extendedEdgeMesh(const extendedEdgeMesh& fem)
 :
     edgeMesh(fem),
     concaveStart_(fem.concaveStart()),
@@ -1539,17 +1552,25 @@ void Foam::extendedEdgeMesh::autoMap
     }
 
 
-    labelListList subFeaturePointEdges(subNonFeatStart);
-    for (label subPointI = 0; subPointI < subNonFeatStart; subPointI++)
+    labelListList subFeaturePointEdges;
+    if (featurePointEdges().size())
     {
-        label pointI = pointMap[subPointI];
-        const labelList& pEdges = featurePointEdges()[pointI];
-
-        labelList& subPEdges = subFeaturePointEdges[subPointI];
-        subPEdges.setSize(pEdges.size());
-        forAll(pEdges, i)
+        subFeaturePointEdges.setSize(subNonFeatStart);
+        for (label subPointI = 0; subPointI < subNonFeatStart; subPointI++)
         {
-            subPEdges[i] = edgeMap[pEdges[i]];
+            label pointI = pointMap[subPointI];
+            const labelList& pEdges = featurePointEdges()[pointI];
+
+            labelList& subPEdges = subFeaturePointEdges[subPointI];
+            subPEdges.setSize(pEdges.size());
+
+            if (pEdges.size())
+            {
+                forAll(pEdges, i)
+                {
+                    subPEdges[i] = edgeMap[pEdges[i]];
+                }
+            }
         }
     }
 
@@ -1596,23 +1617,29 @@ void Foam::extendedEdgeMesh::autoMap
 
 
     // Use compaction map on data referencing normals
-    labelListList subNormalDirections(edgeMap.size());
-    forAll(edgeMap, subEdgeI)
-    {
-        label edgeI = edgeMap[subEdgeI];
-        const labelList& eNormals = normalDirections()[edgeI];
+    labelListList subNormalDirections;
 
-        labelList& subNormals = subNormalDirections[subEdgeI];
-        subNormals.setSize(eNormals.size());
-        forAll(eNormals, i)
+    if (normalDirections().size())
+    {
+        subNormalDirections.setSize(edgeMap.size());
+
+        forAll(edgeMap, subEdgeI)
         {
-            if (eNormals[i] >= 0)
+            label edgeI = edgeMap[subEdgeI];
+            const labelList& eNormals = normalDirections()[edgeI];
+
+            labelList& subNormals = subNormalDirections[subEdgeI];
+            subNormals.setSize(eNormals.size());
+            forAll(eNormals, i)
             {
-                subNormals[i] = normalMap[eNormals[i]];
-            }
-            else
-            {
-                subNormals[i] = -1;
+                if (eNormals[i] >= 0)
+                {
+                    subNormals[i] = normalMap[eNormals[i]];
+                }
+                else
+                {
+                    subNormals[i] = -1;
+                }
             }
         }
     }
@@ -1647,14 +1674,17 @@ void Foam::extendedEdgeMesh::autoMap
 
     // Use compaction map to compact normal data
     vectorField subNormals(normals(), normalMap);
-    List<extendedEdgeMesh::sideVolumeType> subNormalVolumeTypes
-    (
-        UIndirectList<extendedEdgeMesh::sideVolumeType>
-        (
-            normalVolumeTypes(),
-            normalMap
-        )
-    );
+
+    List<extendedEdgeMesh::sideVolumeType> subNormalVolumeTypes;
+    if (normalVolumeTypes().size())
+    {
+        subNormalVolumeTypes =
+            UIndirectList<extendedEdgeMesh::sideVolumeType>
+            (
+                normalVolumeTypes(),
+                normalMap
+            );
+    }
 
     extendedEdgeMesh subMesh
     (
@@ -1704,10 +1734,23 @@ void Foam::extendedEdgeMesh::trim
 {
     // Cut edges with the other surfaces
 
-    labelList allPointMap;  // from all to original point
-    labelList allEdgeMap;   // from all to original edge
-    cut(surf, allPointMap, allEdgeMap);
+    labelList allPointMap;      // from all to original point
+    labelList allEdgeMap;       // from all to original edge
 
+    labelList pointsFromEdge;   // list of new points created by cutting
+    labelList oldEdge;          // for each of these points the orginal edge
+    labelList surfTri;          // for each of these points the surface triangle
+    cut
+    (
+        surf,
+        allPointMap,
+        allEdgeMap,
+        pointsFromEdge,
+        oldEdge,
+        surfTri
+    );
+
+    const label nOldPoints = points().size();
 
     // Remove outside edges and compact
 
@@ -1715,134 +1758,349 @@ void Foam::extendedEdgeMesh::trim
     labelList subEdgeMap;   // sub to old edges
     select(surf, volType, subPointMap, subEdgeMap);
 
-
-    // Construct maps
-
+    // Update overall point maps
     pointMap = UIndirectList<label>(allPointMap, subPointMap);
     edgeMap = UIndirectList<label>(allEdgeMap, subEdgeMap);
+
+    // Extract current point and edge status
+    List<edgeStatus> edgeStat(edges().size());
+    List<pointStatus> pointStat(points().size());
+    forAll(edgeStat, edgeI)
+    {
+        edgeStat[edgeI] = getEdgeStatus(edgeI);
+    }
+    forAll(pointStat, pointI)
+    {
+        pointStat[pointI] = getPointStatus(pointI);
+    }
+
+    // Re-classify exposed points (from cutting)
+    labelList oldPointToIndex(nOldPoints, -1);
+    forAll(pointsFromEdge, i)
+    {
+        oldPointToIndex[pointsFromEdge[i]] = i;
+    }
+    forAll(subPointMap, pointI)
+    {
+        label oldPointI = subPointMap[pointI];
+        label index = oldPointToIndex[oldPointI];
+        if (index != -1)
+        {
+            pointStat[pointI] = classifyFeaturePoint(pointI);
+        }
+    }
+
+    // Reset based on new point and edge status
+    labelList sortedToOriginalPoint;
+    labelList sortedToOriginalEdge;
+    setFromStatus
+    (
+        pointStat,
+        edgeStat,
+        sortedToOriginalPoint,
+        sortedToOriginalEdge
+    );
+
+    // Update the overall pointMap, edgeMap
+    pointMap = UIndirectList<label>(pointMap, sortedToOriginalPoint);
+    edgeMap = UIndirectList<label>(edgeMap, sortedToOriginalEdge);
 }
 
 
-void Foam::extendedEdgeMesh::writeObj
+void Foam::extendedEdgeMesh::setFromStatus
 (
-    const fileName& prefix
-) const
+    const List<extendedEdgeMesh::pointStatus>& pointStat,
+    const List<extendedEdgeMesh::edgeStatus>& edgeStat,
+    labelList& sortedToOriginalPoint,
+    labelList& sortedToOriginalEdge
+)
+{
+    // Use pointStatus and edgeStatus to determine new ordering
+    label pointConcaveStart;
+    label pointMixedStart;
+    label pointNonFeatStart;
+
+    label edgeInternalStart;
+    label edgeFlatStart;
+    label edgeOpenStart;
+    label edgeMultipleStart;
+    sortedOrder
+    (
+        pointStat,
+        edgeStat,
+        sortedToOriginalPoint,
+        sortedToOriginalEdge,
+
+        pointConcaveStart,
+        pointMixedStart,
+        pointNonFeatStart,
+
+        edgeInternalStart,
+        edgeFlatStart,
+        edgeOpenStart,
+        edgeMultipleStart
+    );
+
+    // Update local data
+    autoMap
+    (
+        pointField(points(), sortedToOriginalPoint),
+        UIndirectList<edge>(edges(), sortedToOriginalEdge)(),
+        sortedToOriginalPoint,
+        sortedToOriginalEdge
+    );
+
+    // Reset the slice starts
+    concaveStart_ = pointConcaveStart;
+    mixedStart_ = pointMixedStart;
+    nonFeatureStart_ = pointNonFeatStart;
+    internalStart_ = edgeInternalStart;
+    flatStart_ = edgeFlatStart;
+    openStart_ = edgeOpenStart;
+    multipleStart_ = edgeMultipleStart;
+}
+
+
+bool Foam::extendedEdgeMesh::mergePoints
+(
+    const scalar mergeDist,
+    labelList& pointMap,
+    labelList& edgeMap
+)
+{
+    const label nOldPoints = points().size();
+
+    // Detect and merge collocated feature points
+    labelList oldToMerged;
+    label nNewPoints = ::Foam::mergePoints
+    (
+        points(),
+        SMALL,
+        false,
+        oldToMerged
+    );
+
+    pointMap.setSize(nNewPoints);
+    pointMap = -1;
+    forAll(oldToMerged, oldI)
+    {
+        label newI = oldToMerged[oldI];
+        if (pointMap[newI] == -1)
+        {
+            pointMap[newI] = oldI;
+        }
+    }
+
+    // Renumber edges
+    edgeList newEdges(edges().size());
+    forAll(edges(), edgeI)
+    {
+        const edge& oldE = edges()[edgeI];
+        newEdges[edgeI] = edge(oldToMerged[oldE[0]], oldToMerged[oldE[1]]);
+    }
+
+    // Shuffle basic information (reorders point data)
+    autoMap
+    (
+        pointField(points(), pointMap),
+        newEdges,
+        pointMap,
+        identity(newEdges.size())
+    );
+
+    // Re-classify the merged points
+    List<edgeStatus> edgeStat(edges().size());
+    forAll(edgeStat, edgeI)
+    {
+        edgeStat[edgeI] = getEdgeStatus(edgeI);
+    }
+
+    List<pointStatus> pointStat(points().size());
+    forAll(pointStat, pointI)
+    {
+        pointStat[pointI] = getPointStatus(pointI);
+    }
+
+    // Re-classify merged points
+    labelList nPoints(nNewPoints, 0);
+    forAll(oldToMerged, oldPointI)
+    {
+        nPoints[oldToMerged[oldPointI]]++;
+    }
+
+    forAll(nPoints, pointI)
+    {
+        if (nPoints[pointI] != 1)
+        {
+            pointStat[pointI] = classifyFeaturePoint(pointI);
+        }
+    }
+
+    labelList sortedToOriginalPoint;
+    setFromStatus
+    (
+        pointStat,
+        edgeStat,
+        sortedToOriginalPoint,
+        edgeMap             // point merging above did not affect edge order
+    );
+    pointMap = UIndirectList<label>(pointMap, sortedToOriginalPoint);
+
+    return nNewPoints != nOldPoints;
+}
+
+
+void Foam::extendedEdgeMesh::writeObj(const fileName& prefix) const
 {
     Info<< nl << "Writing extendedEdgeMesh components to " << prefix
         << endl;
 
     edgeMesh::write(prefix + "_edgeMesh.obj");
 
-    OBJstream convexFtPtStr(prefix + "_convexFeaturePts.obj");
-    Info<< "Writing convex feature points to " << convexFtPtStr.name() << endl;
-
-    for(label i = 0; i < concaveStart_; i++)
     {
-        convexFtPtStr.write(points()[i]);
-    }
+        OBJstream convexFtPtStr(prefix + "_convexFeaturePts.obj");
+        Info<< "Writing " << concaveStart_
+            << " convex feature points to " << convexFtPtStr.name() << endl;
 
-    OBJstream concaveFtPtStr(prefix + "_concaveFeaturePts.obj");
-    Info<< "Writing concave feature points to "
-        << concaveFtPtStr.name() << endl;
-
-    for(label i = concaveStart_; i < mixedStart_; i++)
-    {
-        convexFtPtStr.write(points()[i]);
-    }
-
-    OBJstream mixedFtPtStr(prefix + "_mixedFeaturePts.obj");
-    Info<< "Writing mixed feature points to " << mixedFtPtStr.name() << endl;
-
-    for(label i = mixedStart_; i < nonFeatureStart_; i++)
-    {
-        mixedFtPtStr.write(points()[i]);
-    }
-
-    OBJstream mixedFtPtStructureStr(prefix + "_mixedFeaturePtsStructure.obj");
-    Info<< "Writing mixed feature point structure to "
-        << mixedFtPtStructureStr.name() << endl;
-
-    for(label i = mixedStart_; i < nonFeatureStart_; i++)
-    {
-        const labelList& ptEds = pointEdges()[i];
-
-        forAll(ptEds, j)
+        for(label i = 0; i < concaveStart_; i++)
         {
-            const edge& e = edges()[ptEds[j]];
-            mixedFtPtStructureStr.write
-            (
-                linePointRef(points()[e[0]],
-                points()[e[1]])
-            );
+            convexFtPtStr.write(points()[i]);
         }
     }
 
-    OBJstream externalStr(prefix + "_externalEdges.obj");
-    Info<< "Writing external edges to " << externalStr.name() << endl;
-
-    for (label i = externalStart_; i < internalStart_; i++)
     {
-        const edge& e = edges()[i];
-        externalStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        OBJstream concaveFtPtStr(prefix + "_concaveFeaturePts.obj");
+        Info<< "Writing " << mixedStart_-concaveStart_
+            << " concave feature points to "
+            << concaveFtPtStr.name() << endl;
+
+        for(label i = concaveStart_; i < mixedStart_; i++)
+        {
+            concaveFtPtStr.write(points()[i]);
+        }
     }
 
-    OBJstream internalStr(prefix + "_internalEdges.obj");
-    Info<< "Writing internal edges to " << internalStr.name() << endl;
-
-    for (label i = internalStart_; i < flatStart_; i++)
     {
-        const edge& e = edges()[i];
-        internalStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        OBJstream mixedFtPtStr(prefix + "_mixedFeaturePts.obj");
+        Info<< "Writing " << nonFeatureStart_-mixedStart_
+            << " mixed feature points to " << mixedFtPtStr.name() << endl;
+
+        for(label i = mixedStart_; i < nonFeatureStart_; i++)
+        {
+            mixedFtPtStr.write(points()[i]);
+        }
     }
 
-    OBJstream flatStr(prefix + "_flatEdges.obj");
-    Info<< "Writing flat edges to " << flatStr.name() << endl;
-
-    for (label i = flatStart_; i < openStart_; i++)
     {
-        const edge& e = edges()[i];
-        flatStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        OBJstream mixedFtPtStructureStr(prefix+"_mixedFeaturePtsStructure.obj");
+        Info<< "Writing "
+            << nonFeatureStart_-mixedStart_
+            << " mixed feature point structure to "
+            << mixedFtPtStructureStr.name() << endl;
+
+        for(label i = mixedStart_; i < nonFeatureStart_; i++)
+        {
+            const labelList& ptEds = pointEdges()[i];
+
+            forAll(ptEds, j)
+            {
+                const edge& e = edges()[ptEds[j]];
+                mixedFtPtStructureStr.write
+                (
+                    linePointRef(points()[e[0]],
+                    points()[e[1]])
+                );
+            }
+        }
     }
 
-    OBJstream openStr(prefix + "_openEdges.obj");
-    Info<< "Writing open edges to " << openStr.name() << endl;
-
-    for (label i = openStart_; i < multipleStart_; i++)
     {
-        const edge& e = edges()[i];
-        openStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        OBJstream externalStr(prefix + "_externalEdges.obj");
+        Info<< "Writing " << internalStart_-externalStart_
+            << " external edges to " << externalStr.name() << endl;
+
+        for (label i = externalStart_; i < internalStart_; i++)
+        {
+            const edge& e = edges()[i];
+            externalStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        }
     }
 
-    OBJstream multipleStr(prefix + "_multipleEdges.obj");
-    Info<< "Writing multiple edges to " << multipleStr.name() << endl;
-
-    for (label i = multipleStart_; i < edges().size(); i++)
     {
-        const edge& e = edges()[i];
-        multipleStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        OBJstream internalStr(prefix + "_internalEdges.obj");
+        Info<< "Writing " << flatStart_-internalStart_
+            << " internal edges to " << internalStr.name() << endl;
+
+        for (label i = internalStart_; i < flatStart_; i++)
+        {
+            const edge& e = edges()[i];
+            internalStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        }
     }
 
-    OBJstream regionStr(prefix + "_regionEdges.obj");
-    Info<< "Writing region edges to " << regionStr.name() << endl;
-
-    forAll(regionEdges_, i)
     {
-        const edge& e = edges()[regionEdges_[i]];
-        regionStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        OBJstream flatStr(prefix + "_flatEdges.obj");
+        Info<< "Writing " << openStart_-flatStart_
+            << " flat edges to " << flatStr.name() << endl;
+
+        for (label i = flatStart_; i < openStart_; i++)
+        {
+            const edge& e = edges()[i];
+            flatStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        }
     }
 
-    OBJstream edgeDirsStr(prefix + "_edgeDirections.obj");
-    Info<< "Writing edge directions to " << edgeDirsStr.name() << endl;
-
-    forAll(edgeDirections_, i)
     {
-        const vector& eVec = edgeDirections_[i];
-        const edge& e = edges()[i];
+        OBJstream openStr(prefix + "_openEdges.obj");
+        Info<< "Writing " << multipleStart_-openStart_
+            << " open edges to " << openStr.name() << endl;
 
-        edgeDirsStr.write
-        (
-            linePointRef(points()[e.start()], eVec + points()[e.start()])
-        );
+        for (label i = openStart_; i < multipleStart_; i++)
+        {
+            const edge& e = edges()[i];
+            openStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        }
+    }
+
+    {
+        OBJstream multipleStr(prefix + "_multipleEdges.obj");
+        Info<< "Writing " << edges().size()-multipleStart_
+            << " multiple edges to " << multipleStr.name() << endl;
+
+        for (label i = multipleStart_; i < edges().size(); i++)
+        {
+            const edge& e = edges()[i];
+            multipleStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        }
+    }
+
+    {
+        OBJstream regionStr(prefix + "_regionEdges.obj");
+        Info<< "Writing " << regionEdges_.size()
+            << " region edges to " << regionStr.name() << endl;
+
+        forAll(regionEdges_, i)
+        {
+            const edge& e = edges()[regionEdges_[i]];
+            regionStr.write(linePointRef(points()[e[0]], points()[e[1]]));
+        }
+    }
+
+    {
+        OBJstream edgeDirsStr(prefix + "_edgeDirections.obj");
+        Info<< "Writing " << edgeDirections_.size()
+            << " edge directions to " << edgeDirsStr.name() << endl;
+
+        forAll(edgeDirections_, i)
+        {
+            const vector& eVec = edgeDirections_[i];
+            const edge& e = edges()[i];
+
+            edgeDirsStr.write
+            (
+                linePointRef(points()[e.start()], eVec + points()[e.start()])
+            );
+        }
     }
 }
 
@@ -1937,6 +2195,184 @@ Foam::extendedEdgeMesh::classifyEdge
     {
         // There is a problem - the edge has no normals
         return NONE;
+    }
+}
+
+
+void Foam::extendedEdgeMesh::sortedOrder
+(
+    const List<extendedEdgeMesh::pointStatus>& pointStat,
+    const List<extendedEdgeMesh::edgeStatus>& edgeStat,
+    labelList& sortedToOriginalPoint,
+    labelList& sortedToOriginalEdge,
+
+    label& pointConcaveStart,
+    label& pointMixedStart,
+    label& pointNonFeatStart,
+
+    label& edgeInternalStart,
+    label& edgeFlatStart,
+    label& edgeOpenStart,
+    label& edgeMultipleStart
+)
+{
+    sortedToOriginalPoint.setSize(pointStat.size());
+    sortedToOriginalPoint = -1;
+
+    sortedToOriginalEdge.setSize(edgeStat.size());
+    sortedToOriginalEdge = -1;
+
+
+    // Order edges
+    // ~~~~~~~~~~~
+
+    label nConvex = 0;
+    label nConcave = 0;
+    label nMixed = 0;
+    label nNonFeat = 0;
+
+    forAll(pointStat, pointI)
+    {
+        switch (pointStat[pointI])
+        {
+            case extendedEdgeMesh::CONVEX:
+                nConvex++;
+            break;
+
+            case extendedEdgeMesh::CONCAVE:
+                nConcave++;
+            break;
+
+            case extendedEdgeMesh::MIXED:
+                nMixed++;
+            break;
+
+            case extendedEdgeMesh::NONFEATURE:
+                nNonFeat++;
+            break;
+
+            default:
+                FatalErrorIn("order(..)") << "Problem" << exit(FatalError);
+            break;
+        }
+    }
+
+    label convexStart = 0;
+    label concaveStart = nConvex;
+    label mixedStart = concaveStart+nConcave;
+    label nonFeatStart = mixedStart+nMixed;
+
+
+    // Copy to parameters
+    pointConcaveStart = concaveStart;
+    pointMixedStart = mixedStart;
+    pointNonFeatStart = nonFeatStart;
+
+    forAll(pointStat, pointI)
+    {
+        switch (pointStat[pointI])
+        {
+            case extendedEdgeMesh::CONVEX:
+                sortedToOriginalPoint[convexStart++] = pointI;
+            break;
+
+            case extendedEdgeMesh::CONCAVE:
+                sortedToOriginalPoint[concaveStart++] = pointI;
+            break;
+
+            case extendedEdgeMesh::MIXED:
+                sortedToOriginalPoint[mixedStart++] = pointI;
+            break;
+
+            case extendedEdgeMesh::NONFEATURE:
+                sortedToOriginalPoint[nonFeatStart++] = pointI;
+            break;
+        }
+    }
+
+
+    // Order edges
+    // ~~~~~~~~~~~
+
+    label nExternal = 0;
+    label nInternal = 0;
+    label nFlat = 0;
+    label nOpen = 0;
+    label nMultiple = 0;
+
+    forAll(edgeStat, edgeI)
+    {
+        switch (edgeStat[edgeI])
+        {
+            case extendedEdgeMesh::EXTERNAL:
+                nExternal++;
+            break;
+
+            case extendedEdgeMesh::INTERNAL:
+                nInternal++;
+            break;
+
+            case extendedEdgeMesh::FLAT:
+                nFlat++;
+            break;
+
+            case extendedEdgeMesh::OPEN:
+                nOpen++;
+            break;
+
+            case extendedEdgeMesh::MULTIPLE:
+                nMultiple++;
+            break;
+
+            case extendedEdgeMesh::NONE:
+            default:
+                FatalErrorIn("order(..)") << "Problem" << exit(FatalError);
+            break;
+        }
+    }
+
+    label externalStart = 0;
+    label internalStart = nExternal;
+    label flatStart = internalStart + nInternal;
+    label openStart = flatStart + nFlat;
+    label multipleStart = openStart + nOpen;
+
+
+    // Copy to parameters
+    edgeInternalStart = internalStart;
+    edgeFlatStart = flatStart;
+    edgeOpenStart = openStart;
+    edgeMultipleStart = multipleStart;
+
+    forAll(edgeStat, edgeI)
+    {
+        switch (edgeStat[edgeI])
+        {
+            case extendedEdgeMesh::EXTERNAL:
+                sortedToOriginalEdge[externalStart++] = edgeI;
+            break;
+
+            case extendedEdgeMesh::INTERNAL:
+                sortedToOriginalEdge[internalStart++] = edgeI;
+            break;
+
+            case extendedEdgeMesh::FLAT:
+                sortedToOriginalEdge[flatStart++] = edgeI;
+            break;
+
+            case extendedEdgeMesh::OPEN:
+                sortedToOriginalEdge[openStart++] = edgeI;
+            break;
+
+            case extendedEdgeMesh::MULTIPLE:
+                sortedToOriginalEdge[multipleStart++] = edgeI;
+            break;
+
+            case extendedEdgeMesh::NONE:
+            default:
+                FatalErrorIn("order(..)") << "Problem" << exit(FatalError);
+            break;
+        }
     }
 }
 

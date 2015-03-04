@@ -25,10 +25,8 @@ License
 
 #include "DESModelRegions.H"
 #include "volFields.H"
-#include "compressible/turbulenceModel/turbulenceModel.H"
-#include "compressible/LES/DESModel/DESModel.H"
-#include "incompressible/turbulenceModel/turbulenceModel.H"
-#include "incompressible/LES/DESModel/DESModel.H"
+#include "DESModelBase.H"
+#include "turbulenceModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -135,12 +133,6 @@ void Foam::DESModelRegions::read(const dictionary& dict)
 
 void Foam::DESModelRegions::execute()
 {
-    typedef incompressible::turbulenceModel icoModel;
-    typedef incompressible::DESModel icoDESModel;
-
-    typedef compressible::turbulenceModel cmpModel;
-    typedef compressible::DESModel cmpDESModel;
-
     if (active_)
     {
         functionObjectFile::write();
@@ -156,36 +148,16 @@ void Foam::DESModelRegions::execute()
             );
 
 
-        label DESpresent = false;
-        if (mesh.foundObject<icoModel>(turbulenceModel::propertiesName))
+        if (mesh.foundObject<DESModelBase>(turbulenceModel::propertiesName))
         {
-            const icoModel& model =
-                mesh.lookupObject<icoModel>(turbulenceModel::propertiesName);
+            const DESModelBase& model =
+                mesh.lookupObject<DESModelBase>
+                (
+                    turbulenceModel::propertiesName
+                );
 
-            if (isA<icoDESModel>(model))
-            {
-                const icoDESModel& des =
-                    dynamic_cast<const icoDESModel&>(model);
-                DESModelRegions == des.LESRegion();
-                DESpresent = true;
-            }
-        }
-        else if (mesh.foundObject<cmpModel>(turbulenceModel::propertiesName))
-        {
-            const cmpModel& model =
-                mesh.lookupObject<cmpModel>(turbulenceModel::propertiesName);
+            DESModelRegions == model.LESRegion();
 
-            if (isA<cmpDESModel>(model))
-            {
-                const cmpDESModel& des =
-                    dynamic_cast<const cmpDESModel&>(model);
-                DESModelRegions == des.LESRegion();
-                DESpresent = true;
-            }
-        }
-
-        if (DESpresent)
-        {
             scalar prc =
                 gSum(DESModelRegions.internalField()*mesh.V())
                /gSum(mesh.V())*100.0;
@@ -200,11 +172,13 @@ void Foam::DESModelRegions::execute()
 
             Info(log_)
                 << "    LES = " << prc << " % (volume)" << nl
-                << "    RAS = " << 100.0 - prc << " % (volume)" << endl;
+                << "    RAS = " << 100.0 - prc << " % (volume)" << nl
+                << endl;
         }
         else
         {
-            Info(log_)<< "    No DES turbulence model found in database" << nl
+            Info(log_)
+                << "    No DES turbulence model found in database" << nl
                 << endl;
         }
     }

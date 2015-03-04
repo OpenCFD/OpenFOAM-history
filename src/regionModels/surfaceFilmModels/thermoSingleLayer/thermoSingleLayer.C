@@ -265,9 +265,15 @@ tmp<fvScalarMatrix> thermoSingleLayer::q(volScalarField& hs) const
 {
     dimensionedScalar Tstd("Tstd", dimTemperature, 298.15);
 
-    volScalarField boundedAlpha(max(alpha_, ROOTVSMALL));
-    volScalarField htcst(htcs_->h()*boundedAlpha);
-    volScalarField htcwt(htcw_->h()*boundedAlpha);
+//    Only apply heat transfer where the film is present
+//    - leads to temperature unboundedness?
+//    volScalarField boundedAlpha(max(alpha_, ROOTVSMALL));
+//    volScalarField htcst(htcs_->h()*boundedAlpha);
+//    volScalarField htcwt(htcw_->h()*boundedAlpha);
+
+    // Apply heat transfer everywhere
+    volScalarField htcst(htcs_->h());
+    volScalarField htcwt(htcw_->h());
 
     htcst.correctBoundaryConditions();
     htcwt.correctBoundaryConditions();

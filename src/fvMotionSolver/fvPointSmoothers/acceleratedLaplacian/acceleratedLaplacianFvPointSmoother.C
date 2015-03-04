@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -82,7 +82,7 @@ Foam::pointSmoothers::acceleratedLaplacianFvPointSmoother::
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::pointSmoothers::acceleratedLaplacianFvPointSmoother::update
+void Foam::pointSmoothers::acceleratedLaplacianFvPointSmoother::calculate
 (
     const labelList& facesToMove,
     const pointField& oldPoints,
@@ -106,7 +106,7 @@ void Foam::pointSmoothers::acceleratedLaplacianFvPointSmoother::update
         facesToMove
     );
 
-    laplacianPointSmoother::update
+    laplacianPointSmoother::calculate
     (
         facesToMove,
         oldPoints,
