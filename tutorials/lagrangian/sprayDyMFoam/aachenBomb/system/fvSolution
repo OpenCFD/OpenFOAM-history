@@ -107,11 +107,11 @@ relaxationFactors
 {
     fields
     {
-        ".*Final"       1;
+        rho             1;
     }
     equations
     {
-        ".*Final"       1;
+        ".*"            1;
     }
 }
 
