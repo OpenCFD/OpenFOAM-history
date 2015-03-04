@@ -34,8 +34,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "turbulentFluidThermoModel.H"
 #include "dynamicFvMesh.H"
-#include "turbulenceModel.H"
 #include "basicSprayCloud.H"
 #include "psiCombustionModel.H"
 #include "radiationModel.H"
