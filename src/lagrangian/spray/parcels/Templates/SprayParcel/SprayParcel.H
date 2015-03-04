@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -59,6 +59,11 @@ class SprayParcel
 :
     public ParcelType
 {
+    // Private data
+
+        //- Size in bytes of the fields
+        static const std::size_t sizeofFields_;
+
 
 public:
 
@@ -120,14 +125,6 @@ public:
             //- Return const access to the initial dynamic viscosity
             inline scalar mu0() const;
     };
-
-
-private:
-
-    // Private static data members
-
-        //- Size in bytes of all the fields transfered in binary
-        static const std::size_t sizeofFields_;
 
 
 protected:

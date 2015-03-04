@@ -80,6 +80,15 @@ class particle
 :
     public IDLList<particle>::link
 {
+    // Private member data
+
+        //- Size in bytes of the position data
+        static const std::size_t sizeofPosition_;
+
+        //- Size in bytes of the fields
+        static const std::size_t sizeofFields_;
+
+
 public:
 
     template<class CloudType>
@@ -119,17 +128,6 @@ public:
                 return cloud_;
             }
     };
-
-
-private:
-
-    // Private static data members
-
-        //- Size in bytes of all the fields transfered in binary
-        static const std::size_t sizeofPosition_;
-
-        //- Size in bytes of all the fields transfered in binary
-        static const std::size_t sizeofFields_;
 
 
 protected:
@@ -368,7 +366,6 @@ public:
         {
             return autoPtr<particle>(new particle(*this));
         }
-
 
         //- Factory class to read-construct particles used for
         //  parallel transfer
