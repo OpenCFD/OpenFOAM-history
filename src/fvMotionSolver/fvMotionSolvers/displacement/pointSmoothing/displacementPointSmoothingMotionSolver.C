@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -357,11 +357,6 @@ void Foam::displacementPointSmoothingMotionSolver::solve()
             points0() + pointDisplacement().internalField(),
             meshGeometry_
         );
-
-        pointConstraints::New
-        (
-            pointDisplacement().mesh()
-        ).constrainDisplacement(pointDisplacement());
     }
 
     relax();
