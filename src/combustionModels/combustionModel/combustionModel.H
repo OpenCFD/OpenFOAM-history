@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,7 +36,9 @@ SourceFiles
 #define combustionModel_H
 
 #include "IOdictionary.H"
-#include "turbulentFluidThermoModel.H"
+#include "compressibleTurbulenceModel.H"
+#include "tmp.H"
+#include "surfaceFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -57,7 +59,8 @@ protected:
     // Protected data
 
         //- Reference to the turbulence model
-        compressible::turbulenceModel* turbulencePtr_;
+        //compressible::turbulenceModel* turbulencePtr_;
+        compressibleTurbulenceModel* turbulencePtr_;
 
         //- Reference to the mesh database
         const fvMesh& mesh_;
@@ -114,18 +117,18 @@ public:
             inline const fvMesh& mesh() const;
 
             //- Return const access to phi
-            inline const surfaceScalarField& phi() const;
+            inline tmp<surfaceScalarField> phi() const;
 
             //- Return const access to rho
             virtual tmp<volScalarField> rho() const = 0;
 
             //- Return access to turbulence
-            inline const compressible::turbulenceModel& turbulence() const;
+            inline const compressibleTurbulenceModel& turbulence() const;
 
             //- Set turbulence
             inline void setTurbulence
             (
-                compressible::turbulenceModel& turbModel
+                compressibleTurbulenceModel& turbModel
             );
 
             //- Is combustion active?
