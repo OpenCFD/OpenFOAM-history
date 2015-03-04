@@ -23,7 +23,7 @@ boundaryField
     movingWall
     {
         type            uniformFixedValue;
-        uniformValue    constant 150;
+        uniformValue    constant 160;
     }
     farFieldMoving
     {
