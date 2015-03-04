@@ -114,9 +114,6 @@ protected:
             polyMeshGeometry& meshGeometry
         ) = 0;
 
-        //- Correct the point displacements
-        void correct();
-
 
 public:
 
