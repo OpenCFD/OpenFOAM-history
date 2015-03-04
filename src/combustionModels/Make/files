@@ -18,12 +18,14 @@ PaSR/PaSRs.C
 
 laminar/laminars.C
 
+/*
 FSD/reactionRateFlameAreaModels/consumptionSpeed/consumptionSpeed.C
 FSD/reactionRateFlameAreaModels/reactionRateFlameArea/reactionRateFlameArea.C
 FSD/reactionRateFlameAreaModels/reactionRateFlameArea/reactionRateFlameAreaNew.C
 FSD/reactionRateFlameAreaModels/relaxation/relaxation.C
 
 FSD/FSDs.C
+*/
 
 noCombustion/noCombustions.C
 

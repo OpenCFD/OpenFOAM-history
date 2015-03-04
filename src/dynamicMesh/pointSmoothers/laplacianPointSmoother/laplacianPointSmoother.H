@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -75,8 +75,8 @@ public:
 
     // Member Functions
 
-        //- Calculate the end point locations
-        virtual void update
+        //- Calculate the point displacements
+        virtual void calculate
         (
             const labelList& facesToMove,
             const pointField& oldPoints,

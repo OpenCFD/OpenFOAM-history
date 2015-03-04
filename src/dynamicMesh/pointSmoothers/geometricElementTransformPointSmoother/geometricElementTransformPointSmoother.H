@@ -100,8 +100,8 @@ public:
 
     // Member Functions
 
-        //- Calculate the end point locations
-        virtual void update
+        //- Calculate the point displacements
+        virtual void calculate
         (
             const labelList& facesToMove,
             const pointField& oldPoints,

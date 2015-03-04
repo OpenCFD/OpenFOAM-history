@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -196,12 +196,6 @@ bool Foam::pointSmoothingMeshMover::move
             currentPoints,
             meshGeometry_
         );
-
-        // Apply boundary conditions and constraints
-        pointConstraints::New
-        (
-            pointDisplacement().mesh()
-        ).constrainDisplacement(pointDisplacement());
     }
 
 
