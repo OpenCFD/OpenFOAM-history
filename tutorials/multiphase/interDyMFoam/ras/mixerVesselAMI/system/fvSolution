@@ -74,16 +74,10 @@ PIMPLE
     nOuterCorrectors    2;
     nCorrectors         1;
     nNonOrthogonalCorrectors 0;
-    nAlphaCorr          1;
-    nAlphaSubCycles     2;
-    cAlpha              1;
 }
 
 relaxationFactors
 {
-    fields
-    {
-    }
     equations
     {
         "U.*"           1;
