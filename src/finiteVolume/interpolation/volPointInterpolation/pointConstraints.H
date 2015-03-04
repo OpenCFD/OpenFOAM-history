@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -176,7 +176,8 @@ public:
 
             //- Apply boundary conditions (single-patch constraints),
             //  patch-patch constraints and
-            //  two-D constraints on displacement field
+            //  two-D constraints on new point locations
+            //  (= mesh.points() + displacement)
             void constrainDisplacement
             (
                 pointVectorField& displacement,
