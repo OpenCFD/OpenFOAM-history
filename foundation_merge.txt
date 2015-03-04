@@ -1,3 +1,342 @@
+commit d99958d4240988200f317064ed7aa8f31b431ecd
+Author: Henry <Henry>
+Date:   Thu Feb 26 20:03:48 2015 +0000
+
+    TurbulenceModels: Updated documentation for incompressible models
+
+commit 763ecdc0f473d6d862067e4f4821ee2768dc4d84
+Author: Henry <Henry>
+Date:   Thu Feb 26 17:00:36 2015 +0000
+
+    rhoCentralFoam: Corrected the BCs for positive (outgoing) fluxes
+    Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1548
+
+commit c9de6d8ca5c6d093865fb16c806c6622f9abf30c
+Author: Henry <Henry>
+Date:   Wed Feb 25 23:29:33 2015 +0000
+
+    Corrected warning message
+
+commit 9054c7e78c3dfee00f5a11423eedbb393f4f4346
+Author: Henry <Henry>
+Date:   Wed Feb 25 20:51:37 2015 +0000
+
+    cyclicACMIPolyPatch: Hacked to avoid sigSegv during decomposition
+    Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=1450
+
+commit 0f49a15c35136baee5a6183a0bc3a59d7780cbaf
+Author: Henry <Henry>
+Date:   Wed Feb 25 18:18:23 2015 +0000
+
+    primitiveMeshTools: VSMALL -> ROOTVSMALL
+    Proposed resolution of http://www.openfoam.org/mantisbt/view.php?id=1509
+
+commit e980cd5a60666a452486138f21efb3847def0094
+Author: Henry <Henry>
+Date:   Wed Feb 25 16:54:05 2015 +0000
+
+    CrankNicolsonDdtScheme: Clarified the relationship between the
+    off-centre coefficient and the coefficient for the implicit part
+
+commit 0577cdb3cd463c26c836f86f013a5ee3c8642285
+Author: Henry <Henry>
+Date:   Wed Feb 25 12:20:12 2015 +0000
+
+    rhoCentralDyMFoam: Add support for morphing-meshes and provide movingCone tutorial case
+
+commit de2c2fb007c4c6f0936c036270e5cf633d775d71
+Author: Henry <Henry>
+Date:   Wed Feb 25 10:57:06 2015 +0000
+
+    Rationalize position searching and add cell->tet decomposition as the default cell-search algorithm
+    Resolves issues with probes and findRefCell for meshes in which all cell face-pyramids are positive.
+
+commit 25ab8a1a07a4a2f4dd55f243dcd2d61d2ea8426a
+Author: Henry <Henry>
+Date:   Wed Feb 25 10:55:51 2015 +0000
+
+    codingStyleGuide: Minor updates
+
+commit e01696bfb5c8bf3434d6bd030ae4b51d37a5def0
+Author: Henry <Henry>
+Date:   Wed Feb 25 10:55:33 2015 +0000
+
+    liquidMixtureProperties: Improve comments
+
+commit 99965b01c4fd56cf8c72d2d3e012b53e55d02a68
+Author: Henry <Henry>
+Date:   Wed Feb 25 10:54:50 2015 +0000
+
+    constTransport: Handle the case of nMoles = 0 in += and -= operators
+    Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1348
+
+commit d5970175a5bb7dd885dbd6d8c4b09aad87a33db9
+Author: Henry <Henry>
+Date:   Mon Feb 23 18:57:57 2015 +0000
+
+    heThermo: Correct kappaEff
+
+commit 8fa5a2b76aa9716ee486fbd5bc4c2d669893a4c4
+Author: Henry <Henry>
+Date:   Mon Feb 23 18:57:33 2015 +0000
+
+    constTransport: Correct kappa
+
+commit d2fbdcb9a9f630488d6e95cb4c99d3256bad80f9
+Author: Henry <Henry>
+Date:   Mon Feb 23 08:44:18 2015 +0000
+
+    Added support for gcc-5.0.0
+    Tested with snapshot gcc-5-20150215.tar.bz2
+
+commit 0ae18335f69cd13729a1e034d5311703e6177757
+Author: Henry <Henry>
+Date:   Sun Feb 22 16:53:33 2015 +0000
+
+    tutorials/compressible/sonicDyMFoam/movingCone: sonic version of the pimpleDyMFoam/movingCone tutorial
+
+commit 5d3bb289940813fe2c2ae79339211825e6a0166f
+Author: Henry <Henry>
+Date:   Sun Feb 22 16:52:21 2015 +0000
+
+    tutorials: remove unnecessary under-relax fields entry
+
+commit 64ec856d6091612c2284941788767b9536cf70c3
+Author: Henry <Henry>
+Date:   Sun Feb 22 16:50:48 2015 +0000
+
+    rhoEqn: Do not constrain; would violate conservation
+
+commit 51abd7e807dc3148517e0b2c53f4bb7fa08ec018
+Author: Henry <Henry>
+Date:   Sun Feb 22 15:29:37 2015 +0000
+
+    CrankNicolsonDdtScheme: Added "see also"
+
+commit 5ee73b2e9bb7ad6b67dacf63c30d3ec1104d493a
+Author: Henry <Henry>
+Date:   Sun Feb 22 15:25:32 2015 +0000
+
+    CrankNicolsonDdtScheme: Add documentation
+
+commit fa346ae539e7cea3404843461b98b31b7a36e63e
+Author: Henry <Henry>
+Date:   Sun Feb 22 12:53:34 2015 +0000
+
+    tutorials/multiphase/interDyMFoam/ras/floatingObject: Update to demonstrate MULES with Crank-Nicolson
+
+commit cf07fdc957fdd575ef24e90b91dcba138ddfb91c
+Author: Henry <Henry>
+Date:   Sun Feb 22 12:14:46 2015 +0000
+
+    lagrangian: Improved handling of binary transfers
+    Now using memory offsets to calculate transfer block sizes rather than
+    sum of 'sizeof' to ensure word alignment is accounted for
+
+*OK* commit 5daf22d9d73ea9f1a4e3a892e7aa21fc998f32af
+Author: Henry <Henry>
+Date:   Sun Feb 22 12:13:19 2015 +0000
+
+    interFoam/alphaEqn: Corrected handling of the off-centreing coefficient for Crank-Nicolson
+
+*OK* commit ff8978dba5d34498b58a80e87c3d461cdd1ccefc
+Author: Henry <Henry>
+Date:   Sun Feb 22 10:25:30 2015 +0000
+
+    interFoam/alphaEqn: Updated phiCN
+
+*OK* commit 9b7079ff8f96ab4ed4a3d9d855c94fc80f3633fa
+Author: Henry <Henry>
+Date:   Sat Feb 21 21:41:48 2015 +0000
+
+    timeVaryingMappedFixedValueFvPatchField: Updated documentation
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1545
+
+*OK* commit 9fc5f5c1db6dd8434bd7238272f6765f084cf4d2
+Author: Henry <Henry>
+Date:   Sat Feb 21 21:39:59 2015 +0000
+
+    interFoam/alphaEqn: Update explicit corrector to use the Crank-Nicolson flux
+
+*OK* commit 5f24612805525a8f3bbf26e2a73e5017c3281595
+Author: Henry <Henry>
+Date:   Sat Feb 21 21:39:01 2015 +0000
+
+    icoFoam/nonNewtonianIcoFoam: Update to use pisoControl
+
+*OK* commit 47482b9246ceb8252e727c315c5a02930686e26a
+Author: Henry <Henry>
+Date:   Fri Feb 20 22:47:51 2015 +0000
+
+    LTSinterFoam: test for localEuler as a valid scheme in the new alphaEqn
+
+*OK* commit 218875bf401389262da828a896f7e7633df1480d
+Author: Henry <Henry>
+Date:   Fri Feb 20 17:24:14 2015 +0000
+
+    DSMC: Rationalization and addition of mapping support
+
+*OK* commit 5cd0083db014cc1cc9f6a4462735eaa2bbd1ed3b
+Author: Henry <Henry>
+Date:   Fri Feb 20 16:09:32 2015 +0000
+
+    Update headers
+
+*OK* commit 5fca41e1a78c0107213e093e6dfce0e3b89a2526
+Author: Henry <Henry>
+Date:   Fri Feb 20 16:08:56 2015 +0000
+
+    CrankNicolsonDdtScheme: provide access to the off-centreing coefficient
+
+*OK* commit f78d33b634c35394944d7fb651ba3cb4f64b2a1b
+Author: Henry <Henry>
+Date:   Fri Feb 20 15:59:43 2015 +0000
+
+    interFoam family: Add support for MULES-bounded Crank-Nicolson 2nd-order ddt(alpha)
+    
+    This is an experimental feature demonstrating the potential of MULES to
+    create bounded solution which are 2nd-order in time AND space.
+    
+    Crank-Nicolson may be selected on U and/or alpha but will only be fully
+    2nd-order if used on both within the PIMPLE-loop to converge the
+    interaction between the flux and phase-fraction.  Note also that
+    Crank-Nicolson may not be used with sub-cycling but all the features of
+    semi-implicit MULES are available in particular MULESCorr and
+    alphaApplyPrevCorr.
+    
+    Examples of ddt specification:
+    
+    ddtSchemes
+    {
+        default         Euler;
+    }
+    
+    ddtSchemes
+    {
+        default         CrankNicolson 0.9;
+    }
+    
+    ddtSchemes
+    {
+        default         none;
+        ddt(alpha)      CrankNicolson 0.9;
+        ddt(rho,U)      CrankNicolson 0.9;
+    }
+    
+    ddtSchemes
+    {
+        default         none;
+        ddt(alpha)      Euler;
+        ddt(rho,U)      CrankNicolson 0.9;
+    }
+    
+    ddtSchemes
+    {
+        default         none;
+        ddt(alpha)      CrankNicolson 0.9;
+        ddt(rho,U)      Euler;
+    }
+    
+    In these examples a small amount of off-centering in used to stabilize
+    the Crank-Nicolson scheme.  Also the specification for alpha1 is via the
+    generic phase-fraction name to ensure in multiphase solvers (when
+    Crank-Nicolson support is added) the scheme is identical for all phase
+    fractions.
+
+*OK* commit 514f90575809e97c54636854eb9fb39c5873a362
+Author: Henry <Henry>
+Date:   Thu Feb 19 19:07:14 2015 +0000
+
+    Updated header
+
+*OK* commit e593fef659bcd71028e0e66a70510de2c34888e2
+Author: Henry <Henry>
+Date:   Thu Feb 19 19:05:17 2015 +0000
+
+    potentialFoam: Added new method to estimate the static pressure field from the velocity
+    Uses a form of the Euler equation in which only variation along the streamlines is considered
+
+*OK* commit f43abd9f3b9d3e5463b819ad0dee1713034a5f8f
+Author: Henry <Henry>
+Date:   Thu Feb 19 09:56:50 2015 +0000
+
+    tutorials/basic/laplacianFoam/flange/Allrun: Updated for consistent output
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1543
+
+*OK* commit 6be514684a95b04d79cdaa773d54240d63fbef77
+Author: Henry <Henry>
+Date:   Thu Feb 19 08:39:32 2015 +0000
+
+    tutorials: rationalized log
+
+*OK* commit 0ca9a1fb092f7ce9d88c82e24917d1c51b54fa81
+Author: Henry <Henry>
+Date:   Wed Feb 18 21:24:09 2015 +0000
+
+    Integer read: use strtoimax rather than strtol and check explicitly for overflow of int32_t
+
+*OK* commit 4db6925cee7edfff101660fc853f0de354f544d9
+Author: Henry <Henry>
+Date:   Wed Feb 18 21:21:22 2015 +0000
+
+    Thermodyamics:  Add support for multiphase
+    Pass the phase-name through hierarchy
+    Add phase-name to variables
+    Split basicCombustionMixture
+    Update applications accordingly
+
+*OK* commit 9cd665988d1daaf15615ff35a2a2f72184b8a50d
+Author: Henry <Henry>
+Date:   Wed Feb 18 10:01:05 2015 +0000
+
+    tutorials/multiphase/interPhaseChangeFoam/cavitatingBullet: Added a potentialFoam initializer step
+
+*OK* commit b44acdb03e89434037f534a3847153d5aa730f51
+Author: Henry <Henry>
+Date:   Wed Feb 18 08:12:01 2015 +0000
+
+    PtrList: Check for EOF while reading to avoid run-on and infinite loop when reading list of dictionaries.
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1538
+
+*OK* commit 3482e22bc61e404720f902a06a31c0741b605959
+Author: Henry <Henry>
+Date:   Tue Feb 17 23:59:59 2015 +0000
+
+    tutorials: corrected comments in snappyHexMeshDict
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1541
+
+*OK* commit 16c7318aee6b22df4b152dfbe59798ead5db0fb3
+Author: Henry <Henry>
+Date:   Tue Feb 17 23:59:21 2015 +0000
+
+    outletInletFvPatchField: store Field<scalar> rather than fvsPatchField<scalar> for phip
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1539
+
+*OK* commit f5c06844639d9b2b5673952ba9f6a13129a4cd5b
+Author: Henry <Henry>
+Date:   Tue Feb 17 23:59:13 2015 +0000
+
+    Updated header
+
+*OK* commit e9f2981d85009025df0c4051c5fa7a37330ef994
+Author: Henry <Henry>
+Date:   Tue Feb 17 23:58:44 2015 +0000
+
+    driftFluxFoam: Updated base-class of incompressibleTwoPhaseInteractingMixture
+
+*OK* commit 76c7f68ac10da8a0bad014797e5e6845bf336554
+Author: Henry <Henry>
+Date:   Tue Feb 17 17:25:26 2015 +0000
+
+    fluidThermo: Add compressibleTransportModel as base-class
+    Needed to create generic compressible turbulence model library
+
+*OK* commit 3429d2dd807110b0885f2d319e6939f01fba087c
+Author: Henry <Henry>
+Date:   Tue Feb 17 15:06:31 2015 +0000
+
+    chtMultiRegionSimpleFoam: Support simpler input for rhoMax and rhoMin
+
 *OK* commit c328c5468013f7b4a9dbc849e463f7d8f4c27b45
 Author: Henry <Henry>
 Date:   Tue Feb 17 10:55:02 2015 +0000
