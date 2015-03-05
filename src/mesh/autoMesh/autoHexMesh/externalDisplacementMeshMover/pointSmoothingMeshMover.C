@@ -25,9 +25,6 @@ License
 
 #include "pointSmoothingMeshMover.H"
 #include "addToRunTimeSelectionTable.H"
-#include "syncTools.H"
-#include "pointConstraints.H"
-#include "zeroFixedValuePointPatchField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
