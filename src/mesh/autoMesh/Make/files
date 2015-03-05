@@ -28,6 +28,7 @@ meshMover = $(autoHexMesh)/externalDisplacementMeshMover
 $(meshMover)/displacementMeshMoverMotionSolver.C
 $(meshMover)/externalDisplacementMeshMover.C
 $(meshMover)/medialAxisMeshMover.C
+$(meshMover)/displacementMotionSolverMeshMover.C
 $(meshMover)/pointSmoothingMeshMover.C
 $(meshMover)/zeroFixedValue/zeroFixedValuePointPatchFields.C
 $(meshMover)/fieldSmoother/fieldSmoother.C
