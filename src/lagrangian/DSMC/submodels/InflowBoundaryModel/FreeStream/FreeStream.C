@@ -170,6 +170,9 @@ void Foam::FreeStream<CloudType>::inflow()
     );
 
 
+    // Work storage for faceTets
+    DynamicList<tetIndices> faceTets;
+
     forAll(patches_, p)
     {
         label patchi = patches_[p];
@@ -242,11 +245,12 @@ void Foam::FreeStream<CloudType>::inflow()
 
             scalar fA = mag(patch.faceAreas()[pFI]);
 
-            List<tetIndices> faceTets = polyMeshTetDecomposition::faceTetIndices
+            polyMeshTetDecomposition::faceTetIndices
             (
                 mesh,
                 globalFaceIndex,
-                cellI
+                cellI,
+                faceTets
             );
 
             // Cumulative triangle area fractions
