@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -658,6 +658,8 @@ bool Foam::sampledTriSurfaceMesh::update()
 
     bb.min() -= 0.5*span;
     bb.max() += 0.5*span;
+
+    bb.inflate(1e-6);
 
     // Mesh search engine, no triangulation of faces.
     meshSearch meshSearcher(mesh(), bb, polyMesh::FACEPLANES);
