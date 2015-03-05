@@ -96,6 +96,15 @@ public:
             const IOdictionary&
         );
 
+        //- Construct from components
+        displacementSBRStressFvMotionSolver
+        (
+            const polyMesh& mesh,
+            const IOdictionary& dict,
+            const pointVectorField& pointDisplacement,
+            const pointIOField& points0
+        );
+
 
     //- Destructor
     ~displacementSBRStressFvMotionSolver();

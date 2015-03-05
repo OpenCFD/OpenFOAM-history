@@ -41,6 +41,13 @@ namespace Foam
         displacementPointSmoothingMotionSolver,
         dictionary
     );
+
+    addToRunTimeSelectionTable
+    (
+        displacementMotionSolver,
+        displacementPointSmoothingMotionSolver,
+        displacement
+    );
 }
 
 
@@ -293,6 +300,47 @@ displacementPointSmoothingMotionSolver
     displacementMotionSolver(mesh, dict, dict.lookup("solver")),
     meshGeometry_(mesh),
     pointSmoother_(pointSmoother::New(coeffDict(), pointDisplacement())),
+    nPointSmootherIter_
+    (
+        readLabel(coeffDict().lookup("nPointSmootherIter"))
+    ),
+    relaxationFactors_(coeffDict().lookup("relaxationFactors")),
+    relaxedPoints_(mesh.points()),
+    facesToMove_(),
+    meshQualityDict_(coeffDict().subDict("meshQuality"))
+{
+    const Switch moveInternalFaces(coeffDict().lookup("moveInternalFaces"));
+
+    if (moveInternalFaces)
+    {
+        setAllFacesToMove();
+    }
+    else
+    {
+        setBoundaryFacesToMove();
+    }
+}
+
+
+Foam::displacementPointSmoothingMotionSolver::
+displacementPointSmoothingMotionSolver
+(
+    const polyMesh& mesh,
+    const IOdictionary& dict,
+    const pointVectorField& pointDisplacement,
+    const pointIOField& points0
+)
+:
+    displacementMotionSolver(mesh, dict, pointDisplacement, points0, typeName),
+    meshGeometry_(mesh),
+    pointSmoother_
+    (
+        pointSmoother::New
+        (
+            coeffDict(),
+            displacementMotionSolver::pointDisplacement()
+        )
+    ),
     nPointSmootherIter_
     (
         readLabel(coeffDict().lookup("nPointSmootherIter"))
