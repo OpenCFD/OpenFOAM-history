@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,10 +29,7 @@ License
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 template<class ThermoType>
-const char* Foam::homogeneousMixture<ThermoType>::specieNames_[1] =
-{
-    "b"
-};
+const char* Foam::homogeneousMixture<ThermoType>::specieNames_[1] = {"b"};
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -97,14 +94,14 @@ void Foam::homogeneousMixture<ThermoType>::read(const dictionary& thermoDict)
 template<class ThermoType>
 const ThermoType& Foam::homogeneousMixture<ThermoType>::getLocalThermo
 (
-    const label specieI
+    const label speciei
 ) const
 {
-    if (specieI == 0)
+    if (speciei == 0)
     {
         return reactants_;
     }
-    else if (specieI == 1)
+    else if (speciei == 1)
     {
         return products_;
     }
@@ -117,7 +114,7 @@ const ThermoType& Foam::homogeneousMixture<ThermoType>::getLocalThermo
             "("
                 "const label "
             ") const"
-        )   << "Unknown specie index " << specieI << ". Valid indices are 0..1"
+        )   << "Unknown specie index " << speciei << ". Valid indices are 0..1"
             << abort(FatalError);
 
         return reactants_;

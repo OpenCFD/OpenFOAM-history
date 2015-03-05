@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,7 +25,7 @@ Class
     Foam::basicCombustionMixture
 
 Description
-    Combustion mixture.
+    Specialization of the basicSpecieMixture for combustion.
 
 SourceFiles
     basicCombustionMixture.C
@@ -56,13 +56,14 @@ public:
     //- Run time type information
     TypeName("basicCombustionMixture");
 
+
     //- The base class of the mixture
     typedef basicCombustionMixture basicMixtureType;
 
 
     // Constructors
 
-        //- Construct from dictionary, mesh and phase name
+        //- Construct from dictionary, specie names, mesh and phase name
         basicCombustionMixture
         (
             const dictionary&,

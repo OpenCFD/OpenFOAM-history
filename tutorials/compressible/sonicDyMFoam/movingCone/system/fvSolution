@@ -41,7 +41,7 @@ solvers
 
     "rho.*"
     {
-        $p;
+        solver          diagonal;
         tolerance       1e-05;
         relTol          0;
     }
@@ -77,8 +77,9 @@ PIMPLE
     nCorrectors         2;
     transonic           yes;
     nNonOrthogonalCorrectors 0;
-    rhoMin              rhoMin [ 1 -3 0 0 0 ]  0.1;
-    rhoMax              rhoMax [ 1 -3 0 0 0 ] 100.0;
+
+    rhoMin              0.1;
+    rhoMax              100.0;
 }
 
 relaxationFactors

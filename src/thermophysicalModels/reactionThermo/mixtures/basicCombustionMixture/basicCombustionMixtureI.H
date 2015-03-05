@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,7 +29,7 @@ inline Foam::scalar Foam::basicCombustionMixture::fres
     const scalar stoicRatio
 ) const
 {
-    return max(ft - (1.0 - ft)/stoicRatio, 0.0);
+    return max(ft - (scalar(1) - ft)/stoicRatio, scalar(0));
 }
 
 

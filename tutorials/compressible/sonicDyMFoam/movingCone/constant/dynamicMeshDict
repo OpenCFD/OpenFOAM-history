@@ -24,7 +24,7 @@ solver          velocityComponentLaplacian;
 velocityComponentLaplacianCoeffs
 {
     component       x;
-    diffusivity     directional ( 1 200 0 );
+    diffusivity     directional (1 200 0);
 }
 
 

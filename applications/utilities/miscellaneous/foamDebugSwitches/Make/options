@@ -2,6 +2,7 @@ EXE_LIBS = \
     -lautoMesh \
     -lbarotropicCompressibilityModel \
     -lsolidThermo \
+    -lcompressibleTransportModels \
     -lfluidThermophysicalModels \
     -lblockMesh \
     -lchemistryModel \
@@ -11,7 +12,7 @@ EXE_LIBS = \
     -ldecompositionMethods \
     -ldistributed \
     -ldistributionModels \
-    -ldsmc \
+    -lDSMC \
     -ldynamicFvMesh \
     -ldynamicMesh \
     -ledgeMesh \

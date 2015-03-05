@@ -86,8 +86,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "fvIOoptionList.H"
 #include "pisoControl.H"
+#include "fvIOoptionList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -102,20 +102,20 @@ int main(int argc, char *argv[])
 
     argList::addBoolOption
     (
+        "initialiseUBCs",
+        "Initialise U boundary conditions"
+    );
+
+    argList::addBoolOption
+    (
         "writePhi",
-        "write the final velocity potential field"
+        "Write the final velocity potential field"
     );
 
     argList::addBoolOption
     (
         "writep",
-        "calculate and write the Euler pressure field"
-    );
-
-    argList::addBoolOption
-    (
-        "initialiseUBCs",
-        "initialise U boundary conditions"
+        "Calculate and write the Euler pressure field"
     );
 
     #include "setRootCase.H"
@@ -185,26 +185,42 @@ int main(int argc, char *argv[])
     // Calculate the pressure field from the Euler equation
     if (args.optionFound("writep"))
     {
-        Info<< nl << "Calculating Euler pressure field" << endl;
+        Info<< nl << "Calculating approximate pressure field" << endl;
 
+        label pRefCell = 0;
+        scalar pRefValue = 0.0;
+        setRefCell
+        (
+            p,
+            potentialFlow.dict(),
+            pRefCell,
+            pRefValue
+        );
+
+        // Calculate the flow-direction filter tensor
         volScalarField magSqrU(magSqr(U));
+        volSymmTensorField F(sqr(U)/(magSqrU + SMALL*average(magSqrU)));
 
+        // Calculate the divergence of the flow-direction filtered div(U*U)
+        // Filtering with the flow-direction generates a more reasonable
+        // pressure distribution in regions of high velocity gradient in the
+        // direction of the flow
         volScalarField divDivUU
         (
-            // Euler equation form
-            // fvc::div(fvc::div(phi, U), "div(div(phi,U))")
-
-            // Euler equation filtered by the flow-direction
             fvc::div
             (
-                (sqr(U)/(magSqrU + 1e-6*average(magSqrU))) & fvc::div(phi, U),
+                F & fvc::div(phi, U),
                 "div(div(phi,U))"
             )
         );
 
+        // Solve a Poisson equation for the approximate pressure
         while (potentialFlow.correctNonOrthogonal())
         {
-            fvScalarMatrix pEqn(fvm::laplacian(p) + divDivUU);
+            fvScalarMatrix pEqn
+            (
+                fvm::laplacian(p) + divDivUU
+            );
 
             pEqn.setReference(pRefCell, pRefValue);
             pEqn.solve();
