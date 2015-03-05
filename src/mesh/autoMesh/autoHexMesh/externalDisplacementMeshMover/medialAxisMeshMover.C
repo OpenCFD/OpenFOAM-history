@@ -1532,7 +1532,10 @@ void Foam::medialAxisMeshMover::calculateDisplacement
     }
 
 
-    // smooth layer thickness on moving patch
+    // Smooth layer thickness on moving patch. Since some locations will have
+    // disabled the extrusion this might cause big jumps in wanted displacement
+    // for neighbouring patch points. So smooth the wanted displacement
+    // before actually trying to move the mesh.
     fieldSmoother_.minSmoothField
     (
         nSmoothPatchThickness,

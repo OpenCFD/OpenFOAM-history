@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,8 +25,8 @@ Class
     Foam::displacementMeshMoverMotionSolver
 
 Description
-    Mesh motion solver for an fvMesh.  Based on solving the cell-centre
-    Laplacian for the motion displacement.
+    Mesh motion solver for an fvMesh. Uses externalDisplacementMeshMover
+    to do the mesh motion.
 
 SourceFiles
     displacementMeshMoverMotionSolver.C

@@ -104,6 +104,15 @@ public:
             const IOdictionary&
         );
 
+        //- Construct from components
+        displacementLaplacianFvMotionSolver
+        (
+            const polyMesh& mesh,
+            const IOdictionary& dict,
+            const pointVectorField& pointDisplacement,
+            const pointIOField& points0
+        );
+
 
     //- Destructor
     ~displacementLaplacianFvMotionSolver();

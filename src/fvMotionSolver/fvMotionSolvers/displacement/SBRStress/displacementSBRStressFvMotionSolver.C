@@ -46,6 +46,13 @@ namespace Foam
         displacementSBRStressFvMotionSolver,
         dictionary
     );
+
+    addToRunTimeSelectionTable
+    (
+        displacementMotionSolver,
+        displacementSBRStressFvMotionSolver,
+        displacement
+    );
 }
 
 
@@ -77,6 +84,52 @@ Foam::displacementSBRStressFvMotionSolver::displacementSBRStressFvMotionSolver
             vector::zero
         ),
         cellMotionBoundaryTypes<vector>(pointDisplacement().boundaryField())
+    ),
+    interpolationPtr_
+    (
+        coeffDict().found("interpolation")
+      ? motionInterpolation::New(fvMesh_, coeffDict().lookup("interpolation"))
+      : motionInterpolation::New(fvMesh_)
+    ),
+    diffusivityPtr_
+    (
+        motionDiffusivity::New(fvMesh_, coeffDict().lookup("diffusivity"))
+    )
+{}
+
+
+Foam::displacementSBRStressFvMotionSolver::
+displacementSBRStressFvMotionSolver
+(
+    const polyMesh& mesh,
+    const IOdictionary& dict,
+    const pointVectorField& pointDisplacement,
+    const pointIOField& points0
+)
+:
+    displacementMotionSolver(mesh, dict, pointDisplacement, points0, typeName),
+    fvMotionSolverCore(mesh),
+    cellDisplacement_
+    (
+        IOobject
+        (
+            "cellDisplacement",
+            mesh.time().timeName(),
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        fvMesh_,
+        dimensionedVector
+        (
+            "cellDisplacement",
+            displacementMotionSolver::pointDisplacement().dimensions(),
+            vector::zero
+        ),
+        cellMotionBoundaryTypes<vector>
+        (
+            displacementMotionSolver::pointDisplacement().boundaryField()
+        )
     ),
     interpolationPtr_
     (
