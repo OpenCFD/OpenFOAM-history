@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,7 +43,7 @@ defineTypeNameAndDebug(tetOverlapVolume, 0);
 // against negative volume tets. Tet volume can be calculated incorrectly
 // due to truncation errors. The value below works for single and double
 // precision but could probably be tighter for double precision.
-Foam::scalar Foam::tetOverlapVolume::minTetVolume_ = 1e-18;
+Foam::scalar Foam::tetOverlapVolume::minTetVolume_ = sqr(SMALL);
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
