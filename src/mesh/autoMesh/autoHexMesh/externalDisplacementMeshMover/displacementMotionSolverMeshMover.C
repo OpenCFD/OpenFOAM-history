@@ -120,7 +120,7 @@ Foam::displacementMotionSolverMeshMover::displacementMotionSolverMeshMover
         (
             dict.lookup("solver"),
             pointDisplacement.mesh()(),
-                IOdictionary
+            IOdictionary
             (
                 IOobject
                 (
