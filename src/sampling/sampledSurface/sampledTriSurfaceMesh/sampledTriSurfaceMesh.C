@@ -674,7 +674,7 @@ bool Foam::sampledTriSurfaceMesh::update(const treeBoundBox& bb)
     }
 
     // Mesh search engine on subset, no triangulation of faces.
-    meshSearch meshSearcher(mesh(), bb, polyMesh::FACEPLANES);
+    meshSearch meshSearcher(mesh(), bb, polyMesh::FACE_PLANES);
 
     return update(meshSearcher);
 }

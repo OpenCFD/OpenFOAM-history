@@ -267,7 +267,7 @@ void Foam::patchSeedSet::calcSamples
         (
             mesh(),
             faceI,
-            polyMesh::FACEDIAGTETS
+            polyMesh::FACE_DIAG_TRIS
         );
         label cellI = mesh().faceOwner()[faceI];
 
