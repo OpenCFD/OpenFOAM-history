@@ -253,20 +253,18 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::setNewPosition
 {
     while (true)
     {
+        // Generate a position within eddy box
         if (localOnly)
         {
-            // Local position in eddy box
             p = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
         }
         else
         {
-            p = vector::min;
             if (Pstream::master())
             {
-                // Local position in eddy box
                 p = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
             }
-            reduce(p, maxOp<vector>());
+            Pstream::scatter(p);
         }
 
         // Snap point to inlet plane at x = 0
