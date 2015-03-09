@@ -198,7 +198,7 @@ Author: Henry <Henry>
 Date:   Wed Feb 25 16:54:05 2015 +0000
 
     CrankNicolsonDdtScheme: Clarified the relationship between the
-    off-centre coefficient and the coefficient for the implicit part
+    off-centre coefficient and the coefficient for the implicit par
 
 *OK* commit 0577cdb3cd463c26c836f86f013a5ee3c8642285
 Author: Henry <Henry>
@@ -336,7 +336,7 @@ Date:   Fri Feb 20 22:47:51 2015 +0000
 Author: Henry <Henry>
 Date:   Fri Feb 20 17:24:14 2015 +0000
 
-    DSMC: Rationalization and addition of mapping support
+    DSMC: Rationalization and addition of mapping suppor
 
 *OK* commit 5cd0083db014cc1cc9f6a4462735eaa2bbd1ed3b
 Author: Henry <Henry>
@@ -348,57 +348,57 @@ Date:   Fri Feb 20 16:09:32 2015 +0000
 Author: Henry <Henry>
 Date:   Fri Feb 20 16:08:56 2015 +0000
 
-    CrankNicolsonDdtScheme: provide access to the off-centreing coefficient
+    CrankNicolsonDdtScheme: provide access to the off-centreing coefficien
 
 *OK* commit f78d33b634c35394944d7fb651ba3cb4f64b2a1b
 Author: Henry <Henry>
 Date:   Fri Feb 20 15:59:43 2015 +0000
 
     interFoam family: Add support for MULES-bounded Crank-Nicolson 2nd-order ddt(alpha)
-    
+
     This is an experimental feature demonstrating the potential of MULES to
     create bounded solution which are 2nd-order in time AND space.
-    
+
     Crank-Nicolson may be selected on U and/or alpha but will only be fully
     2nd-order if used on both within the PIMPLE-loop to converge the
-    interaction between the flux and phase-fraction.  Note also that
+    interaction between the flux and phase-fraction.  Note also tha
     Crank-Nicolson may not be used with sub-cycling but all the features of
     semi-implicit MULES are available in particular MULESCorr and
     alphaApplyPrevCorr.
-    
+
     Examples of ddt specification:
-    
+
     ddtSchemes
     {
         default         Euler;
     }
-    
+
     ddtSchemes
     {
         default         CrankNicolson 0.9;
     }
-    
+
     ddtSchemes
     {
         default         none;
         ddt(alpha)      CrankNicolson 0.9;
         ddt(rho,U)      CrankNicolson 0.9;
     }
-    
+
     ddtSchemes
     {
         default         none;
         ddt(alpha)      Euler;
         ddt(rho,U)      CrankNicolson 0.9;
     }
-    
+
     ddtSchemes
     {
         default         none;
         ddt(alpha)      CrankNicolson 0.9;
         ddt(rho,U)      Euler;
     }
-    
+
     In these examples a small amount of off-centering in used to stabilize
     the Crank-Nicolson scheme.  Also the specification for alpha1 is via the
     generic phase-fraction name to ensure in multiphase solvers (when
@@ -422,7 +422,7 @@ Date:   Thu Feb 19 19:05:17 2015 +0000
 Author: Henry <Henry>
 Date:   Thu Feb 19 09:56:50 2015 +0000
 
-    tutorials/basic/laplacianFoam/flange/Allrun: Updated for consistent output
+    tutorials/basic/laplacianFoam/flange/Allrun: Updated for consistent outpu
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1543
 
 *OK* commit 6be514684a95b04d79cdaa773d54240d63fbef77
@@ -435,7 +435,7 @@ Date:   Thu Feb 19 08:39:32 2015 +0000
 Author: Henry <Henry>
 Date:   Wed Feb 18 21:24:09 2015 +0000
 
-    Integer read: use strtoimax rather than strtol and check explicitly for overflow of int32_t
+    Integer read: use strtoimax rather than strtol and check explicitly for overflow of int32_
 
 *OK* commit 4db6925cee7edfff101660fc853f0de354f544d9
 Author: Henry <Henry>
@@ -464,7 +464,7 @@ Date:   Wed Feb 18 08:12:01 2015 +0000
 Author: Henry <Henry>
 Date:   Tue Feb 17 23:59:59 2015 +0000
 
-    tutorials: corrected comments in snappyHexMeshDict
+    tutorials: corrected comments in snappyHexMeshDic
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1541
 
 *OK* commit 16c7318aee6b22df4b152dfbe59798ead5db0fb3
@@ -528,7 +528,7 @@ Date:   Tue Feb 17 10:47:34 2015 +0000
 Author: Henry <Henry>
 Date:   Tue Feb 17 10:16:01 2015 +0000
 
-    dimensionedType: Extend lookupOrDefault to handle any form of dimensioned type input
+    dimensionedType: Extend lookupOrDefault to handle any form of dimensioned type inpu
     e.g.
          Not specified: default used.
          Fully specified: rhoMax          rhoMax [ 1 -3 0 0 0 ] 2.0;
@@ -803,7 +803,7 @@ Date:   Thu Feb 12 21:57:29 2015 +0000
 Author: Henry <Henry>
 Date:   Thu Feb 12 16:46:37 2015 +0000
 
-    tutorials/lagrangian/reactingParcelFilmFoam/hotBoxes: Avoid using the same same for different objects in setSet
+    tutorials/lagrangian/reactingParcelFilmFoam/hotBoxes: Avoid using the same same for different objects in setSe
 
 *ALREADY DONE* commit 53a2a040c28e0282d59e658fe04076420dd0a95e
 Author: Henry <Henry>
@@ -962,7 +962,7 @@ Date:   Tue Feb 10 18:33:45 2015 +0000
 Author: Henry <Henry>
 Date:   Tue Feb 10 18:20:42 2015 +0000
 
-    solvers: rationalize the return statement
+    solvers: rationalize the return statemen
 
 *OK* commit a47b212da1d8404c1e1e17bf10d39cc0d632f978
 Author: Henry <Henry>
@@ -999,7 +999,7 @@ Date:   Tue Feb 10 13:47:18 2015 +0000
 Author: Henry <Henry>
 Date:   Mon Feb 9 22:15:26 2015 +0000
 
-    Applications: use pimpleControl.dict() and simpleControl.dict() instead of looking-up the sub-dict
+    Applications: use pimpleControl.dict() and simpleControl.dict() instead of looking-up the sub-dic
 
 *OK* commit ae4cdef8b5a25d898ae60d2fc4c145f08f1af0a1
 Author: Henry <Henry>
@@ -1043,7 +1043,7 @@ Date:   Fri Feb 6 20:50:20 2015 +0000
 Author: Henry <Henry>
 Date:   Fri Feb 6 20:41:33 2015 +0000
 
-    LRR: added comment
+    LRR: added commen
 
 *OK* commit b255f54120775b82226a950b7bd33d9f1c928983
 Author: Henry <Henry>
@@ -1081,7 +1081,7 @@ Date:   Fri Feb 6 09:57:20 2015 +0000
 
     Consider a linear function for Ux(t) with Uy and Uz = 0:
 
-        inlet
+        inle
         {
             type            uniformFixedValue;
             uniformValue    polynomial
@@ -1185,7 +1185,7 @@ Author: Henry <Henry>
 Date:   Wed Feb 4 22:08:27 2015 +0000
 
     Add support for reading and updating the debug switches of templated
-    classes in the DebugSwitches sub-dictionary of system/controlDict
+    classes in the DebugSwitches sub-dictionary of system/controlDic
 
 *OK* commit 0296a4ed9eb251728b4764dbe37c406537a73c1a
 Author: Henry <Henry>
@@ -1276,7 +1276,7 @@ Date:   Tue Feb 3 12:01:55 2015 +0000
 Author: Henry <Henry>
 Date:   Tue Feb 3 11:59:43 2015 +0000
 
-    POSIX.C findEtcFiles: Revert change to read system/controlDict
+    POSIX.C findEtcFiles: Revert change to read system/controlDic
     Causes problems if the controlDict contains # entries
 
 *OK* commit 5eafa16bc60294cba03e0a37ed9a2f62d057ee2a
@@ -1316,7 +1316,7 @@ Date:   Mon Feb 2 09:44:18 2015 +0000
 Author: Henry <Henry>
 Date:   Sun Feb 1 12:38:50 2015 +0000
 
-    eddyViscosity: Allow external classes to modify nut
+    eddyViscosity: Allow external classes to modify nu
 
 *OK* commit 3d8f0aa575f50204bb36143d2e36f6566d2abf16
 Author: Henry <Henry>
@@ -1341,12 +1341,12 @@ Author: Henry <Henry>
 Date:   Sun Feb 1 12:34:19 2015 +0000
 
     POSIX/debug: Add ./system on the list of etc directories
-    in particular to pick-up the DebugSwitches from system/controlDict at
+    in particular to pick-up the DebugSwitches from system/controlDict a
     global construction time.
 
     Disadvantage is that system/controlDict is only picked-up if the
     OpenFOAM application is executed IN the case directory.  The directory
-    provided by the -case option is not yet known as the arguments have not
+    provided by the -case option is not yet known as the arguments have no
     yet been parsed.
 
 *OK* commit 88a021bd4f5aac7623eedd8cd40da67c295d2582
@@ -1392,7 +1392,7 @@ Date:   Wed Jan 28 18:02:56 2015 +0000
 Author: Henry <Henry>
 Date:   Wed Jan 28 16:37:36 2015 +0000
 
-    tutorials/multiphase/driftFluxFoam/ras/mixerVessel2D: add gravity in direction of drift
+    tutorials/multiphase/driftFluxFoam/ras/mixerVessel2D: add gravity in direction of drif
 
 *OK* commit cf26b7db6b3dee1ad7c5816137146a054b39b99c
 Author: Henry <Henry>
@@ -1485,7 +1485,7 @@ Date:   Tue Jan 27 15:04:32 2015 +0000
 Author: Henry <Henry>
 Date:   Tue Jan 27 10:49:23 2015 +0000
 
-    viewFactorsGen/shootRays: Allow the specification of maxDynListLength in viewFactorsDict
+    viewFactorsGen/shootRays: Allow the specification of maxDynListLength in viewFactorsDic
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1501
 
 *OK* commit 4f4b2e9112a9461de9fabb4be05375e8da1172b6
@@ -1498,7 +1498,7 @@ Date:   Mon Jan 26 10:30:58 2015 +0000
 Author: Henry <Henry>
 Date:   Sun Jan 25 22:52:33 2015 +0000
 
-    TurbulenceModels: ensure alphat is corrected after nut by arranging the call from correctNut
+    TurbulenceModels: ensure alphat is corrected after nut by arranging the call from correctNu
     This is as temporary fix pending the completion of the selectable thermal transport layer
 
 *OK* commit 3e4a059e7dc5e6a7ce9037bde363e7876d0def3b
@@ -1615,7 +1615,7 @@ Date:   Thu Jan 22 13:32:30 2015 +0000
 Author: Henry <Henry>
 Date:   Thu Jan 22 10:59:45 2015 +0000
 
-    twoPhaseEulerFoam/twoPhaseSystem/diameterModels/IATE: Added fvOptions support
+    twoPhaseEulerFoam/twoPhaseSystem/diameterModels/IATE: Added fvOptions suppor
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1402
 
 *OK* commit 5bf565c1122e2ea795bce21759bf0fd5eb50dbc2
@@ -1708,7 +1708,7 @@ Date:   Wed Jan 21 19:21:39 2015 +0000
     All tutorials have been updated so study the changes and update your own
     cases by comparison with similar cases provided.
 
-    Sorry for the inconvenience in the break in backward-compatibility but
+    Sorry for the inconvenience in the break in backward-compatibility bu
     this update to the turbulence modeling is an essential step in the
     future of OpenFOAM to allow more models to be added and maintained for a
     wider range of cases and physics.  Over the next weeks and months more
@@ -1920,7 +1920,7 @@ Date:   Sat Jan 10 17:23:20 2015 +0000
 Author: Henry <Henry>
 Date:   Sat Jan 10 12:26:39 2015 +0000
 
-    wallDist: Add support for distance to any patch set
+    wallDist: Add support for distance to any patch se
 
 *OK* commit 0123afd3e3a0b272a5b5f08591fad7502f3322cf
 Author: Henry <Henry>
@@ -1932,7 +1932,7 @@ Date:   Sat Jan 10 11:27:14 2015 +0000
 Author: Henry <Henry>
 Date:   Fri Jan 9 23:17:24 2015 +0000
 
-    wallDist: Added nRequired option to the wallDist dict
+    wallDist: Added nRequired option to the wallDist dic
 
 *OK* commit 4b4fce2c02674a7fc4478e4c3f0e92249f8290a3
 Author: Henry <Henry>
@@ -2022,7 +2022,7 @@ Date:   Thu Jan 8 10:40:23 2015 +0000
     request the method to be used from the wallDist sub-dictionary in
     fvSchemes e.g.
 
-    wallDist
+    wallDis
     {
         method meshWave;
     }
@@ -2134,7 +2134,7 @@ Date:   Fri Jan 2 16:43:32 2015 +0000
         better if sub-cycling in time were limited to static meshes and
         solid-body motion only and the Vsc() function removed and I will
         consider this for the next release with the addition of a check for
-        solid-body motion in the case that sub-cycling is applied.  Now that
+        solid-body motion in the case that sub-cycling is applied.  Now tha
         MULES support semi-implicit operation there is less need for
         sub-cycling and I would recommend that you use this approach in
         interDyMFoam for your complex mesh motion cases.
@@ -2222,7 +2222,7 @@ Date:   Wed Dec 31 19:02:52 2014 +0000
 
     Added and verified support for 64bit labels
 
-    To compile with 64bit labels set
+    To compile with 64bit labels se
 
     WM_LABEL_SIZE=64
 
@@ -2232,13 +2232,13 @@ Date:   Wed Dec 31 19:02:52 2014 +0000
 
     then Allwmake in OpenFOAM-dev.
 
-    This will build into for example OpenFOAM-dev/platforms/linux64ClangDPInt64Opt
+    This will build into for example OpenFOAM-dev/platforms/linux64ClangDPInt64Op
 
     If WM_LABEL_SIZE is unset or set to 32:
 
     WM_LABEL_SIZE=32
 
-    the build would be placed into OpenFOAM-dev/platforms/linux64ClangDPInt32Opt
+    the build would be placed into OpenFOAM-dev/platforms/linux64ClangDPInt32Op
 
     Thus both 32bit and 64bit label builds can coexist without problem.
 
@@ -2545,7 +2545,7 @@ Date:   Mon Dec 15 22:38:10 2014 +0000
 Author: Henry <Henry>
 Date:   Sun Dec 14 21:50:14 2014 +0000
 
-    Minor change to comment
+    Minor change to commen
 
 *OK* commit bc5134a55ec35950a302608c81b47b8efe84798b
 Author: Henry <Henry>

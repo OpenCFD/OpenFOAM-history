@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,19 +23,20 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "pointSmoothingMeshMover.H"
+#include "displacementMotionSolverMeshMover.H"
 #include "addToRunTimeSelectionTable.H"
+#include "pointConstraints.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(pointSmoothingMeshMover, 0);
+    defineTypeNameAndDebug(displacementMotionSolverMeshMover, 1);
 
     addToRunTimeSelectionTable
     (
         externalDisplacementMeshMover,
-        pointSmoothingMeshMover,
+        displacementMotionSolverMeshMover,
         dictionary
     );
 }
@@ -43,7 +44,7 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-bool Foam::pointSmoothingMeshMover::moveMesh
+bool Foam::displacementMotionSolverMeshMover::moveMesh
 (
     const dictionary& moveDict,
     const label nAllowableErrors,
@@ -104,7 +105,7 @@ bool Foam::pointSmoothingMeshMover::moveMesh
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::pointSmoothingMeshMover::pointSmoothingMeshMover
+Foam::displacementMotionSolverMeshMover::displacementMotionSolverMeshMover
 (
     const dictionary& dict,
     const List<labelPair>& baffles,
@@ -113,9 +114,41 @@ Foam::pointSmoothingMeshMover::pointSmoothingMeshMover
 :
     externalDisplacementMeshMover(dict, baffles, pointDisplacement),
 
-    meshGeometry_(mesh()),
-
-    pointSmoother_(pointSmoother::New(dict, pointDisplacement)),
+    solverPtr_
+    (
+        displacementMotionSolver::New
+        (
+            dict.lookup("solver"),
+            pointDisplacement.mesh()(),
+            IOdictionary
+            (
+                IOobject
+                (
+                    "motionSolverDict",
+                    pointDisplacement.mesh().time().constant(),
+                    pointDisplacement.db(),
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE,
+                    false
+                ),
+                dict
+            ),
+            pointDisplacement,
+            pointIOField
+            (
+                IOobject
+                (
+                    "points0",
+                    pointDisplacement.mesh().time().constant(),
+                    pointDisplacement.db(),
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE,
+                    false
+                ),
+                pointDisplacement.mesh()().points()
+            )
+        )
+    ),
 
     adaptPatchIDs_(getFixedValueBCs(pointDisplacement)),
     adaptPatchPtr_(getPatch(mesh(), adaptPatchIDs_)),
@@ -154,49 +187,23 @@ Foam::pointSmoothingMeshMover::pointSmoothingMeshMover
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::pointSmoothingMeshMover::~pointSmoothingMeshMover()
+Foam::displacementMotionSolverMeshMover::~displacementMotionSolverMeshMover()
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool Foam::pointSmoothingMeshMover::move
+bool Foam::displacementMotionSolverMeshMover::move
 (
     const dictionary& moveDict,
     const label nAllowableErrors,
     labelList& checkFaces
 )
 {
-    const label nPointSmootherIter = readLabel
-    (
-        moveDict.lookup("nPointSmootherIter")
-    );
-
-    // Update the point smoother displacements
-    for (label i = 0; i < nPointSmootherIter; i ++)
-    {
-        const pointField currentPoints
-        (
-            oldPoints_
-          + pointDisplacement().internalField()
-        );
-
-        // Update derived geometry (cell centres, volumes etc) on selected
-        // set of faces
-        meshGeometry_.correct(currentPoints, checkFaces);
-
-        // Recalculate smooth displacement. Updates pointDisplacement
-        pointSmoother_->update
-        (
-            checkFaces,
-            oldPoints_,
-            currentPoints,
-            meshGeometry_
-        );
-    }
-
-
-    // Correct and smooth the patch displacements
+    // Correct and smooth the patch displacements so points next to
+    // points where the extrusion was disabled also use less extrusion.
+    // Note that this has to update the pointDisplacement boundary conditions
+    // as well, not just the internal field.
     {
         const label nSmoothPatchThickness = readLabel
         (
@@ -233,9 +240,15 @@ bool Foam::pointSmoothingMeshMover::move
             meshRefinement::getMasterEdges
             (
                 mesh(),
-                adaptPatchPtr_().meshEdges(mesh().edges(), mesh().pointEdges())
+                adaptPatchPtr_().meshEdges
+                (
+                    mesh().edges(),
+                    mesh().pointEdges()
+                )
             )
         );
+
+        // Smooth patch displacement
 
         vectorField displacement
         (
@@ -253,26 +266,44 @@ bool Foam::pointSmoothingMeshMover::move
             displacement
         );
 
+
+        scalar resid = 0;
+
         forAll(displacement, patchPointI)
         {
             const label pointI(adaptPatchPtr_().meshPoints()[patchPointI]);
+
+            resid += mag(pointDisplacement()[pointI]-displacement[patchPointI]);
+
             pointDisplacement()[pointI] = displacement[patchPointI];
         }
+
+        // Take over smoothed displacements on bcs
+        meshMover_.setDisplacementPatchFields();
+    }
+
+    // Use motionSolver to calculate internal displacement
+    {
+        solverPtr_->pointDisplacement() == pointDisplacement();
+        // Force solving and constraining - just so its pointDisplacement gets
+        // the correct value
+        (void)solverPtr_->newPoints();
+        pointDisplacement() == solverPtr_->pointDisplacement();
     }
 
     return moveMesh(moveDict, nAllowableErrors, checkFaces);
 }
 
 
-void Foam::pointSmoothingMeshMover::movePoints
+void Foam::displacementMotionSolverMeshMover::movePoints
 (
     const pointField& p
 )
 {
     externalDisplacementMeshMover::movePoints(p);
 
-    // Update polyMeshGeometry for changed points
-    meshGeometry_.correct();
+    // Update motion solver for new geometry
+    solverPtr_->movePoints(p);
 
     // Update motionSmoother for new geometry (moves adaptPatchPtr_)
     meshMover_.movePoints();

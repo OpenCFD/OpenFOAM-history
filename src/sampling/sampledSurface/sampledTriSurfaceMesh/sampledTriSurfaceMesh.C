@@ -659,6 +659,8 @@ bool Foam::sampledTriSurfaceMesh::update()
     bb.min() -= 0.5*span;
     bb.max() += 0.5*span;
 
+    bb.inflate(1e-6);
+
     // Mesh search engine, no triangulation of faces.
     meshSearch meshSearcher(mesh(), bb, polyMesh::FACE_PLANES);
 

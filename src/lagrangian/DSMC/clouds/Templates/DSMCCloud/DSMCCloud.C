@@ -109,13 +109,13 @@ void Foam::DSMCCloud<ParcelType>::initialise
 
     numberDensities /= nParticle_;
 
+
+    // Work storage for tetIndices
+    DynamicList<tetIndices> cellTets;
+
     forAll(mesh_.cells(), cellI)
     {
-        List<tetIndices> cellTets = polyMeshTetDecomposition::cellTetIndices
-        (
-            mesh_,
-            cellI
-        );
+        polyMeshTetDecomposition::cellTetIndices(mesh_, cellI, cellTets);
 
         forAll(cellTets, tetI)
         {
