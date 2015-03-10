@@ -22,25 +22,37 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::incompressible::RASModels::LienLeschzinerLowRe
+    Foam::incompressible::RASModels::ShihQuadraticKE
 
 Group
     grpIcoRASTurbulence
 
 Description
-    Lien and Leschziner low-Reynolds k-epsilon turbulence model for
-    incompressible flows.
+    Shih's quadratic algebraic Reynolds stress k-epsilon turbulence model for
+    incompressible flows
+
+    This turbulence model is described in:
+    \verbatim
+        Shih, T. H., Zhu, J., & Lumley, J. L. (1993).
+        A realizable Reynolds stress algebraic equation model.
+        NASA technical memorandum 105993.
+    \endverbatim
+
+    Implemented according to the specification in:
+    <a href=
+    "http://personalpages.manchester.ac.uk/staff/david.d.apsley/specturb.pdf"
+    >Apsley: Turbulence Models 2002</a>
 
 SourceFiles
-    LienLeschzinerLowRe.C
+    ShihQuadraticKE.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef LienLeschzinerLowRe_H
-#define LienLeschzinerLowRe_H
+#ifndef ShihQuadraticKE_H
+#define ShihQuadraticKE_H
 
 #include "turbulentTransportModel.H"
-#include "eddyViscosity.H"
+#include "nonlinearEddyViscosity.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -52,12 +64,12 @@ namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class LienLeschzinerLowRe Declaration
+                      Class ShihQuadraticKE Declaration
 \*---------------------------------------------------------------------------*/
 
-class LienLeschzinerLowRe
+class ShihQuadraticKE
 :
-    public eddyViscosity<incompressible::RASModel>
+    public nonlinearEddyViscosity<incompressible::RASModel>
 {
 
 protected:
@@ -66,16 +78,16 @@ protected:
 
         // Model coefficients
 
-            dimensionedScalar C1_;
-            dimensionedScalar C2_;
+            dimensionedScalar Ceps1_;
+            dimensionedScalar Ceps2_;
             dimensionedScalar sigmak_;
             dimensionedScalar sigmaEps_;
-            dimensionedScalar Cmu_;
-            dimensionedScalar kappa_;
-
-            dimensionedScalar Am_;
-            dimensionedScalar Aepsilon_;
-            dimensionedScalar Amu_;
+            dimensionedScalar Cmu1_;
+            dimensionedScalar Cmu2_;
+            dimensionedScalar Cbeta_;
+            dimensionedScalar Cbeta1_;
+            dimensionedScalar Cbeta2_;
+            dimensionedScalar Cbeta3_;
 
 
         // Fields
@@ -83,29 +95,23 @@ protected:
             volScalarField k_;
             volScalarField epsilon_;
 
-            //- Wall distance
-            //  Note: different to wall distance in parent RASModel
-            //  which is for near-wall cells only
-            const volScalarField& y_;
-
-            volScalarField yStar_;
-
 
     // Protected Member Functions
 
-        tmp<volScalarField> fMu();
-
         virtual void correctNut();
+        virtual void correctNonlinearStress(const volTensorField& gradU);
 
 
 public:
 
-    TypeName("LienLeschzinerLowRe");
+    //- Runtime type information
+    TypeName("ShihQuadraticKE");
+
 
     // Constructors
 
         //- Construct from components
-        LienLeschzinerLowRe
+        ShihQuadraticKE
         (
             const geometricOneField& alpha,
             const geometricOneField& rho,
@@ -119,7 +125,7 @@ public:
 
 
     //- Destructor
-    virtual ~LienLeschzinerLowRe()
+    virtual ~ShihQuadraticKE()
     {}
 
 

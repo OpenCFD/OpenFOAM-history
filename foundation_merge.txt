@@ -1,131 +1,293 @@
-commit d99958d4240988200f317064ed7aa8f31b431ecd
+commit 0aa276f1d8d1f6f5f4222a8fcdf8358ea2ce2738
+Author: Henry <Henry>
+Date:   Thu Mar 5 23:39:40 2015 +0000
+
+    simplifiedSiwek: Temporarily define all gaseous species to be present
+    This hack will be removed when the rewrite of the parcel thermodynamics is complete.
+
+commit f9d7b982ce7d9153c6e28993c570bf2df8cc054e
+Author: Henry <Henry>
+Date:   Thu Mar 5 23:37:58 2015 +0000
+
+    phaseProperties: Handle special cases
+    No species specified: indicates phase is not present
+    Some species specified: missing entries assumed to have 0 mass-fraction
+
+commit e4e64e6eab9bd35200c79e9ad53d773150f213a7
+Author: Henry <Henry>
+Date:   Thu Mar 5 20:12:39 2015 +0000
+
+    adjustPhi: Corrected for closed-volume, moving-mesh incompressible simulations
+
+commit 74dd50aac9fefaf412c6998e248becd4290e9141
+Author: Henry <Henry>
+Date:   Thu Mar 5 18:57:38 2015 +0000
+
+    tetOverlapVolume: adjust tolerance
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1347
+
+commit 3ccbc72aaa27a0bc37a8f6f981da48cdb84a4078
+Author: Henry <Henry>
+Date:   Thu Mar 5 18:57:18 2015 +0000
+
+    blockMeshMerge: Adjusted merge-tolerance
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1443
+
+commit 87b68f99ba3f4768eb3edd9112c24a98a8e6f7f3
+Author: Henry <Henry>
+Date:   Thu Mar 5 18:56:54 2015 +0000
+
+    meshCutter: Correct zone of cut-cells
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1524
+
+commit a2140d21f2ebff5bde56505c67dbaf06c94476a1
+Author: Henry <Henry>
+Date:   Thu Mar 5 17:20:34 2015 +0000
+
+    patchInjectionBase: ensure areaFraction is the same on all processors
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1556
+
+commit b44d2ba049a90a62ed7e178ee88336ebf649b1d0
+Author: Henry <Henry>
+Date:   Thu Mar 5 11:35:49 2015 +0000
+
+    lagrangian: Rationalized the handling of multi-component liquids and solids
+    Ensures consistency between the mixture thermodynamics and composition specifications for the parcels.
+    Simpler more efficient implementation.
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1395
+    as well as other consistency issues not yet reported.
+
+*OK* commit c239b0ebe0473b5a37596448f9da0502f75f9cfc
+Author: Henry <Henry>
+Date:   Mon Mar 2 22:30:29 2015 +0000
+
+    Update Header
+
+*OK* commit b82911b3cfb8acd4d4112ce6d2b1b63cc5265c24
+Author: Henry <Henry>
+Date:   Mon Mar 2 22:27:39 2015 +0000
+
+    BinghamPlastic: Change definition of shear-rate by 1/sqrt(2)
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1552
+
+*OK* commit 8c11106048115bf22f96b65ef478a8b24b56dce6
+Author: Henry <Henry>
+Date:   Mon Mar 2 22:26:58 2015 +0000
+
+    qZeta: Use pow3 rather than pow(..., 3)
+
+*OK* commit a12281827e5a404326e7f69cf78f0dfd202dc28b
+Author: Henry <Henry>
+Date:   Mon Mar 2 22:26:24 2015 +0000
+
+    Removed temporary Info
+
+*OK* commit 040cabdfe017cd773d9f536a62c989f36657c478
+Author: Henry <Henry>
+Date:   Sun Mar 1 22:17:09 2015 +0000
+
+    Minor cleanup
+
+*OK* commit 391d5b9a18fb69314e6585ae0309681b22e52951
+Author: Henry <Henry>
+Date:   Sun Mar 1 22:16:06 2015 +0000
+
+    epsilonLowReWallFunction: Debugged and changed handling of G in the low-Re limit to leave unchanged
+
+*OK* commit 239879841974601deb70443a2e76fdee3f5e5220
+Author: Henry <Henry>
+Date:   Sun Mar 1 22:15:12 2015 +0000
+
+    LamBremhorstKE: Updated and added support for epsilonLowReWallFunction
+
+*OK* commit 53711ff598abb83bf2ab6f995375966814560a48
+Author: Henry <Henry>
+Date:   Sun Mar 1 17:55:16 2015 +0000
+
+    TurbulenceModels: LienCubicKE, ShihQuadraticKE and LienLeschziner models rewritten
+    
+    The implementation now correspond to the definitions in the readily
+    available reference:
+    
+    http://personalpages.manchester.ac.uk/staff/david.d.apsley/specturb.pdf
+    
+    in which a large number of linear and non-linear models are presented in
+    a clean and consistent manner.  This has made re-implementation and
+    checking far easier than working from the original references which anyway
+    are no longer available for the LienCubicKE and ShihQuadraticKE models.
+
+*OK* commit 9b99bbf312d096dc36d35d69492034cf4b3f25b8
+Author: Henry <Henry>
+Date:   Sat Feb 28 16:11:57 2015 +0000
+
+    Reynolds stress turbulence models: Add laminar diffusion of R and epsilon
+    Also use the innerSqr function where appropriate
+
+*OK* commit a145dee287157685e7b57941677a42ea0c542602
+Author: Henry <Henry>
+Date:   Sat Feb 28 16:11:24 2015 +0000
+
+    TurbulenceModels: Update non-linear models to use the new innerSqr function
+
+*OK* commit 9d9dbffdadd13a6b5bff3d9b8a0f16105313529f
+Author: Henry <Henry>
+Date:   Sat Feb 28 16:09:55 2015 +0000
+
+    symmTensor: Add support for the innerSqr function
+    which takes the inner product of a symmTensor with itself and returns a symmTensor
+
+*OK* commit 3b11abd26e7c1c0b2bedeffe98a5232ab011915b
+Author: Henry <Henry>
+Date:   Fri Feb 27 19:23:39 2015 +0000
+
+    Turbulence models: minor clean-up
+
+*OK* commit cd6f4049efc38c8a97b3f858a480e8ea775b82fa
+Author: Henry <Henry>
+Date:   Fri Feb 27 19:22:53 2015 +0000
+
+    non-linear turbulence models: corrected generation term and tested
+
+*OK* commit f2b4e22f903d7197ba41dd6f28164d4dcdd6c17e
+Author: Henry <Henry>
+Date:   Fri Feb 27 18:13:30 2015 +0000
+
+    ShihQuadraticKE: Rewritten and tested on the boundaryWallFunctions and pitzDaily cases
+
+*OK* commit 6f3a93c98695c69acd07181bb0685d41cd33197f
+Author: Henry <Henry>
+Date:   Fri Feb 27 11:29:45 2015 +0000
+
+    ShihQuadraticKE: renamed from nonlinearKEShih and added reference
+
+*OK* commit d99958d4240988200f317064ed7aa8f31b431ecd
 Author: Henry <Henry>
 Date:   Thu Feb 26 20:03:48 2015 +0000
 
     TurbulenceModels: Updated documentation for incompressible models
 
-commit 763ecdc0f473d6d862067e4f4821ee2768dc4d84
+*OK* commit 763ecdc0f473d6d862067e4f4821ee2768dc4d84
 Author: Henry <Henry>
 Date:   Thu Feb 26 17:00:36 2015 +0000
 
     rhoCentralFoam: Corrected the BCs for positive (outgoing) fluxes
     Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1548
 
-commit c9de6d8ca5c6d093865fb16c806c6622f9abf30c
+*OK* commit c9de6d8ca5c6d093865fb16c806c6622f9abf30c
 Author: Henry <Henry>
 Date:   Wed Feb 25 23:29:33 2015 +0000
 
     Corrected warning message
 
-commit 9054c7e78c3dfee00f5a11423eedbb393f4f4346
+*OK* commit 9054c7e78c3dfee00f5a11423eedbb393f4f4346
 Author: Henry <Henry>
 Date:   Wed Feb 25 20:51:37 2015 +0000
 
     cyclicACMIPolyPatch: Hacked to avoid sigSegv during decomposition
     Resolves bug report http://www.openfoam.org/mantisbt/view.php?id=1450
 
-commit 0f49a15c35136baee5a6183a0bc3a59d7780cbaf
+*OK* commit 0f49a15c35136baee5a6183a0bc3a59d7780cbaf
 Author: Henry <Henry>
 Date:   Wed Feb 25 18:18:23 2015 +0000
 
     primitiveMeshTools: VSMALL -> ROOTVSMALL
     Proposed resolution of http://www.openfoam.org/mantisbt/view.php?id=1509
 
-commit e980cd5a60666a452486138f21efb3847def0094
+*OK* commit e980cd5a60666a452486138f21efb3847def0094
 Author: Henry <Henry>
 Date:   Wed Feb 25 16:54:05 2015 +0000
 
     CrankNicolsonDdtScheme: Clarified the relationship between the
     off-centre coefficient and the coefficient for the implicit par
 
-commit 0577cdb3cd463c26c836f86f013a5ee3c8642285
+*OK* commit 0577cdb3cd463c26c836f86f013a5ee3c8642285
 Author: Henry <Henry>
 Date:   Wed Feb 25 12:20:12 2015 +0000
 
     rhoCentralDyMFoam: Add support for morphing-meshes and provide movingCone tutorial case
 
-commit de2c2fb007c4c6f0936c036270e5cf633d775d71
+*OK* commit de2c2fb007c4c6f0936c036270e5cf633d775d71
 Author: Henry <Henry>
 Date:   Wed Feb 25 10:57:06 2015 +0000
 
     Rationalize position searching and add cell->tet decomposition as the default cell-search algorithm
     Resolves issues with probes and findRefCell for meshes in which all cell face-pyramids are positive.
 
-commit 25ab8a1a07a4a2f4dd55f243dcd2d61d2ea8426a
+*OK* commit 25ab8a1a07a4a2f4dd55f243dcd2d61d2ea8426a
 Author: Henry <Henry>
 Date:   Wed Feb 25 10:55:51 2015 +0000
 
     codingStyleGuide: Minor updates
 
-commit e01696bfb5c8bf3434d6bd030ae4b51d37a5def0
+*OK* commit e01696bfb5c8bf3434d6bd030ae4b51d37a5def0
 Author: Henry <Henry>
 Date:   Wed Feb 25 10:55:33 2015 +0000
 
     liquidMixtureProperties: Improve comments
 
-commit 99965b01c4fd56cf8c72d2d3e012b53e55d02a68
+*OK* commit 99965b01c4fd56cf8c72d2d3e012b53e55d02a68
 Author: Henry <Henry>
 Date:   Wed Feb 25 10:54:50 2015 +0000
 
     constTransport: Handle the case of nMoles = 0 in += and -= operators
     Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1348
 
-commit d5970175a5bb7dd885dbd6d8c4b09aad87a33db9
+*OK* commit d5970175a5bb7dd885dbd6d8c4b09aad87a33db9
 Author: Henry <Henry>
 Date:   Mon Feb 23 18:57:57 2015 +0000
 
     heThermo: Correct kappaEff
 
-commit 8fa5a2b76aa9716ee486fbd5bc4c2d669893a4c4
+*OK* commit 8fa5a2b76aa9716ee486fbd5bc4c2d669893a4c4
 Author: Henry <Henry>
 Date:   Mon Feb 23 18:57:33 2015 +0000
 
     constTransport: Correct kappa
 
-commit d2fbdcb9a9f630488d6e95cb4c99d3256bad80f9
+*OK* commit d2fbdcb9a9f630488d6e95cb4c99d3256bad80f9
 Author: Henry <Henry>
 Date:   Mon Feb 23 08:44:18 2015 +0000
 
     Added support for gcc-5.0.0
     Tested with snapshot gcc-5-20150215.tar.bz2
 
-commit 0ae18335f69cd13729a1e034d5311703e6177757
+*OK* commit 0ae18335f69cd13729a1e034d5311703e6177757
 Author: Henry <Henry>
 Date:   Sun Feb 22 16:53:33 2015 +0000
 
     tutorials/compressible/sonicDyMFoam/movingCone: sonic version of the pimpleDyMFoam/movingCone tutorial
 
-commit 5d3bb289940813fe2c2ae79339211825e6a0166f
+*OK* commit 5d3bb289940813fe2c2ae79339211825e6a0166f
 Author: Henry <Henry>
 Date:   Sun Feb 22 16:52:21 2015 +0000
 
     tutorials: remove unnecessary under-relax fields entry
 
-commit 64ec856d6091612c2284941788767b9536cf70c3
+*OK* commit 64ec856d6091612c2284941788767b9536cf70c3
 Author: Henry <Henry>
 Date:   Sun Feb 22 16:50:48 2015 +0000
 
     rhoEqn: Do not constrain; would violate conservation
 
-commit 51abd7e807dc3148517e0b2c53f4bb7fa08ec018
+*OK* commit 51abd7e807dc3148517e0b2c53f4bb7fa08ec018
 Author: Henry <Henry>
 Date:   Sun Feb 22 15:29:37 2015 +0000
 
     CrankNicolsonDdtScheme: Added "see also"
 
-commit 5ee73b2e9bb7ad6b67dacf63c30d3ec1104d493a
+*OK* commit 5ee73b2e9bb7ad6b67dacf63c30d3ec1104d493a
 Author: Henry <Henry>
 Date:   Sun Feb 22 15:25:32 2015 +0000
 
     CrankNicolsonDdtScheme: Add documentation
 
-commit fa346ae539e7cea3404843461b98b31b7a36e63e
+*OK* commit fa346ae539e7cea3404843461b98b31b7a36e63e
 Author: Henry <Henry>
 Date:   Sun Feb 22 12:53:34 2015 +0000
 
     tutorials/multiphase/interDyMFoam/ras/floatingObject: Update to demonstrate MULES with Crank-Nicolson
 
-commit cf07fdc957fdd575ef24e90b91dcba138ddfb91c
+*OK* commit cf07fdc957fdd575ef24e90b91dcba138ddfb91c
 Author: Henry <Henry>
 Date:   Sun Feb 22 12:14:46 2015 +0000
 

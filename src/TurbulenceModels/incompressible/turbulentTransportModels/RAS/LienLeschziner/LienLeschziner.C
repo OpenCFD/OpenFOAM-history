@@ -23,10 +23,9 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "nonlinearKEShih.H"
+#include "LienLeschziner.H"
+#include "wallDist.H"
 #include "bound.H"
-#include "wallFvPatch.H"
-#include "nutkWallFunctionFvPatchScalarField.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -40,39 +39,53 @@ namespace RASModels
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(nonlinearKEShih, 0);
-addToRunTimeSelectionTable(RASModel, nonlinearKEShih, dictionary);
+defineTypeNameAndDebug(LienLeschziner, 0);
+addToRunTimeSelectionTable(RASModel, LienLeschziner, dictionary);
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-void nonlinearKEShih::correctNut()
+tmp<volScalarField> LienLeschziner::fMu() const
 {
-    nut_ = Cmu_*sqr(k_)/epsilon_;
-    #include "wallNonlinearViscosityI.H"
+    const volScalarField yStar(sqrt(k_)*y_/nu());
+
+    return
+        (scalar(1) - exp(-Anu_*yStar))
+       /((scalar(1) + SMALL) - exp(-Aeps_*yStar));
 }
 
 
-void nonlinearKEShih::correctNonlinearStress(const volTensorField& gradU)
+tmp<volScalarField> LienLeschziner::f2() const
 {
-    nonlinearStress_ = symm
+    tmp<volScalarField> Rt = sqr(k_)/(nu()*epsilon_);
+
+    return scalar(1) - 0.3*exp(-sqr(Rt));
+}
+
+
+tmp<volScalarField> LienLeschziner::E(const volScalarField& f2) const
+{
+    const volScalarField yStar(sqrt(k_)*y_/nu());
+    const volScalarField le
     (
-        pow(k_, 3.0)/sqr(epsilon_)
-       *(
-            Ctau1_/fEta_
-           *(
-                (gradU & gradU)
-              + (gradU & gradU)().T()
-            )
-          + Ctau2_/fEta_*(gradU & T(gradU))
-          + Ctau3_/fEta_*(T(gradU) & gradU)
-        )
+        kappa_*y_*((scalar(1) + SMALL) - exp(-Aeps_*yStar))
     );
+
+    return
+        (Ceps2_*pow(Cmu_, 0.75))
+       *(f2*sqrt(k_)*epsilon_/le)*exp(-AE_*sqr(yStar));
+}
+
+
+void LienLeschziner::correctNut()
+{
+    nut_ = Cmu_*fMu()*sqr(k_)/epsilon_;
+    nut_.correctBoundaryConditions();
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-nonlinearKEShih::nonlinearKEShih
+LienLeschziner::LienLeschziner
 (
     const geometricOneField& alpha,
     const geometricOneField& rho,
@@ -84,7 +97,7 @@ nonlinearKEShih::nonlinearKEShih
     const word& type
 )
 :
-    nonlinearEddyViscosity<incompressible::RASModel>
+    eddyViscosity<incompressible::RASModel>
     (
         type,
         alpha,
@@ -96,20 +109,20 @@ nonlinearKEShih::nonlinearKEShih
         propertiesName
     ),
 
-    C1_
+    Ceps1_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "C1",
+            "Ceps1",
             coeffDict_,
             1.44
         )
     ),
-    C2_
+    Ceps2_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "C2",
+            "Ceps2",
             coeffDict_,
             1.92
         )
@@ -132,77 +145,49 @@ nonlinearKEShih::nonlinearKEShih
             1.3
         )
     ),
-    A1_
+    Cmu_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "A1",
+            "Cmu",
             coeffDict_,
-            1.25
+            0.09
         )
     ),
-    A2_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "A2",
-            coeffDict_,
-            1000.0
-        )
-    ),
-    Ctau1_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "Ctau1",
-            coeffDict_,
-            -4.0
-        )
-    ),
-    Ctau2_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "Ctau2",
-            coeffDict_,
-            13.0
-        )
-    ),
-    Ctau3_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "Ctau3",
-            coeffDict_,
-            -2.0
-        )
-    ),
-    alphaKsi_
-    (
-        dimensioned<scalar>::lookupOrAddToDict
-        (
-            "alphaKsi",
-            coeffDict_,
-            0.9
-        )
-    ),
-
     kappa_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "kappa_",
+            "kappa",
             coeffDict_,
             0.41
         )
     ),
-    E_
+    Anu_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "E",
+            "Anu",
             coeffDict_,
-            9.8
+            0.016
+        )
+    ),
+    Aeps_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "Aeps",
+            coeffDict_,
+            0.263
+        )
+    ),
+    AE_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "AE",
+            coeffDict_,
+            0.00222
         )
     ),
 
@@ -232,26 +217,14 @@ nonlinearKEShih::nonlinearKEShih
         mesh_
     ),
 
-    eta_
-    (
-        k_/bound(epsilon_, epsilonMin_)
-       *sqrt(2.0*magSqr(0.5*(fvc::grad(U) + T(fvc::grad(U)))))
-    ),
-    ksi_
-    (
-        k_/epsilon_
-       *sqrt(2.0*magSqr(0.5*(fvc::grad(U) - T(fvc::grad(U)))))
-    ),
-    Cmu_(2.0/(3.0*(A1_ + eta_ + alphaKsi_*ksi_))),
-    fEta_(A2_ + pow(eta_, 3.0))
+    y_(wallDist::New(mesh_).y())
 {
     bound(k_, kMin_);
-    // already bounded: bound(epsilon_, epsilonMin_);
+    bound(epsilon_, epsilonMin_);
 
     if (type == typeName)
     {
         correctNut();
-        correctNonlinearStress(fvc::grad(U));
         printCoeffs(type);
     }
 }
@@ -259,23 +232,19 @@ nonlinearKEShih::nonlinearKEShih
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-bool nonlinearKEShih::read()
+bool LienLeschziner::read()
 {
-    if (nonlinearEddyViscosity<incompressible::RASModel>::read())
+    if (eddyViscosity<incompressible::RASModel>::read())
     {
-        C1_.readIfPresent(coeffDict());
-        C2_.readIfPresent(coeffDict());
+        Ceps1_.readIfPresent(coeffDict());
+        Ceps2_.readIfPresent(coeffDict());
         sigmak_.readIfPresent(coeffDict());
         sigmaEps_.readIfPresent(coeffDict());
-        A1_.readIfPresent(coeffDict());
-        A2_.readIfPresent(coeffDict());
-        Ctau1_.readIfPresent(coeffDict());
-        Ctau2_.readIfPresent(coeffDict());
-        Ctau3_.readIfPresent(coeffDict());
-        alphaKsi_.readIfPresent(coeffDict());
-
+        Cmu_.readIfPresent(coeffDict());
         kappa_.readIfPresent(coeffDict());
-        E_.readIfPresent(coeffDict());
+        Anu_.readIfPresent(coeffDict());
+        Aeps_.readIfPresent(coeffDict());
+        AE_.readIfPresent(coeffDict());
 
         return true;
     }
@@ -286,28 +255,27 @@ bool nonlinearKEShih::read()
 }
 
 
-void nonlinearKEShih::correct()
+void LienLeschziner::correct()
 {
-    nonlinearEddyViscosity<incompressible::RASModel>::correct();
-
     if (!turbulence_)
     {
         return;
     }
 
+    eddyViscosity<incompressible::RASModel>::correct();
+
     tmp<volTensorField> tgradU = fvc::grad(U_);
-    const volTensorField& gradU = tgradU();
-
-    // generation term
-    tmp<volScalarField> S2 = symm(gradU) && gradU;
-
     volScalarField G
     (
         GName(),
-        Cmu_*sqr(k_)/epsilon_*S2 - (nonlinearStress_ && gradU)
+        nut_*(tgradU() && twoSymm(tgradU()))
     );
+    tgradU.clear();
 
-    #include "nonLinearWallFunctionsI.H"
+    // Update epsilon and G at the wall
+    epsilon_.boundaryField().updateCoeffs();
+
+    const volScalarField f2(this->f2());
 
     // Dissipation equation
     tmp<fvScalarMatrix> epsEqn
@@ -315,27 +283,25 @@ void nonlinearKEShih::correct()
         fvm::ddt(epsilon_)
       + fvm::div(phi_, epsilon_)
       - fvm::laplacian(DepsilonEff(), epsilon_)
-      ==
-        C1_*G*epsilon_/k_
-      - fvm::Sp(C2_*epsilon_/k_, epsilon_)
+     ==
+        Ceps1_*G*epsilon_/k_
+      - fvm::Sp(Ceps2_*f2*epsilon_/k_, epsilon_)
+      + E(f2)
     );
 
     epsEqn().relax();
-
-    #include "wallDissipationI.H"
-
+    epsEqn().boundaryManipulate(epsilon_.boundaryField());
     solve(epsEqn);
     bound(epsilon_, epsilonMin_);
 
 
     // Turbulent kinetic energy equation
-
     tmp<fvScalarMatrix> kEqn
     (
         fvm::ddt(k_)
       + fvm::div(phi_, k_)
       - fvm::laplacian(DkEff(), k_)
-      ==
+     ==
         G
       - fvm::Sp(epsilon_/k_, k_)
     );
@@ -344,16 +310,7 @@ void nonlinearKEShih::correct()
     solve(kEqn);
     bound(k_, kMin_);
 
-
-    // Re-calculate viscosity
-
-    eta_ = k_/epsilon_*sqrt(2.0*magSqr(0.5*(gradU + T(gradU))));
-    ksi_ = k_/epsilon_*sqrt(2.0*magSqr(0.5*(gradU - T(gradU))));
-    Cmu_ = 2.0/(3.0*(A1_ + eta_ + alphaKsi_*ksi_));
-    fEta_ = A2_ + pow(eta_, 3.0);
-
     correctNut();
-    correctNonlinearStress(gradU);
 }
 
 

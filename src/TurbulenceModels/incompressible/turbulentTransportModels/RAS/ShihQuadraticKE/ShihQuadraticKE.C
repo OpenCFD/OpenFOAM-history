@@ -23,10 +23,10 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "LienLeschzinerLowRe.H"
-#include "wallDist.H"
-#include "wallFvPatch.H"
+#include "ShihQuadraticKE.H"
 #include "bound.H"
+#include "wallFvPatch.H"
+#include "nutkWallFunctionFvPatchScalarField.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -40,29 +40,43 @@ namespace RASModels
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(LienLeschzinerLowRe, 0);
-addToRunTimeSelectionTable(RASModel, LienLeschzinerLowRe, dictionary);
+defineTypeNameAndDebug(ShihQuadraticKE, 0);
+addToRunTimeSelectionTable(RASModel, ShihQuadraticKE, dictionary);
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-tmp<volScalarField> LienLeschzinerLowRe::fMu()
+void ShihQuadraticKE::correctNut()
 {
-    return
-        (scalar(1) - exp(-Am_*yStar_))
-       /(scalar(1) - exp(-Aepsilon_*yStar_) + SMALL);
+    correctNonlinearStress(fvc::grad(U_));
 }
 
 
-void LienLeschzinerLowRe::correctNut()
+void ShihQuadraticKE::correctNonlinearStress(const volTensorField& gradU)
 {
-    nut_ = Cmu_*fMu()*sqr(k_)/epsilon_;
+    volSymmTensorField S(symm(gradU));
+    volTensorField W(skew(gradU));
+
+    volScalarField sBar((k_/epsilon_)*sqrt(2.0)*mag(S));
+    volScalarField wBar((k_/epsilon_)*sqrt(2.0)*mag(W));
+
+    volScalarField Cmu((2.0/3.0)/(Cmu1_ + sBar + Cmu2_*wBar));
+
+    nut_ = Cmu*sqr(k_)/epsilon_;
     nut_.correctBoundaryConditions();
+
+    nonlinearStress_ =
+        k_*sqr(k_/epsilon_)/(Cbeta_ + pow3(sBar))
+       *(
+           Cbeta1_*dev(innerSqr(S))
+         + Cbeta2_*twoSymm(S&W)
+         + Cbeta3_*dev(symm(W&W))
+        );
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-LienLeschzinerLowRe::LienLeschzinerLowRe
+ShihQuadraticKE::ShihQuadraticKE
 (
     const geometricOneField& alpha,
     const geometricOneField& rho,
@@ -74,7 +88,7 @@ LienLeschzinerLowRe::LienLeschzinerLowRe
     const word& type
 )
 :
-    eddyViscosity<incompressible::RASModel>
+    nonlinearEddyViscosity<incompressible::RASModel>
     (
         type,
         alpha,
@@ -86,20 +100,20 @@ LienLeschzinerLowRe::LienLeschzinerLowRe
         propertiesName
     ),
 
-    C1_
+    Ceps1_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "C1",
+            "Ceps1",
             coeffDict_,
             1.44
         )
     ),
-    C2_
+    Ceps2_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "C2",
+            "Ceps2",
             coeffDict_,
             1.92
         )
@@ -122,49 +136,58 @@ LienLeschzinerLowRe::LienLeschzinerLowRe
             1.3
         )
     ),
-    Cmu_
+    Cmu1_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "Cmu",
+            "Cmu1",
             coeffDict_,
-            0.09
+            1.25
         )
     ),
-    kappa_
+    Cmu2_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "kappa",
+            "Cmu2",
             coeffDict_,
-            0.41
+            0.9
         )
     ),
-    Am_
+    Cbeta_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "Am",
+            "Cbeta",
             coeffDict_,
-            0.016
+            1000.0
         )
     ),
-    Aepsilon_
+    Cbeta1_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "Aepsilon",
+            "Cbeta1",
             coeffDict_,
-            0.263
+            3.0
         )
     ),
-    Amu_
+    Cbeta2_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
-            "Amu",
+            "Cbeta2",
             coeffDict_,
-            0.00222
+            15.0
+        )
+    ),
+    Cbeta3_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "Cbeta3",
+            coeffDict_,
+            -19.0
         )
     ),
 
@@ -192,11 +215,7 @@ LienLeschzinerLowRe::LienLeschzinerLowRe
             IOobject::AUTO_WRITE
         ),
         mesh_
-    ),
-
-    y_(wallDist::New(mesh_).y()),
-
-    yStar_(sqrt(k_)*y_/nu() + SMALL)
+    )
 {
     bound(k_, kMin_);
     bound(epsilon_, epsilonMin_);
@@ -211,19 +230,20 @@ LienLeschzinerLowRe::LienLeschzinerLowRe
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-bool LienLeschzinerLowRe::read()
+bool ShihQuadraticKE::read()
 {
-    if (eddyViscosity<incompressible::RASModel>::read())
+    if (nonlinearEddyViscosity<incompressible::RASModel>::read())
     {
-        C1_.readIfPresent(coeffDict());
-        C2_.readIfPresent(coeffDict());
+        Ceps1_.readIfPresent(coeffDict());
+        Ceps2_.readIfPresent(coeffDict());
         sigmak_.readIfPresent(coeffDict());
         sigmaEps_.readIfPresent(coeffDict());
-        Cmu_.readIfPresent(coeffDict());
-        kappa_.readIfPresent(coeffDict());
-        Am_.readIfPresent(coeffDict());
-        Aepsilon_.readIfPresent(coeffDict());
-        Amu_.readIfPresent(coeffDict());
+        Cmu1_.readIfPresent(coeffDict());
+        Cmu2_.readIfPresent(coeffDict());
+        Cbeta_.readIfPresent(coeffDict());
+        Cbeta1_.readIfPresent(coeffDict());
+        Cbeta2_.readIfPresent(coeffDict());
+        Cbeta3_.readIfPresent(coeffDict());
 
         return true;
     }
@@ -234,29 +254,27 @@ bool LienLeschzinerLowRe::read()
 }
 
 
-void LienLeschzinerLowRe::correct()
+void ShihQuadraticKE::correct()
 {
-    eddyViscosity<incompressible::RASModel>::correct();
-
     if (!turbulence_)
     {
         return;
     }
 
-    scalar Cmu75 = pow(Cmu_.value(), 0.75);
+    nonlinearEddyViscosity<incompressible::RASModel>::correct();
 
-    const volTensorField gradU(fvc::grad(U_));
+    tmp<volTensorField> tgradU = fvc::grad(U_);
+    const volTensorField& gradU = tgradU();
 
-    // generation term
-    tmp<volScalarField> S2 = symm(gradU) && gradU;
+    volScalarField G
+    (
+        GName(),
+        (nut_*twoSymm(gradU) - nonlinearStress_) && gradU
+    );
 
-    yStar_ = sqrt(k_)*y_/nu() + SMALL;
-    tmp<volScalarField> Rt = sqr(k_)/(nu()*epsilon_);
 
-    const volScalarField f2(scalar(1) - 0.3*exp(-sqr(Rt)));
-
-    volScalarField G(GName(), Cmu_*fMu()*sqr(k_)/epsilon_*S2);
-
+    // Update epsilon and G at the wall
+    epsilon_.boundaryField().updateCoeffs();
 
     // Dissipation equation
     tmp<fvScalarMatrix> epsEqn
@@ -265,25 +283,17 @@ void LienLeschzinerLowRe::correct()
       + fvm::div(phi_, epsilon_)
       - fvm::laplacian(DepsilonEff(), epsilon_)
       ==
-        C1_*G*epsilon_/k_
-        // E-term
-        + C2_*f2*Cmu75*sqrt(k_)
-        /(kappa_*y_*(scalar(1) - exp(-Aepsilon_*yStar_)))
-       *exp(-Amu_*sqr(yStar_))*epsilon_
-      - fvm::Sp(C2_*f2*epsilon_/k_, epsilon_)
+        Ceps1_*G*epsilon_/k_
+      - fvm::Sp(Ceps2_*epsilon_/k_, epsilon_)
     );
 
     epsEqn().relax();
-
-    #include "LienLeschzinerLowReSetWallDissipation.H"
-    #include "wallDissipationI.H"
-
+    epsEqn().boundaryManipulate(epsilon_.boundaryField());
     solve(epsEqn);
     bound(epsilon_, epsilonMin_);
 
 
     // Turbulent kinetic energy equation
-
     tmp<fvScalarMatrix> kEqn
     (
         fvm::ddt(k_)
@@ -298,7 +308,9 @@ void LienLeschzinerLowRe::correct()
     solve(kEqn);
     bound(k_, kMin_);
 
-    correctNut();
+
+    // Re-calculate viscosity and non-linear stress
+    correctNonlinearStress(gradU);
 }
 
 
