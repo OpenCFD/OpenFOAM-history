@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -86,6 +86,9 @@ class displacementInterpolationMotionSolver
 
     // Private Member Functions
 
+        //- Read settings
+        void read(const dictionary& coeffDict);
+
         //- Disallow default bitwise copy construct
         displacementInterpolationMotionSolver
         (
@@ -109,6 +112,15 @@ public:
         (
             const polyMesh&,
             const IOdictionary& dict
+        );
+
+        //- Construct from components
+        displacementInterpolationMotionSolver
+        (
+            const polyMesh& mesh,
+            const IOdictionary& dict,
+            const pointVectorField& pointDisplacement,
+            const pointIOField& points0
         );
 
 

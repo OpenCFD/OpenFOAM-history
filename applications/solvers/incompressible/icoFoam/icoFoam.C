@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -61,15 +61,18 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "pisoControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
     #include "setRootCase.H"
-
     #include "createTime.H"
     #include "createMesh.H"
+
+    pisoControl piso(mesh);
+
     #include "createFields.H"
     #include "initContinuityErrs.H"
 
@@ -81,8 +84,9 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "readPISOControls.H"
         #include "CourantNo.H"
+
+        // Momentum predictor
 
         fvVectorMatrix UEqn
         (
@@ -91,11 +95,13 @@ int main(int argc, char *argv[])
           - fvm::laplacian(nu, U)
         );
 
-        solve(UEqn == -fvc::grad(p));
+        if (piso.momentumPredictor())
+        {
+            solve(UEqn == -fvc::grad(p));
+        }
 
         // --- PISO loop
-
-        for (int corr=0; corr<nCorr; corr++)
+        while (piso.correct())
         {
             volScalarField rAU(1.0/UEqn.A());
 
@@ -110,17 +116,21 @@ int main(int argc, char *argv[])
 
             adjustPhi(phiHbyA, U, p);
 
-            for (int nonOrth=0; nonOrth<=nNonOrthCorr; nonOrth++)
+            // Non-orthogonal pressure corrector loop
+            while (piso.correctNonOrthogonal())
             {
+                // Pressure corrector
+
                 fvScalarMatrix pEqn
                 (
                     fvm::laplacian(rAU, p) == fvc::div(phiHbyA)
                 );
 
                 pEqn.setReference(pRefCell, pRefValue);
-                pEqn.solve();
 
-                if (nonOrth == nNonOrthCorr)
+                pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
+
+                if (piso.finalNonOrthogonalIter())
                 {
                     phi = phiHbyA - pEqn.flux();
                 }

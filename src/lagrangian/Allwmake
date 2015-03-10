@@ -11,7 +11,7 @@ wmake $targetType basic
 wmake $targetType solidParticle
 wmake $targetType intermediate
 wmake $targetType spray
-wmake $targetType dsmc
+wmake $targetType DSMC
 wmake $targetType coalCombustion
 
 molecularDynamics/Allwmake $targetType $*

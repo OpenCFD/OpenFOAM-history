@@ -31,6 +31,13 @@ Description
     Lam and Bremhorst low-Reynolds number k-epsilon turbulence model
     for incompressible flows
 
+    This turbulence model is described in:
+    \verbatim
+        Lam, C. K. G., & Bremhorst, K. (1981).
+        A modified form of the k-ε model for predicting wall turbulence.
+        Journal of Fluids Engineering, 103(3), 456-460.
+    \endverbatim
+
 SourceFiles
     LamBremhorstKE.C
 
@@ -59,14 +66,26 @@ class LamBremhorstKE
 :
     public eddyViscosity<incompressible::RASModel>
 {
+    // Private Member Functions
+
+        // Disallow default bitwise copy construct and assignment
+        LamBremhorstKE(const LamBremhorstKE&);
+        LamBremhorstKE& operator=(const LamBremhorstKE&);
+
+        tmp<volScalarField> Rt() const;
+        tmp<volScalarField> fMu(const volScalarField& Rt) const;
+        tmp<volScalarField> f1(const volScalarField& fMu) const;
+        tmp<volScalarField> f2(const volScalarField& Rt) const;
+        void correctNut(const volScalarField& fMu);
+
 
 protected:
 
     // Protected data
 
         dimensionedScalar Cmu_;
-        dimensionedScalar C1_;
-        dimensionedScalar C2_;
+        dimensionedScalar Ceps1_;
+        dimensionedScalar Ceps2_;
         dimensionedScalar sigmaEps_;
 
         volScalarField k_;
@@ -76,10 +95,6 @@ protected:
         //  Note: different to wall distance in parent RASModel
         //  which is for near-wall cells only
         const volScalarField& y_;
-
-        volScalarField Rt_;
-
-        volScalarField fMu_;
 
 
     // Protected Member Functions

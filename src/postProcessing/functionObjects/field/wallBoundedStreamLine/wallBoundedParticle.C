@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,8 +35,6 @@ const std::size_t Foam::wallBoundedParticle::sizeofFields_
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-// Construct the edge the particle is on
-// (according to meshEdgeStart_, diagEdge_)
 Foam::edge Foam::wallBoundedParticle::currentEdge() const
 {
     if ((meshEdgeStart_ != -1) == (diagEdge_ != -1))
@@ -60,6 +58,7 @@ Foam::edge Foam::wallBoundedParticle::currentEdge() const
     {
         label faceBasePtI = mesh_.tetBasePtIs()[tetFace()];
         label diagPtI = (faceBasePtI+diagEdge_)%f.size();
+
         return edge(f[faceBasePtI], f[diagPtI]);
     }
 }
@@ -169,9 +168,6 @@ void Foam::wallBoundedParticle::crossDiagonalEdge()
 }
 
 
-// Track through a single triangle.
-// Gets passed tet+triangle the particle is in. Updates position() but nothing
-// else. Returns the triangle edge the particle is now on.
 Foam::scalar Foam::wallBoundedParticle::trackFaceTri
 (
     const vector& endPosition,
@@ -210,6 +206,7 @@ Foam::scalar Foam::wallBoundedParticle::trackFaceTri
 
         // Outwards pointing normal
         vector edgeNormal = (pt1-pt0)^n;
+
         edgeNormal /= mag(edgeNormal)+VSMALL;
 
         // Determine whether position and end point on either side of edge.
@@ -252,8 +249,6 @@ Foam::scalar Foam::wallBoundedParticle::trackFaceTri
 }
 
 
-// See if the current triangle has got a point on the
-// correct side of the edge.
 bool Foam::wallBoundedParticle::isTriAlongTrack
 (
     const point& endPosition

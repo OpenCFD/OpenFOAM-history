@@ -45,9 +45,6 @@ PISO
 
 relaxationFactors
 {
-    fields
-    {
-    }
     equations
     {
     }

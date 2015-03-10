@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -58,6 +58,11 @@ class molecule
 :
     public particle
 {
+    // Private data
+
+        //- Size in bytes of the fields
+        static const std::size_t sizeofFields_;
+
 
 public:
 
@@ -178,12 +183,6 @@ public:
 
 
 private:
-
-    // Private static data members
-
-        //- Size in bytes of all the fields transfered in binary
-        static const std::size_t sizeofFields_;
-
 
     // Private data
 

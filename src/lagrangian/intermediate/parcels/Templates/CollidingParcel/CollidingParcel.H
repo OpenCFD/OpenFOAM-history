@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -72,6 +72,12 @@ class CollidingParcel
 :
     public ParcelType
 {
+    // Private member data
+
+        //- Size in bytes of the fields
+        static const std::size_t sizeofFields_;
+
+
 public:
 
     //- Class to hold thermo particle constant properties
@@ -111,14 +117,6 @@ public:
             //- Return const access to Poisson's ratio
             inline scalar poissonsRatio() const;
     };
-
-
-private:
-
-    // Private static data members
-
-        //- Size in bytes of all the fields transfered in binary
-        static const std::size_t sizeofFields_;
 
 
 protected:

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -105,6 +105,15 @@ protected:
             Field<weightType>& weights
         );
 
+        //- Calculate the point displacements
+        virtual void calculate
+        (
+            const labelList& facesToMove,
+            const pointField& oldPoints,
+            const pointField& currentPoints,
+            polyMeshGeometry& meshGeometry
+        ) = 0;
+
 
 public:
 
@@ -165,14 +174,14 @@ public:
             }
 
 
-        //- Calculate the end point locations
-        virtual void update
+        //- Update the point displacements
+        void update
         (
             const labelList& facesToMove,
             const pointField& oldPoints,
             const pointField& currentPoints,
             polyMeshGeometry& meshGeometry
-        ) = 0;
+        );
 };
 
 

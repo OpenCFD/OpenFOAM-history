@@ -39,6 +39,7 @@ EXE_LIBS = \
     -llagrangianIntermediate \
     -llagrangianSpray \
     -lspecie \
+    -lcompressibleTransportModels \
     -lfluidThermophysicalModels \
     -lliquidProperties \
     -lliquidMixtureProperties \

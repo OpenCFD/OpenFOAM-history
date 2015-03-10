@@ -13,6 +13,7 @@ EXE_LIBS = \
     -lincompressibleTurbulenceModels \
     -lcompressibleTurbulenceModels \
     -lincompressibleTransportModels \
+    -lcompressibleTransportModels \
     -lfluidThermophysicalModels \
     -lspecie \
     -lfiniteVolume \

@@ -28,6 +28,7 @@ gradSchemes
 divSchemes
 {
     default         none;
+
     div(phi,U)      Gauss vanLeerV;
     div(phid,p)     Gauss vanLeer;
     div(phi,K)      Gauss vanLeer;
@@ -40,6 +41,8 @@ divSchemes
 laplacianSchemes
 {
     default         Gauss linear corrected;
+
+    laplacian(diffusivity,cellMotionU) Gauss linear uncorrected;
 }
 
 interpolationSchemes

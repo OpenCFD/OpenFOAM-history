@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,6 +40,13 @@ namespace Foam
         motionSolver,
         displacementPointSmoothingMotionSolver,
         dictionary
+    );
+
+    addToRunTimeSelectionTable
+    (
+        displacementMotionSolver,
+        displacementPointSmoothingMotionSolver,
+        displacement
     );
 }
 
@@ -315,6 +322,47 @@ displacementPointSmoothingMotionSolver
 }
 
 
+Foam::displacementPointSmoothingMotionSolver::
+displacementPointSmoothingMotionSolver
+(
+    const polyMesh& mesh,
+    const IOdictionary& dict,
+    const pointVectorField& pointDisplacement,
+    const pointIOField& points0
+)
+:
+    displacementMotionSolver(mesh, dict, pointDisplacement, points0, typeName),
+    meshGeometry_(mesh),
+    pointSmoother_
+    (
+        pointSmoother::New
+        (
+            coeffDict(),
+            displacementMotionSolver::pointDisplacement()
+        )
+    ),
+    nPointSmootherIter_
+    (
+        readLabel(coeffDict().lookup("nPointSmootherIter"))
+    ),
+    relaxationFactors_(coeffDict().lookup("relaxationFactors")),
+    relaxedPoints_(mesh.points()),
+    facesToMove_(),
+    meshQualityDict_(coeffDict().subDict("meshQuality"))
+{
+    const Switch moveInternalFaces(coeffDict().lookup("moveInternalFaces"));
+
+    if (moveInternalFaces)
+    {
+        setAllFacesToMove();
+    }
+    else
+    {
+        setBoundaryFacesToMove();
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 Foam::displacementPointSmoothingMotionSolver::
@@ -357,11 +405,6 @@ void Foam::displacementPointSmoothingMotionSolver::solve()
             points0() + pointDisplacement().internalField(),
             meshGeometry_
         );
-
-        pointConstraints::New
-        (
-            pointDisplacement().mesh()
-        ).constrainDisplacement(pointDisplacement());
     }
 
     relax();

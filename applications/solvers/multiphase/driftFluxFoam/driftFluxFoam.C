@@ -41,7 +41,7 @@ Description
 #include "subCycle.H"
 #include "incompressibleTwoPhaseInteractingMixture.H"
 #include "relativeVelocityModel.H"
-#include "compressibleTransportModel.H"
+#include "turbulenceModel.H"
 #include "CompressibleTurbulenceModel.H"
 #include "pimpleControl.H"
 #include "fvIOoptionList.H"

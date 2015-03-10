@@ -49,7 +49,7 @@ tmp<volScalarField> qZeta::fMu() const
 
     if (anisotropic_)
     {
-        return exp((-scalar(2.5) + Rt/20.0)/pow(scalar(1) + Rt/130.0, 3.0));
+        return exp((-scalar(2.5) + Rt/20.0)/pow3(scalar(1) + Rt/130.0));
     }
     else
     {
@@ -239,21 +239,17 @@ bool qZeta::read()
 
 void qZeta::correct()
 {
-    eddyViscosity<incompressible::RASModel>::correct();
-
     if (!turbulence_)
     {
         return;
     }
 
-    tmp<volScalarField> S2 = 2*magSqr(symm(fvc::grad(U_)));
+    eddyViscosity<incompressible::RASModel>::correct();
 
-    volScalarField G(GName(), nut_/(2.0*q_)*S2);
+    volScalarField G(GName(), nut_/(2.0*q_)*2*magSqr(symm(fvc::grad(U_))));
     const volScalarField E(nu()*nut_/q_*fvc::magSqrGradGrad(U_));
 
-
     // Zeta equation
-
     tmp<fvScalarMatrix> zetaEqn
     (
         fvm::ddt(zeta_)
@@ -271,7 +267,6 @@ void qZeta::correct()
 
 
     // q equation
-
     tmp<fvScalarMatrix> qEqn
     (
         fvm::ddt(q_)
