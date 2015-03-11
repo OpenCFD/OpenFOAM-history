@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -81,9 +81,17 @@ class autoSnapDriver
                 PackedBoolList&
             );
 
+            //- Calculate displacement (over all mesh points) to move points
+            //  to average of connected cell centres
+            static tmp<pointField> smoothInternalDisplacement
+            (
+                const meshRefinement& meshRefiner,
+                const motionSmoother&
+            );
+
             //- Calculate displacement per patch point to smooth out patch.
             //  Quite complicated in determining which points to move where.
-            static pointField smoothPatchDisplacement
+            static tmp<pointField> smoothPatchDisplacement
             (
                 const motionSmoother&,
                 const List<labelPair>&
