@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -647,7 +647,7 @@ void Foam::meshCutter::setRefinement
                         -1,                 // master edge
                         -1,                 // master face
                         cellI,              // master cell
-                        -1                  // zone for cell
+                        mesh().cellZones().whichZone(cellI) // zone for cell
                     )
                 );
 
