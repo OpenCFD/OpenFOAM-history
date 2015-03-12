@@ -97,7 +97,7 @@ Foam::LiquidEvaporationBoil<CloudType>::LiquidEvaporationBoil
         {
             Info<< "    " << activeLiquids_[i] << endl;
             liqToCarrierMap_[i] =
-                owner.composition().globalCarrierId(activeLiquids_[i]);
+                owner.composition().carrierId(activeLiquids_[i]);
         }
 
         // Determine mapping between model active liquids and global liquids
@@ -147,12 +147,12 @@ void Foam::LiquidEvaporationBoil<CloudType>::calculate
     const scalar Ts,
     const scalar pc,
     const scalar Tc,
-    const scalarField& Xlg,
+    const scalarField& X,
     scalarField& dMassPC
 ) const
 {
     // immediately evaporate mass that has reached critical condition
-    if ((liquids_.Tc(Xlg) - T) < SMALL)
+    if ((liquids_.Tc(X) - T) < SMALL)
     {
         if (debug)
         {
@@ -187,10 +187,10 @@ void Foam::LiquidEvaporationBoil<CloudType>::calculate
     }
 
     // droplet surface pressure assumed to surface vapour pressure
-    scalar ps = liquids_.pv(pc, Ts, Xlg);
+    scalar ps = liquids_.pv(pc, Ts, X);
 
     // vapour density at droplet surface [kg/m3]
-    scalar rhos = ps*liquids_.W(Xlg)/(RR*Ts);
+    scalar rhos = ps*liquids_.W(X)/(RR*Ts);
 
     // construct carrier phase species volume fractions for cell, cellI
     const scalarField XcMix(calcXc(cellI));
@@ -304,7 +304,7 @@ void Foam::LiquidEvaporationBoil<CloudType>::calculate
                 // evaporation
 
                 // surface molar fraction - Raoult's Law
-                const scalar Xs = Xlg[gid]*pSat/pc;
+                const scalar Xs = X[lid]*pSat/pc;
 
                 // molar ratio
                 const scalar Xr = (Xs - Xc)/max(SMALL, 1.0 - Xs);
@@ -375,10 +375,10 @@ Foam::scalar Foam::LiquidEvaporationBoil<CloudType>::dh
 template<class CloudType>
 Foam::scalar Foam::LiquidEvaporationBoil<CloudType>::Tvap
 (
-    const scalarField& Xlg
+    const scalarField& X
 ) const
 {
-    return liquids_.Tpt(Xlg);
+    return liquids_.Tpt(X);
 }
 
 
@@ -386,10 +386,10 @@ template<class CloudType>
 Foam::scalar Foam::LiquidEvaporationBoil<CloudType>::TMax
 (
     const scalar p,
-    const scalarField& Xlg
+    const scalarField& X
 ) const
 {
-    return liquids_.pvInvert(p, Xlg);
+    return liquids_.pvInvert(p, X);
 }
 
 

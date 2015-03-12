@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -166,22 +166,11 @@ public:
                 const wordList& componentNames(const label phaseI) const;
 
                 //- Return global id of component cmptName in carrier thermo
-                label globalCarrierId
+                label carrierId
                 (
                     const word& cmptName,
                     const bool allowNotFound = false
                 ) const;
-
-                //- Return global id of component cmptName in phase phaseI
-                label globalId
-                (
-                    const label phaseI,
-                    const word& cmptName,
-                    const bool allowNotFound = false
-                ) const;
-
-                //- Return global ids of for phase phaseI
-                const labelList& globalIds(const label phaseI) const;
 
                 //- Return local id of component cmptName in phase phaseI
                 label localId
@@ -191,8 +180,8 @@ public:
                     const bool allowNotFound = false
                 ) const;
 
-                //- Return global carrier id of component given local id
-                label localToGlobalCarrierId
+                //- Return carrier id of component given local id
+                label localToCarrierId
                 (
                     const label phaseI,
                     const label id,
@@ -208,22 +197,6 @@ public:
                 (
                     const label phaseI,
                     const scalarField& Y
-                ) const;
-
-                //- Return the list of phase phaseI volume fractions in global
-                //  phase lists
-                tmp<scalarField> globalX
-                (
-                    const label phaseI,
-                    const scalarField& localY
-                ) const;
-
-                //- Return the list of phase phaseI mass fractions in global
-                //  phase lists
-                tmp<scalarField> globalY
-                (
-                    const label phaseI,
-                    const scalarField& localY
                 ) const;
 
 

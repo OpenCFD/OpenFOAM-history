@@ -77,8 +77,7 @@ void Foam::SprayParcel<ParcelType>::calc
     }
 
     // Get old mixture composition
-    const scalarField Y0(composition.globalY(0, this->Y()));
-    scalarField X0(composition.liquids().X(Y0));
+    scalarField X0(composition.liquids().X(this->Y()));
 
     // Check if we have critical or boiling conditions
     scalar TMax = composition.liquids().Tc(X0);
@@ -112,8 +111,7 @@ void Foam::SprayParcel<ParcelType>::calc
         // Update Cp, sigma, density and diameter due to change in temperature
         // and/or composition
         scalar T1 = this->T();
-        const scalarField Y1(composition.globalY(0, this->Y()));
-        scalarField X1(composition.liquids().X(Y1));
+        scalarField X1(composition.liquids().X(this->Y()));
 
         this->Cp() = composition.liquids().Cp(this->pc_, T1, X1);
 
@@ -402,25 +400,17 @@ void Foam::SprayParcel<ParcelType>::solveTABEq
         scalar rhoc = this->rhoc();
         scalar We = this->We(this->U(), r, rhoc, sigma_)/TABtwoWeCrit;
 
-        scalar y1 = this->y() - We;
-        scalar y2 = this->yDot()/omega;
+        // Initial values for y and yDot
+        scalar y0 = this->y() - We;
+        scalar yDot0 = this->yDot() + y0*rtd;
 
         // Update distortion parameters
         scalar c = cos(omega*dt);
         scalar s = sin(omega*dt);
         scalar e = exp(-rtd*dt);
-        y2 = (this->yDot() + y1*rtd)/omega;
 
-        this->y() = We + e*(y1*c + y2*s);
-        if (this->y() < 0)
-        {
-            this->y() = 0.0;
-            this->yDot() = 0.0;
-        }
-        else
-        {
-            this->yDot() = (We - this->y())*rtd + e*omega*(y2*c - y1*s);
-        }
+        this->y() = We + e*(y0*c + (yDot0/omega)*s);
+        this->yDot() = (We - this->y())*rtd + e*(yDot0*c - omega*y0*s);
     }
     else
     {
