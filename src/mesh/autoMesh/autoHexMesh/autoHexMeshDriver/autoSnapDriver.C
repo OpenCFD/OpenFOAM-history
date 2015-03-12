@@ -267,7 +267,7 @@ Foam::tmp<Foam::pointField> Foam::autoSnapDriver::smoothInternalDisplacement
     }
 
     // Sum
-    syncTools::syncPointList(mesh, nCells, plusEqOp<label>(), 0);
+    syncTools::syncPointList(mesh, nCells, plusEqOp<label>(), label(0));
     syncTools::syncPointList
     (
         mesh,
