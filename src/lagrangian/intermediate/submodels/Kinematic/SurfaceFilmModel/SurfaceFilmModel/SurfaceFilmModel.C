@@ -100,28 +100,6 @@ Foam::SurfaceFilmModel<CloudType>::~SurfaceFilmModel()
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class CloudType>
-bool Foam::SurfaceFilmModel<CloudType>::transferParcel
-(
-    parcelType& p,
-    const polyPatch& pp,
-    bool& keepParticle
-)
-{
-    notImplemented
-    (
-        "bool Foam::SurfaceFilmModel<CloudType>::transferParcel"
-        "("
-            "parcelType&, "
-            "const polyPatch&, "
-            "bool&"
-        ")"
-    );
-
-    return false;
-}
-
-
-template<class CloudType>
 template<class TrackData>
 void Foam::SurfaceFilmModel<CloudType>::inject(TrackData& td)
 {

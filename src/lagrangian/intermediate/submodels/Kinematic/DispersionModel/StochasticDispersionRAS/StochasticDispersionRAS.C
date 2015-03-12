@@ -41,7 +41,7 @@ Foam::StochasticDispersionRAS<CloudType>::StochasticDispersionRAS
 template<class CloudType>
 Foam::StochasticDispersionRAS<CloudType>::StochasticDispersionRAS
 (
-    StochasticDispersionRAS<CloudType>& dm
+    const StochasticDispersionRAS<CloudType>& dm
 )
 :
     DispersionRASModel<CloudType>(dm)
