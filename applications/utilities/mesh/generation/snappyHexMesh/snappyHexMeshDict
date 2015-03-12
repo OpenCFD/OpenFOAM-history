@@ -338,6 +338,11 @@ snapControls
     // to surface
     nSmoothPatch 3;
 
+    // Optional: number of smoothing iterations for internal points on
+    // refinement interfaces. This will reduce non-orthogonality on
+    // refinement interfaces.
+    //nSmoothInternal $nSmoothPatch;
+
     // Maximum relative distance for points to be attracted by surface.
     // True distance is this factor times local maximum edge length.
     // Note: changed(corrected) w.r.t 17x! (17x used 2* tolerance)
