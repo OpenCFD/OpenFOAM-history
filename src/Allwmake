@@ -68,11 +68,13 @@ TurbulenceModels/Allwmake $targetType $*
 wmake $targetType combustionModels
 regionModels/Allwmake $targetType $*
 lagrangian/Allwmake $targetType $*
+
+wmake $targetType fvMotionSolver
 mesh/Allwmake $targetType $*
+
 renumber/Allwmake $targetType $*
 fvAgglomerationMethods/Allwmake $targetType $*
 
-wmake $targetType fvMotionSolver
 wmake $targetType engine
 wmake $targetType fvOptions
 wmake $targetType regionCoupled
