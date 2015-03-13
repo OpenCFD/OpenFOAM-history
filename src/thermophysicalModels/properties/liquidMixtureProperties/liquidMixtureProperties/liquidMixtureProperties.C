@@ -191,7 +191,7 @@ Foam::scalar Foam::liquidMixtureProperties::Ppc(const scalarField& X) const
         Zc += X[i]*properties_[i].Zc();
     }
 
-    return RR*Zc*Tpc(x)/(Vc + ROOTVSMALL);
+    return RR*Zc*Tpc(X)/(Vc + ROOTVSMALL);
 }
 
 
