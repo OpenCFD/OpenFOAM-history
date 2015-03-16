@@ -285,6 +285,7 @@ void SSG<BasicTurbulenceModel>::correct()
       - fvm::Sp(Ceps2_*alpha*rho*epsilon_/k_, epsilon_)
     );
 
+
     epsEqn().relax();
 
     epsEqn().boundaryManipulate(epsilon_.boundaryField());
@@ -333,8 +334,8 @@ void SSG<BasicTurbulenceModel>::correct()
       + alpha*rho*k_
        *(
             (C3_ - C3s_*mag(b))*S
-          + C4_*dev(twoSymm(b&S))
-          + C5_*twoSymm(b&Omega)
+          + C4_*dev(twoSymm(b&S.T()))
+          + C5_*twoSymm(b&Omega.T())
         )
     );
 
