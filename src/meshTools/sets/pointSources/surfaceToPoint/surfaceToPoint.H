@@ -65,16 +65,16 @@ class surfaceToPoint
         static addToUsageTable usage_;
 
         //- Name of surface file
-        fileName surfName_;
+        const fileName surfName_;
 
         //- If > 0 : include points with distance to surface less than nearDist.
-        scalar nearDist_;
+        const scalar nearDist_;
 
         //- Include all points on opposite sign of normal on nearest surface.
-        bool includeInside_;
+        const bool includeInside_;
 
         //- Include all points on this sign of normal on nearest surface.
-        bool includeOutside_;
+        const bool includeOutside_;
 
 
     // Private Member Functions
