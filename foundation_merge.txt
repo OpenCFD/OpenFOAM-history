@@ -1,11 +1,264 @@
-commit 0aa276f1d8d1f6f5f4222a8fcdf8358ea2ce2738
+*OK* commit 930d3d43871edf61c296b0d23d26d729adc6d867
+Author: Henry <Henry>
+Date:   Sun Mar 15 22:14:44 2015 +0000
+
+    Scripts: Add {} following -I option to xargs
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1573
+
+*OK* commit 7dfdea2cac3c955a174168d3d7671a57cc3ece19
+Author: Henry <Henry>
+Date:   Sun Mar 15 18:49:52 2015 +0000
+
+    Time: Adjust the precision of the time-directories only for write-times
+    Avoids unnecessary increases in precision during intermediate steps for
+    cases with adjustable time-step which may require very high precision to
+    represent the time name.
+
+*OK* commit c4bb9bbd5b99938dd017924fe594bfda717c82d6
+Author: Henry <Henry>
+Date:   Sat Mar 14 20:35:36 2015 +0000
+
+    Update header
+
+*OK* commit b169f09cd326ef09b90c8f7ea14b7ab5665ac3b2
+Author: Henry <Henry>
+Date:   Sat Mar 14 20:33:51 2015 +0000
+
+    Time: Increase the precision the value entry is written in uniform/time
+    Add check for round-off error causing time reversal
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=815
+
+*OK* commit e20e69992dcfa1d754c69a5ff3f9f1c83df0195a
+Author: Henry <Henry>
+Date:   Fri Mar 13 22:14:08 2015 +0000
+
+    shallowWaterFoam: Read hU rather than U to support complex e.g. time-varying BCs
+    Disadvantage is that the BC values have to be specified in terms of hU
+    rather than U.  The alternative would be to add complex code to map h
+    and U BCs into the equivalent for hU.
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1566
+
+*OK* commit 3739559e75f45bafa852f109673c79249fd9dfa7
+Author: Henry <Henry>
+Date:   Fri Mar 13 17:56:52 2015 +0000
+
+    Replace xargs -i with xargs -I as the -i option is deprecated
+
+*OK* commit de9ebcc299564efbab1602e415d74033c3143e38
+Author: Henry <Henry>
+Date:   Fri Mar 13 14:39:01 2015 +0000
+
+    Revert "Revert "Revert "DPMFoam: Multiply the gravitational force by the gas phase fraction"""
+    
+    This reverts commit c935f83ece33dc55340740a213524a52d675f0e8.
+
+*OK* commit c6f66dae57eb19d480b157ac317c06a842632a24
+Author: Henry <Henry>
+Date:   Fri Mar 13 13:13:42 2015 +0000
+
+    stochasticDispersionRAS: Distribute UTurb uniformly
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1568
+
+*OK* commit 408ae9985d9c2482238f86f09e4a41f184e4d00b
+Author: Henry <Henry>
+Date:   Fri Mar 13 11:09:09 2015 +0000
+
+    ParaView: Upgrade to 4.3.1
+    
+    Note that in order to build and install ParaView-4.3.1 lines 653-656
+    must be removed or commented from file
+    
+    ThirdParty-dev/ParaView-4.3.1/Qt/Components/CMakeLists.txt
+    
+    after unpacking the ParaView-4.3.1 source-pack from KitWare.  This is
+    because the file ui_pqExportStateWizard.h referred to in the lines
+    653-656:
+    
+    if(PARAVIEW_INSTALL_DEVELOPMENT_FILES)
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ui_pqExportStateWizard.h"
+              DESTINATION "${VTK_INSTALL_INCLUDE_DIR}")
+    endif()
+    
+    does not exist and cannot be installed causing the build and
+    installation to fail.
+
+*OK* commit 1715087fbeff4fcdc47890e720fa0b3f2b325e50
+Author: Henry <Henry>
+Date:   Fri Mar 13 09:52:13 2015 +0000
+
+    Random: clean-up
+
+*OK* commit fd069939c1ae27ca4e4bc7fae9ddba328fbe6f56
+Author: Henry <Henry>
+Date:   Fri Mar 13 09:51:33 2015 +0000
+
+    rhoCentralFoam: Correct handling of single-cell meshes
+    Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1548
+
+*OK* commit 43aec8425b312d03a5fb61c78edcfc8f3fc119a7
+Author: Henry <Henry>
+Date:   Wed Mar 11 18:06:04 2015 +0000
+
+    TomiyamaLift: Updated coefficient to make the model continuous at EoH = 10.7
+    Correction provided by Juho Peltola
+
+*OK* commit c935f83ece33dc55340740a213524a52d675f0e8
+Author: Henry <Henry>
+Date:   Wed Mar 11 17:33:14 2015 +0000
+
+    Revert "Revert "DPMFoam: Multiply the gravitational force by the gas phase fraction""
+    
+    This reverts commit f5d26ab69bcfa6b4f65e96f1036a2ba5de235d11.
+
+*OK* commit f5d26ab69bcfa6b4f65e96f1036a2ba5de235d11
+Author: Henry <Henry>
+Date:   Wed Mar 11 15:47:29 2015 +0000
+
+    Revert "DPMFoam: Multiply the gravitational force by the gas phase fraction"
+    
+    This reverts commit 49fbe73ac0220ba8118a221b6bfea6673a234c4a.
+
+*OK* commit 49fbe73ac0220ba8118a221b6bfea6673a234c4a
+Author: Henry <Henry>
+Date:   Wed Mar 11 10:50:32 2015 +0000
+
+    DPMFoam: Multiply the gravitational force by the gas phase fraction
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1563
+
+*ALREADY DONE* commit d66408c86acc5d889e60dc57c665c791472fa1ee
+Author: Henry <Henry>
+Date:   Tue Mar 10 19:59:09 2015 +0000
+
+    thermoSingleLayer: Revert q back to the working version in OpenFOAM-2.1.x
+    Revert changes in tutorial to correspond to the version in OpenFOAM-2.1.x
+    Resolves bug-report http://openfoam.org/mantisbt/view.php?id=1207
+
+*OK* commit 8bed463f4562695b813584c3d06c4f93bc9e384d
+Author: Henry <Henry>
+Date:   Tue Mar 10 19:58:37 2015 +0000
+
+    boundaryConditions.dox: Update wall-function entries
+
+*OK* commit 2e2cbe50c6883b5160d7dc5c26eae22c1ae725e7
+Author: Henry <Henry>
+Date:   Tue Mar 10 19:57:42 2015 +0000
+
+    TomiyamaLift: Corrected coefficients to correspond exactly to the original paper cited
+    Resolved bug-report http://www.openfoam.org/mantisbt/view.php?id=1564
+
+*OK* commit 3b4063ee8e0960c5ad9d41648e9af998a5e077c0
+Author: Henry <Henry>
+Date:   Mon Mar 9 17:27:33 2015 +0000
+
+    Updated
+
+*OK* commit 10cbc85bb5e5e1951d1057a6ae488e223e57a000
+Author: Henry <Henry>
+Date:   Mon Mar 9 14:33:24 2015 +0000
+
+    functionObjects/forces: correct upper-limit for bins
+
+*OK* commit 3f322e8b909886de5188023ee6ca81cae776d465
+Author: Henry <Henry>
+Date:   Mon Mar 9 10:40:51 2015 +0000
+
+    functionObjects/forces: limit the bins to handle moving meshes
+    This approach simply accumulates data outside the range of the bins into
+    the first or last bin which may be OK for small motions.  For larger
+    motions it may be better if the bins are updated or operate in a
+    coordinate system attached to the body for solid-body motion.
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1560
+
+*OK* commit d4898bd50599ec6d374a9b622fed0a9abf50020d
+Author: Henry <Henry>
+Date:   Sun Mar 8 21:06:36 2015 +0000
+
+    Updated headers
+
+*OK* commit 339c1e2a3d7044ae04afecd6b644f8f49b59ed8d
+Author: Henry <Henry>
+Date:   Sun Mar 8 21:04:38 2015 +0000
+
+    MPI configuration: Added support for SYSTEMMPI
+    Provided by Bruno Santos
+    Also some general cleaning and update of comment.
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1167
+
+*OK* commit 9df23b529ecaaf4790beb8f835e22788416bc98a
+Author: Henry <Henry>
+Date:   Sun Mar 8 21:02:51 2015 +0000
+
+    Time: Improved tolerance used to test time equivalence from Bruno
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=815
+
+*OK* commit 30bbd3e9be9d4d1053cabc2b6714678e7c464381
+Author: Henry <Henry>
+Date:   Sun Mar 8 16:31:32 2015 +0000
+
+    Update headers
+
+*OK* commit 85225d817e02455acb1856bcbf2e4f84cf4e0550
+Author: Henry <Henry>
+Date:   Sun Mar 8 16:29:01 2015 +0000
+
+    Time: Handle precision changes on start-up and running more robustly
+    Changes based on patches from and discussions with Bruno Santos
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=815
+
+*OK* commit cb6f22edcf78b1db274d0ade0d1aab6eaa002056
+Author: Henry <Henry>
+Date:   Sat Mar 7 21:47:04 2015 +0000
+
+    thermophysicalModels/specie: Added entropy function to equations of state
+    Added the pressure dependent part of the entropy from the equation of
+    state to that returned by the thermo entropy function.
+    
+    TODO: Add entropy defect to the PengRobinsonGas::s(p, T) function.
+    
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1411
+
+*OK* commit d6907d9b48e6983ff0e8f23a766ed1f51b2961bc
+Author: Henry <Henry>
+Date:   Sat Mar 7 11:51:38 2015 +0000
+
+    lagrangian: Completed update of phaseProperties to handle specie list mismatch
+    between liquid and solid mixture composition and the specie lists
+    defined in the thermodynamics package.
+    
+    Note this does not change the current limitation that both liquid and
+    solid mixtures contain ALL the corresponding phase species defined in
+    the thermodynamics package.  However, missing species are included
+    automatically during construction of phaseProperties.
+
+*OK* commit 4580bcf7d482dbdda79509917409dab568649b07
+Author: Henry <Henry>
+Date:   Fri Mar 6 22:43:39 2015 +0000
+
+    Removed redundant code
+
+*OK* commit 0003b4b0081a53b461a7436a160ea60cdee5c2c4
+Author: Henry <Henry>
+Date:   Fri Mar 6 22:38:12 2015 +0000
+
+    PaSR: ensure the sqrt operates on a positive number
+
+*OK* commit 6884300a00750593628812d8cec8593d40835859
+Author: Henry <Henry>
+Date:   Fri Mar 6 18:14:18 2015 +0000
+
+    lagrangian: Replace dummy "notImplemented" functions with abstract functions making base classes abstract
+    Make clone functions const and abstract in abstract base classes
+    Change copy constructors to take const argument
+    Make private data mutable where necessary
+
+*OK* commit 0aa276f1d8d1f6f5f4222a8fcdf8358ea2ce2738
 Author: Henry <Henry>
 Date:   Thu Mar 5 23:39:40 2015 +0000
 
     simplifiedSiwek: Temporarily define all gaseous species to be present
     This hack will be removed when the rewrite of the parcel thermodynamics is complete.
 
-commit f9d7b982ce7d9153c6e28993c570bf2df8cc054e
+*OK* commit f9d7b982ce7d9153c6e28993c570bf2df8cc054e
 Author: Henry <Henry>
 Date:   Thu Mar 5 23:37:58 2015 +0000
 
@@ -13,41 +266,41 @@ Date:   Thu Mar 5 23:37:58 2015 +0000
     No species specified: indicates phase is not present
     Some species specified: missing entries assumed to have 0 mass-fraction
 
-commit e4e64e6eab9bd35200c79e9ad53d773150f213a7
+*OK* commit e4e64e6eab9bd35200c79e9ad53d773150f213a7
 Author: Henry <Henry>
 Date:   Thu Mar 5 20:12:39 2015 +0000
 
     adjustPhi: Corrected for closed-volume, moving-mesh incompressible simulations
 
-commit 74dd50aac9fefaf412c6998e248becd4290e9141
+*OK* commit 74dd50aac9fefaf412c6998e248becd4290e9141
 Author: Henry <Henry>
 Date:   Thu Mar 5 18:57:38 2015 +0000
 
     tetOverlapVolume: adjust tolerance
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1347
 
-commit 3ccbc72aaa27a0bc37a8f6f981da48cdb84a4078
+*OK* commit 3ccbc72aaa27a0bc37a8f6f981da48cdb84a4078
 Author: Henry <Henry>
 Date:   Thu Mar 5 18:57:18 2015 +0000
 
     blockMeshMerge: Adjusted merge-tolerance
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1443
 
-commit 87b68f99ba3f4768eb3edd9112c24a98a8e6f7f3
+*OK* commit 87b68f99ba3f4768eb3edd9112c24a98a8e6f7f3
 Author: Henry <Henry>
 Date:   Thu Mar 5 18:56:54 2015 +0000
 
     meshCutter: Correct zone of cut-cells
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1524
 
-commit a2140d21f2ebff5bde56505c67dbaf06c94476a1
+*OK* commit a2140d21f2ebff5bde56505c67dbaf06c94476a1
 Author: Henry <Henry>
 Date:   Thu Mar 5 17:20:34 2015 +0000
 
     patchInjectionBase: ensure areaFraction is the same on all processors
     Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1556
 
-commit b44d2ba049a90a62ed7e178ee88336ebf649b1d0
+*OK* commit b44d2ba049a90a62ed7e178ee88336ebf649b1d0
 Author: Henry <Henry>
 Date:   Thu Mar 5 11:35:49 2015 +0000
 

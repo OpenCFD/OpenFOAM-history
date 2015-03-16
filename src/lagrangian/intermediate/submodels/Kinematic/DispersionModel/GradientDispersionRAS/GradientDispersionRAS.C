@@ -45,7 +45,7 @@ Foam::GradientDispersionRAS<CloudType>::GradientDispersionRAS
 template<class CloudType>
 Foam::GradientDispersionRAS<CloudType>::GradientDispersionRAS
 (
-    GradientDispersionRAS<CloudType>& dm
+    const GradientDispersionRAS<CloudType>& dm
 )
 :
     DispersionRASModel<CloudType>(dm),

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -424,10 +424,6 @@ void Foam::motionSmootherAlgo::correct()
     oldPoints_ = mesh_.points();
 
     scale_ = 1.0;
-
-    // No need to update twoDmotion corrector since only holds edge labels
-    // which will remain the same as before. So unless the mesh was distorted
-    // severely outside of motionSmootherAlgo there will be no need.
 }
 
 

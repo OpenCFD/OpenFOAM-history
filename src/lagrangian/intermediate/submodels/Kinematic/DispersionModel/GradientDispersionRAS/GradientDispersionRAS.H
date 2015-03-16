@@ -60,7 +60,7 @@ protected:
             const volVectorField* gradkPtr_;
 
             //- Take ownership of the grad(k)
-            bool ownGradK_;
+            mutable bool ownGradK_;
 
 
 public:
@@ -75,10 +75,10 @@ public:
         GradientDispersionRAS(const dictionary& dict, CloudType& owner);
 
         //- Construct copy
-        GradientDispersionRAS(GradientDispersionRAS<CloudType>& dm);
+        GradientDispersionRAS(const GradientDispersionRAS<CloudType>& dm);
 
         //- Construct and return a clone
-        virtual autoPtr<DispersionModel<CloudType> > clone()
+        virtual autoPtr<DispersionModel<CloudType> > clone() const
         {
             return autoPtr<DispersionModel<CloudType> >
             (

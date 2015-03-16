@@ -31,6 +31,7 @@ License
 #include "zeroGradientFvPatchFields.H"
 #include "mappedFieldFvPatchField.H"
 #include "mapDistribute.H"
+#include "constants.H"
 
 // Sub-models
 #include "filmThermoModel.H"
@@ -263,25 +264,19 @@ void thermoSingleLayer::updateSubmodels()
 
 tmp<fvScalarMatrix> thermoSingleLayer::q(volScalarField& hs) const
 {
-    dimensionedScalar Tstd("Tstd", dimTemperature, 298.15);
-
 //    Only apply heat transfer where the film is present
 //    - leads to temperature unboundedness?
 //    volScalarField boundedAlpha(max(alpha_, ROOTVSMALL));
 //    volScalarField htcst(htcs_->h()*boundedAlpha);
 //    volScalarField htcwt(htcw_->h()*boundedAlpha);
 
-    // Apply heat transfer everywhere
-    volScalarField htcst(htcs_->h());
-    volScalarField htcwt(htcw_->h());
-
-    htcst.correctBoundaryConditions();
-    htcwt.correctBoundaryConditions();
-
     return
     (
-      - fvm::Sp(htcst/Cp_, hs) - htcst*(Tstd - TPrimary_)
-      - fvm::Sp(htcwt/Cp_, hs) - htcwt*(Tstd - Tw_)
+      - fvm::Sp(htcs_->h()/Cp_, hs)
+      - htcs_->h()*(constant::standard::Tstd - TPrimary_)
+
+      - fvm::Sp(htcw_->h()/Cp_, hs)
+      - htcw_->h()*(constant::standard::Tstd - Tw_)
     );
 }
 
