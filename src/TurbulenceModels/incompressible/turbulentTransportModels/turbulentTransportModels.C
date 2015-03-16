@@ -56,6 +56,8 @@ makeBaseTurbulenceModel
 // RAS models
 // -------------------------------------------------------------------------- //
 
+//makeRASModel(laminar);
+
 #include "SpalartAllmaras.H"
 makeRASModel(SpalartAllmaras);
 
@@ -120,6 +122,15 @@ makeLESModel(SpalartAllmarasIDDES);
 
 #include "DeardorffDiffStress.H"
 makeLESModel(DeardorffDiffStress);
+
+#include "kOmegaSSTDES.H"
+makeLESModel(kOmegaSSTDES);
+
+#include "kOmegaSSTDDES.H"
+makeLESModel(kOmegaSSTDDES);
+
+#include "kOmegaSSTIDDES.H"
+makeLESModel(kOmegaSSTIDDES);
 
 
 // ************************************************************************* //
