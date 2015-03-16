@@ -1,3 +1,49 @@
+*OK* commit 930d3d43871edf61c296b0d23d26d729adc6d867
+Author: Henry <Henry>
+Date:   Sun Mar 15 22:14:44 2015 +0000
+
+    Scripts: Add {} following -I option to xargs
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1573
+
+*OK* commit 7dfdea2cac3c955a174168d3d7671a57cc3ece19
+Author: Henry <Henry>
+Date:   Sun Mar 15 18:49:52 2015 +0000
+
+    Time: Adjust the precision of the time-directories only for write-times
+    Avoids unnecessary increases in precision during intermediate steps for
+    cases with adjustable time-step which may require very high precision to
+    represent the time name.
+
+*OK* commit c4bb9bbd5b99938dd017924fe594bfda717c82d6
+Author: Henry <Henry>
+Date:   Sat Mar 14 20:35:36 2015 +0000
+
+    Update header
+
+*OK* commit b169f09cd326ef09b90c8f7ea14b7ab5665ac3b2
+Author: Henry <Henry>
+Date:   Sat Mar 14 20:33:51 2015 +0000
+
+    Time: Increase the precision the value entry is written in uniform/time
+    Add check for round-off error causing time reversal
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=815
+
+*OK* commit e20e69992dcfa1d754c69a5ff3f9f1c83df0195a
+Author: Henry <Henry>
+Date:   Fri Mar 13 22:14:08 2015 +0000
+
+    shallowWaterFoam: Read hU rather than U to support complex e.g. time-varying BCs
+    Disadvantage is that the BC values have to be specified in terms of hU
+    rather than U.  The alternative would be to add complex code to map h
+    and U BCs into the equivalent for hU.
+    Resolves bug-report http://www.openfoam.org/mantisbt/view.php?id=1566
+
+*OK* commit 3739559e75f45bafa852f109673c79249fd9dfa7
+Author: Henry <Henry>
+Date:   Fri Mar 13 17:56:52 2015 +0000
+
+    Replace xargs -i with xargs -I as the -i option is deprecated
+
 *OK* commit de9ebcc299564efbab1602e415d74033c3143e38
 Author: Henry <Henry>
 Date:   Fri Mar 13 14:39:01 2015 +0000
