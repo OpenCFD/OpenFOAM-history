@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -120,8 +120,187 @@ Foam::label Foam::autoSnapDriver::getCollocatedPoints
 }
 
 
+Foam::tmp<Foam::pointField> Foam::autoSnapDriver::smoothInternalDisplacement
+(
+    const meshRefinement& meshRefiner,
+    const motionSmoother& meshMover
+)
+{
+    const indirectPrimitivePatch& pp = meshMover.patch();
+    const polyMesh& mesh = meshMover.mesh();
+
+    // Get neighbour refinement
+    const hexRef8& cutter = meshRefiner.meshCutter();
+    const labelList& cellLevel = cutter.cellLevel();
+
+
+    // Get the faces on the boundary
+    PackedBoolList isFront(mesh.nFaces());
+    forAll(pp.addressing(), i)
+    {
+        isFront[pp.addressing()[i]] = true;
+    }
+
+    // Walk out from the surface a bit. Poor man's FaceCellWave.
+    // Commented out for now - not sure if needed and if so how much
+    //for (label iter = 0; iter < 2; iter++)
+    //{
+    //    PackedBoolList newIsFront(mesh.nFaces());
+    //
+    //    forAll(isFront, faceI)
+    //    {
+    //        if (isFront[faceI])
+    //        {
+    //            label own = mesh.faceOwner()[faceI];
+    //            const cell& ownFaces = mesh.cells()[own];
+    //            forAll(ownFaces, i)
+    //            {
+    //                newIsFront[ownFaces[i]] = true;
+    //            }
+    //
+    //            if (mesh.isInternalFace(faceI))
+    //            {
+    //                label nei = mesh.faceNeighbour()[faceI];
+    //                const cell& neiFaces = mesh.cells()[nei];
+    //                forAll(neiFaces, i)
+    //                {
+    //                    newIsFront[neiFaces[i]] = true;
+    //                }
+    //            }
+    //        }
+    //    }
+    //
+    //    syncTools::syncFaceList
+    //    (
+    //        mesh,
+    //        newIsFront,
+    //        orEqOp<unsigned int>()
+    //    );
+    //
+    //    isFront = newIsFront;
+    //}
+
+    // Mark all points on faces
+    //  - not on the boundary
+    //  - inbetween differing refinement levels
+    PackedBoolList isMovingPoint(mesh.nPoints());
+
+    label nInterface = 0;
+
+    for (label faceI = 0; faceI < mesh.nInternalFaces(); faceI++)
+    {
+        label ownLevel = cellLevel[mesh.faceOwner()[faceI]];
+        label neiLevel = cellLevel[mesh.faceNeighbour()[faceI]];
+
+        if (!isFront[faceI] && ownLevel != neiLevel)
+        {
+            const face& f = mesh.faces()[faceI];
+            forAll(f, fp)
+            {
+                isMovingPoint[f[fp]] = true;
+            }
+
+            nInterface++;
+        }
+    }
+
+    labelList neiCellLevel;
+    syncTools::swapBoundaryCellList(mesh, cellLevel, neiCellLevel);
+
+    for (label faceI = mesh.nInternalFaces(); faceI < mesh.nFaces(); faceI++)
+    {
+        label ownLevel = cellLevel[mesh.faceOwner()[faceI]];
+        label neiLevel = neiCellLevel[faceI-mesh.nInternalFaces()];
+
+        if (!isFront[faceI] && ownLevel != neiLevel)
+        {
+            const face& f = mesh.faces()[faceI];
+            forAll(f, fp)
+            {
+                isMovingPoint[f[fp]] = true;
+            }
+
+            nInterface++;
+        }
+    }
+
+    if (debug)
+    {
+        reduce(nInterface, sumOp<label>());
+        Info<< "Found " << nInterface << " faces out of "
+            << mesh.globalData().nTotalFaces()
+            << " inbetween refinement regions." << endl;
+    }
+
+    // Make sure that points that are coupled to a moving point are marked
+    // as well
+    syncTools::syncPointList(mesh, isMovingPoint, maxEqOp<unsigned int>(), 0);
+
+    // Unmark any point on the boundary. If we're doing zero iterations of
+    // face-cell wave we might have coupled points not being unmarked.
+    forAll(pp.meshPoints(), pointI)
+    {
+        isMovingPoint[pp.meshPoints()[pointI]] = false;
+    }
+
+    // Make sure that points that are coupled to meshPoints but not on a patch
+    // are unmarked as well
+    syncTools::syncPointList(mesh, isMovingPoint, minEqOp<unsigned int>(), 1);
+
+
+    // Calculate average of connected cells
+    labelList nCells(mesh.nPoints(), 0);
+    pointField sumLocation(mesh.nPoints(), vector::zero);
+
+    forAll(isMovingPoint, pointI)
+    {
+        if (isMovingPoint[pointI])
+        {
+            const labelList& pCells = mesh.pointCells(pointI);
+
+            forAll(pCells, i)
+            {
+                sumLocation[pointI] += mesh.cellCentres()[pCells[i]];
+                nCells[pointI]++;
+            }
+        }
+    }
+
+    // Sum
+    syncTools::syncPointList(mesh, nCells, plusEqOp<label>(), label(0));
+    syncTools::syncPointList
+    (
+        mesh,
+        sumLocation,
+        plusEqOp<point>(),
+        vector::zero
+    );
+
+    tmp<pointField> tdisplacement(new pointField(mesh.nPoints(), vector::zero));
+    pointField& displacement = tdisplacement();
+
+    label nAdapted = 0;
+
+    forAll(displacement, pointI)
+    {
+        if (nCells[pointI] > 0)
+        {
+            displacement[pointI] =
+                sumLocation[pointI]/nCells[pointI]-mesh.points()[pointI];
+            nAdapted++;
+        }
+    }
+
+    reduce(nAdapted, sumOp<label>());
+    Info<< "Smoothing " << nAdapted << " points inbetween refinement regions."
+        << endl;
+
+    return tdisplacement;
+}
+
+
 // Calculate displacement as average of patch points.
-Foam::pointField Foam::autoSnapDriver::smoothPatchDisplacement
+Foam::tmp<Foam::pointField> Foam::autoSnapDriver::smoothPatchDisplacement
 (
     const motionSmoother& meshMover,
     const List<labelPair>& baffles
@@ -329,20 +508,9 @@ Foam::pointField Foam::autoSnapDriver::smoothPatchDisplacement
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     labelList anyCell(mesh.nPoints(), -1);
-    forAll(mesh.faceNeighbour(), faceI)
+    forAll(mesh.faceOwner(), faceI)
     {
         label own = mesh.faceOwner()[faceI];
-        const face& f = mesh.faces()[faceI];
-
-        forAll(f, fp)
-        {
-            anyCell[f[fp]] = own;
-        }
-    }
-    for (label faceI = mesh.nInternalFaces(); faceI < mesh.nFaces(); faceI++)
-    {
-        label own = mesh.faceOwner()[faceI];
-
         const face& f = mesh.faces()[faceI];
 
         forAll(f, fp)
@@ -353,7 +521,8 @@ Foam::pointField Foam::autoSnapDriver::smoothPatchDisplacement
 
 
     // Displacement to calculate.
-    pointField patchDisp(meshPoints.size(), vector::zero);
+    tmp<pointField> tpatchDisp(new pointField(meshPoints.size(), vector::zero));
+    pointField& patchDisp = tpatchDisp();
 
     forAll(pointFaces, i)
     {
@@ -416,7 +585,7 @@ Foam::pointField Foam::autoSnapDriver::smoothPatchDisplacement
         patchDisp[i] = newPos - currentPos;
     }
 
-    return patchDisp;
+    return tpatchDisp;
 }
 //XXXXXXX
 //Foam::tmp<Foam::pointField> Foam::autoSnapDriver::avg
@@ -522,42 +691,6 @@ Foam::tmp<Foam::scalarField> Foam::autoSnapDriver::edgePatchDist
     {
         edgeDist[edgeI] = Foam::sqrt(allEdgeInfo[edgeI].distSqr());
     }
-
-
-    //{
-    //    // For debugging: dump to file
-    //    pointScalarField pointDist
-    //    (
-    //        IOobject
-    //        (
-    //            "pointDist",
-    //            meshRefiner_.timeName(),
-    //            mesh.DB(),
-    //            IOobject::NO_READ,
-    //            IOobject::AUTO_WRITE
-    //        ),
-    //        pMesh,
-    //        dimensionedScalar("pointDist", dimless, 0.0)
-    //    );
-    //
-    //    forAll(allEdgeInfo, edgeI)
-    //    {
-    //        scalar d = Foam::sqrt(allEdgeInfo[edgeI].distSqr());
-    //
-    //        const edge& e = mesh.edges()[edgeI];
-    //
-    //        pointDist[e[0]] += d;
-    //        pointDist[e[1]] += d;
-    //    }
-    //    forAll(pointDist, pointI)
-    //    {
-    //        pointDist[pointI] /= mesh.pointEdges()[pointI].size();
-    //    }
-    //    Info<< "Writing patch distance to " << pointDist.name()
-    //        << " at time " << meshRefiner_.timeName() << endl;
-    //
-    //    pointDist.write();
-    //}
 
     return tedgeDist;
 }
@@ -703,7 +836,15 @@ void Foam::autoSnapDriver::preSmoothPatch
 
     labelList checkFaces;
 
-    Info<< "Smoothing patch points ..." << endl;
+    if (snapParams.nSmoothInternal() > 0)
+    {
+        Info<< "Smoothing patch and internal points ..." << endl;
+    }
+    else
+    {
+        Info<< "Smoothing patch points ..." << endl;
+    }
+
     for
     (
         label smoothIter = 0;
@@ -718,15 +859,26 @@ void Foam::autoSnapDriver::preSmoothPatch
             checkFaces[faceI] = faceI;
         }
 
+        // If enabled smooth the internal points
+        if (snapParams.nSmoothInternal() > smoothIter)
+        {
+            // Override values on internal points on refinement interfaces
+            meshMover.pointDisplacement().internalField() =
+                smoothInternalDisplacement(meshRefiner, meshMover);
+        }
+
+        // Smooth the patch points
         pointField patchDisp(smoothPatchDisplacement(meshMover, baffles));
         //pointField patchDisp
         //(
         //  smoothLambdaMuPatchDisplacement(meshMover, baffles)
         //);
 
-        // The current mesh is the starting mesh to smooth from.
+        // Take over patch displacement as boundary condition on
+        // pointDisplacement
         meshMover.setDisplacement(patchDisp);
 
+        // Start off from current mesh.points()
         meshMover.correct();
 
         scalar oldErrorReduction = -1;
@@ -1617,6 +1769,8 @@ void Foam::autoSnapDriver::calcNearestSurface
         }
     }
 }
+
+
 Foam::vectorField Foam::autoSnapDriver::calcNearestSurface
 (
     const bool strictRegionSnap,

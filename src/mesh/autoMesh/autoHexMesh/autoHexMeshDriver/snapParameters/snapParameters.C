@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -31,6 +31,7 @@ License
 Foam::snapParameters::snapParameters(const dictionary& dict)
 :
     nSmoothPatch_(readLabel(dict.lookup("nSmoothPatch"))),
+    nSmoothInternal_(dict.lookupOrDefault("nSmoothInternal", 0)),
     snapTol_(readScalar(dict.lookup("tolerance"))),
     nSmoothDispl_(readLabel(dict.lookup("nSolveIter"))),
     nSnap_(readLabel(dict.lookup("nRelaxIter"))),

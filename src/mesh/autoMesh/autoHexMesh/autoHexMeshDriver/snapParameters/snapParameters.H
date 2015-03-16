@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,10 +44,8 @@ SourceFiles
 namespace Foam
 {
 
-// Class forward declarations
-
 /*---------------------------------------------------------------------------*\
-                           Class snapParameters Declaration
+                       Class snapParameters Declaration
 \*---------------------------------------------------------------------------*/
 
 class snapParameters
@@ -55,6 +53,8 @@ class snapParameters
     // Private data
 
         const label nSmoothPatch_;
+
+        const label nSmoothInternal_;
 
         const scalar snapTol_;
 
@@ -121,6 +121,13 @@ public:
             label nSmoothPatch() const
             {
                 return nSmoothPatch_;
+            }
+
+            //- Number of internal point smoothing iterations (combined with
+            //  nSmoothPatch
+            label nSmoothInternal() const
+            {
+                return nSmoothInternal_;
             }
 
             //- Relative distance for points to be attracted by surface
@@ -211,7 +218,6 @@ public:
 
 
                 // Face splitting
-
 
                     label nFaceSplitInterval() const
                     {

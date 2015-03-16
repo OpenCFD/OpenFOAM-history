@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -63,6 +63,7 @@ class CompositionModel
     public CloudSubModelBase<CloudType>
 {
     // Private data
+
         //- Reference to the thermo database
         const SLGThermo& thermo_;
 
@@ -106,13 +107,7 @@ public:
         CompositionModel(const CompositionModel<CloudType>& cm);
 
         //- Construct and return a clone
-        virtual autoPtr<CompositionModel<CloudType> > clone() const
-        {
-            return autoPtr<CompositionModel<CloudType> >
-            (
-                new CompositionModel<CloudType>(*this)
-            );
-        }
+        virtual autoPtr<CompositionModel<CloudType> > clone() const = 0;
 
 
     //- Destructor
@@ -166,22 +161,11 @@ public:
                 const wordList& componentNames(const label phaseI) const;
 
                 //- Return global id of component cmptName in carrier thermo
-                label globalCarrierId
+                label carrierId
                 (
                     const word& cmptName,
                     const bool allowNotFound = false
                 ) const;
-
-                //- Return global id of component cmptName in phase phaseI
-                label globalId
-                (
-                    const label phaseI,
-                    const word& cmptName,
-                    const bool allowNotFound = false
-                ) const;
-
-                //- Return global ids of for phase phaseI
-                const labelList& globalIds(const label phaseI) const;
 
                 //- Return local id of component cmptName in phase phaseI
                 label localId
@@ -191,8 +175,8 @@ public:
                     const bool allowNotFound = false
                 ) const;
 
-                //- Return global carrier id of component given local id
-                label localToGlobalCarrierId
+                //- Return carrier id of component given local id
+                label localToCarrierId
                 (
                     const label phaseI,
                     const label id,
@@ -210,40 +194,24 @@ public:
                     const scalarField& Y
                 ) const;
 
-                //- Return the list of phase phaseI volume fractions in global
-                //  phase lists
-                tmp<scalarField> globalX
-                (
-                    const label phaseI,
-                    const scalarField& localY
-                ) const;
-
-                //- Return the list of phase phaseI mass fractions in global
-                //  phase lists
-                tmp<scalarField> globalY
-                (
-                    const label phaseI,
-                    const scalarField& localY
-                ) const;
-
 
             // Mixture properties
 
                 //- Return the list of mixture mass fractions
                 //  If only 1 phase, return component fractions of that phase
-                virtual const scalarField& YMixture0() const;
+                virtual const scalarField& YMixture0() const = 0;
 
                 // Indices of gas, liquid and solid phases in phase properties
                 // list - returns -1 if not applicable
 
                     //- Gas id
-                    virtual label idGas() const;
+                    virtual label idGas() const = 0;
 
                     //- Liquid id
-                    virtual label idLiquid() const;
+                    virtual label idLiquid() const = 0;
 
                     //- Solid id
-                    virtual label idSolid() const;
+                    virtual label idSolid() const = 0;
 
 
         // Evaluation

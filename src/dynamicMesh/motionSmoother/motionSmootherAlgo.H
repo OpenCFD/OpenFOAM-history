@@ -332,13 +332,23 @@ public:
 
             const dictionary& paramDict() const;
 
+            //- Return reference to the point motion displacement field
+            pointVectorField& pointDisplacement()
+            {
+                return displacement_;
+            }
+
+            //- Return const reference to the point motion displacement field
+            const pointVectorField& pointDisplacement() const
+            {
+                return displacement_;
+            }
 
 
         // Edit
 
             //- Take over existing mesh position.
             void correct();
-
 
             //- Set patch fields on patchIDs to be consistent with
             //  all other boundary conditions

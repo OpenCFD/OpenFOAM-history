@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -63,12 +63,15 @@ Foam::tmp<Foam::volScalarField> Foam::liftModels::TomiyamaLift::Cl() const
 {
     volScalarField EoH(pair_.EoH2());
 
-    volScalarField f(0.00105*pow3(EoH) - 0.0159*sqr(EoH) - 0.0204*EoH + 0.474);
+    volScalarField f
+    (
+        0.0010422*pow3(EoH) - 0.0159*sqr(EoH) - 0.0204*EoH + 0.474
+    );
 
     return
         neg(EoH - scalar(4))*min(0.288*tanh(0.121*pair_.Re()), f)
-      + pos(EoH - scalar(4))*neg(EoH - scalar(10))*f
-      + pos(EoH - scalar(10))*(-0.29);
+      + pos(EoH - scalar(4))*neg(EoH - scalar(10.7))*f
+      + pos(EoH - scalar(10.7))*(-0.288);
 }
 
 

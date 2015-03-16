@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -107,7 +107,7 @@ Foam::tmp<Foam::pointField> Foam::mappedPatchBase::facePoints
         (
             mesh,
             pp.start()+faceI,
-            polyMesh::FACEDIAGTETS
+            polyMesh::FACE_DIAG_TRIS
         ).rawPoint();
     }
 
@@ -837,25 +837,27 @@ void Foam::mappedPatchBase::calcAMI() const
 
     AMIPtr_.clear();
 
+
+    const polyPatch& nbr = samplePolyPatch();
+
+    // Transform neighbour patch to local system
+    pointField nbrPoints(samplePoints(nbr.localPoints()));
+
+    primitivePatch nbrPatch0
+    (
+        SubList<face>
+        (
+            nbr.localFaces(),
+            nbr.size()
+        ),
+        nbrPoints
+    );
+
+
     if (debug)
     {
-        const polyPatch& nbr = samplePolyPatch();
-
-        pointField nbrPoints(nbr.localPoints());
-
         OFstream os(patch_.name() + "_neighbourPatch-org.obj");
         meshTools::writeOBJ(os, samplePolyPatch().localFaces(), nbrPoints);
-
-        // transform neighbour patch to local system
-        primitivePatch nbrPatch0
-        (
-            SubList<face>
-            (
-                nbr.localFaces(),
-                nbr.size()
-            ),
-            nbrPoints
-        );
 
         OFstream osN(patch_.name() + "_neighbourPatch-trans.obj");
         meshTools::writeOBJ(osN, nbrPatch0, nbrPoints);
@@ -870,7 +872,7 @@ void Foam::mappedPatchBase::calcAMI() const
         new AMIPatchToPatchInterpolation
         (
             patch_,
-            samplePolyPatch(), // nbrPatch0,
+            nbrPatch0,
             surfPtr(),
             faceAreaIntersect::tmMesh,
             true,
@@ -1349,15 +1351,15 @@ Foam::pointIndexHit Foam::mappedPatchBase::facePoint
 (
     const polyMesh& mesh,
     const label faceI,
-    const polyMesh::cellRepresentation decompMode
+    const polyMesh::cellDecomposition decompMode
 )
 {
     const point& fc = mesh.faceCentres()[faceI];
 
     switch (decompMode)
     {
-        case polyMesh::FACEPLANES:
-        case polyMesh::FACECENTRETETS:
+        case polyMesh::FACE_PLANES:
+        case polyMesh::FACE_CENTRE_TRIS:
         {
             // For both decompositions the face centre is guaranteed to be
             // on the face
@@ -1365,10 +1367,10 @@ Foam::pointIndexHit Foam::mappedPatchBase::facePoint
         }
         break;
 
-        case polyMesh::FACEDIAGTETS:
+        case polyMesh::FACE_DIAG_TRIS:
+        case polyMesh::CELL_TETS:
         {
-            // Find the intersection of a ray from face centre to cell
-            // centre
+            // Find the intersection of a ray from face centre to cell centre
             // Find intersection of (face-centre-decomposition) centre to
             // cell-centre with face-diagonal-decomposition triangles.
 

@@ -3,7 +3,7 @@
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
     \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
-     \\/     M anispulation  |
+     \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
@@ -870,6 +870,23 @@ int main(int argc, char *argv[])
     PtrList<surfaceTensorField> stFlds;
     ReadFields(mesh, objects, stFlds);
 
+    // Read point fields.
+
+    PtrList<pointScalarField> psFlds;
+    ReadFields(pointMesh::New(mesh), objects, psFlds);
+
+    PtrList<pointVectorField> pvFlds;
+    ReadFields(pointMesh::New(mesh), objects, pvFlds);
+
+    PtrList<pointSphericalTensorField> pstFlds;
+    ReadFields(pointMesh::New(mesh), objects, pstFlds);
+
+    PtrList<pointSymmTensorField> psymtFlds;
+    ReadFields(pointMesh::New(mesh), objects, psymtFlds);
+
+    PtrList<pointTensorField> ptFlds;
+    ReadFields(pointMesh::New(mesh), objects, ptFlds);
+
     // Read sets
     PtrList<cellSet> cellSets;
     PtrList<faceSet> faceSets;
@@ -1279,41 +1296,79 @@ int main(int argc, char *argv[])
     Info<< "Writing mesh to " << mesh.facesInstance() << endl;
 
     mesh.write();
-    if
-    (
-        cellProcAddressing.headerOk()
-     && cellProcAddressing.size() == mesh.nCells()
-    )
+    if (cellProcAddressing.headerOk())
     {
         cellProcAddressing.instance() = mesh.facesInstance();
-        cellProcAddressing.write();
+        if (cellProcAddressing.size() == mesh.nCells())
+        {
+            cellProcAddressing.write();
+        }
+        else
+        {
+            // procAddressing no longer valid. Delete it.
+            const fileName fName(cellProcAddressing.filePath());
+            if (fName.size())
+            {
+                Info<< "Deleting inconsistent processor cell decomposition"
+                    << " map " << fName << endl;
+                rm(fName);
+            }
+        }
     }
-    if
-    (
-        faceProcAddressing.headerOk()
-     && faceProcAddressing.size() == mesh.nFaces()
-    )
+    if (faceProcAddressing.headerOk())
     {
         faceProcAddressing.instance() = mesh.facesInstance();
-        faceProcAddressing.write();
+        if (faceProcAddressing.size() == mesh.nFaces())
+        {
+            faceProcAddressing.write();
+        }
+        else
+        {
+            const fileName fName(faceProcAddressing.filePath());
+            if (fName.size())
+            {
+                Info<< "Deleting inconsistent processor face decomposition"
+                    << " map " << fName << endl;
+                rm(fName);
+            }
+        }
     }
-    if
-    (
-        pointProcAddressing.headerOk()
-     && pointProcAddressing.size() == mesh.nPoints()
-    )
+
+    if (pointProcAddressing.headerOk())
     {
         pointProcAddressing.instance() = mesh.facesInstance();
-        pointProcAddressing.write();
+        if (pointProcAddressing.size() == mesh.nPoints())
+        {
+            pointProcAddressing.write();
+        }
+        else
+        {
+            const fileName fName(pointProcAddressing.filePath());
+            if (fName.size())
+            {
+                Info<< "Deleting inconsistent processor point decomposition"
+                    << " map " << fName << endl;
+                rm(fName);
+            }
+        }
     }
-    if
-    (
-        boundaryProcAddressing.headerOk()
-     && boundaryProcAddressing.size() == mesh.boundaryMesh().size()
-    )
+    if (boundaryProcAddressing.headerOk())
     {
         boundaryProcAddressing.instance() = mesh.facesInstance();
-        boundaryProcAddressing.write();
+        if (boundaryProcAddressing.size() == mesh.boundaryMesh().size())
+        {
+            boundaryProcAddressing.write();
+        }
+        else
+        {
+            const fileName fName(boundaryProcAddressing.filePath());
+            if (fName.size())
+            {
+                Info<< "Deleting inconsistent processor patch decomposition"
+                    << " map " << fName << endl;
+                rm(fName);
+            }
+        }
     }
 
     if (writeMaps)

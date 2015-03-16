@@ -80,6 +80,17 @@ Foam::LESModel<BasicTurbulenceModel>::LESModel
         )
     ),
 
+    omegaMin_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "omegaMin",
+            LESDict_,
+            SMALL,
+            sqr(dimVelocity)
+        )
+    ),
+
     delta_
     (
         LESdelta::New

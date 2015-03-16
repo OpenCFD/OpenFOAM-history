@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014  OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014-2015  OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -113,6 +113,19 @@ inline Foam::scalar Foam::PengRobinsonGas<Specie>::rho
 {
     scalar z = Z(p, T);
     return p/(z*this->R()*T);
+}
+
+
+template<class Specie>
+inline Foam::scalar Foam::PengRobinsonGas<Specie>::s
+(
+    scalar p,
+    scalar T
+) const
+{
+    //***HGW This is the expression for a perfect gas
+    // Need to add the entropy defect for Peng-Robinson
+    return -RR*log(p/Pstd);
 }
 
 
