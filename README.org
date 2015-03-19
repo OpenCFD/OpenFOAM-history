@@ -1,11 +1,27 @@
 #                            -*- mode: org; -*-
 #
-#+TITLE:                README for OpenFOAM-dev
-#+AUTHOR:               The OpenFOAM Foundation
-#+DATE:                     9th March 2015
+#+TITLE:                README for OpenFOAM-history
+#+AUTHOR:                      OpenCFD Ltd.
+#+DATE:                      19th March 2015
 #+LINK:                  http://www.openfoam.org
-#+OPTIONS: author:nil ^:{}
-# Copyright (c) 2015 OpenFOAM Foundation.
+#+OPTIONS: author:nil ^:{} toc:nil
+Copyright (c) 2015 OpenFOAM Foundation.
+
+Copyright (c) 2015 OpenCFD Ltd. (See Changes)
+
+* Announcement
+  ESI/OpenCFD is pleased to announce the transfer of code and copyright to
+  the OpenFOAM Foundation of all developments since the last major release
+  (version 2.3).
+
+* About this version
+  The OpenFOAM-history repository is a frozen version, and not under active
+  development.  It is not the official version of OpenFOAM (see
+  [[http://www.OpenFOAM.org][OpenFOAM Foundation]] for information relating to
+  official releases).
+  It consolidates a history of contributions by
+  [[http://www.OpenFOAM.com][OpenCFD]], sponsors and partners,
+  committed to releasing code openly under the terms of the GPL.
 
 * About OpenFOAM
   OpenFOAM is a free, open source computational fluid dynamics (CFD) software
@@ -28,3 +44,13 @@
 * [[http://OpenFOAM.github.io/Documentation-dev/html][Source code documentation]]
 * [[http://www.OpenFOAM.org/bugs][Reporting bugs in OpenFOAM]]
 * [[http://www.openfoam.org/contact][Contacting the OpenFOAM Foundation]]
+
+OpenFOAM is a registered trademark of ESI/OpenCFD.
+
+* Changes
+  - OpenCFD 19/03/2015: Title: Updated version to OpenFOAM-history
+  - OpenCFD 19/03/2015: Author: OpenFOAM Foundation to OpenCFD Ltd.
+  - OpenCFD 19/03/2015: Date: date of changes
+  - OpenCFD 19/03/2015: Added 'Announcement' paragraph
+  - OpenCFD 19/03/2015: Added 'About this version' paragraph
+  - OpenCFD 19/03/2015: Added trademark information
