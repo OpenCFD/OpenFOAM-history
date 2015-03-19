@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -166,7 +166,7 @@ void kOmegaSSTDES<BasicTurbulenceModel>::correct()
     volScalarField& omega = this->omega_;
     volScalarField& nut = this->nut_;
 
-    kOmegaSSTBase<DESModel<BasicTurbulenceModel> >::correct();
+    DESModel<BasicTurbulenceModel>::correct();
 
     volScalarField divU(fvc::div(fvc::absolute(this->phi(), U)));
 
