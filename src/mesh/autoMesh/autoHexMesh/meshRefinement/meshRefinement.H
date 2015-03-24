@@ -916,7 +916,9 @@ public:
                 const dictionary& motionDict,
                 Time& runTime,
                 const labelList& globalToMasterPatch,
-                const labelList& globalToSlavePatch
+                const labelList& globalToSlavePatch,
+                const pointField& locationsInMesh,
+                const pointField& locationsOutsideMesh
             );
 
             //- Split off (with optional buffer layers) unreachable areas
