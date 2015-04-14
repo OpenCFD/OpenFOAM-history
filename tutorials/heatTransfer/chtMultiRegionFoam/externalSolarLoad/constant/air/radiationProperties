@@ -56,9 +56,9 @@ solarLoadCoeffs
 
     // Fair Weather Conditions Model Constants.
     // Calculate beta from the Solar calculator or input
-    A       40; //1229      // Apparent solar irradiation at air mass m = 0
+    A       300;        // Apparent solar irradiation at air mass m = 0
     B       0.142;      // Atmospheric extinction coefficient
-    //beta    45;     // Solar altitude (in degrees) above the horizontal
+    //beta    45;       // Solar altitude (in degrees) above the horizontal
 
     // Theoretical maximum model constants
     Setrn       10;
