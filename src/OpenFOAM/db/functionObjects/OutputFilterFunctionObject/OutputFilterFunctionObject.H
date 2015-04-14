@@ -35,9 +35,13 @@ Note
     execution \a interval would still be in timestep.
 
     The function object can be limited to operate within a time range using
-    the timeStart and timEnd options.  All objects are read (and optionally
-    allocated) on construction.  However, if a timeEnd is supplied, the
-    object will call the 'end' function at the timeEnd time and deactivate.
+    the timeStart and timEnd options.  All objects are read (and the
+    OutputFilter allocated) on construction.  However, if a timeEnd is
+    supplied, the object will call the 'end' function of the filter
+    at the timeEnd time and destroy the filter.
+    Any other callback (execute(), write(), timeSet() etc) will only operate
+    if within the timeStart, timeEnd time range. Note that the time range
+    uses 0.5 * deltaT as a comparison tolerance to account for precision errors.
 
 SourceFiles
     OutputFilterFunctionObject.C

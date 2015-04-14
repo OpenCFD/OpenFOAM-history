@@ -47,10 +47,14 @@ void Foam::OutputFilterFunctionObject<OutputFilter>::readDict()
 template<class OutputFilter>
 bool Foam::OutputFilterFunctionObject<OutputFilter>::active() const
 {
+    // The logic here mimics that of Time itself and uses 0.5*deltaT
+    // as the tolerance to account for numerical precision errors
+    // (see e.g. Time::run()) since the current time might be e.g.
+    // 0.3000000000001 instead of exactly 0.3.
     return
         enabled_
-     && time_.value() >= timeStart_
-     && time_.value() <= timeEnd_;
+     && time_.value() >= (timeStart_ - 0.5*time_.deltaTValue())
+     && time_.value() <= (timeEnd_ + 0.5*time_.deltaTValue());
 }
 
 
@@ -203,7 +207,10 @@ bool Foam::OutputFilterFunctionObject<OutputFilter>::end()
 
         ptr_->end();
 
-        if (outputControl_.output())
+        // Only write if
+        // - time within timeStart_ and timeEnd_
+        // - it is an output time
+        if (active() && outputControl_.output())
         {
             ptr_->write();
         }
@@ -242,6 +249,9 @@ bool Foam::OutputFilterFunctionObject<OutputFilter>::adjustTimeStep()
     {
         const label  outputTimeIndex = outputControl_.outputTimeLastDump();
         const scalar writeInterval = outputControl_.writeInterval();
+
+        // Logic mimics that of Time::adjustDeltaT() except we only allow
+        // making the time step lower.
 
         scalar timeToNextWrite = max
         (

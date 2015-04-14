@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -1281,7 +1281,9 @@ void Foam::autoRefineDriver::baffleAndSplitMesh
             motionDict,
             const_cast<Time&>(mesh.time()),
             globalToMasterPatch_,
-            globalToSlavePatch_
+            globalToSlavePatch_,
+            refineParams.locationsInMesh(),
+            refineParams.locationsOutsideMesh()
         );
     }
 }
@@ -1403,7 +1405,9 @@ void Foam::autoRefineDriver::splitAndMergeBaffles
         motionDict,
         const_cast<Time&>(mesh.time()),
         globalToMasterPatch_,
-        globalToSlavePatch_
+        globalToSlavePatch_,
+        refineParams.locationsInMesh(),
+        refineParams.locationsOutsideMesh()
     );
 
     if (debug)

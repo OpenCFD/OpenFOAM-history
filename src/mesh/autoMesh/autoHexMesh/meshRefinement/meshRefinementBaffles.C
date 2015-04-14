@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -3228,7 +3228,9 @@ void Foam::meshRefinement::mergeFreeStandingBaffles
     const dictionary& motionDict,
     Time& runTime,
     const labelList& globalToMasterPatch,
-    const labelList& globalToSlavePatch
+    const labelList& globalToSlavePatch,
+    const pointField& locationsInMesh,
+    const pointField& locationsOutsideMesh
 )
 {
     // Merge baffles
@@ -3275,6 +3277,28 @@ void Foam::meshRefinement::mergeFreeStandingBaffles
             globalToMasterPatch,
             globalToSlavePatch
         );
+
+        // Very occasionally removing a problem cell might create a disconnected
+        // region so re-check
+
+        Info<< nl
+            << "Remove unreachable sections of mesh" << nl
+            << "-----------------------------------" << nl
+            << endl;
+
+        if (debug)
+        {
+            runTime++;
+        }
+
+        splitMeshRegions
+        (
+            globalToMasterPatch,
+            globalToSlavePatch,
+            locationsInMesh,
+            locationsOutsideMesh
+        );
+
 
         if (debug)
         {
