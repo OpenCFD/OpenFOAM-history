@@ -32,15 +32,28 @@ Description
 #include "solidChemistryModel.H"
 #include "addToRunTimeSelectionTable.H"
 
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define makeSolidChemistryModel(sChemistry, SS, Comp, SThermo, GThermo)       \
+#define makeSolidChemistryModel(cModel, sChemistry, SS, Comp, SThermo, GThermo)       \
+                                                                              \
+    typedef Foam::cModel<Foam::Comp, Foam::SThermo>                           \
+        cModel##Comp##SThermo;                                                \
+                                                                              \
+    defineTemplateTypeNameAndDebugWithName                                    \
+    (                                                                         \
+        cModel##Comp##SThermo,                                                \
+        (Foam::word(cModel##Comp##SThermo::typeName_()) + "<"#Comp","         \
+        + SThermo::typeName() + ">").c_str(),                                 \
+        0                                                                     \
+    );                                                                        \
                                                                               \
     typedef Foam::SS<Foam::Comp, Foam::SThermo, Foam::GThermo>                \
         SS##Comp##SThermo##GThermo;                                           \
                                                                               \
     typedef Foam::sChemistry<Foam::Comp, Foam::SThermo>                       \
         sChemistryl##Comp##SThermo;                                           \
+                                                                              \
                                                                               \
     defineTemplateTypeNameAndDebugWithName                                    \
     (                                                                         \

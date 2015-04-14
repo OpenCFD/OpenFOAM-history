@@ -52,7 +52,8 @@ void noPyrolysis::constructThermoChemistry()
         basicSolidChemistryModel::New(regionMesh()).ptr()
     );
 
-    solidThermo_.reset(&solidChemistry_->solidThermo());
+    //solidThermo_.reset(&solidChemistry_->solidThermo());
+    solidThermo_.reset(&solidChemistry_->thermo());
     radiation_.reset(radiation::radiationModel::New(solidThermo_->T()).ptr());
 }
 
