@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -288,7 +288,7 @@ void reactingOneDim::solveSpeciesMass()
         (
             fvm::ddt(rho_, Yi)
          ==
-            solidChemistry_->RRs(i)
+            solidChemistry_->RR(i)
         );
 
         if (regionMesh().moving())
@@ -375,7 +375,7 @@ void reactingOneDim::calculateMassTransfer()
         addedGasMass_ +=
             fvc::domainIntegrate(solidChemistry_->RRg())*time_.deltaT();
         lostSolidMass_ +=
-            fvc::domainIntegrate(solidChemistry_->RRs())*time_.deltaT();
+            fvc::domainIntegrate(solidChemistry_->RRt())*time_.deltaT();
     }
 }
 
@@ -391,7 +391,7 @@ reactingOneDim::reactingOneDim
 :
     pyrolysisModel(modelType, mesh, regionType),
     solidChemistry_(basicSolidChemistryModel::New(regionMesh())),
-    solidThermo_(solidChemistry_->solidThermo()),
+    solidThermo_(solidChemistry_->thermo()),
     radiation_(radiation::radiationModel::New(solidThermo_.T())),
     rho_
     (
@@ -464,8 +464,6 @@ reactingOneDim::reactingOneDim
             IOobject::AUTO_WRITE
         ),
         regionMesh()
-        //dimensionedScalar("zero", dimEnergy/dimArea/dimTime, 0.0),
-        //zeroGradientFvPatchVectorField::typeName
     ),
 
     lostSolidMass_(dimensionedScalar("zero", dimMass, 0.0)),
@@ -493,7 +491,7 @@ reactingOneDim::reactingOneDim
 :
     pyrolysisModel(modelType, mesh, dict, regionType),
     solidChemistry_(basicSolidChemistryModel::New(regionMesh())),
-    solidThermo_(solidChemistry_->solidThermo()),
+    solidThermo_(solidChemistry_->thermo()),
     radiation_(radiation::radiationModel::New(solidThermo_.T())),
     rho_
     (

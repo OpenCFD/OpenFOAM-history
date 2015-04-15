@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -206,9 +206,17 @@ humidityTemperatureCoupledMixedFvPatchScalarField
             (
                 liquidProperties::New(liquidDict_.subDict(specieName_)).ptr()
             );
-            if (dict.found("mass"))
+            if (dict.found("thickness"))
             {
-                mass_ = scalarField("mass", dict, p.size());
+                scalarField& Tp = *this;
+                const scalarField magSf = patch().magSf();
+                // Assume initially standard pressure for rho calculation
+                scalar pf = 1e5;
+                thickness_ = scalarField("thickness", dict, p.size());
+                forAll (thickness_, i)
+                {
+                    mass_[i] = thickness_[i]*liquid_->rho(pf, Tp[i])*magSf[i];
+                }
             }
             fluid_ = true;
         }
@@ -616,7 +624,6 @@ void humidityTemperatureCoupledMixedFvPatchScalarField::updateCoeffs()
                 }
                 else if (Tf > Tdew && Tf < Tvap_ && mass_[faceI] > 0.0)
                 {
-                    //Debug("inert");
                     htc[faceI] =
                         this->htcCondensation(TSat, Re)*nbrK[faceI]/L_;
                 }

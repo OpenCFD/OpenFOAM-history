@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,17 +40,17 @@ pyrolysisChemistryModel
     pyrolisisGases_(this->reactions_[0].gasSpecies()),
     gasThermo_(pyrolisisGases_.size()),
     nGases_(pyrolisisGases_.size()),
-    nComponents_(this->Ys_.size() + nGases_),
+    nComponents_(this->Y_.size() + nGases_),
     RRg_(nGases_),
-    Ys0_(this->nSolids_),
+    Ys0_(this->nSpecie_),
     cellCounter_(0)
 {
     // create the fields for the chemistry sources
-    forAll(this->RRs_, fieldI)
+    forAll(this->RR_, fieldI)
     {
         IOobject header
         (
-            this->Ys_[fieldI].name() + "0",
+            this->Y_[fieldI].name() + "0",
             mesh.time().timeName(),
             mesh,
             IOobject::NO_READ
@@ -66,7 +66,7 @@ pyrolysisChemistryModel
                 (
                     IOobject
                     (
-                        this->Ys_[fieldI].name() + "0",
+                        this->Y_[fieldI].name() + "0",
                         mesh.time().timeName(),
                         mesh,
                         IOobject::MUST_READ,
@@ -98,7 +98,7 @@ pyrolysisChemistryModel
                 (
                     IOobject
                     (
-                        this->Ys_[fieldI].name() + "0",
+                        this->Y_[fieldI].name() + "0",
                         mesh.time().timeName(),
                         mesh,
                         IOobject::NO_READ,
@@ -110,8 +110,8 @@ pyrolysisChemistryModel
 
             // Calculate inital values of Ysi0 = rho*delta*Yi
             Ys0_[fieldI].internalField() =
-                this->solidThermo().rho()
-               *max(this->Ys_[fieldI], scalar(0.001))*mesh.V();
+                this->thermo().rho()
+               *max(this->Y_[fieldI], scalar(0.001))*mesh.V();
         }
     }
 
@@ -152,7 +152,7 @@ pyrolysisChemistryModel
     }
 
     Info<< "pyrolysisChemistryModel: " << nl;
-    Info<< indent << "Number of solids = " << this->nSolids_ << nl;
+    Info<< indent << "Number of solids = " << this->nSpecie_ << nl;
     Info<< indent << "Number of gases = " << nGases_ << nl;
     forAll(this->reactions_, i)
     {
@@ -204,13 +204,14 @@ pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::omega
         {
             label si = R.lhs()[s].index;
             om[si] -= omegai;
-            rhoL = this->solidThermo_[si].rho(p, T);
+            //rhoL = this->solidThermo_[si].rho(p, T);
+            rhoL = this->specieThermo_[si].rho(p, T);
         }
         scalar sr = 0.0;
         forAll(R.rhs(), s)
         {
             label si = R.rhs()[s].index;
-            scalar rhoR = this->solidThermo_[si].rho(p, T);
+            scalar rhoR = this->specieThermo_[si].rho(p, T);
             sr = rhoR/rhoL;
             om[si] += sr*omegai;
 
@@ -222,7 +223,7 @@ pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::omega
         forAll(R.grhs(), g)
         {
             label gi = R.grhs()[g].index;
-            om[gi + this->nSolids_] += (1.0 - sr)*omegai;
+            om[gi + this->nSpecie_] += (1.0 - sr)*omegai;
         }
     }
 
@@ -314,19 +315,19 @@ derivatives
 
     //Total mass concentration
     scalar cTot = 0.0;
-    for (label i=0; i<this->nSolids_; i++)
+    for (label i=0; i<this->nSpecie_; i++)
     {
         cTot += c[i];
     }
 
     scalar newCp = 0.0;
     scalar newhi = 0.0;
-    for (label i=0; i<this->nSolids_; i++)
+   for (label i=0; i<this->nSpecie_; i++)
     {
         scalar dYidt = dcdt[i]/cTot;
         scalar Yi = c[i]/cTot;
-        newCp += Yi*this->solidThermo_[i].Cp(p, T);
-        newhi -= dYidt*this->solidThermo_[i].Hc();
+        newCp += Yi*this->specieThermo_[i].Cp(p, T);
+        newhi -= dYidt*this->specieThermo_[i].Hc();
     }
 
     scalar dTdt = newhi/newCp;
@@ -353,7 +354,7 @@ jacobian
 
     scalarField c2(nComponents_, 0.0);
 
-    for (label i=0; i<this->nSolids_; i++)
+    for (label i=0; i<this->nSpecie_; i++)
     {
         c2[i] = max(c[i], 0.0);
     }
@@ -464,12 +465,12 @@ calculate()
             IOobject::NO_WRITE,
             false
         ),
-        this->solidThermo().rho()
+        this->thermo().rho()
     );
 
-    forAll(this->RRs_, i)
+    forAll(this->RR_, i)
     {
-        this->RRs_[i].field() = 0.0;
+        this->RR_[i].field() = 0.0;
     }
 
     forAll(RRg_, i)
@@ -486,25 +487,26 @@ calculate()
         if (this->reactingCells_[celli])
         {
             scalar rhoi = rho[celli];
-            scalar Ti = this->solidThermo().T()[celli];
-            scalar pi = this->solidThermo().p()[celli];
+            scalar Ti = this->thermo().T()[celli];
+            scalar pi = this->thermo().p()[celli];
 
             scalarField c(nComponents_, 0.0);
-            for (label i=0; i<this->nSolids_; i++)
+
+            for (label i=0; i<this->nSpecie_; i++)
             {
-                c[i] = rhoi*this->Ys_[i][celli]*delta;
+                c[i] = rhoi*this->Y_[i][celli]*delta;
             }
 
             const scalarField dcdt = omega(c, Ti, pi, true);
 
-            forAll(this->RRs_, i)
+            forAll(this->RR_, i)
             {
-                this->RRs_[i][celli] = dcdt[i]/delta;
+                this->RR_[i][celli] = dcdt[i]/delta;
             }
 
             forAll(RRg_, i)
             {
-                RRg_[i][celli] = dcdt[this->nSolids_ + i]/delta;
+                RRg_[i][celli] = dcdt[this->nSpecie_ + i]/delta;
             }
         }
     }
@@ -536,20 +538,20 @@ Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::solve
             IOobject::NO_WRITE,
             false
         ),
-        this->solidThermo().rho()
+        this->thermo().rho()
     );
 
-    forAll(this->RRs_, i)
+    forAll(this->RR_, i)
     {
-        this->RRs_[i].field() = 0.0;
+        this->RR_[i].field() = 0.0;
     }
     forAll(RRg_, i)
     {
         RRg_[i].field() = 0.0;
     }
 
-    const scalarField& T = this->solidThermo().T();
-    const scalarField& p = this->solidThermo().p();
+    const scalarField& T = this->thermo().T();
+    const scalarField& p = this->thermo().p();
 
     scalarField c(nComponents_, 0.0);
     scalarField c0(nComponents_, 0.0);
@@ -566,9 +568,10 @@ Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::solve
             scalar pi = p[celli];
             scalar Ti = T[celli];
 
-            for (label i=0; i<this->nSolids_; i++)
+            //for (label i=0; i<this->nSolids_; i++)
+            for (label i=0; i<this->nSpecie_; i++)
             {
-                c[i] = rhoi*this->Ys_[i][celli]*delta[celli];
+                c[i] = rhoi*this->Y_[i][celli]*delta[celli];
             }
 
             c0 = c;
@@ -587,14 +590,14 @@ Foam::pyrolysisChemistryModel<CompType, SolidThermo, GasThermo>::solve
             deltaTMin = min(this->deltaTChem_[celli], deltaTMin);
             dc = c - c0;
 
-            forAll(this->RRs_, i)
+            forAll(this->RR_, i)
             {
-                this->RRs_[i][celli] = dc[i]/(deltaT*delta[celli]);
+                this->RR_[i][celli] = dc[i]/(deltaT*delta[celli]);
             }
 
             forAll(RRg_, i)
             {
-                RRg_[i][celli] = dc[this->nSolids_ + i]/(deltaT*delta[celli]);
+                RRg_[i][celli] = dc[this->nSpecie_ + i]/(deltaT*delta[celli]);
             }
 
             // Update Ys0_
