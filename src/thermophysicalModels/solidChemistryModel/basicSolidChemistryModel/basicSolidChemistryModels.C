@@ -33,6 +33,7 @@ Description
 #include "makeSolidChemistryModel.H"
 
 #include "pyrolysisChemistryModel.H"
+#include "chemistryModel.H"
 #include "basicSolidChemistryModel.H"
 #include "solidChemistryModel.H"
 #include "solidThermoPhysicsTypes.H"
@@ -42,6 +43,7 @@ Description
 
 makeSolidChemistryModel
 (
+    chemistryModel,
     solidChemistryModel,
     pyrolysisChemistryModel,
     basicSolidChemistryModel,
@@ -51,6 +53,7 @@ makeSolidChemistryModel
 
 makeSolidChemistryModel
 (
+    chemistryModel,
     solidChemistryModel,
     pyrolysisChemistryModel,
     basicSolidChemistryModel,
@@ -60,6 +63,7 @@ makeSolidChemistryModel
 
 makeSolidChemistryModel
 (
+    chemistryModel,
     solidChemistryModel,
     pyrolysisChemistryModel,
     basicSolidChemistryModel,

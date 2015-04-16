@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,35 +28,8 @@ License
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class CompType, class SolidThermo>
-inline Foam::PtrList<Foam::DimensionedField<Foam::scalar, Foam::volMesh> >&
-Foam::solidChemistryModel<CompType, SolidThermo>::RRs()
-{
-    return RRs_;
-}
-
-
-template<class CompType, class SolidThermo>
-inline const Foam::PtrList<Foam::Reaction<SolidThermo> >&
-Foam::solidChemistryModel<CompType, SolidThermo>::reactions() const
-{
-    return reactions_;
-}
-
-
-template<class CompType, class SolidThermo>
-inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
-Foam::solidChemistryModel<CompType, SolidThermo>::RRs
-(
-    const label i
-) const
-{
-    return RRs_[i];
-}
-
-
-template<class CompType, class SolidThermo>
 inline Foam::tmp<Foam::DimensionedField<Foam::scalar, Foam::volMesh> >
-Foam::solidChemistryModel<CompType, SolidThermo>::RRs() const
+Foam::solidChemistryModel<CompType, SolidThermo>::RRt() const
 {
     tmp<DimensionedField<scalar, volMesh> > tRRs
     (
@@ -78,9 +51,9 @@ Foam::solidChemistryModel<CompType, SolidThermo>::RRs() const
     if (this->chemistry_)
     {
         DimensionedField<scalar, volMesh>& RRs = tRRs();
-        for (label i=0; i < nSolids_; i++)
+        for (label i=0; i < this->nSpecie_; i++)
         {
-            RRs += RRs_[i];
+            RRs += this->RR_[i];
         }
     }
     return tRRs;

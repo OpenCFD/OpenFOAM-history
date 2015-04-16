@@ -114,22 +114,19 @@ public:
     // Member Functions
 
         //- Return access to the solid thermo package
-        inline solidReactionThermo& solidThermo();
+        //inline solidReactionThermo& solidThermo();
+        inline solidReactionThermo& thermo();
 
         //- Return const access to the solid thermo package
-        inline const solidReactionThermo& solidThermo() const;
+        //inline const solidReactionThermo& solidThermo() const;
+        inline const solidReactionThermo& thermo() const;
 
         //- Return total gases mass source term [kg/m3/s]
         virtual tmp<DimensionedField<scalar, volMesh> > RRg() const = 0;
 
         //- Return total solids mass source term [kg/m3/s]
-        virtual tmp<DimensionedField<scalar, volMesh> > RRs() const = 0;
-
-        //- Return chemical source terms for solids [kg/m3/s]
-        virtual const DimensionedField<scalar, volMesh>& RRs
-        (
-            const label i
-        ) const = 0;
+        //virtual tmp<DimensionedField<scalar, volMesh> > RRs() const = 0;
+        virtual tmp<DimensionedField<scalar, volMesh> > RRt() const = 0;
 
         //- Return chemical source terms for gases [kg/m3/s]
         virtual const DimensionedField<scalar, volMesh>& RRg
@@ -169,6 +166,7 @@ public:
 
         //- Return non-const access to the total source terms
         virtual DimensionedField<scalar, volMesh>& RR(const label i);
+
 };
 
 
