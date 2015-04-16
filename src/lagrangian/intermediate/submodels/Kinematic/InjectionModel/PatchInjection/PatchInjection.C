@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -124,6 +124,15 @@ Foam::label Foam::PatchInjection<CloudType>::parcelsToInject
 
         cachedRandom& rnd = this->owner().rndGen();
 
+        scalar rndPos = 0;
+
+        if (Pstream::master())
+        {
+            rndPos = rnd.position(scalar(0), scalar(1));
+        }
+
+        Pstream::scatter(rndPos);
+
         label nParcelsToInject = floor(nParcels);
 
         // Inject an additional parcel with a probability based on the
@@ -131,13 +140,10 @@ Foam::label Foam::PatchInjection<CloudType>::parcelsToInject
         if
         (
             nParcelsToInject > 0
-         && (
-               nParcels - scalar(nParcelsToInject)
-             > rnd.position(scalar(0), scalar(1))
-            )
+         && (nParcels - scalar(nParcelsToInject) > rndPos)
         )
         {
-            ++nParcelsToInject;
+            nParcelsToInject++;
         }
 
         return nParcelsToInject;
