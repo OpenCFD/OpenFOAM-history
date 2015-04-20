@@ -182,6 +182,8 @@ humidityTemperatureCoupledMixedFvPatchScalarField
             << exit(FatalError);
     }
 
+    fvPatchScalarField::operator=(scalarField("value", dict, p.size()));
+
     if (dict.found("mode"))
     {
         mode_ = MassModeTypeNames_.read(dict.lookup("mode"));
@@ -241,7 +243,7 @@ humidityTemperatureCoupledMixedFvPatchScalarField
         }
     }
 
-    fvPatchScalarField::operator=(scalarField("value", dict, p.size()));
+
 
     if (dict.found("refValue"))
     {
@@ -768,10 +770,11 @@ void humidityTemperatureCoupledMixedFvPatchScalarField::write
         if (mode_ == mConstantMass)
         {
             cp_.writeEntry("cp", os);
-            thickness_.writeEntry("thickness", os);
+//             thickness_.writeEntry("thickness", os);
             rho_.writeEntry("rho", os);
         }
 
+        thickness_.writeEntry("thickness", os);
         word liq = "liquid";
         os << token::TAB << token::TAB << liq;
         liquidDict_.write(os);
