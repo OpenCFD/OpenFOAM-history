@@ -166,7 +166,7 @@ void kOmegaSSTDES<BasicTurbulenceModel>::correct()
     volScalarField& omega = this->omega_;
     volScalarField& nut = this->nut_;
 
-    kOmegaSSTBase<DESModel<BasicTurbulenceModel> >::correct();
+    DESModel<BasicTurbulenceModel>::correct();
 
     volScalarField divU(fvc::div(fvc::absolute(this->phi(), U)));
 
