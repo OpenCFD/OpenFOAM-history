@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -48,7 +48,8 @@ namespace Foam
 class IOobjectList;
 
 
-//- Get names of fields of type in parallel consistent order
+//- Get sorted names of fields of type. If syncPar and running in parallel
+//  check for identical names
 wordList fieldNames(const IOobjectList& objects, const bool syncPar);
 
 //- Helper routine to read Geometric fields

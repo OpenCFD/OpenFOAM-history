@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,10 @@ Foam::wordList Foam::fieldNames
     const bool syncPar
 )
 {
-    wordList masterNames(fieldObjects.names());
+    // Get sorted field names. Sorting needed in parallel since different
+    // processors (using different file servers) might pick up the files
+    // in different order.
+    wordList masterNames(fieldObjects.sortedNames());
 
     if (syncPar && Pstream::parRun())
     {
