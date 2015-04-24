@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,17 +49,18 @@ void Foam::readFields
         fieldObjects.erase(celDistIter);
     }
 
-    // Construct the fields
-    fields.setSize(fieldObjects.size());
+    // Get sorted set of names (different processors might read objects in
+    // different order)
+    const wordList masterNames(fieldObjects.sortedNames());
 
-    label fieldI = 0;
-    forAllIter(IOobjectList, fieldObjects, iter)
+    // Construct the fields
+    fields.setSize(masterNames.size());
+
+    forAll(masterNames, i)
     {
-        fields.set
-        (
-            fieldI++,
-            new GeoField(*iter(), mesh, readOldTime)
-        );
+        const IOobject& io = *fieldObjects[masterNames[i]];
+
+        fields.set(i, new GeoField(io, mesh, readOldTime));
     }
 }
 
@@ -78,10 +79,18 @@ void Foam::readFields
     // Construct the fields
     fields.setSize(fieldObjects.size());
 
-    label fieldI = 0;
-    forAllIter(IOobjectList, fieldObjects, iter)
+    // Get sorted set of names (different processors might read objects in
+    // different order)
+    const wordList masterNames(fieldObjects.sortedNames());
+
+    // Construct the fields
+    fields.setSize(masterNames.size());
+
+    forAll(masterNames, i)
     {
-        fields.set(fieldI++, new GeoField(*iter(), mesh));
+        const IOobject& io = *fieldObjects[masterNames[i]];
+
+        fields.set(i, new GeoField(io, mesh));
     }
 }
 

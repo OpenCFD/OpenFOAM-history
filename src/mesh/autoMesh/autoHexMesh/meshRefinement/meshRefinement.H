@@ -1079,7 +1079,8 @@ public:
                 labelList& cellRegion
             );
 
-            //- Split mesh. Keep part containing point.
+            //- Split mesh. Keep part containing point. Return empty map if
+            //  no cells removed.
             autoPtr<mapPolyMesh> splitMeshRegions
             (
                 const labelList& globalToMasterPatch,

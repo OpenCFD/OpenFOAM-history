@@ -605,7 +605,7 @@ void readFields
     // Get my objects of type
     IOobjectList objects(allObjects.lookupClass(GeoField::typeName));
     // Check that we all have all objects
-    wordList objectNames = objects.toc();
+    wordList objectNames = objects.sortedNames();
     // Get master names
     wordList masterNames(objectNames);
     Pstream::scatter(masterNames);
