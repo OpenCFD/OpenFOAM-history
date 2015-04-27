@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -530,7 +530,7 @@ void humidityTemperatureCoupledMixedFvPatchScalarField::updateCoeffs()
                 const scalar pSat = liquid_->pv(pf, Tint);
                 const scalar Mv = liquid_->W();
                 const scalar TSat = liquid_->pvInvert(pSat);
-                const scalar Re = mag(Uf)*L_/muf;
+                const scalar Re = mag(Uf)*L_/nuf;
 
                 cp[faceI] = liquid_->Cp(pf, Tf);
                 hfg[faceI] = liquid_->hl(pf, Tf);
@@ -539,7 +539,7 @@ void humidityTemperatureCoupledMixedFvPatchScalarField::updateCoeffs()
                 const scalar invMwmean =
                         Yi[faceI]/Mv + (1.0 - Yi[faceI])/Mcomp_;
                 const scalar Xv = Yi[faceI]/invMwmean/Mv;
-                const scalar RH = Xv*pf/pSat;
+                const scalar RH = min(Xv*pf/pSat, 1.0);
 
                 scalar RHmin = 0.01;
                 scalar Tdew = -GREAT;
