@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -2405,54 +2405,67 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::splitMeshRegions
     }
     cellsToRemove.shrink();
 
-    label nCellsToKeep = mesh_.nCells() - cellsToRemove.size();
-    reduce(nCellsToKeep, sumOp<label>());
-
-    Info<< "Keeping all cells containing points " << locationsInMesh << endl
-        << "Selected for keeping : "
-        << nCellsToKeep
-        << " cells." << endl;
+    label nTotCellsToRemove = returnReduce
+    (
+        cellsToRemove.size(),
+        sumOp<label>()
+    );
 
 
-    // Remove cells
-    removeCells cellRemover(mesh_);
-
-    labelList exposedFaces(cellRemover.getExposedFaces(cellsToRemove));
-    labelList exposedPatch;
-
-    label nExposedFaces = returnReduce(exposedFaces.size(), sumOp<label>());
-    if (nExposedFaces)
+    autoPtr<mapPolyMesh> mapPtr;
+    if (nTotCellsToRemove > 0)
     {
-        //FatalErrorIn
-        //(
-        //    "meshRefinement::splitMeshRegions(const point&)"
-        //)   << "Removing non-reachable cells should only expose"
-        //    << " boundary faces" << nl
-        //    << "ExposedFaces:" << exposedFaces << abort(FatalError);
+        label nCellsToKeep =
+            mesh_.globalData().nTotalCells()
+          - nTotCellsToRemove;
 
-        // Patch for exposed faces for lack of anything sensible.
-        label defaultPatch = 0;
-        if (globalToMasterPatch.size())
+        Info<< "Keeping all cells containing points " << locationsInMesh << endl
+            << "Selected for keeping : "
+            << nCellsToKeep
+            << " cells." << endl;
+
+
+        // Remove cells
+        removeCells cellRemover(mesh_);
+
+        labelList exposedFaces(cellRemover.getExposedFaces(cellsToRemove));
+        labelList exposedPatch;
+
+        label nExposedFaces = returnReduce(exposedFaces.size(), sumOp<label>());
+        if (nExposedFaces)
         {
-            defaultPatch = globalToMasterPatch[0];
+            //FatalErrorIn
+            //(
+            //    "meshRefinement::splitMeshRegions(const point&)"
+            //)   << "Removing non-reachable cells should only expose"
+            //    << " boundary faces" << nl
+            //    << "ExposedFaces:" << exposedFaces << abort(FatalError);
+
+            // Patch for exposed faces for lack of anything sensible.
+            label defaultPatch = 0;
+            if (globalToMasterPatch.size())
+            {
+                defaultPatch = globalToMasterPatch[0];
+            }
+
+            WarningIn
+            (
+                "meshRefinement::splitMeshRegions(const point&)"
+            )   << "Removing non-reachable cells exposes "
+                << nExposedFaces << " internal or coupled faces." << endl
+                << "    These get put into patch " << defaultPatch << endl;
+            exposedPatch.setSize(exposedFaces.size(), defaultPatch);
         }
 
-        WarningIn
+        mapPtr = doRemoveCells
         (
-            "meshRefinement::splitMeshRegions(const point&)"
-        )   << "Removing non-reachable cells exposes "
-            << nExposedFaces << " internal or coupled faces." << endl
-            << "    These get put into patch " << defaultPatch << endl;
-        exposedPatch.setSize(exposedFaces.size(), defaultPatch);
+            cellsToRemove,
+            exposedFaces,
+            exposedPatch,
+            cellRemover
+        );
     }
-
-    return doRemoveCells
-    (
-        cellsToRemove,
-        exposedFaces,
-        exposedPatch,
-        cellRemover
-    );
+    return mapPtr;
 }
 
 

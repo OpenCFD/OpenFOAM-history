@@ -87,7 +87,7 @@ Foam::LESModel<BasicTurbulenceModel>::LESModel
             "omegaMin",
             LESDict_,
             SMALL,
-            sqr(dimVelocity)
+            dimless/dimTime
         )
     ),
 
