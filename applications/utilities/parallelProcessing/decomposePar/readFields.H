@@ -45,10 +45,10 @@ namespace Foam
     template<class Type, template<class> class PatchField, class GeoMesh>
     void readFields
     (
-        const typename GeoMesh::Mes& mesh,
+        const typename GeoMesh::Mesh& mesh,
         const IOobjectList& objects,
         PtrList<GeometricField<Type, PatchField, GeoMesh> >& fields,
-        const bool readOldTime = false
+        const bool readOldTime
     );
 
     // Read the fields and hold on the pointer list

@@ -31,7 +31,7 @@ License
 template<class Type, template<class> class PatchField, class GeoMesh>
 void Foam::readFields
 (
-    const typename GeoMesh::Mes& mesh,
+    const typename GeoMesh::Mesh& mesh,
     const IOobjectList& objects,
     PtrList<GeometricField<Type, PatchField, GeoMesh> >& fields,
     const bool readOldTime
