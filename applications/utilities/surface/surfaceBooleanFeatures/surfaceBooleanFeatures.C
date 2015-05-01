@@ -1216,129 +1216,19 @@ void calcEdgeCutsBitsCGAL
 //}
 
 
-int main(int argc, char *argv[])
+autoPtr<extendedFeatureEdgeMesh> createEdgeMesh
+(
+    const IOobject& io,
+    const booleanSurface::booleanOpType action,
+    const bool surf1Baffle,
+    const bool surf2Baffle,
+    const bool invertedSpace,
+    const triSurface& surf1,
+    const edgeIntersections& edgeCuts1,
+    const triSurface& surf2,
+    const edgeIntersections& edgeCuts2
+)
 {
-    argList::noParallel();
-    argList::validArgs.append("action");
-    argList::validArgs.append("surface file");
-    argList::validArgs.append("surface file");
-
-    argList::addBoolOption
-    (
-        "surf1Baffle",
-        "Mark surface 1 as a baffle"
-    );
-
-    argList::addBoolOption
-    (
-        "surf2Baffle",
-        "Mark surface 2 as a baffle"
-    );
-
-    argList::addBoolOption
-    (
-        "perturb",
-        "Perturb surface points to escape degenerate intersections"
-    );
-
-    argList::addBoolOption
-    (
-        "invertedSpace",
-        "do the surfaces have inverted space orientation, "
-        "i.e. a point at infinity is considered inside. "
-        "This is only sensible for union and intersection."
-    );
-
-    #include "setRootCase.H"
-    #include "createTime.H"
-
-    word action(args.args()[1]);
-
-    HashTable<booleanSurface::booleanOpType> validActions;
-    validActions.insert("intersection", booleanSurface::INTERSECTION);
-    validActions.insert("union", booleanSurface::UNION);
-    validActions.insert("difference", booleanSurface::DIFFERENCE);
-
-    if (!validActions.found(action))
-    {
-        FatalErrorIn(args.executable())
-            << "Unsupported action " << action << endl
-            << "Supported actions:" << validActions.toc() << abort(FatalError);
-    }
-
-    const word surf1Name(args.args()[2]);
-    Info<< "Reading surface " << surf1Name << endl;
-    triSurfaceMesh surf1
-    (
-        IOobject
-        (
-            surf1Name,
-            runTime.constant(),
-            "triSurface",
-            runTime
-        )
-    );
-
-    Info<< surf1Name << " statistics:" << endl;
-    surf1.writeStats(Info);
-    Info<< endl;
-
-    const word surf2Name(args[3]);
-    Info<< "Reading surface " << surf2Name << endl;
-    triSurfaceMesh surf2
-    (
-        IOobject
-        (
-            surf2Name,
-            runTime.constant(),
-            "triSurface",
-            runTime
-        )
-    );
-
-    Info<< surf2Name << " statistics:" << endl;
-    surf2.writeStats(Info);
-    Info<< endl;
-
-    const bool surf1Baffle = args.optionFound("surf1Baffle");
-    const bool surf2Baffle = args.optionFound("surf2Baffle");
-
-    edgeIntersections edgeCuts1;
-    edgeIntersections edgeCuts2;
-
-    bool invertedSpace = args.optionFound("invertedSpace");
-
-    if (invertedSpace && validActions[action] == booleanSurface::DIFFERENCE)
-    {
-        FatalErrorIn(args.executable())
-            << "Inverted space only makes sense for union or intersection."
-            << exit(FatalError);
-    }
-
-
-#ifdef NO_CGAL
-    // Calculate the points where the edges are cut by the other surface
-    calcEdgeCuts
-    (
-        surf1,
-        surf2,
-        args.optionFound("perturb"),
-        edgeCuts1,
-        edgeCuts2
-    );
-#else
-    //calcEdgeCutsCGAL
-    calcEdgeCutsBitsCGAL
-    (
-        surf1,
-        surf2,
-        args.optionFound("perturb"),
-        edgeCuts1,
-        edgeCuts2
-    );
-#endif // NO_CGAL
-
-
     // Determine intersection edges from the edge cuts
     surfaceIntersection inter
     (
@@ -1346,15 +1236,6 @@ int main(int argc, char *argv[])
         edgeCuts1,
         surf2,
         edgeCuts2
-    );
-
-    fileName sFeatFileName
-    (
-        fileName(surf1Name).lessExt().name()
-      + "_"
-      + fileName(surf2Name).lessExt().name()
-      + "_"
-      + action
     );
 
     label nFeatEds = inter.cutEdges().size();
@@ -1535,7 +1416,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (validActions[action] == booleanSurface::UNION)
+    if (action == booleanSurface::UNION)
     {
         if (!invertedSpace)
         {
@@ -1548,7 +1429,7 @@ int main(int argc, char *argv[])
             internalStart = nIntOrExt;
         }
     }
-    else if (validActions[action] == booleanSurface::INTERSECTION)
+    else if (action == booleanSurface::INTERSECTION)
     {
         if (!invertedSpace)
         {
@@ -1561,14 +1442,14 @@ int main(int argc, char *argv[])
             internalStart = 0;
         }
     }
-    else if (validActions[action] == booleanSurface::DIFFERENCE)
+    else if (action == booleanSurface::DIFFERENCE)
     {
         // All edges are external
         internalStart = nIntOrExt;
     }
     else
     {
-        FatalErrorIn(args.executable())
+        FatalErrorIn("createEdgeMesh(..)")
             << "Unsupported booleanSurface:booleanOpType and space "
             << action << " " << invertedSpace
             << abort(FatalError);
@@ -1596,39 +1477,252 @@ int main(int argc, char *argv[])
 
     //calcFeaturePoints(inter.cutPoints(), inter.cutEdges());
 
-    extendedFeatureEdgeMesh feMesh
+    return autoPtr<extendedFeatureEdgeMesh>
+    (
+        new extendedFeatureEdgeMesh
+        (
+            io,
+            inter.cutPoints(),
+            inter.cutEdges(),
+
+            0,                  // concaveStart,
+            0,                  // mixedStart,
+            0,                  // nonFeatureStart,
+
+            internalStart,      // internalStart,
+            nIntOrExt,           // flatStart,
+            nIntOrExt + nFlat,   // openStart,
+            nIntOrExt + nFlat + nOpen,   // multipleStart,
+
+            normalsTmp,
+            normalVolumeTypesTmp,
+            edgeDirections,
+            normalDirectionsTmp,
+            edgeNormalsTmp,
+
+            labelListList(0),   // featurePointNormals,
+            labelListList(0),   // featurePointEdges,
+            labelList(0)        // regionEdges
+        )
+    );
+}
+
+int main(int argc, char *argv[])
+{
+    argList::noParallel();
+    argList::validArgs.append("action");
+    argList::validArgs.append("surface file");
+    argList::validArgs.append("surface file");
+
+    argList::addBoolOption
+    (
+        "surf1Baffle",
+        "Mark surface 1 as a baffle"
+    );
+
+    argList::addBoolOption
+    (
+        "surf2Baffle",
+        "Mark surface 2 as a baffle"
+    );
+
+    argList::addBoolOption
+    (
+        "perturb",
+        "Perturb surface points to escape degenerate intersections"
+    );
+
+    argList::addBoolOption
+    (
+        "invertedSpace",
+        "do the surfaces have inverted space orientation, "
+        "i.e. a point at infinity is considered inside. "
+        "This is only sensible for union and intersection."
+    );
+
+    argList::addOption
+    (
+        "trim",
+        "((surface1 volumeType) .. (surfaceN volumeType))",
+        "Trim resulting intersection with additional surfaces;"
+        " volumeType is 'inside' (keep (parts of) edges that are inside)"
+        ", 'outside' (keep (parts of) edges that are outside) or"
+        " 'mixed' (keep all)"
+    );
+
+
+    #include "setRootCase.H"
+    #include "createTime.H"
+
+    word action(args.args()[1]);
+
+    HashTable<booleanSurface::booleanOpType> validActions;
+    validActions.insert("intersection", booleanSurface::INTERSECTION);
+    validActions.insert("union", booleanSurface::UNION);
+    validActions.insert("difference", booleanSurface::DIFFERENCE);
+
+    if (!validActions.found(action))
+    {
+        FatalErrorIn(args.executable())
+            << "Unsupported action " << action << endl
+            << "Supported actions:" << validActions.toc() << abort(FatalError);
+    }
+
+
+    List<Pair<word> > surfaceAndSide;
+    if (args.optionReadIfPresent("trim", surfaceAndSide))
+    {
+        Info<< "Trimming edges with " << surfaceAndSide << endl;
+    }
+
+
+    const word surf1Name(args.args()[2]);
+    Info<< "Reading surface " << surf1Name << endl;
+    triSurfaceMesh surf1
     (
         IOobject
         (
-            sFeatFileName + ".extendedFeatureEdgeMesh",
+            surf1Name,
             runTime.constant(),
-            "extendedFeatureEdgeMesh",
-            runTime,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        inter.cutPoints(),
-        inter.cutEdges(),
-
-        0,                  // concaveStart,
-        0,                  // mixedStart,
-        0,                  // nonFeatureStart,
-
-        internalStart,      // internalStart,
-        nIntOrExt,           // flatStart,
-        nIntOrExt + nFlat,   // openStart,
-        nIntOrExt + nFlat + nOpen,   // multipleStart,
-
-        normalsTmp,
-        normalVolumeTypesTmp,
-        edgeDirections,
-        normalDirectionsTmp,
-        edgeNormalsTmp,
-
-        labelListList(0),   // featurePointNormals,
-        labelListList(0),   // featurePointEdges,
-        labelList(0)        // regionEdges
+            triSurfaceMesh::meshSubDir,
+            runTime
+        )
     );
+
+    Info<< surf1Name << " statistics:" << endl;
+    surf1.writeStats(Info);
+    Info<< endl;
+
+    const word surf2Name(args[3]);
+    Info<< "Reading surface " << surf2Name << endl;
+    triSurfaceMesh surf2
+    (
+        IOobject
+        (
+            surf2Name,
+            runTime.constant(),
+            triSurfaceMesh::meshSubDir,
+            runTime
+        )
+    );
+
+    Info<< surf2Name << " statistics:" << endl;
+    surf2.writeStats(Info);
+    Info<< endl;
+
+    const bool surf1Baffle = args.optionFound("surf1Baffle");
+    const bool surf2Baffle = args.optionFound("surf2Baffle");
+
+    edgeIntersections edgeCuts1;
+    edgeIntersections edgeCuts2;
+
+    bool invertedSpace = args.optionFound("invertedSpace");
+
+    if (invertedSpace && validActions[action] == booleanSurface::DIFFERENCE)
+    {
+        FatalErrorIn(args.executable())
+            << "Inverted space only makes sense for union or intersection."
+            << exit(FatalError);
+    }
+
+
+#ifdef NO_CGAL
+    // Calculate the points where the edges are cut by the other surface
+    calcEdgeCuts
+    (
+        surf1,
+        surf2,
+        args.optionFound("perturb"),
+        edgeCuts1,
+        edgeCuts2
+    );
+#else
+    //calcEdgeCutsCGAL
+    calcEdgeCutsBitsCGAL
+    (
+        surf1,
+        surf2,
+        args.optionFound("perturb"),
+        edgeCuts1,
+        edgeCuts2
+    );
+#endif // NO_CGAL
+
+
+    const fileName sFeatFileName
+    (
+        fileName(surf1Name).lessExt().name()
+      + "_"
+      + fileName(surf2Name).lessExt().name()
+      + "_"
+      + action
+    );
+
+    autoPtr<extendedFeatureEdgeMesh> feMeshPtr
+    (
+        createEdgeMesh
+        (
+            IOobject
+            (
+                sFeatFileName + ".extendedFeatureEdgeMesh",
+                runTime.constant(),
+                "extendedFeatureEdgeMesh",
+                runTime,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            booleanSurface::booleanOpTypeNames[action],
+            surf1Baffle,
+            surf2Baffle,
+            invertedSpace,
+            surf1,
+            edgeCuts1,
+            surf2,
+            edgeCuts2
+        )
+    );
+
+
+    // Trim intersections
+    forAll(surfaceAndSide, trimI)
+    {
+        const word& trimName = surfaceAndSide[trimI].first();
+        const volumeType trimType
+        (
+            volumeType::names[surfaceAndSide[trimI].second()]
+        );
+
+        Info<< "Reading trim surface " << trimName << endl;
+        const triSurfaceMesh trimSurf
+        (
+            IOobject
+            (
+                trimName,
+                runTime.constant(),
+                triSurfaceMesh::meshSubDir,
+                runTime,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            )
+        );
+
+        Info<< trimName << " statistics:" << endl;
+        trimSurf.writeStats(Info);
+        Info<< endl;
+
+        labelList pointMap;
+        labelList edgeMap;
+        feMeshPtr().trim
+        (
+            trimSurf,
+            trimType,
+            pointMap,
+            edgeMap
+        );
+    }
+
+
+    const extendedFeatureEdgeMesh& feMesh = feMeshPtr();
 
     feMesh.writeStats(Info);
 
@@ -1644,7 +1738,7 @@ int main(int argc, char *argv[])
             (
                 sFeatFileName + ".eMesh",   // name
                 runTime.constant(),                         // instance
-                "triSurface",
+                triSurfaceMesh::meshSubDir,
                 runTime,                                    // registry
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
