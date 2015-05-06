@@ -41,7 +41,8 @@ Foam::porousBafflePressureFvPatchField::porousBafflePressureFvPatchField
     rhoName_("rho"),
     D_(),
     I_(),
-    length_(0)
+    length_(0),
+    uniformJump_(false)
 {}
 
 
@@ -57,7 +58,8 @@ Foam::porousBafflePressureFvPatchField::porousBafflePressureFvPatchField
     rhoName_(dict.lookupOrDefault<word>("rho", "rho")),
     D_(DataEntry<scalar>::New("D", dict)),
     I_(DataEntry<scalar>::New("I", dict)),
-    length_(readScalar(dict.lookup("length")))
+    length_(readScalar(dict.lookup("length"))),
+    uniformJump_(dict.lookupOrDefault<bool>("uniformJump", false))
 {
     fvPatchField<scalar>::operator=
     (
@@ -79,7 +81,8 @@ Foam::porousBafflePressureFvPatchField::porousBafflePressureFvPatchField
     rhoName_(ptf.rhoName_),
     D_(ptf.D_, false),
     I_(ptf.I_, false),
-    length_(ptf.length_)
+    length_(ptf.length_),
+    uniformJump_(ptf.uniformJump_)
 {}
 
 
@@ -94,7 +97,8 @@ Foam::porousBafflePressureFvPatchField::porousBafflePressureFvPatchField
     rhoName_(ptf.rhoName_),
     D_(ptf.D_, false),
     I_(ptf.I_, false),
-    length_(ptf.length_)
+    length_(ptf.length_),
+    uniformJump_(ptf.uniformJump_)
 {}
 
 
@@ -109,7 +113,8 @@ Foam::porousBafflePressureFvPatchField::porousBafflePressureFvPatchField
     rhoName_(ptf.rhoName_),
     D_(ptf.D_, false),
     I_(ptf.I_, false),
-    length_(ptf.length_)
+    length_(ptf.length_),
+    uniformJump_(ptf.uniformJump_)
 {}
 
 
@@ -135,7 +140,12 @@ void Foam::porousBafflePressureFvPatchField::updateCoeffs()
         Un /= patch().lookupPatchField<volScalarField, scalar>(rhoName_);
     }
 
-    scalarField magUn(mag(Un));
+    scalarField magUn(patch().size());
+    if (uniformJump_)
+    {
+        Un = gSum(Un);
+    }
+    magUn = mag(Un);
 
     const turbulenceModel& turbModel = db().lookupObject<turbulenceModel>
     (
@@ -187,6 +197,8 @@ void Foam::porousBafflePressureFvPatchField::write(Ostream& os) const
     D_->writeData(os);
     I_->writeData(os);
     os.writeKeyword("length") << length_ << token::END_STATEMENT << nl;
+    os.writeKeyword("uniformJump") << uniformJump_
+        << token::END_STATEMENT << nl;
 }
 
 
