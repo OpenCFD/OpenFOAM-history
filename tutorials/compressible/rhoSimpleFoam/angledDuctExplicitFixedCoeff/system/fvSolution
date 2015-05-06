@@ -46,7 +46,7 @@ solvers
         relTol          0.1;
     }
 
-    "(k|epsilon)"
+    "(k|epsilon|omega)"
     {
         $U;
         tolerance       1e-07;
@@ -75,13 +75,13 @@ relaxationFactors
 {
     fields
     {
-        p               0.3;
-        rho             0.05;
+        p               0.1;
+        rho             1;
     }
     equations
     {
         U               0.7;
-        "(k|epsilon)"   0.7;
+        "(k|epsilon|omega)"   0.7;
         e               0.5;
     }
 }
