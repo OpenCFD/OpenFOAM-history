@@ -141,7 +141,8 @@ void Foam::cyclicACMIPolyPatch::setNeighbourFaceAreas() const
 void Foam::cyclicACMIPolyPatch::initGeometry(PstreamBuffers& pBufs)
 {
     // Initialise the AMI so that base geometry (e.g. cell volumes) are
-    // correctly evaluated
+    // correctly evaluated before e.g. any of the processor patches gets
+    // hit (since uses cell volumes in its initGeometry)
     resetAMI();
 
     cyclicAMIPolyPatch::initGeometry(pBufs);
@@ -160,6 +161,11 @@ void Foam::cyclicACMIPolyPatch::initMovePoints
     const pointField& p
 )
 {
+    // Initialise the AMI so that base geometry (e.g. cell volumes) are
+    // correctly evaluated before e.g. any of the processor patches gets
+    // hit (since uses cell volumes in its initGeometry)
+    resetAMI();
+
     cyclicAMIPolyPatch::initMovePoints(pBufs, p);
 }
 
