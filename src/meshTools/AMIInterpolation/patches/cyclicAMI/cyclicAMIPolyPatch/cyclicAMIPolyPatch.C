@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -410,6 +410,9 @@ void Foam::cyclicAMIPolyPatch::resetAMI
 
 void Foam::cyclicAMIPolyPatch::initGeometry(PstreamBuffers& pBufs)
 {
+    // The AMI is no longer valid. Leave it up to demand-driven calculation
+    AMIPtr_.clear();
+
     polyPatch::initGeometry(pBufs);
 }
 
@@ -435,6 +438,9 @@ void Foam::cyclicAMIPolyPatch::initMovePoints
     const pointField& p
 )
 {
+    // The AMI is no longer valid. Leave it up to demand-driven calculation
+    AMIPtr_.clear();
+
     polyPatch::initMovePoints(pBufs, p);
 
     // See below. Clear out any local geometry
@@ -451,18 +457,14 @@ void Foam::cyclicAMIPolyPatch::movePoints
     polyPatch::movePoints(pBufs, p);
 
     calcTransforms();
-
-    // Note: resetAMI is called whilst in geometry update. So the slave
-    // side might not have reached 'movePoints'. Is explicitly handled by
-    // - clearing geometry of neighbour inside initMovePoints
-    // - not using localPoints() inside resetAMI
-    resetAMI();
 }
 
 
 void Foam::cyclicAMIPolyPatch::initUpdateMesh(PstreamBuffers& pBufs)
 {
+    // The AMI is no longer valid. Leave it up to demand-driven calculation
     AMIPtr_.clear();
+
     polyPatch::initUpdateMesh(pBufs);
 }
 
