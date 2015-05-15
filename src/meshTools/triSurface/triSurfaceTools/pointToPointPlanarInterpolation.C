@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -352,6 +352,43 @@ Foam::pointToPointPlanarInterpolation::pointToPointPlanarInterpolation
     nPoints_(sourcePoints.size())
 {
     calcWeights(sourcePoints, destPoints);
+}
+
+
+Foam::pointToPointPlanarInterpolation::pointToPointPlanarInterpolation
+(
+    const scalar perturb,
+    const bool nearestOnly,
+    const coordinateSystem& referenceCS,
+    const label sourceSize,
+    const List<FixedList<label, 3> >& nearestVertex,
+    const List<FixedList<scalar, 3> >& nearestVertexWeight
+)
+:
+    perturb_(perturb),
+    nearestOnly_(nearestOnly),
+    referenceCS_(referenceCS),
+    nPoints_(sourceSize),
+    nearestVertex_(nearestVertex),
+    nearestVertexWeight_(nearestVertexWeight)
+{}
+
+
+Foam::autoPtr<Foam::pointToPointPlanarInterpolation>
+Foam::pointToPointPlanarInterpolation::clone() const
+{
+    return autoPtr<pointToPointPlanarInterpolation>
+    (
+        new pointToPointPlanarInterpolation
+        (
+            perturb_,
+            nearestOnly_,
+            referenceCS_,
+            nPoints_,
+            nearestVertex_,
+            nearestVertexWeight_
+        )
+    );
 }
 
 
