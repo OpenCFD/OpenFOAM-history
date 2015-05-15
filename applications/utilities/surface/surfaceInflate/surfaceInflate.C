@@ -410,7 +410,8 @@ void minSmooth
     forAll(edges, edgeI)
     {
         const edge& e = edges[edgeI];
-        scalar w = mag(points[mp[e[0]]]-points[mp[e[0]]]);
+        scalar w = mag(points[mp[e[0]]]-points[mp[e[1]]]);
+
         edgeWeights[edgeI] = 1.0/(max(w, SMALL));
     }
 
