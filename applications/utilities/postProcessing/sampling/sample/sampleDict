@@ -31,10 +31,35 @@ setFormat raw;
 //      dx          : DX scalar or vector format
 //      vtk         : VTK ascii format
 //      raw         : x y z value format for use with e.g. gnuplot 'splot'.
+//      boundaryData: written in a form that can be used with timeVaryingMapped
+//                    boundary conditions (move to constant/boundaryData)
 //
 // Note:
-// other formats such as obj, stl, etc can also be written (by proxy)
-// but without any values!
+// - other formats such as obj, stl, etc can also be written (by proxy)
+//   but without any values!
+// - boundaryData format: typical use:
+//      - use a surfaces functionObject to sample a patch:
+//            type            surfaces;
+//            surfaceFormat   boundaryData;
+//            fields          ( p );
+//            surfaces
+//            (
+//                inlet
+//                {
+//                    type            patch;
+//                    patches         (inpletPatch);
+//                    interpolate     false;
+//                }
+//            );
+//      - the boundaryData writer will write postProcessing/surfaces/inlet/
+//      - move this to constant/boundaryData/inlet of the destination case
+//      - use a timeVaryingMappedFixedValue bc to read&interpolate and use
+//        as fixedValue.
+// - boundaryData: 'interpolate false' writes face centres, 'interpolate true'
+//   writes points. For 2D case the face centres might only be a single column
+//   so cannot be used in timeVaryingMapped with standard mapping (since
+//   uses triangulation to do interpolation).
+
 surfaceFormat vtk;
 
 // optionally define extra controls for the output formats
