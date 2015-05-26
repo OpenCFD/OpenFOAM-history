@@ -331,7 +331,10 @@ Foam::pointToPointPlanarInterpolation::pointToPointPlanarInterpolation
 :
     perturb_(perturb),
     nearestOnly_(nearestOnly),
-    referenceCS_(calcCoordinateSystem(sourcePoints)),
+    referenceCS_
+    (
+        nearestOnly ? coordinateSystem() : calcCoordinateSystem(sourcePoints)
+    ),
     nPoints_(sourcePoints.size())
 {
     calcWeights(sourcePoints, destPoints);
