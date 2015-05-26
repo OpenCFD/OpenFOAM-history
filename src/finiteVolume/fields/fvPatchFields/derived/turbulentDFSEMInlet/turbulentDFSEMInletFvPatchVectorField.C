@@ -105,7 +105,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
             new pointToPointPlanarInterpolation
             (
                 samplePoints,
-                 this->patch().patch().faceCentres(),
+                this->patch().patch().faceCentres(),
                 perturb_,
                 nearestOnly
             )
@@ -733,14 +733,7 @@ turbulentDFSEMInletFvPatchVectorField
     kappa_(dict.lookupOrDefault("kappa", 0.41)),
 
     perturb_(dict.lookupOrDefault("perturb", 1e-5)),
-    mapMethod_
-    (
-        dict.lookupOrDefault<word>
-        (
-            "mapMethod",
-            "planarInterpolation"
-        )
-    ),
+    mapMethod_(dict.lookup("mapMethod")),
     mapperPtr_(NULL),
     startSampleTime_(-1),
     endSampleTime_(-1),
@@ -888,6 +881,9 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::updateCoeffs()
 
     if (curTimeIndex_ == -1)
     {
+        // Ensure globalFaces constructed consistently in parallel
+        (void)globalFaces();
+
         checkPatch();
 
         createTree();
