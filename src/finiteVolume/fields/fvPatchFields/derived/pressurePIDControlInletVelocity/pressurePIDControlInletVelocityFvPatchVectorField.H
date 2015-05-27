@@ -66,6 +66,11 @@ Description
         value           uniform (0 0 0);
     }
 
+Note
+    This boundary condition only evaluates once per time step. This is to
+    prevent intermediate pressure solutions from generating inlet velocity
+    perturbations.
+
 SeeAlso
     Foam::fixedValueFvPatchField
 
@@ -123,14 +128,8 @@ class pressurePIDControlInletVelocityFvPatchVectorField
         //- Current error
         scalar error_;
 
-        //- Old error
-        scalar errorOld_;
-
         //- Current error integral
         scalar errorIntegral_;
-
-        //- Old error integral
-        scalar errorOldIntegral_;
 
         //- Time index of the stored errors
         label errorTimeIndex_;

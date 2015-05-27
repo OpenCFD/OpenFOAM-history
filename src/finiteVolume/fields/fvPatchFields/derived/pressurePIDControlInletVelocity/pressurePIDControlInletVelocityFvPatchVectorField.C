@@ -112,9 +112,7 @@ pressurePIDControlInletVelocityFvPatchVectorField
     I_(0),
     D_(0),
     error_(0),
-    errorOld_(0),
     errorIntegral_(0),
-    errorOldIntegral_(0),
     errorTimeIndex_(db().time().timeIndex())
 {}
 
@@ -139,9 +137,7 @@ pressurePIDControlInletVelocityFvPatchVectorField
     I_(ptf.I_),
     D_(ptf.D_),
     error_(ptf.error_),
-    errorOld_(ptf.errorOld_),
     errorIntegral_(ptf.errorIntegral_),
-    errorOldIntegral_(ptf.errorOldIntegral_),
     errorTimeIndex_(ptf.errorTimeIndex_)
 {}
 
@@ -165,9 +161,7 @@ pressurePIDControlInletVelocityFvPatchVectorField
     I_(readScalar(dict.lookup("I"))),
     D_(readScalar(dict.lookup("D"))),
     error_(dict.lookupOrDefault<scalar>("error", 0)),
-    errorOld_(0),
     errorIntegral_(dict.lookupOrDefault<scalar>("errorIntegral", 0)),
-    errorOldIntegral_(0),
     errorTimeIndex_(db().time().timeIndex())
 {}
 
@@ -189,9 +183,7 @@ pressurePIDControlInletVelocityFvPatchVectorField
     I_(ptf.I_),
     D_(ptf.D_),
     error_(ptf.error_),
-    errorOld_(ptf.errorOld_),
     errorIntegral_(ptf.errorIntegral_),
-    errorOldIntegral_(ptf.errorOldIntegral_),
     errorTimeIndex_(ptf.errorTimeIndex_)
 {}
 
@@ -214,9 +206,7 @@ pressurePIDControlInletVelocityFvPatchVectorField
     I_(ptf.I_),
     D_(ptf.D_),
     error_(ptf.error_),
-    errorOld_(ptf.errorOld_),
     errorIntegral_(ptf.errorIntegral_),
-    errorOldIntegral_(ptf.errorOldIntegral_),
     errorTimeIndex_(ptf.errorTimeIndex_)
 {}
 
@@ -286,13 +276,13 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
     // the various errors
     else
     {
-        errorOld_ = error_;
+        const scalar errorOld = error_;
+
         error_ = U - sqrt(2*pDrop/(rho*AStar));
 
-        errorOldIntegral_ = errorIntegral_;
-        errorIntegral_ = errorOldIntegral_ + 0.5*(error_ + errorOld_)*deltaT;
+        errorIntegral_ += 0.5*(error_ + errorOld)*deltaT;
 
-        const scalar errorDifferential = (errorOld_ - error_)/deltaT;
+        const scalar errorDifferential = (errorOld - error_)/deltaT;
 
         operator==
         (
