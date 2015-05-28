@@ -33,6 +33,7 @@ License
 #include "fixedGradientFvPatchFields.H"
 #include "fixedValueFvPatchFields.H"
 #include "OStringStream.H"
+#include "globalIndex.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
