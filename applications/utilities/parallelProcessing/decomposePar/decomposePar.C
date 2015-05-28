@@ -471,15 +471,15 @@ int main(int argc, char *argv[])
             // Construct the vol fields
             // ~~~~~~~~~~~~~~~~~~~~~~~~
             PtrList<volScalarField> volScalarFields;
-            readFields(mesh, objects, volScalarFields);
+            readFields(mesh, objects, volScalarFields, false);
             PtrList<volVectorField> volVectorFields;
-            readFields(mesh, objects, volVectorFields);
+            readFields(mesh, objects, volVectorFields, false);
             PtrList<volSphericalTensorField> volSphericalTensorFields;
-            readFields(mesh, objects, volSphericalTensorFields);
+            readFields(mesh, objects, volSphericalTensorFields, false);
             PtrList<volSymmTensorField> volSymmTensorFields;
-            readFields(mesh, objects, volSymmTensorFields);
+            readFields(mesh, objects, volSymmTensorFields, false);
             PtrList<volTensorField> volTensorFields;
-            readFields(mesh, objects, volTensorFields);
+            readFields(mesh, objects, volTensorFields, false);
 
 
             // Construct the dimensioned fields
@@ -500,15 +500,15 @@ int main(int argc, char *argv[])
             // Construct the surface fields
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             PtrList<surfaceScalarField> surfaceScalarFields;
-            readFields(mesh, objects, surfaceScalarFields);
+            readFields(mesh, objects, surfaceScalarFields, false);
             PtrList<surfaceVectorField> surfaceVectorFields;
-            readFields(mesh, objects, surfaceVectorFields);
+            readFields(mesh, objects, surfaceVectorFields, false);
             PtrList<surfaceSphericalTensorField> surfaceSphericalTensorFields;
-            readFields(mesh, objects, surfaceSphericalTensorFields);
+            readFields(mesh, objects, surfaceSphericalTensorFields, false);
             PtrList<surfaceSymmTensorField> surfaceSymmTensorFields;
-            readFields(mesh, objects, surfaceSymmTensorFields);
+            readFields(mesh, objects, surfaceSymmTensorFields, false);
             PtrList<surfaceTensorField> surfaceTensorFields;
-            readFields(mesh, objects, surfaceTensorFields);
+            readFields(mesh, objects, surfaceTensorFields, false);
 
 
             // Construct the point fields
@@ -516,15 +516,15 @@ int main(int argc, char *argv[])
             const pointMesh& pMesh = pointMesh::New(mesh);
 
             PtrList<pointScalarField> pointScalarFields;
-            readFields(pMesh, objects, pointScalarFields);
+            readFields(pMesh, objects, pointScalarFields, false);
             PtrList<pointVectorField> pointVectorFields;
-            readFields(pMesh, objects, pointVectorFields);
+            readFields(pMesh, objects, pointVectorFields, false);
             PtrList<pointSphericalTensorField> pointSphericalTensorFields;
-            readFields(pMesh, objects, pointSphericalTensorFields);
+            readFields(pMesh, objects, pointSphericalTensorFields, false);
             PtrList<pointSymmTensorField> pointSymmTensorFields;
-            readFields(pMesh, objects, pointSymmTensorFields);
+            readFields(pMesh, objects, pointSymmTensorFields, false);
             PtrList<pointTensorField> pointTensorFields;
-            readFields(pMesh, objects, pointTensorFields);
+            readFields(pMesh, objects, pointTensorFields, false);
 
 
             // Construct the Lagrangian fields

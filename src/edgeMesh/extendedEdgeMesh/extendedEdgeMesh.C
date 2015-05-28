@@ -378,6 +378,7 @@ void Foam::extendedEdgeMesh::select
         pointMap.setSize(compactPointI);
         pointField subPoints(points, pointMap);
 
+        // Renumber edges
         edgeList subEdges(edgeMap.size());
         forAll(edgeMap, i)
         {
@@ -386,6 +387,7 @@ void Foam::extendedEdgeMesh::select
             subEdges[i][1] = pointToCompact[e[1]];
         }
 
+        // Reset primitives and map other quantities
         autoMap(subPoints, subEdges, pointMap, edgeMap);
     }
     else
@@ -1634,7 +1636,7 @@ void Foam::extendedEdgeMesh::autoMap
             {
                 if (eNormals[i] >= 0)
                 {
-                    subNormals[i] = normalMap[eNormals[i]];
+                    subNormals[i] = reverseNormalMap[eNormals[i]];
                 }
                 else
                 {
@@ -1649,13 +1651,9 @@ void Foam::extendedEdgeMesh::autoMap
     {
         label edgeI = edgeMap[subEdgeI];
         const labelList& eNormals = edgeNormals()[edgeI];
-
         labelList& subNormals = subEdgeNormals[subEdgeI];
-        subNormals.setSize(eNormals.size());
-        forAll(eNormals, i)
-        {
-            subNormals[i] = normalMap[eNormals[i]];
-        }
+
+        subNormals = UIndirectList<label>(reverseNormalMap, eNormals);
     }
 
     labelListList subPointNormals(pointMap.size());
@@ -1663,13 +1661,9 @@ void Foam::extendedEdgeMesh::autoMap
     {
         label pointI = pointMap[subPointI];
         const labelList& pNormals = featurePointNormals()[pointI];
-
         labelList& subNormals = subPointNormals[subPointI];
-        subNormals.setSize(pNormals.size());
-        forAll(pNormals, i)
-        {
-            subNormals[i] = normalMap[pNormals[i]];
-        }
+
+        subNormals = UIndirectList<label>(reverseNormalMap, pNormals);
     }
 
     // Use compaction map to compact normal data
@@ -1802,8 +1796,8 @@ void Foam::extendedEdgeMesh::trim
     );
 
     // Update the overall pointMap, edgeMap
-    pointMap = UIndirectList<label>(pointMap, sortedToOriginalPoint);
-    edgeMap = UIndirectList<label>(edgeMap, sortedToOriginalEdge);
+    pointMap = UIndirectList<label>(pointMap, sortedToOriginalPoint)();
+    edgeMap = UIndirectList<label>(edgeMap, sortedToOriginalEdge)();
 }
 
 
@@ -1841,11 +1835,25 @@ void Foam::extendedEdgeMesh::setFromStatus
         edgeMultipleStart
     );
 
+
+    // Order points and edges
+    labelList reversePointMap(points().size(), -1);
+    forAll(sortedToOriginalPoint, sortedI)
+    {
+        reversePointMap[sortedToOriginalPoint[sortedI]] = sortedI;
+    }
+
+    edgeList sortedEdges(UIndirectList<edge>(edges(), sortedToOriginalEdge)());
+    forAll(sortedEdges, sortedI)
+    {
+        inplaceRenumber(reversePointMap, sortedEdges[sortedI]);
+    }
+
     // Update local data
     autoMap
     (
         pointField(points(), sortedToOriginalPoint),
-        UIndirectList<edge>(edges(), sortedToOriginalEdge)(),
+        sortedEdges,
         sortedToOriginalPoint,
         sortedToOriginalEdge
     );
@@ -1944,7 +1952,7 @@ bool Foam::extendedEdgeMesh::mergePoints
         sortedToOriginalPoint,
         edgeMap             // point merging above did not affect edge order
     );
-    pointMap = UIndirectList<label>(pointMap, sortedToOriginalPoint);
+    pointMap = UIndirectList<label>(pointMap, sortedToOriginalPoint)();
 
     return nNewPoints != nOldPoints;
 }

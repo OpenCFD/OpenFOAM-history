@@ -1,3 +1,5 @@
 surfaceBooleanFeatures.C
 
+/* surfaceBooleanFeatures2.C */
+
 EXE = $(FOAM_APPBIN)/surfaceBooleanFeatures
