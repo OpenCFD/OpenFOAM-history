@@ -14,6 +14,10 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// Load the library containing the externalCoupled functionObject and the
+// boundary conditions. Note: using functionObjectLibs does not work for bcs.
+libs            ("libjobControl.so");
+
 application     buoyantSimpleFoam;
 
 startFrom       startTime;
@@ -43,6 +47,39 @@ timeFormat      general;
 timePrecision   6;
 
 runTimeModifiable true;
+
+functions
+{
+    readFields
+    {
+        type            externalCoupled;
+
+        // Directory to use for communication
+        commsDir        "${FOAM_CASE}/comms";
+
+        // Does external process start first
+        initByExternal  true;
+
+        // Additional output
+        log             true;
+
+        regions
+        {
+            // Region name
+            region0
+            {
+                // Patch or patchGroup
+                coupleGroup
+                {
+                    // Fields to output in commsDir
+                    writeFields (T);
+                    // Fields to read from commsDir
+                    readFields  (T);
+                }
+            }
+        }
+    }
+}
 
 
 // ************************************************************************* //

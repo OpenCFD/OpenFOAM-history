@@ -28,16 +28,15 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
-#include "OFstream.H"
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 void Foam::externalCoupledTemperatureMixedFvPatchScalarField::writeHeader
 (
-    OFstream& os
+    Ostream& os
 ) const
 {
-    os  << "# Values: magSf value qDot htc" << endl;
+    os  << "# Values: magSf T qDot htc" << endl;
 }
 
 
@@ -111,16 +110,9 @@ Foam::externalCoupledTemperatureMixedFvPatchScalarField::
 
 void Foam::externalCoupledTemperatureMixedFvPatchScalarField::transferData
 (
-    OFstream& os
+    Ostream& os
 ) const
 {
-    if (log())
-    {
-        Info<< type() << ": " << this->patch().name()
-            << ": writing data to " << os.name()
-            << endl;
-    }
-
     const label patchI = patch().index();
 
     // heat flux [W/m2]
@@ -165,7 +157,7 @@ void Foam::externalCoupledTemperatureMixedFvPatchScalarField::transferData
             "void Foam::externalCoupledTemperatureMixedFvPatchScalarField::"
             "transferData"
             "("
-                "OFstream&"
+                "Ostream&"
             ") const"
         )   << "Condition requires either compressible turbulence and/or "
             << "thermo model to be available" << exit(FatalError);
@@ -182,27 +174,25 @@ void Foam::externalCoupledTemperatureMixedFvPatchScalarField::transferData
 
     if (Pstream::parRun())
     {
-        int tag = Pstream::msgType() + 1;
-
         List<Field<scalar> > magSfs(Pstream::nProcs());
         magSfs[Pstream::myProcNo()].setSize(this->patch().size());
         magSfs[Pstream::myProcNo()] = this->patch().magSf();
-        Pstream::gatherList(magSfs, tag);
+        Pstream::gatherList(magSfs);
 
         List<Field<scalar> > values(Pstream::nProcs());
         values[Pstream::myProcNo()].setSize(this->patch().size());
         values[Pstream::myProcNo()] = Tp;
-        Pstream::gatherList(values, tag);
+        Pstream::gatherList(values);
 
         List<Field<scalar> > qDots(Pstream::nProcs());
         qDots[Pstream::myProcNo()].setSize(this->patch().size());
         qDots[Pstream::myProcNo()] = qDot;
-        Pstream::gatherList(qDots, tag);
+        Pstream::gatherList(qDots);
 
         List<Field<scalar> > htcs(Pstream::nProcs());
         htcs[Pstream::myProcNo()].setSize(this->patch().size());
         htcs[Pstream::myProcNo()] = htc;
-        Pstream::gatherList(htcs, tag);
+        Pstream::gatherList(htcs);
 
         if (Pstream::master())
         {
@@ -241,24 +231,6 @@ void Foam::externalCoupledTemperatureMixedFvPatchScalarField::transferData
 
         os.flush();
     }
-}
-
-
-void Foam::externalCoupledTemperatureMixedFvPatchScalarField::evaluate
-(
-    const Pstream::commsTypes comms
-)
-{
-    externalCoupledMixedFvPatchField<scalar>::evaluate(comms);
-}
-
-
-void Foam::externalCoupledTemperatureMixedFvPatchScalarField::write
-(
-    Ostream& os
-) const
-{
-    externalCoupledMixedFvPatchField<scalar>::write(os);
 }
 
 

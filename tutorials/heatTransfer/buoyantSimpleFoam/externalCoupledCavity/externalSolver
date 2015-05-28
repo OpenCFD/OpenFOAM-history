@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Dummy external solver to communicate with OpenFOAM via externalCoupled
-# boundary conditions
+# functionObject
 #
 # Functionality is hard-coded for this particular test case
 # - patch temperatures increased by 1K on each step
@@ -11,8 +11,11 @@ cd ${0%/*} || exit 1    # Run from this directory
 echo "Executing dummy external solver"
 
 commsDir="comms"
+groupName="coupleGroup"
+fieldName="T"
+
 lockFile="${commsDir}/OpenFOAM.lock"
-dataFile="${commsDir}/data"
+dataFile="${commsDir}/${groupName}/${fieldName}"
 waitSec=1
 timeOut=10
 refGrad=0
@@ -45,7 +48,7 @@ init()
 
 
 # create the comms directory
-mkdir ${commsDir}
+mkdir -p ${commsDir}/${groupName}
 
 
 # tutorial case employs the 'initByExternalOption', so we need to provide
