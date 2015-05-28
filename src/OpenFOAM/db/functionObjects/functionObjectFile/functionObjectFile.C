@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,6 +34,26 @@ const Foam::word Foam::functionObjectFile::outputPrefix = "postProcessing";
 Foam::label Foam::functionObjectFile::addChars = 7;
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+
+Foam::wordList Foam::functionObjectFile::setNames(const wordList& names) const
+{
+    wordHashSet uniqueNames(names);
+
+    if (names.size() != uniqueNames.size())
+    {
+        // Duplicate names given = not allowed!
+
+        FatalErrorIn
+        (
+            "Foam::functionObjectFile::setNames(const wordList&) const"
+        )
+            << "File names must be unique.  Supplied file names: "
+            << names << abort(FatalError);
+    }
+
+    return names;
+}
+
 
 void Foam::functionObjectFile::initStream(Ostream& os) const
 {
@@ -85,16 +105,15 @@ void Foam::functionObjectFile::createFiles()
         const word startTimeName =
             obr_.time().timeName(obr_.time().startTime().value());
 
-        label i = 0;
-        forAllConstIter(wordHashSet, names_, iter)
+        forAll(names_, nameI)
         {
-            if (!filePtrs_.set(i))
+            if (!filePtrs_.set(nameI))
             {
                 fileName outputDir(baseFileDir()/prefix_/startTimeName);
 
                 mkDir(outputDir);
 
-                word fName(iter.key());
+                word fName(names_[nameI]);
 
                 // check if file already exists
                 IFstream is(outputDir/(fName + ".dat"));
@@ -103,13 +122,11 @@ void Foam::functionObjectFile::createFiles()
                     fName = fName + "_" + obr_.time().timeName();
                 }
 
-                filePtrs_.set(i, new OFstream(outputDir/(fName + ".dat")));
+                filePtrs_.set(nameI, new OFstream(outputDir/(fName + ".dat")));
 
-                initStream(filePtrs_[i]);
+                initStream(filePtrs_[nameI]);
 
-                writeFileHeader(i);
-
-                i++;
+                writeFileHeader(nameI);
             }
         }
     }
@@ -130,13 +147,12 @@ void Foam::functionObjectFile::write()
 
 void Foam::functionObjectFile::resetNames(const wordList& names)
 {
-    names_.clear();
-    names_.insert(names);
+    names_ = setNames(names);
 
     if (Pstream::master())
     {
         filePtrs_.clear();
-        filePtrs_.setSize(names_.toc().size());
+        filePtrs_.setSize(names_.size());
 
         createFiles();
     }
@@ -145,8 +161,7 @@ void Foam::functionObjectFile::resetNames(const wordList& names)
 
 void Foam::functionObjectFile::resetName(const word& name)
 {
-    names_.clear();
-    names_.insert(name);
+    names_[0] = name;
 
     if (Pstream::master())
     {
@@ -190,13 +205,12 @@ Foam::functionObjectFile::functionObjectFile
 :
     obr_(obr),
     prefix_(prefix),
-    names_(),
+    names_(1),
     filePtrs_(),
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
 {
-    names_.clear();
-    names_.insert(name);
+    names_[0] = name;
 
     if (Pstream::master())
     {
@@ -217,14 +231,11 @@ Foam::functionObjectFile::functionObjectFile
 :
     obr_(obr),
     prefix_(prefix),
-    names_(names),
+    names_(setNames(names)),
     filePtrs_(),
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
 {
-    names_.clear();
-    names_.insert(names);
-
     if (Pstream::master())
     {
         filePtrs_.clear();
@@ -252,7 +263,7 @@ void Foam::functionObjectFile::read(const dictionary& dict)
 }
 
 
-const Foam::wordHashSet& Foam::functionObjectFile::names() const
+const Foam::wordList& Foam::functionObjectFile::names() const
 {
     return names_;
 }

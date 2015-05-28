@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,7 +68,7 @@ private:
         const word prefix_;
 
         //- File names
-        wordHashSet names_;
+        wordList names_;
 
         //- File pointer
         PtrList<OFstream> filePtrs_;
@@ -83,6 +83,9 @@ private:
 protected:
 
     // Protected Member Functions
+
+        //- Set the file names and ensure that they are unique
+        wordList setNames(const wordList& names) const;
 
         //- Initialise the output stream for writing
         virtual void initStream(Ostream& os) const;
@@ -158,7 +161,7 @@ public:
         void read(const dictionary& dict);
 
         //- Return const access to the names
-        const wordHashSet& names() const;
+        const wordList& names() const;
 
         //- Return access to the file (if only 1)
         OFstream& file();

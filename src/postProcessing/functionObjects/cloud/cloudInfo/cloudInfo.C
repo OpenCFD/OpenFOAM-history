@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -89,12 +89,15 @@ void Foam::cloudInfo::read(const dictionary& dict)
         if (log_)
         {
             Info<< type() << " " << name_ << ": ";
-            if (names().size())
+
+            const wordList& cloudNames = names();
+
+            if (cloudNames.size())
             {
                 Info<< "applying to clouds:" << nl;
-                forAllConstIter(wordHashSet, names(), iter)
+                forAll(cloudNames, i)
                 {
-                    Info<< "    " << iter.key() << nl;
+                    Info<< "    " << cloudNames[i] << nl;
                 }
                 Info<< endl;
             }
@@ -131,10 +134,10 @@ void Foam::cloudInfo::write()
     {
         functionObjectFile::write();
 
-        label i = 0;
-        forAllConstIter(wordHashSet, names(), iter)
+        const wordList& cloudNames = names();
+        forAll(cloudNames, cloudI)
         {
-            const word& cloudName = iter.key();
+            const word& cloudName = cloudNames[cloudI];
 
             const kinematicCloud& cloud =
                 obr_.lookupObject<kinematicCloud>(cloudName);
@@ -149,7 +152,7 @@ void Foam::cloudInfo::write()
 
             if (Pstream::master())
             {
-                file(i)
+                file(cloudI)
                     << obr_.time().value() << token::TAB
                     << nParcels << token::TAB
                     << massInSystem << token::TAB
@@ -167,8 +170,6 @@ void Foam::cloudInfo::write()
                 << "    D10 diameter      : " << D10 << nl
                 << "    D32 diameter      : " << D32 << nl
                 << endl;
-
-            i++;
         }
     }
 }
