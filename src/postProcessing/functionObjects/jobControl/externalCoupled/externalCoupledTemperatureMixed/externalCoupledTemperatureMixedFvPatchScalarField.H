@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,7 +29,7 @@ Group
 
 Description
     This boundary condition provides a temperatue interface to an external
-    application.  Values are transferred as plain text files, where OpenFOAM
+    application. Values are transferred as plain text files, where OpenFOAM
     data is written as:
 
         # Patch: <patch name>
@@ -48,53 +48,10 @@ Description
         ...
         <valueN> <gradientN> <valueFracionN>
 
-    Data is sent/received as a single file for all patches from the directory
-
-        $FOAM_CASE/<commsDir>
-
-    At start-up, the boundary creates a lock file, i.e..
-
-        OpenFOAM.lock
-
-    ... to signal the external source to wait.  During the boundary condition
-    update, boundary values are written to file, e.g.
-
-        <fileName>.out
-
-    The lock file is then removed, instructing the external source to take
-    control of the program execution.  When ready, the external program
-    should create the return values, e.g. to file
-
-        <fileName>.in
-
-    ... and then re-instate the lock file.  The boundary condition will then
-    read the return values, and pass program execution back to OpenFOAM.
-
-
-    \heading Patch usage
-
-    \table
-        Property     | Description             | Required    | Default value
-        commsDir     | communications directory   | yes         |
-        fileName     | transfer file name      | yes         |
-        waitInterval | interval [s] between file checks | no | 1
-        timeOut      | time after which error invoked [s] |no |100*waitInterval
-        calcFrequency | calculation frequency  | no          | 1
-        log          | log program control     | no          | no
-    \endtable
-
-    Example of the boundary condition specification:
-    \verbatim
-    myPatch
-    {
-        type            externalCoupledTemperature;
-        commsDir        "$FOAM_CASE/comms";
-        fileName        data;
-        calcFrequency   1;
-    }
-    \endverbatim
+    To be used in combination with the externalCoupled functionObject.
 
 SeeAlso
+    externalCoupled
     mixedFvPatchField
     externalCoupledMixedFvPatchField
 
@@ -113,8 +70,6 @@ SourceFiles
 namespace Foam
 {
 
-class IFstream;
-
 /*---------------------------------------------------------------------------*\
      Class externalCoupledTemperatureMixedFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
@@ -123,14 +78,6 @@ class externalCoupledTemperatureMixedFvPatchScalarField
 :
     public externalCoupledMixedFvPatchField<scalar>
 {
-
-protected:
-
-    // Protected Member Functions
-
-        //- Write header to transfer file
-        virtual void writeHeader(OFstream& os) const;
-
 
 public:
 
@@ -210,20 +157,11 @@ public:
 
     // Member functions
 
-        // Evaluation functions
+        //- Transfer data for external source
+        virtual void transferData(Ostream& os) const;
 
-            //- Evaluate the patch field
-            virtual void evaluate
-            (
-                const Pstream::commsTypes commsType=Pstream::blocking
-            );
-
-            //- Transfer data for external source
-            virtual void transferData(OFstream& os) const;
-
-
-        //- Write
-        virtual void write(Ostream&) const;
+        //- Write header to transfer file
+        virtual void writeHeader(Ostream& os) const;
 };
 
 

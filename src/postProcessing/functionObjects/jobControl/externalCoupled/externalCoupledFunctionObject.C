@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,27 +23,20 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef externalCoupledMixedFvPatchFields_H
-#define externalCoupledMixedFvPatchFields_H
+#include "externalCoupledFunctionObject.H"
 
-#include "externalCoupledMixedFvPatchField.H"
-#include "fieldTypes.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
+    defineNamedTemplateTypeNameAndDebug(externalCoupledFunctionObject, 0);
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-makePatchTypeFieldTypedefs(externalCoupledMixed);
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+    addToRunTimeSelectionTable
+    (
+        functionObject,
+        externalCoupledFunctionObject,
+        dictionary
+    );
+}
 
 // ************************************************************************* //

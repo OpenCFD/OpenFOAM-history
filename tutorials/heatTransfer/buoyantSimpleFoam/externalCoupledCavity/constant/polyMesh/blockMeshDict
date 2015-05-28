@@ -62,6 +62,7 @@ boundary
     hot
     {
         type wall;
+        inGroups (coupleGroup);
         faces
         (
             (6 5 1 2)
@@ -71,6 +72,7 @@ boundary
     cold
     {
         type wall;
+        inGroups (coupleGroup);
         faces
         (
             (4 7 3 0)
