@@ -15,7 +15,9 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // Load the library containing the externalCoupled functionObject and the
-// boundary conditions. Note: using functionObjectLibs does not work for bcs.
+// boundary conditions. Normally this is done through the functionObjectLibs
+// but this is only executed at start of the time loop but this library
+// also contains boundary conditions so these will not be known until then
 libs            ("libjobControl.so");
 
 application     buoyantSimpleFoam;
@@ -52,6 +54,9 @@ functions
 {
     readFields
     {
+        // Where to load it from (if not already in solver)
+        functionObjectLibs ("libjobControl.so");
+
         type            externalCoupled;
 
         // Directory to use for communication

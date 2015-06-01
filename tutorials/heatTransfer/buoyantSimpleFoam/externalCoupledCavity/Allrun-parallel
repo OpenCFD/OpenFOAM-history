@@ -15,5 +15,6 @@ runParallel $(getApplication) 4 &
 
 ./externalSolver
 
+runApplication reconstructPar
 
 # ----------------------------------------------------------------- end-of-file
