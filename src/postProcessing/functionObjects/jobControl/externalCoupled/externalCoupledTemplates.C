@@ -74,6 +74,15 @@ bool Foam::externalCoupled::readData
             Info<< type() << ": reading data from " << transferFile << endl;
         }
         masterFilePtr.reset(new IFstream(transferFile));
+
+        if (!masterFilePtr().good())
+        {
+            FatalIOErrorIn("externalCoupled::readData()", masterFilePtr())
+                << "Cannot open " << transferFile
+                //<< " for region " << mesh.name()
+                //<< ", field "<< fieldName << ", patches " << patchIDs
+                << exit(FatalIOError);
+        }
     }
 
     // Handle column-wise reading of patch data. Support most easy types
@@ -286,6 +295,15 @@ bool Foam::externalCoupled::writeData
             Info<< type() << ": writing data to " << transferFile << endl;
         }
         masterFilePtr.reset(new OFstream(transferFile));
+
+        if (!masterFilePtr().good())
+        {
+            FatalIOErrorIn("externalCoupled::writeData()", masterFilePtr())
+                << "Cannot open " << transferFile
+                //<< " for region " << mesh.name()
+                //<< ", field "<< fieldName << ", patches " << patchIDs
+                << exit(FatalIOError);
+        }
     }
 
 

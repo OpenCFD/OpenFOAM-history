@@ -257,6 +257,8 @@ void Foam::externalCoupled::readColumns
     PstreamBuffers pBufs(Pstream::nonBlocking);
     if (Pstream::master())
     {
+        string line;
+
         // Read data from file and send to destination processor
 
         for (label procI = 0; procI < Pstream::nProcs(); procI++)
@@ -274,9 +276,14 @@ void Foam::externalCoupled::readColumns
 
             for (label rowI = 0; rowI < procNRows; rowI++)
             {
+                // Get a line
+                masterFilePtr().getLine(line);
+
+                IStringStream lineStr(line);
+
                 for (label columnI = 0; columnI < nColumns; columnI++)
                 {
-                    masterFilePtr() >> values[columnI][rowI];
+                    lineStr >> values[columnI][rowI];
                 }
             }
 
@@ -519,7 +526,7 @@ void Foam::externalCoupled::read(const dictionary& dict)
             const word& regionName = regionNames_[regionI];
             const fvMesh& mesh = obr_.time().lookupObject<fvMesh>(regionName);
 
-            Info<< "Region:" << mesh.name() << endl << incrIndent;
+            Info<< "Region: " << mesh.name() << endl << incrIndent;
             const labelList& groups = regionToGroups_[regionName];
             forAll(groups, i)
             {
@@ -527,12 +534,12 @@ void Foam::externalCoupled::read(const dictionary& dict)
                 const wordRe& groupName = groupNames_[groupI];
                 const labelList& patchIDs = groupPatchIDs_[groupI];
 
-                Info<< indent << "group:" << groupName << "\t"
-                    << " patches:" << patchIDs << endl
+                Info<< indent << "group: " << groupName << "\t"
+                    << " patches: " << patchIDs << endl
                     << incrIndent
-                    << indent << "Reading fields:" << groupReadFields_[groupI]
+                    << indent << "Reading fields: " << groupReadFields_[groupI]
                     << endl
-                    << indent << "Writing fields" << groupWriteFields_[groupI]
+                    << indent << "Writing fields: " << groupWriteFields_[groupI]
                     << endl
                     << decrIndent;
             }

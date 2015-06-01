@@ -249,8 +249,10 @@ class externalCoupled
 
         void initialise();  //const fileName& transferFile);
 
-        //- Read (and distribute) scalar columns from file. Every processor gets
-        //  nRows (= patch size) of these.
+        //- Read (and distribute) scalar columns from stream. Every processor
+        //  gets nRows (= patch size) of these. Note: could make its argument
+        //  ISstream& but then would need additional logic to construct valid
+        //  stream on all processors.
         void readColumns
         (
             const label nRows,
