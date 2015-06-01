@@ -251,6 +251,7 @@ void Foam::externalCoupled::readColumns
     List<scalarField>& data
 ) const
 {
+    // Get sizes for all processors
     const globalIndex globalFaces(nRows);
 
     PstreamBuffers pBufs(Pstream::nonBlocking);
