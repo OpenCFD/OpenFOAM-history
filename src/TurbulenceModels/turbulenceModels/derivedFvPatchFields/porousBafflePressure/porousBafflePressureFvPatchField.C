@@ -140,12 +140,11 @@ void Foam::porousBafflePressureFvPatchField::updateCoeffs()
         Un /= patch().lookupPatchField<volScalarField, scalar>(rhoName_);
     }
 
-    scalarField magUn(patch().size());
     if (uniformJump_)
     {
-        Un = gSum(Un);
+        Un = gAverage(Un);
     }
-    magUn = mag(Un);
+    scalarField magUn(mag(Un));
 
     const turbulenceModel& turbModel = db().lookupObject<turbulenceModel>
     (
@@ -155,7 +154,6 @@ void Foam::porousBafflePressureFvPatchField::updateCoeffs()
             dimensionedInternalField().group()
         )
     );
-
 
     const scalar t = db().time().timeOutputValue();
     const scalar D = D_->value(t);
@@ -176,7 +174,7 @@ void Foam::porousBafflePressureFvPatchField::updateCoeffs()
     if (debug)
     {
         scalar avePressureJump = gAverage(jump_);
-        scalar aveVelocity = gAverage(mag(Un));
+        scalar aveVelocity = gAverage(Un);
 
         Info<< patch().boundaryMesh().mesh().name() << ':'
             << patch().name() << ':'
