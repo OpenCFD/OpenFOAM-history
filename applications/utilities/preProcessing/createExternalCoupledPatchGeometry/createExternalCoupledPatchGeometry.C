@@ -46,12 +46,12 @@ Note:
     used for face addressing starts at index 0.
 
 SeeAlso
-    externalCoupled (functionObject)
+    externalCoupledFunctionObject
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "externalCoupled.H"
+#include "externalCoupledFunctionObject.H"
 #include "IOobjectList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     fileName commsDir(runTime.path()/"comms");
     args.optionReadIfPresent("commsDir", commsDir);
 
-    externalCoupled::writeGeometry(mesh, commsDir, patchGroup);
+    externalCoupledFunctionObject::writeGeometry(mesh, commsDir, patchGroup);
 
     Info<< "\nEnd\n" << endl;
 
