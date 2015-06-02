@@ -23,12 +23,12 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "externalCoupled.H"
+#include "externalCoupledFunctionObject.H"
 #include "OSspecific.H"
 #include "IFstream.H"
 #include "OFstream.H"
 #include "volFields.H"
-#include "externalCoupledMixedFvPatchField.H"
+#include "externalCoupledMixedFvPatchFields.H"
 #include "mixedFvPatchFields.H"
 #include "fixedGradientFvPatchFields.H"
 #include "fixedValueFvPatchFields.H"
@@ -38,7 +38,7 @@ License
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 template<class Type>
-bool Foam::externalCoupled::readData
+bool Foam::externalCoupledFunctionObject::readData
 (
     const fvMesh& mesh,
     const wordRe& groupName,
@@ -77,7 +77,11 @@ bool Foam::externalCoupled::readData
 
         if (!masterFilePtr().good())
         {
-            FatalIOErrorIn("externalCoupled::readData()", masterFilePtr())
+            FatalIOErrorIn
+            (
+                "externalCoupledFunctionObject::readData()",
+                masterFilePtr()
+            )
                 << "Cannot open " << transferFile
                 //<< " for region " << mesh.name()
                 //<< ", field "<< fieldName << ", patches " << patchIDs
@@ -198,7 +202,7 @@ bool Foam::externalCoupled::readData
         }
         else
         {
-            FatalErrorIn("void Foam::externalCoupled::readData()")
+            FatalErrorIn("void Foam::externalCoupledFunctionObject::readData()")
                 << "Unsupported boundary condition " << bf[patchI].type()
                 << " for patch " << bf[patchI].patch().name()
                 << " in region " << mesh.name()
@@ -214,7 +218,7 @@ bool Foam::externalCoupled::readData
 
 template<class Type>
 Foam::tmp<Foam::Field<Type> >
-Foam::externalCoupled::gatherAndCombine
+Foam::externalCoupledFunctionObject::gatherAndCombine
 (
     const Field<Type>& fld
 )
@@ -258,7 +262,7 @@ Foam::externalCoupled::gatherAndCombine
 
 
 template<class Type>
-bool Foam::externalCoupled::writeData
+bool Foam::externalCoupledFunctionObject::writeData
 (
     const fvMesh& mesh,
     const wordRe& groupName,
@@ -298,7 +302,11 @@ bool Foam::externalCoupled::writeData
 
         if (!masterFilePtr().good())
         {
-            FatalIOErrorIn("externalCoupled::writeData()", masterFilePtr())
+            FatalIOErrorIn
+            (
+                "externalCoupledFunctionObject::writeData()",
+                masterFilePtr()
+            )
                 << "Cannot open " << transferFile
                 //<< " for region " << mesh.name()
                 //<< ", field "<< fieldName << ", patches " << patchIDs
@@ -318,7 +326,7 @@ bool Foam::externalCoupled::writeData
 
         if (isA<patchFieldType>(bf[patchI]))
         {
-            // Explicit handling of externalCoupledMixed bcs - they have
+            // Explicit handling of externalCoupledObjectMixed bcs - they have
             // specialised writing routines
 
             const patchFieldType& pf = refCast<const patchFieldType>
