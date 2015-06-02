@@ -28,25 +28,44 @@ Group
     grpInletBoundaryConditions
 
 Description
-    This boundary condition modifies an inlet velocity to try and maintain a
-    pressure drop between two face zones downstream. The integral and
-    derivative gains are non-dimensionalised by the time-step.
+    This boundary condition tries to generate an inlet velocity that maintains
+    a specified pressure drop between two face zones downstream. The zones
+    should fully span a duct through which all the inlet flow passes.
+
+    An incompressible, lossless analysis of the flow between the inlet and the
+    two face-zones is performed. An ideal inlet velocity is thereby calculated
+    from the user-specified pressure drop. This analysis can include the
+    transient effect of the inlet velocity change. In this case, a shape factor
+    is included to represent non-linearity in the duct cross section.
+
+    The average pressure drop between the two face zones is measured. The same
+    incompressible, lossless analysis is performed using this pressure drop.
+    The difference between the two computed velocities is considered as an
+    error. The ideal inlet is modified so as to drive this error to zero. This
+    is accomplished by means of a PID control algorithm, for which
+    non-dimensional gains are specified by the user.
+
+    The shape factor takes a value of 0 for a linear change in cross sectional
+    area between the two face zones. A value of 1 represents a step change in
+    area at the mid-point between the zones. A smooth cubic or cosine profile
+    between two zones with zero divergence is typically represented by a factor
+    of between 0.2 and 0.25.
 
     \heading Patch usage
 
     \table
-        Property   | Description               | Required | Default value
-        deltaP     | desired pressure drop     | yes      |
-        upstream   | upstream face zone name   | yes      |
-        downstream | downstream face zone name | yes      |
-        p          | pressure field name       | no       | p
-        rho        | density field name        | no       | none
-        startTime  | time to start control     | no       | 0
-        P          | proportional gain         | yes      |
-        I          | integral gain             | yes      |
-        D          | differential gain         | yes      |
+        Property    | Description                 | Required | Default value
+        upstream    | upstream face zone name     | yes      |
+        downstream  | downstream face zone name   | yes      |
+        deltaP      | desired pressure drop       | yes      |
+        transient   | include transient effects   | yes      |
+        shapeFactor | non-linearity in the nozzle | no       | 0
+        p           | pressure field name         | no       | p
+        rho         | density field name          | no       | none
+        P           | proportional gain           | yes      |
+        I           | integral gain               | yes      |
+        D           | differential gain           | yes      |
     \endtable
-
 
     Example of the boundary condition specification:
 
@@ -54,22 +73,18 @@ Description
     myPatch
     {
         type            pressurePIDControlInletVelocity;
-        deltaP          190;
         upstream        upstream;
         downstream      downstream;
+        deltaP          200;
+        transient       true;
+        shapeFactor     0;
         p               p;
         rho             none;
-        startTime       0;
-        P               0.002;
-        I               0.002;
-        D               0.002;
+        P               0.5;
+        I               0.5;
+        D               0.1;
         value           uniform (0 0 0);
     }
-
-Note
-    This boundary condition only evaluates once per time step. This is to
-    prevent intermediate pressure solutions from generating inlet velocity
-    perturbations.
 
 SeeAlso
     Foam::fixedValueFvPatchField
@@ -83,6 +98,7 @@ SourceFiles
 #define pressurePIDControlInletVelocityFvPatchVectorField_H
 
 #include "fixedValueFvPatchFields.H"
+#include "Switch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,23 +114,26 @@ class pressurePIDControlInletVelocityFvPatchVectorField
 {
     // Private data
 
-        //- Desired pressure difference between upstream and downstream
-        const scalar deltaP_;
-
         //- Name of the upstream face zone
         const word upstreamName_;
 
         //- Name of the downstream face zone
         const word downstreamName_;
 
+        //- Desired pressure difference between upstream and downstream
+        const scalar deltaP_;
+
+        //- Whether to apply the transient algorithm
+        const Switch transient_;
+
+        //- Nozzle shape factor
+        const scalar shapeFactor_;
+
         //- Name of the pressure field
         const word pName_;
 
         //- Name of the density field (if any)
         const word rhoName_;
-
-        //- Time at which to start the control algorithm
-        const scalar startTime_;
 
         //- Proportional gain
         const scalar P_;
@@ -125,14 +144,26 @@ class pressurePIDControlInletVelocityFvPatchVectorField
         //- Derivative gain
         const scalar D_;
 
-        //- Current error
+        //- Volumetric flow rate
+        scalar Q_;
+
+        //- Error
         scalar error_;
 
-        //- Current error integral
+        //- Error integral w.r.t. time
         scalar errorIntegral_;
 
-        //- Time index of the stored errors
-        label errorTimeIndex_;
+        //- Old volumetric flow rate
+        scalar oldQ_;
+
+        //- Old error
+        scalar oldError_;
+
+        //- Old error integral w.r.t. time
+        scalar oldErrorIntegral_;
+
+        //- Time index of the last update
+        label timeIndex_;
 
 
     // Private member functions
@@ -140,8 +171,14 @@ class pressurePIDControlInletVelocityFvPatchVectorField
         //- Return the pressure interpolated to the faces
         const surfaceScalarField& facePressure() const;
 
-        //- Calculate the area and pressure of a zone
-        void zoneAreaAndPressure(const word& name, scalar& a, scalar& p) const;
+        //- Calculate averages on a zone
+        void zoneAverages
+        (
+            const word& name,
+            scalar& area,
+            point& x,
+            scalar& p
+        ) const;
 
 
 public:
