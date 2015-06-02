@@ -277,6 +277,19 @@ void Foam::externalCoupled::readColumns
             for (label rowI = 0; rowI < procNRows; rowI++)
             {
                 // Get a line
+                if (!masterFilePtr().good())
+                {
+                    FatalIOErrorIn
+                    (
+                        "externalCoupled::readColumns()",
+                        masterFilePtr()
+                    )   << "Trying to read data for processor " << procI
+                        << " row " << rowI
+                        << ". Does your file have as many rows as there are"
+                        << " patch faces (" << globalFaces.size()
+                        << ") ?" << exit(FatalIOError);
+                }
+
                 masterFilePtr().getLine(line);
 
                 IStringStream lineStr(line);
