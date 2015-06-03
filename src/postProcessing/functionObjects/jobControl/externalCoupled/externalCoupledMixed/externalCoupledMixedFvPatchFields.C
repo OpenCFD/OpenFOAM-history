@@ -23,27 +23,20 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef createExternalCoupledPatchGeometryTemplates_H
-#define createExternalCoupledPatchGeometryTemplates_H
-
-#include "word.H"
+#include "externalCoupledMixedFvPatchFields.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    template<class Type>
-    void processField(bool& processed, const word& fieldName);
-}
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+makePatchFields(externalCoupledMixed);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#ifdef NoRepository
-    #include "createExternalCoupledPatchGeometryTemplates.C"
-#endif
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+} // End namespace Foam
 
 // ************************************************************************* //

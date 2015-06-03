@@ -1,7 +1,8 @@
 EXE_INC = \
-    -I$(LIB_SRC)/finiteVolume/lnInclude
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/postProcessing/functionObjects/jobControl/lnInclude \
+    -I$(HOME)/OpenFOAM/OpenFOAM-dev.OpenCFD.externalCoupled/src/postProcessing/functionObjects/jobControl/lnInclude/
 
 EXE_LIBS = \
     -lfiniteVolume \
-    -lturbulenceModels \
-    -lcompressibleTurbulenceModels
+    -ljobControl

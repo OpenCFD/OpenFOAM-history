@@ -14,6 +14,12 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// Load the library containing the externalCoupled functionObject and the
+// boundary conditions. Normally this is done through the functionObjectLibs
+// but this is only executed at start of the time loop but this library
+// also contains boundary conditions so these will not be known until then
+libs            ("libjobControl.so");
+
 application     buoyantSimpleFoam;
 
 startFrom       startTime;
@@ -43,6 +49,42 @@ timeFormat      general;
 timePrecision   6;
 
 runTimeModifiable true;
+
+functions
+{
+    readFields
+    {
+        // Where to load it from (if not already in solver)
+        functionObjectLibs ("libjobControl.so");
+
+        type            externalCoupled;
+
+        // Directory to use for communication
+        commsDir        "${FOAM_CASE}/comms";
+
+        // Does external process start first
+        initByExternal  true;
+
+        // Additional output
+        log             true;
+
+        regions
+        {
+            // Region name
+            region0
+            {
+                // Patch or patchGroup
+                coupleGroup
+                {
+                    // Fields to output in commsDir
+                    writeFields (T);
+                    // Fields to read from commsDir
+                    readFields  (T);
+                }
+            }
+        }
+    }
+}
 
 
 // ************************************************************************* //
