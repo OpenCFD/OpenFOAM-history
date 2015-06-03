@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -139,6 +139,22 @@ class forceCoeffs
             scalar Aref_;
 
 
+        // File streams
+
+            //- Integrated coefficients
+            autoPtr<OFstream> coeffFilePtr_;
+
+            //- Drag coefficient
+            autoPtr<OFstream> CdBinFilePtr_;
+
+            //- Lift coefficient
+            autoPtr<OFstream> ClBinFilePtr_;
+
+            //- Moment coefficient
+            autoPtr<OFstream> CmBinFilePtr_;
+
+
+
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
@@ -150,8 +166,19 @@ class forceCoeffs
 
 protected:
 
-    //- Output file header information
-    virtual void writeFileHeader(const label i);
+    // Protected Member Functions
+
+        //- Create the output files
+        void createFiles();
+
+        //- Write header for integrated data
+        void writeIntegratedHeader(const word& header, Ostream& os) const;
+
+        //- Write header for binned data
+        void writeBinHeader(const word& header, Ostream& os) const;
+
+        //- Write binned data
+        void writeBinData(const List<Field<scalar> > coeffs, Ostream& os) const;
 
 
 public:
@@ -169,7 +196,8 @@ public:
             const word& name,
             const objectRegistry&,
             const dictionary&,
-            const bool loadFromFiles = false
+            const bool loadFromFiles = false,
+            const bool readFields = true
         );
 
 

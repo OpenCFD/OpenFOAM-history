@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -163,6 +163,32 @@ protected:
         //- Pressure, viscous and porous moment per bin
         List<Field<vector> > moment_;
 
+        // File streams
+
+            //- Forces
+            autoPtr<OFstream> forceFilePtr_;
+
+            //- Moments
+            autoPtr<OFstream> momentFilePtr_;
+
+            //- Force bins
+            autoPtr<OFstream> forceBinFilePtr_;
+
+            //- Moment bins
+            autoPtr<OFstream> momentBinFilePtr_;
+
+            //- Local force
+            autoPtr<OFstream> localForceFilePtr_;
+
+            //- Local moment
+            autoPtr<OFstream> localMomentFilePtr_;
+
+            //- Local force bins
+            autoPtr<OFstream> localForceBinFilePtr_;
+
+            //- Local moment bins
+            autoPtr<OFstream> localMomentBinFilePtr_;
+
 
         // Read from dictionary
 
@@ -233,11 +259,14 @@ protected:
         //- Create a field name
         word fieldName(const word& name) const;
 
-        //- Create file names for forces and bins
-        wordList createFileNames(const dictionary& dict) const;
+        //- Create the output files
+        void createFiles();
 
-        //- Output file header information
-        virtual void writeFileHeader(const label i);
+        //- Write header for integrated data
+        void writeIntegratedHeader(const word& header, Ostream& os) const;
+
+        //- Write header for binned data
+        void writeBinHeader(const word& header, Ostream& os) const;
 
         //- Initialise the fields
         void initialise();
@@ -291,10 +320,27 @@ protected:
             const vectorField& fP
         );
 
-        //- Helper function to write force data
+        //- Helper function to write integrated forces and moments
+        void writeIntegratedForceMoment
+        (
+            const string& descriptor,
+            const vectorField& fm0,
+            const vectorField& fm1,
+            const vectorField& fm2,
+            autoPtr<OFstream>& osPtr
+        ) const;
+
+        //- Write force data
         void writeForces();
 
-        //- Helper function to write bin data
+        //- Helper function to write binned forces and moments
+        void writeBinnedForceMoment
+        (
+            const List<Field<vector> >& fm,
+            autoPtr<OFstream>& osPtr
+        ) const;
+
+        //- Write binned data
         void writeBins();
 
         //- Disallow default bitwise copy construct
