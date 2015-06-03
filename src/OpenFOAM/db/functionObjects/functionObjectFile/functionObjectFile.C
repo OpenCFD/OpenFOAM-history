@@ -35,26 +35,6 @@ Foam::label Foam::functionObjectFile::addChars = 7;
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-Foam::wordList Foam::functionObjectFile::setNames(const wordList& names) const
-{
-    wordHashSet uniqueNames(names);
-
-    if (names.size() != uniqueNames.size())
-    {
-        // Duplicate names given = not allowed!
-
-        FatalErrorIn
-        (
-            "Foam::functionObjectFile::setNames(const wordList&) const"
-        )
-            << "File names must be unique.  Supplied file names: "
-            << names << abort(FatalError);
-    }
-
-    return names;
-}
-
-
 void Foam::functionObjectFile::initStream(Ostream& os) const
 {
     os.setf(ios_base::scientific, ios_base::floatfield);
@@ -98,78 +78,43 @@ Foam::fileName Foam::functionObjectFile::baseTimeDir() const
 }
 
 
-void Foam::functionObjectFile::createFiles()
+Foam::autoPtr<Foam::OFstream> Foam::functionObjectFile::createFile
+(
+    const word& name
+) const
 {
+    autoPtr<OFstream> osPtr;
+
     if (Pstream::master() && writeToFile_)
     {
         const word startTimeName =
             obr_.time().timeName(obr_.time().startTime().value());
 
-        forAll(names_, nameI)
+        fileName outputDir(baseFileDir()/prefix_/startTimeName);
+
+        mkDir(outputDir);
+
+        word fName(name);
+
+        // check if file already exists
+        IFstream is(outputDir/(fName + ".dat"));
+        if (is.good())
         {
-            if (!filePtrs_.set(nameI))
-            {
-                fileName outputDir(baseFileDir()/prefix_/startTimeName);
-
-                mkDir(outputDir);
-
-                word fName(names_[nameI]);
-
-                // check if file already exists
-                IFstream is(outputDir/(fName + ".dat"));
-                if (is.good())
-                {
-                    fName = fName + "_" + obr_.time().timeName();
-                }
-
-                filePtrs_.set(nameI, new OFstream(outputDir/(fName + ".dat")));
-
-                initStream(filePtrs_[nameI]);
-
-                writeFileHeader(nameI);
-            }
+            fName = fName + "_" + obr_.time().timeName();
         }
+
+        osPtr.set(new OFstream(outputDir/(fName + ".dat")));
+
+        initStream(osPtr());
     }
+
+    return osPtr;
 }
 
 
-void Foam::functionObjectFile::writeFileHeader(const label i)
+void Foam::functionObjectFile::resetFile(const word& name)
 {
-    // do nothing
-}
-
-
-void Foam::functionObjectFile::write()
-{
-    createFiles();
-}
-
-
-void Foam::functionObjectFile::resetNames(const wordList& names)
-{
-    names_ = setNames(names);
-
-    if (Pstream::master())
-    {
-        filePtrs_.clear();
-        filePtrs_.setSize(names_.size());
-
-        createFiles();
-    }
-}
-
-
-void Foam::functionObjectFile::resetName(const word& name)
-{
-    names_[0] = name;
-
-    if (Pstream::master())
-    {
-        filePtrs_.clear();
-        filePtrs_.setSize(1);
-
-        createFiles();
-    }
+    filePtr_ = createFile(name);
 }
 
 
@@ -189,8 +134,7 @@ Foam::functionObjectFile::functionObjectFile
 :
     obr_(obr),
     prefix_(prefix),
-    names_(),
-    filePtrs_(),
+    filePtr_(),
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
 {}
@@ -205,45 +149,10 @@ Foam::functionObjectFile::functionObjectFile
 :
     obr_(obr),
     prefix_(prefix),
-    names_(1),
-    filePtrs_(),
+    filePtr_(createFile(name)),
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
-{
-    names_[0] = name;
-
-    if (Pstream::master())
-    {
-        filePtrs_.clear();
-        filePtrs_.setSize(1);
-
-        // cannot create files - need to access virtual function
-    }
-}
-
-
-Foam::functionObjectFile::functionObjectFile
-(
-    const objectRegistry& obr,
-    const word& prefix,
-    const wordList& names
-)
-:
-    obr_(obr),
-    prefix_(prefix),
-    names_(setNames(names)),
-    filePtrs_(),
-    writePrecision_(IOstream::defaultPrecision()),
-    writeToFile_(true)
-{
-    if (Pstream::master())
-    {
-        filePtrs_.clear();
-        filePtrs_.setSize(names_.size());
-
-        // cannot create files - need to access virtual function
-    }
-}
+{}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -263,12 +172,6 @@ void Foam::functionObjectFile::read(const dictionary& dict)
 }
 
 
-const Foam::wordList& Foam::functionObjectFile::names() const
-{
-    return names_;
-}
-
-
 Foam::OFstream& Foam::functionObjectFile::file()
 {
     if (!writeToFile_)
@@ -283,62 +186,20 @@ Foam::OFstream& Foam::functionObjectFile::file()
             << abort(FatalError);
     }
 
-    if (filePtrs_.size() != 1)
-    {
-        WarningIn("Foam::Ostream& Foam::functionObjectFile::file()")
-            << "Requested single file, but multiple files are present"
-            << endl;
-    }
-
-    if (!filePtrs_.set(0))
+    if (!filePtr_.valid())
     {
         FatalErrorIn("Foam::OFstream& Foam::functionObjectFile::file()")
-            << "File pointer at index " << 0 << " not allocated"
+            << "File pointer not allocated"
             << abort(FatalError);
     }
 
-    return filePtrs_[0];
+    return filePtr_();
 }
 
 
-Foam::PtrList<Foam::OFstream>& Foam::functionObjectFile::files()
+bool Foam::functionObjectFile::writeToFile() const
 {
-    if (!Pstream::master())
-    {
-        FatalErrorIn("Foam::OFstream& Foam::functionObjectFile::files()")
-            << "Request for files() can only be done by the master process"
-            << abort(FatalError);
-    }
-
-    return filePtrs_;
-}
-
-
-Foam::OFstream& Foam::functionObjectFile::file(const label i)
-{
-    if (!writeToFile_)
-    {
-        return Snull;
-    }
-
-    if (!Pstream::master())
-    {
-        FatalErrorIn
-        (
-            "Foam::OFstream& Foam::functionObjectFile::file(const label)"
-        )
-            << "Request for file(i) can only be done by the master process"
-            << abort(FatalError);
-    }
-
-    if (!filePtrs_.set(i))
-    {
-        FatalErrorIn("Foam::OFstream& Foam::functionObjectFile::file()")
-            << "File pointer at index " << i << " not allocated"
-            << abort(FatalError);
-    }
-
-    return filePtrs_[i];
+    return Pstream::master() && writeToFile_;
 }
 
 

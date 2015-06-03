@@ -67,20 +67,20 @@ private:
         //- Prefix
         const word prefix_;
 
-        //- File names
-        wordList names_;
-
         //- File pointer
-        PtrList<OFstream> filePtrs_;
+        autoPtr<OFstream> filePtr_;
 
         //- Write precision
         label writePrecision_;
 
+
+protected:
+
+    // Protected Data
+
         //- Flag to enable/disable writing to file
         bool writeToFile_;
 
-
-protected:
 
     // Protected Member Functions
 
@@ -96,20 +96,11 @@ protected:
         //- Return the base directory for the current time value
         virtual fileName baseTimeDir() const;
 
-        //- Create the output file
-        virtual void createFiles();
+        //- Return an autoPtr to a new file
+        virtual autoPtr<OFstream> createFile(const word& name) const;
 
-        //- File header information
-        virtual void writeFileHeader(const label i = 0);
-
-        //- Write function
-        virtual void write();
-
-        //- Reset the list of names from a wordList
-        virtual void resetNames(const wordList& names);
-
-        //- Reset the list of names to a single name entry
-        virtual void resetName(const word& name);
+        //- Reset internal file pointer to new file with new name
+        virtual void resetFile(const word& name);
 
         //- Return the value width when writing to stream with optional offset
         virtual Omanip<int> valueWidth(const label offset = 0) const;
@@ -142,14 +133,6 @@ public:
             const word& name
         );
 
-        //- Construct from components
-        functionObjectFile
-        (
-            const objectRegistry& obr,
-            const word& prefix,
-            const wordList& names
-        );
-
 
     //- Destructor
     virtual ~functionObjectFile();
@@ -166,11 +149,8 @@ public:
         //- Return access to the file (if only 1)
         OFstream& file();
 
-        //- Return access to the files
-        PtrList<OFstream>& files();
-
-        //- Return file 'i'
-        OFstream& file(const label i);
+        //- Return true if can write to file
+        bool writeToFile() const;
 
         //- Write a commented string to stream
         void writeCommented
