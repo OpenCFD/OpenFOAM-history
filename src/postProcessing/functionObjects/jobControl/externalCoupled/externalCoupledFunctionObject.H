@@ -28,10 +28,10 @@ Group
     grpJobControlFunctionObjects
 
 Description
-    This functionObject provides a simple interface to coupling with
+    This functionObject provides a simple interface for explicit coupling with
     an external application. The coupling is through plain text files
-    where OpenFOAM boundary data is written as one line per face (data from all
-    processors collated):
+    where OpenFOAM boundary data is read/written as one line per face
+    (data from all processors collated):
 
         # Patch: <patch name>
         <fld1> <fld2> .. <fldn>             //face0
@@ -40,14 +40,9 @@ Description
         <fld1> <fld2> .. <fldn>             //faceN
 
     where the actual entries depend on the bc type:
-    - externalCoupledMixed: output of transferData
-    - mixed: value, normalGradient, valueFraction
-    - other: value
-
-    OpenFOAM boundary data is read back from text files (provided by the
-    external solver):
-    - mixed: refValue, normalGradient, valueFraction
-    - other: value
+    - mixed: value, snGrad, refValue, refGrad, valueFraction
+    - externalCoupledMixed: output of writeData
+    - other: value, snGrad
 
     These text files are located in a user specified communications directory
     which gets read/written on the master processor only. In the
@@ -190,7 +185,6 @@ class externalCoupledFunctionObject
         // Per group the names of the fields to write
         DynamicList<wordList> groupWriteFields_;
 
-
         //- Initialised flag
         bool initialised_;
 
@@ -252,7 +246,7 @@ class externalCoupledFunctionObject
         //- Write data for all regions, all fields
         void writeData() const;
 
-        void initialise();  //const fileName& transferFile);
+        void initialise();
 
         //- Read (and distribute) scalar columns from stream. Every processor
         //  gets nRows (= patch size) of these. Note: could make its argument
@@ -264,6 +258,17 @@ class externalCoupledFunctionObject
             const label nColumns,
             autoPtr<IFstream>& masterFilePtr,
             List<scalarField>& data
+        ) const;
+
+        //- Read (and distribute) lines from stream. Every processor
+        //  gets nRows (= patch size) of these. Data kept as stream (instead
+        //  of strings) for ease of interfacing to readData routines that take
+        //  an Istream.
+        void readLines
+        (
+            const label nRows,
+            autoPtr<IFstream>& masterFilePtr,
+            OStringStream& data
         ) const;
 
         //- Helper: append data from all processors onto master

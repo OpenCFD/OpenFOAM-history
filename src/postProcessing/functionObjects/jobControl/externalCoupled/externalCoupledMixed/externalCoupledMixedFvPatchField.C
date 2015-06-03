@@ -25,6 +25,7 @@ License
 
 #include "externalCoupledMixedFvPatchField.H"
 #include "fvPatchFieldMapper.H"
+#include "ISstream.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -67,25 +68,8 @@ externalCoupledMixedFvPatchField
     const dictionary& dict
 )
 :
-    mixedFvPatchField<Type>(p, iF)
-{
-    if (dict.found("value"))
-    {
-        fvPatchField<Type>::operator=
-        (
-            Field<Type>("value", dict, p.size())
-        );
-    }
-    else
-    {
-        fvPatchField<Type>::operator=(this->patchInternalField());
-    }
-
-    // Initialise as a fixed value
-    this->refValue() = *this;
-    this->refGrad() = pTraits<Type>::zero;
-    this->valueFraction() = 1.0;
-}
+    mixedFvPatchField<Type>(p, iF, dict)
+{}
 
 
 template<class Type>
@@ -127,66 +111,56 @@ void Foam::externalCoupledMixedFvPatchField<Type>::writeHeader
     Ostream& os
 ) const
 {
-    os  << "# Values: magSf value snGrad" << endl;
+    os  << "# Values: value snGrad refValue refGrad valueFraction" << endl;
 }
 
 
 template<class Type>
-void Foam::externalCoupledMixedFvPatchField<Type>::transferData
+void Foam::externalCoupledMixedFvPatchField<Type>::writeData
 (
     Ostream& os
 ) const
 {
-    if (Pstream::parRun())
+    const Field<Type> snGrad(this->snGrad());
+    const Field<Type>& refValue(this->refValue());
+    const Field<Type>& refGrad(this->refGrad());
+    const scalarField& valueFraction(this->valueFraction());
+
+    forAll(refValue, faceI)
     {
-        List<Field<scalar> > magSfs(Pstream::nProcs());
-        magSfs[Pstream::myProcNo()].setSize(this->patch().size());
-        magSfs[Pstream::myProcNo()] = this->patch().magSf();
-        Pstream::gatherList(magSfs);
-
-        List<Field<Type> > values(Pstream::nProcs());
-        values[Pstream::myProcNo()].setSize(this->patch().size());
-        values[Pstream::myProcNo()] = this->refValue();
-        Pstream::gatherList(values);
-
-        List<Field<Type> > snGrads(Pstream::nProcs());
-        snGrads[Pstream::myProcNo()].setSize(this->patch().size());
-        snGrads[Pstream::myProcNo()] = this->snGrad();
-        Pstream::gatherList(snGrads);
-
-        if (Pstream::master())
-        {
-            forAll(values, procI)
-            {
-                const Field<scalar>& magSf = magSfs[procI];
-                const Field<Type>& value = values[procI];
-                const Field<Type>& snGrad = snGrads[procI];
-
-                forAll(magSf, faceI)
-                {
-                    os  << magSf[faceI] << token::SPACE
-                        << value[faceI] << token::SPACE
-                        << snGrad[faceI] << nl;
-                }
-            }
-
-            os.flush();
-        }
+        os  << this->operator[](faceI) << token::SPACE
+            << snGrad[faceI] << token::SPACE
+            << refValue[faceI] << token::SPACE
+            << refGrad[faceI] << token::SPACE
+            << valueFraction[faceI] << nl;
     }
-    else
+}
+
+
+template<class Type>
+void Foam::externalCoupledMixedFvPatchField<Type>::readData(Istream& is)
+{
+    // Assume generic input stream so we can do line-based format and skip
+    // unused columns
+    ISstream& iss = dynamic_cast<ISstream&>(is);
+
+    string line;
+
+    forAll(*this, faceI)
     {
-        const Field<scalar>& magSf(this->patch().magSf());
-        const Field<Type>& value(this->refValue());
-        const Field<Type> snGrad(this->snGrad());
+        iss.getLine(line);
+        IStringStream lineStr(line);
 
-        forAll(magSf, faceI)
-        {
-            os  << magSf[faceI] << token::SPACE
-                << value[faceI] << token::SPACE
-                << snGrad[faceI] << nl;
-        }
+        // For symmetry with writing ignore value, snGrad columns
 
-        os.flush();
+        Type value, snGrad;
+
+        lineStr
+            >> value
+            >> snGrad
+            >> this->refValue()[faceI]
+            >> this->refGrad()[faceI]
+            >> this->valueFraction()[faceI];
     }
 }
 
