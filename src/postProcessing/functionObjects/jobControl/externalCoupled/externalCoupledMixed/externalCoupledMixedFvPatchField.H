@@ -28,23 +28,24 @@ Group
     grpGenericBoundaryConditions grpCoupledBoundaryConditions
 
 Description
-    This boundary condition provides an interface to an external application.
-    Values are transferred as plain text files, where OpenFOAM data is written
-    as:
+    This boundary condition extends the mixed boundary condition with
+    serialisation through
+    - writeHeader
+    - writeData
+    - readData
+    functions. It is used for coupling to external applications in combination
+    with the externalCoupled functionObject. The default output is one
+    line per face, with columns
+    <value> <snGrad> <refValue> <refGrad> <valueFraction>
 
-        # Patch: <patch name>
-        <magSf1> <value1> <surfaceNormalGradient1>
-        <magSf2> <value2> <surfaceNormalGradient2>
-        <magSf3> <value3> <surfaceNormalGradient3>
-        ...
-        <magSfN> <valueN> <surfaceNormalGradientN>
-
-    and received as the constituent pieces of the `mixed' condition. To be
-    used in combination with the externalCoupled functionObject.
+Notes
+    readData,writeData are not callbacks for regIOobject (since fvPatchField
+    not derived from it). They do however do exactly the same - streaming of
+    data.
 
 SeeAlso
     mixedFvPatchField
-    externalCoupled (functionObject)
+    externalCoupledFunctionObject
 
 SourceFiles
     externalCoupledMixedFvPatchField.C
@@ -145,11 +146,14 @@ public:
 
     // Member functions
 
-        //- Write header to transfer file
-        virtual void writeHeader(Ostream& os) const;
+        //- Write header
+        virtual void writeHeader(Ostream&) const;
 
-        //- Transfer data for external source
-        virtual void transferData(Ostream& os) const;
+        //- Write data
+        virtual void writeData(Ostream&) const;
+
+        //- Read data
+        virtual void readData(Istream&);
 };
 
 

@@ -42,16 +42,16 @@ Description
     and received as the constituent pieces of the `mixed' condition, i.e.
 
         # Patch: <patch name>
-        <value1> <gradient1> <valueFracion1>
-        <value2> <gradient2> <valueFracion2>
-        <value3> <gradient3> <valueFracion3>
-        ...
-        <valueN> <gradientN> <valueFracionN>
+        <refValue1> <refGrad1> <valueFraction1>
+        <refValue2> <refGrad2> <valueFraction2>
+        <refValue3> <refGrad3> <valueFraction3>
+          ...
+        <refValueN> <refGradN> <valueFractionN>
 
     To be used in combination with the externalCoupled functionObject.
 
 SeeAlso
-    externalCoupled
+    externalCoupledFunctionObject
     mixedFvPatchField
     externalCoupledMixedFvPatchField
 
@@ -71,7 +71,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-     Class externalCoupledTemperatureMixedFvPatchScalarField Declaration
+      Class externalCoupledTemperatureMixedFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
 class externalCoupledTemperatureMixedFvPatchScalarField
@@ -157,11 +157,14 @@ public:
 
     // Member functions
 
-        //- Transfer data for external source
-        virtual void transferData(Ostream& os) const;
+        //- Write header
+        virtual void writeHeader(Ostream&) const;
 
-        //- Write header to transfer file
-        virtual void writeHeader(Ostream& os) const;
+        //- Write data
+        virtual void writeData(Ostream&) const;
+
+        //- Read data
+        virtual void readData(Istream&);
 };
 
 
