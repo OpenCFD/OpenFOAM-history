@@ -34,23 +34,15 @@ boundaryField
     hot
     {
         type            externalCoupledTemperature;
-        value           uniform 307.75; // 34.6 degC
 
-        //type            mixed;
-        //refValue        uniform 307.75; // 34.6 degC
-        //refGradient     uniform 0;
-        //valueFraction   uniform 1;
+        // No value provided; initialise with internal value
     }
 
     cold
     {
         type            externalCoupledTemperature;
-        value           uniform 288.15; // 15 degC
 
-        //type            mixed;
-        //refValue        uniform 288.15; // 15 degC
-        //refGradient     uniform 0;
-        //valueFraction   uniform 1;
+        // No value provided; initialise with internal value
     }
 }
 

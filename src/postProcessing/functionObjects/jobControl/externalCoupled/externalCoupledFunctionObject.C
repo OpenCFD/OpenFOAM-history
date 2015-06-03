@@ -29,7 +29,6 @@ License
 #include "IFstream.H"
 #include "OFstream.H"
 #include "volFields.H"
-#include "externalCoupledMixedFvPatchField.H"
 #include "globalIndex.H"
 #include "fvMesh.H"
 
@@ -286,20 +285,23 @@ void Foam::externalCoupledFunctionObject::readColumns
             for (label rowI = 0; rowI < procNRows; rowI++)
             {
                 // Get a line
-                if (!masterFilePtr().good())
+                do
                 {
-                    FatalIOErrorIn
-                    (
-                        "externalCoupledFunctionObject::readColumns()",
-                        masterFilePtr()
-                    )   << "Trying to read data for processor " << procI
-                        << " row " << rowI
-                        << ". Does your file have as many rows as there are"
-                        << " patch faces (" << globalFaces.size()
-                        << ") ?" << exit(FatalIOError);
-                }
+                    if (!masterFilePtr().good())
+                    {
+                        FatalIOErrorIn
+                        (
+                            "externalCoupledFunctionObject::readColumns()",
+                            masterFilePtr()
+                        )   << "Trying to read data for processor " << procI
+                            << " row " << rowI
+                            << ". Does your file have as many rows as there are"
+                            << " patch faces (" << globalFaces.size()
+                            << ") ?" << exit(FatalIOError);
+                    }
 
-                masterFilePtr().getLine(line);
+                    masterFilePtr().getLine(line);
+                } while (line.empty() || line[0] == '#');
 
                 IStringStream lineStr(line);
 
@@ -319,6 +321,71 @@ void Foam::externalCoupledFunctionObject::readColumns
     // Read from PstreamBuffers
     UIPstream str(Pstream::masterNo(), pBufs);
     str >> data;
+}
+
+
+void Foam::externalCoupledFunctionObject::readLines
+(
+    const label nRows,
+    autoPtr<IFstream>& masterFilePtr,
+    OStringStream& lines
+) const
+{
+    // Get sizes for all processors
+    const globalIndex globalFaces(nRows);
+
+    PstreamBuffers pBufs(Pstream::nonBlocking);
+
+    if (Pstream::master())
+    {
+        string line;
+
+        // Read line from file and send to destination processor
+
+        for (label procI = 0; procI < Pstream::nProcs(); procI++)
+        {
+            // Number of rows to read for processor procI
+            label procNRows = globalFaces.localSize(procI);
+
+            UOPstream toProc(procI, pBufs);
+
+            for (label rowI = 0; rowI < procNRows; rowI++)
+            {
+                // Get a line
+                do
+                {
+                    if (!masterFilePtr().good())
+                    {
+                        FatalIOErrorIn
+                        (
+                            "externalCoupledFunctionObject::readColumns()",
+                            masterFilePtr()
+                        )   << "Trying to read data for processor " << procI
+                            << " row " << rowI
+                            << ". Does your file have as many rows as there are"
+                            << " patch faces (" << globalFaces.size()
+                            << ") ?" << exit(FatalIOError);
+                    }
+
+                    masterFilePtr().getLine(line);
+                } while (line.empty() || line[0] == '#');
+
+                // Send line to the destination processor
+                toProc << line;
+            }
+        }
+    }
+
+
+    pBufs.finishedSends();
+
+    // Read lines from PstreamBuffers
+    UIPstream str(Pstream::masterNo(), pBufs);
+    for (label rowI = 0; rowI < nRows; rowI++)
+    {
+        string line(str);
+        lines << line.c_str() << nl;
+    }
 }
 
 
@@ -624,7 +691,8 @@ Foam::externalCoupledFunctionObject::externalCoupledFunctionObject
 :
     functionObject(name),
     time_(runTime),
-    enabled_(true)
+    enabled_(true),
+    initialised_(false)
 {
     read(dict);
 
@@ -706,10 +774,13 @@ bool Foam::externalCoupledFunctionObject::execute(const bool forceWrite)
 
 bool Foam::externalCoupledFunctionObject::end()
 {
-    // Remove old data files
-    removeReadFiles();
-    removeWriteFiles();
-    removeLockFile();
+    if (enabled())
+    {
+        // Remove old data files
+        removeReadFiles();
+        removeWriteFiles();
+        removeLockFile();
+    }
 
     return true;
 }
@@ -818,6 +889,7 @@ bool Foam::externalCoupledFunctionObject::read(const dictionary& dict)
     // Print a bit
     if (log_)
     {
+        Info<< type() << ": Communicating with regions:" << endl;
         forAll(regionNames_, regionI)
         {
             const word& regionName = regionNames_[regionI];
@@ -831,7 +903,7 @@ bool Foam::externalCoupledFunctionObject::read(const dictionary& dict)
                 const wordRe& groupName = groupNames_[groupI];
                 const labelList& patchIDs = groupPatchIDs_[groupI];
 
-                Info<< indent << "group: " << groupName << "\t"
+                Info<< indent << "Group: " << groupName << "\t"
                     << " patches: " << patchIDs << endl
                     << incrIndent
                     << indent << "Reading fields: " << groupReadFields_[groupI]
@@ -842,6 +914,7 @@ bool Foam::externalCoupledFunctionObject::read(const dictionary& dict)
             }
             Info<< decrIndent;
         }
+        Info<< endl;
     }
 
 
