@@ -68,13 +68,13 @@ void Foam::yPlus::calcYPlus
             const scalar maxYp = gMax(Yp);
             const scalar avgYp = gAverage(Yp);
 
-            if (Pstream::master())
-            {
-                Info(log_)
-                    << "    patch " << patch.name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
+            Info(log_)
+                << "    patch " << patch.name()
+                << " y+ : min = " << minYp << ", max = " << maxYp
+                << ", average = " << avgYp << nl;
 
+            if (writeToFile())
+            {
                 file() << obr_.time().value()
                     << token::TAB << patch.name()
                     << token::TAB << minYp
@@ -98,13 +98,13 @@ void Foam::yPlus::calcYPlus
             const scalar maxYp = gMax(Yp);
             const scalar avgYp = gAverage(Yp);
 
-            if (Pstream::master())
-            {
-                Info(log_)
-                    << "    patch " << patch.name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
+            Info(log_)
+                << "    patch " << patch.name()
+                << " y+ : min = " << minYp << ", max = " << maxYp
+                << ", average = " << avgYp << nl;
 
+            if (writeToFile())
+            {
                 file() << obr_.time().value()
                     << token::TAB << patch.name()
                     << token::TAB << minYp

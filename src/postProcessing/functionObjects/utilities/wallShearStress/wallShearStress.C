@@ -40,15 +40,18 @@ defineTypeNameAndDebug(wallShearStress, 0);
 
 // * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
-void Foam::wallShearStress::writeFileHeader(const label i)
+void Foam::wallShearStress::writeFileHeader(Ostream& os) const
 {
-    // Add headers to output data
-    writeHeader(file(), "Wall shear stress");
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "patch");
-    writeTabbed(file(), "min");
-    writeTabbed(file(), "max");
-    file() << endl;
+    if (writeToFile())
+    {
+        // Add headers to output data
+        writeHeader(os, "Wall shear stress");
+        writeCommented(os, "Time");
+        writeTabbed(os, "patch");
+        writeTabbed(os, "min");
+        writeTabbed(os, "max");
+        os << endl;
+    }
 }
 
 
@@ -74,7 +77,7 @@ void Foam::wallShearStress::calcShearStress
         vector minSsp = gMin(ssp);
         vector maxSsp = gMax(ssp);
 
-        if (Pstream::master())
+        if (writeToFile())
         {
             file() << mesh.time().value()
                 << token::TAB << pp.name()
@@ -222,6 +225,8 @@ void Foam::wallShearStress::read(const dictionary& dict)
 
             patchSet_ = filteredPatchSet;
         }
+
+        writeFileHeader(file());
     }
 }
 
@@ -233,8 +238,6 @@ void Foam::wallShearStress::execute()
 
     if (active_)
     {
-        functionObjectFile::write();
-
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
         volVectorField& wallShearStress =
@@ -294,8 +297,6 @@ void Foam::wallShearStress::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         const volVectorField& wallShearStress =
             obr_.lookupObject<volVectorField>(resultName_);
 

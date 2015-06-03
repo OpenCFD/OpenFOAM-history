@@ -34,6 +34,23 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * //
+
+void Foam::valueAverage::writeFileHeader(Ostream& os) const
+{
+    if (writeToFile())
+    {
+        writeHeader(os, "Value averages");
+        writeCommented(os, "Time");
+        forAll(fieldNames_, fieldI)
+        {
+            writeTabbed(os, fieldNames_[fieldI]);
+        }
+        os << endl;
+    }
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::valueAverage::valueAverage
@@ -86,19 +103,9 @@ void Foam::valueAverage::read(const dictionary& dict)
 
         log_ = dict.lookupOrDefault<Switch>("log", true);
 
-    }
-}
+        writeFileHeader(file());
 
-
-void Foam::valueAverage::writeFileHeader(const label i)
-{
-    writeHeader(file(), "Value averages");
-    writeCommented(file(), "Time");
-    forAll(fieldNames_, fieldI)
-    {
-        writeTabbed(file(), fieldNames_[fieldI]);
     }
-    file() << endl;
 }
 
 
@@ -109,16 +116,14 @@ void Foam::valueAverage::execute()
         return;
     }
 
-    if (Pstream::master())
-    {
-        functionObjectFile::write();
-    }
-
     scalar dt = obr_.time().deltaTValue();
 
     Info(log_)<< type() << ": " << name_ << " averages:" << nl;
 
-    file() << obr_.time().timeName();
+    if (writeToFile())
+    {
+        file() << obr_.time().timeName();
+    }
 
     DynamicList<label> unprocessedFields(fieldNames_.size());
 
@@ -150,13 +155,20 @@ void Foam::valueAverage::execute()
         if (!processed)
         {
             unprocessedFields.append(fieldI);
-            file() << tab << "n/a";
+
+            if (writeToFile())
+            {
+                file() << tab << "n/a";
+            }
         }
 
         totalTime_[fieldI] += dt;
     }
 
-    file()<< endl;
+    if (writeToFile())
+    {
+        file()<< endl;
+    }
 
     if (unprocessedFields.size())
     {

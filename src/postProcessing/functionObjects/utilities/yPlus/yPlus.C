@@ -38,16 +38,19 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::yPlus::writeFileHeader(const label i)
+void Foam::yPlus::writeFileHeader(Ostream& os) const
 {
-    writeHeader(file(), "y+");
+    if (writeToFile())
+    {
+        writeHeader(os, "y+");
 
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "patch");
-    writeTabbed(file(), "min");
-    writeTabbed(file(), "max");
-    writeTabbed(file(), "average");
-    file() << endl;
+        writeCommented(os, "Time");
+        writeTabbed(os, "patch");
+        writeTabbed(os, "min");
+        writeTabbed(os, "max");
+        writeTabbed(os, "average");
+        os << endl;
+    }
 }
 
 
@@ -133,6 +136,8 @@ void Foam::yPlus::read(const dictionary& dict)
         dict.readIfPresent("resultName", resultName_);
         dict.readIfPresent("phiName", phiName_);
         dict.readIfPresent("UName", UName_);
+
+        writeFileHeader(file());
     }
 }
 
@@ -144,8 +149,6 @@ void Foam::yPlus::execute()
 
     if (active_)
     {
-        functionObjectFile::write();
-
         const surfaceScalarField& phi =
             obr_.lookupObject<surfaceScalarField>(phiName_);
 
@@ -231,8 +234,6 @@ void Foam::yPlus::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         const volScalarField& yPlus =
             obr_.lookupObject<volScalarField>(resultName_);
 

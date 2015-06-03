@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -56,34 +56,35 @@ namespace Foam
 
 // * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
-void Foam::fieldValues::fieldValueDelta::writeFileHeader(const label i)
+void Foam::fieldValues::fieldValueDelta::writeFileHeader(Ostream& os) const
 {
-    const wordList& fields1 = source1Ptr_->fields();
-    const wordList& fields2 = source2Ptr_->fields();
-
-    DynamicList<word> commonFields(fields1.size());
-    forAll(fields1, i)
+    if (writeToFile())
     {
-        label index = findIndex(fields2, fields1[i]);
-        if (index != -1)
+        const wordList& fields1 = source1Ptr_->fields();
+        const wordList& fields2 = source2Ptr_->fields();
+
+        DynamicList<word> commonFields(fields1.size());
+        forAll(fields1, i)
         {
-            commonFields.append(fields1[i]);
+            label index = findIndex(fields2, fields1[i]);
+            if (index != -1)
+            {
+                commonFields.append(fields1[i]);
+            }
         }
+
+        writeHeaderValue(os, "Source1", source1Ptr_->name());
+        writeHeaderValue(os, "Source2", source2Ptr_->name());
+        writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
+        writeCommented(os, "Time");
+
+        forAll(commonFields, i)
+        {
+            os  << tab << commonFields[i];
+        }
+
+        os  << endl;
     }
-
-    Ostream& os = file();
-
-    writeHeaderValue(os, "Source1", source1Ptr_->name());
-    writeHeaderValue(os, "Source2", source2Ptr_->name());
-    writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
-    writeCommented(os, "Time");
-
-    forAll(commonFields, i)
-    {
-        os  << tab << commonFields[i];
-    }
-
-    os  << endl;
 }
 
 
@@ -152,6 +153,8 @@ void Foam::fieldValues::fieldValueDelta::read(const dictionary& dict)
         );
 
         operation_ = operationTypeNames_.read(dict.lookup("operation"));
+
+        writeFileHeader(file());
     }
 }
 
@@ -166,12 +169,10 @@ void Foam::fieldValues::fieldValueDelta::execute()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         source1Ptr_->write();
         source2Ptr_->write();
 
-        if (Pstream::master())
+        if (writeToFile())
         {
             file()<< obr_.time().value();
         }
@@ -242,7 +243,7 @@ void Foam::fieldValues::fieldValueDelta::execute()
             Info(log_) << endl;
         }
 
-        if (Pstream::master())
+        if (writeToFile())
         {
             file()<< endl;
         }

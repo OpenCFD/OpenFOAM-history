@@ -106,21 +106,35 @@ class reactionsSensitivityAnalysis
         label nReactions_;
 
 
+        // File streams
+
+            //- Production
+            autoPtr<OFstream> productionFilePtr_;
+
+            //- Consumption
+            autoPtr<OFstream> consumptionFilePtr_;
+
+            //- Production integral
+            autoPtr<OFstream> productionIntFilePtr_;
+
+            //- Consumption integral
+            autoPtr<OFstream> consumptionIntFilePtr_;
+
+
     // Private Member Functions
 
 
         //- Create file names for forces and bins
-        wordList createFileNames(const dictionary& dict) const;
+        virtual void createFiles();
 
         //- Output file header information
-        virtual void writeFileHeader(const label i);
+        virtual void writeLocalHeader(const string& header, Ostream& os) const;
 
         //- Calculate production and destruction of each species
-        void calculateSpeciesRR(const basicChemistryModel&);
+        virtual void calculateSpeciesRR(const basicChemistryModel&);
 
         //- Write species production/consumption rates
-        void writeSpeciesRR();
-
+        virtual void writeSpeciesRR();
 
         //- Disallow default bitwise copy construct
         reactionsSensitivityAnalysis(const reactionsSensitivityAnalysis&);
