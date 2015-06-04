@@ -29,11 +29,24 @@ Group
 
 Description
     This function object calculates the forces and moments by integrating the
-    pressure and skin-friction forces over a given list of patches.
+    pressure and skin-friction forces over a given list of patches, and
+    the resistance from porous zones.
 
-    Member function forces::write() calculates the forces/moments and
-    writes the forces/moments into the file \<timeDir\>/forces.dat and bin
-    data (if selected) to the file \<timeDir\>/forces_bin.dat
+    Forces and moments are calculated, with optional co-ordinate system and
+    writing of binned data, where force and moment contributions are collected
+    into a user-defined number of bins that span the input geometries for a
+    user-defined direction vector.
+
+    Data is written into multiple files in the
+    postProcessing/\<functionObjectName\> directory:
+    - force.dat          : forces in global Cartesian co-ordinate system
+    - moment.dat         : moments in global Cartesian co-ordinate system
+    - forceBin.dat       : force bins in global Cartesian co-ordinate system
+    - momentBin.dat      : moment bins in global Cartesian co-ordinate system
+    - localForce.dat     : forces in local co-ordinate system
+    - localMoment.dat    : moments in local co-ordinate system
+    - localForceBin.dat  : force bins in local co-ordinate system
+    - localMomentBin.dat : moment bins in local co-ordinate system
 
     Example of function object specification:
     \verbatim
@@ -103,6 +116,8 @@ Note
 
 SeeAlso
     Foam::functionObject
+    Foam::functionObjectFile
+    Foam::functionObjectState
     Foam::OutputFilterFunctionObject
     Foam::forceCoeffs
 

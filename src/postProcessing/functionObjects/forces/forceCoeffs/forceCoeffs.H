@@ -32,6 +32,19 @@ Description
     lift, drag and moment coefficients.  The data can optionally be output into
     bins, defined in a given direction.
 
+    The binned data provides the total and consitituentcomponents per bin:
+    - total coefficient
+    - pressure coefficient contribution
+    - viscous coefficient contribution
+    - porous coefficient contribution
+
+    Data is written into multiple files in the
+    postProcessing/\<functionObjectName\> directory:
+    - coefficient.dat   : integrated coefficients over all geometries
+    - CmBin.dat         : moment coefficient bins
+    - CdBin.dat         : drag coefficient bins
+    - ClBin.dat         : lift coefficient bins
+
     Example of function object specification:
     \verbatim
     forceCoeffs1
@@ -144,15 +157,14 @@ class forceCoeffs
             //- Integrated coefficients
             autoPtr<OFstream> coeffFilePtr_;
 
+            //- Moment coefficient
+            autoPtr<OFstream> CmBinFilePtr_;
+
             //- Drag coefficient
             autoPtr<OFstream> CdBinFilePtr_;
 
             //- Lift coefficient
             autoPtr<OFstream> ClBinFilePtr_;
-
-            //- Moment coefficient
-            autoPtr<OFstream> CmBinFilePtr_;
-
 
 
     // Private Member Functions
@@ -176,6 +188,13 @@ protected:
 
         //- Write header for binned data
         void writeBinHeader(const word& header, Ostream& os) const;
+
+        //- Write integrated data
+        void writeIntegratedData
+        (
+            const word& title,
+            const List<Field<scalar> >& coeff
+        ) const;
 
         //- Write binned data
         void writeBinData(const List<Field<scalar> > coeffs, Ostream& os) const;

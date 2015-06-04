@@ -48,17 +48,17 @@ void Foam::forceCoeffs::createFiles()
 
     if (writeToFile() && !coeffFilePtr_.valid())
     {
-        coeffFilePtr_ = createFile("coeff");
-        writeIntegratedHeader("Drag coefficient", coeffFilePtr_());
+        coeffFilePtr_ = createFile("coefficient");
+        writeIntegratedHeader("Coefficients", coeffFilePtr_());
 
         if (nBin_ > 1)
         {
+            CmBinFilePtr_ = createFile("CmBin");
+            writeBinHeader("Moment coefficient bins", CmBinFilePtr_());
             CdBinFilePtr_ = createFile("CdBin");
             writeBinHeader("Drag coefficient bins", CdBinFilePtr_());
             ClBinFilePtr_ = createFile("ClBin");
             writeBinHeader("Lift coefficient bins", ClBinFilePtr_());
-            CmBinFilePtr_ = createFile("CmBin");
-            writeBinHeader("Moment coefficient bins", CmBinFilePtr_());
         }
     }
 }
@@ -144,6 +144,34 @@ void Foam::forceCoeffs::writeBinHeader
 }
 
 
+void Foam::forceCoeffs::writeIntegratedData
+(
+    const word& title,
+    const List<Field<scalar> >& coeff
+) const
+{
+    scalar pressure = sum(coeff[0]);
+    scalar viscous = sum(coeff[1]);
+    scalar porous = sum(coeff[2]);
+    scalar total = pressure + viscous + porous;
+
+    Info(log_)
+        << "        " << title << "       : " << total << token::TAB
+        << "("
+        << "pressure: " << pressure << token::TAB
+        << "viscous: " << viscous;
+
+    if (porosity_)
+    {
+        Info(log_)
+            << token::TAB
+            << "porous: " << porous;
+    }
+
+    Info(log_) << ")" << endl;
+}
+
+
 void Foam::forceCoeffs::writeBinData
 (
     const List<Field<scalar> > coeffs,
@@ -187,9 +215,9 @@ Foam::forceCoeffs::forceCoeffs
     lRef_(0.0),
     Aref_(0.0),
     coeffFilePtr_(),
+    CmBinFilePtr_(),
     CdBinFilePtr_(),
-    ClBinFilePtr_(),
-    CmBinFilePtr_()
+    ClBinFilePtr_()
 {
     if (readFields)
     {
@@ -287,29 +315,29 @@ void Foam::forceCoeffs::execute()
     scalar pDyn = 0.5*rhoRef_*magUInf_*magUInf_;
 
     // Storage for pressure, viscous and porous contributions to coeffs
-    List<Field<scalar> > liftCoeffs(3);
-    List<Field<scalar> > dragCoeffs(3);
     List<Field<scalar> > momentCoeffs(3);
+    List<Field<scalar> > dragCoeffs(3);
+    List<Field<scalar> > liftCoeffs(3);
     forAll(liftCoeffs, i)
     {
-        liftCoeffs[i].setSize(nBin_);
-        dragCoeffs[i].setSize(nBin_);
         momentCoeffs[i].setSize(nBin_);
+        dragCoeffs[i].setSize(nBin_);
+        liftCoeffs[i].setSize(nBin_);
     }
 
     // Calculate coefficients
-    scalar ClTot = 0;
-    scalar CdTot = 0;
     scalar CmTot = 0;
+    scalar CdTot = 0;
+    scalar ClTot = 0;
     forAll(liftCoeffs, i)
     {
-        liftCoeffs[i] = (force_[i] & liftDir_)/(Aref_*pDyn);
-        dragCoeffs[i] = (force_[i] & dragDir_)/(Aref_*pDyn);
         momentCoeffs[i] = (force_[i] & pitchAxis_)/(Aref_*pDyn*lRef_);
+        dragCoeffs[i] = (force_[i] & dragDir_)/(Aref_*pDyn);
+        liftCoeffs[i] = (force_[i] & liftDir_)/(Aref_*pDyn);
 
-        ClTot += sum(liftCoeffs[i]);
-        CdTot += sum(dragCoeffs[i]);
         CmTot += sum(momentCoeffs[i]);
+        CdTot += sum(dragCoeffs[i]);
+        ClTot += sum(liftCoeffs[i]);
     }
 
     scalar ClfTot = ClTot/2.0 + CmTot;
@@ -317,10 +345,11 @@ void Foam::forceCoeffs::execute()
 
     Info(log_)
         << type() << " " << name_ << " output:" << nl
-        << "    Sum of coefficients" << nl
-        << "        Cm       : " << CmTot << nl
-        << "        Cd       : " << CdTot << nl
-        << "        Cl       : " << ClTot << nl
+        << "    Coefficients" << nl;
+    writeIntegratedData("Cm", momentCoeffs);
+    writeIntegratedData("Cd", dragCoeffs);
+    writeIntegratedData("Cl", liftCoeffs);
+    Info(log_)
         << "        Cl(f)    : " << ClfTot << nl
         << "        Cl(r)    : " << ClrTot << nl
         << endl ;

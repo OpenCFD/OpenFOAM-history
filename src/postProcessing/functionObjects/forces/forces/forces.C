@@ -56,31 +56,31 @@ void Foam::forces::createFiles()
     if (writeToFile() && !forceFilePtr_.valid())
     {
         forceFilePtr_ = createFile("force");
-        writeIntegratedHeader("force", forceFilePtr_());
+        writeIntegratedHeader("Force", forceFilePtr_());
         momentFilePtr_ = createFile("moment");
-        writeIntegratedHeader("moment", momentFilePtr_());
+        writeIntegratedHeader("Moment", momentFilePtr_());
 
         if (nBin_ > 1)
         {
             forceBinFilePtr_ = createFile("forceBin");
-            writeBinHeader("force bins", forceBinFilePtr_());
+            writeBinHeader("Force bins", forceBinFilePtr_());
             momentBinFilePtr_ = createFile("momentBin");
-            writeBinHeader("moment bins", momentBinFilePtr_());
+            writeBinHeader("Moment bins", momentBinFilePtr_());
         }
 
         if (localSystem_)
         {
-            localForceFilePtr_ = createFile("forceLocal");
-            writeIntegratedHeader("force", localForceFilePtr_());
-            localMomentFilePtr_ = createFile("momentLocal");
-            writeIntegratedHeader("moment", localMomentFilePtr_());
+            localForceFilePtr_ = createFile("localForce");
+            writeIntegratedHeader("Force", localForceFilePtr_());
+            localMomentFilePtr_ = createFile("localMoment");
+            writeIntegratedHeader("Moment", localMomentFilePtr_());
 
             if (nBin_ > 1)
             {
-                localForceBinFilePtr_ = createFile("forceLocalBin");
-                writeBinHeader("force bins", localForceBinFilePtr_());
-                localMomentBinFilePtr_ = createFile("momentLocalBin");
-                writeBinHeader("moment bins", localMomentBinFilePtr_());
+                localForceBinFilePtr_ = createFile("localForceBin");
+                writeBinHeader("Force bins", localForceBinFilePtr_());
+                localMomentBinFilePtr_ = createFile("localMomentBin");
+                writeBinHeader("Moment bins", localMomentBinFilePtr_());
             }
         }
     }
