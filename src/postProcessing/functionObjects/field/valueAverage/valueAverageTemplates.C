@@ -49,10 +49,7 @@ void Foam::valueAverage::calc
 
     setResult(meanName, meanValue);
 
-    if (writeToFile())
-    {
-        file() << tab << meanValue;
-    }
+    file() << tab << meanValue;
 
     Info(log_) << "    " << meanName << ": " << meanValue << nl;
 

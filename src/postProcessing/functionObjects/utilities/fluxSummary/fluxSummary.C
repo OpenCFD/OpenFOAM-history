@@ -801,33 +801,30 @@ void Foam::fluxSummary::writeFileHeader
     Ostream& os
 ) const
 {
-    if (writeToFile())
+    writeHeader(os, "Flux summary");
+    writeHeaderValue(os, "Face zone", fzName);
+    writeHeaderValue(os, "Total area", area);
+
+    switch (mode_)
     {
-        writeHeader(os, "Flux summary");
-        writeHeaderValue(os, "Face zone", fzName);
-        writeHeaderValue(os, "Total area", area);
-
-        switch (mode_)
+        case mdFaceZoneAndDirection:
+        case mdCellZoneAndDirection:
         {
-            case mdFaceZoneAndDirection:
-            case mdCellZoneAndDirection:
-            {
-                writeHeaderValue(os, "Reference direction", refDir);
-                break;
-            }
-            default:
-            {}
+            writeHeaderValue(os, "Reference direction", refDir);
+            break;
         }
-
-        writeHeaderValue(os, "Scale factor", scaleFactor_);
-
-        writeCommented(os, "Time");
-        os  << tab << "positive"
-            << tab << "negative"
-            << tab << "net"
-            << tab << "absolute"
-            << endl;
+        default:
+        {}
     }
+
+    writeHeaderValue(os, "Scale factor", scaleFactor_);
+
+    writeCommented(os, "Time");
+    os  << tab << "positive"
+        << tab << "negative"
+        << tab << "net"
+        << tab << "absolute"
+        << endl;
 }
 
 

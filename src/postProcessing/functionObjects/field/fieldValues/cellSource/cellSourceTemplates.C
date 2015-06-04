@@ -208,10 +208,7 @@ bool Foam::fieldValues::cellSource::writeValues
 
         Type result = processValues(values, V, weightField);
 
-        if (writeToFile())
-        {
-            file()<< tab << result;
-        }
+        file()<< tab << result;
 
         Info(log_)<< "    " << operationTypeNames_[operation_]
             << "(" << sourceName_ << ") for " << fieldName
@@ -238,4 +235,3 @@ Foam::tmp<Foam::Field<Type> > Foam::fieldValues::cellSource::filterField
 
 
 // ************************************************************************* //
-

@@ -67,6 +67,9 @@ private:
         //- Prefix
         const word prefix_;
 
+        //- Name of file
+        word fileName_;
+
         //- File pointer
         autoPtr<OFstream> filePtr_;
 
@@ -125,12 +128,13 @@ public:
         //- Construct null
         functionObjectFile(const objectRegistry& obr, const word& prefix);
 
-        //- Construct from components
+        //- Construct from components and read from dictionary
         functionObjectFile
         (
             const objectRegistry& obr,
             const word& prefix,
-            const word& name
+            const word& fileName,
+            const dictionary& dict
         );
 
 

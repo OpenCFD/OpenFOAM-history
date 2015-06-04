@@ -38,16 +38,13 @@ namespace Foam
 
 void Foam::valueAverage::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
+    writeHeader(os, "Value averages");
+    writeCommented(os, "Time");
+    forAll(fieldNames_, fieldI)
     {
-        writeHeader(os, "Value averages");
-        writeCommented(os, "Time");
-        forAll(fieldNames_, fieldI)
-        {
-            writeTabbed(os, fieldNames_[fieldI]);
-        }
-        os << endl;
+        writeTabbed(os, fieldNames_[fieldI]);
     }
+    os  << endl;
 }
 
 
@@ -62,7 +59,7 @@ Foam::valueAverage::valueAverage
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     obr_(obr),
     functionObjectName_(dict.lookup("functionObjectName")),
     fieldNames_(dict.lookup("fields")),
@@ -84,6 +81,8 @@ Foam::valueAverage::valueAverage
             }
         }
     }
+
+    writeFileHeader(file());
 }
 
 
@@ -102,9 +101,6 @@ void Foam::valueAverage::read(const dictionary& dict)
         functionObjectFile::read(dict);
 
         log_ = dict.lookupOrDefault<Switch>("log", true);
-
-        writeFileHeader(file());
-
     }
 }
 
@@ -120,10 +116,7 @@ void Foam::valueAverage::execute()
 
     Info(log_)<< type() << ": " << name_ << " averages:" << nl;
 
-    if (writeToFile())
-    {
-        file() << obr_.time().timeName();
-    }
+    file() << obr_.time().timeName();
 
     DynamicList<label> unprocessedFields(fieldNames_.size());
 
@@ -165,10 +158,7 @@ void Foam::valueAverage::execute()
         totalTime_[fieldI] += dt;
     }
 
-    if (writeToFile())
-    {
-        file()<< endl;
-    }
+    file()<< endl;
 
     if (unprocessedFields.size())
     {

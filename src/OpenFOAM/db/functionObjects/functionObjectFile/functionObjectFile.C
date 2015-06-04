@@ -112,9 +112,10 @@ Foam::autoPtr<Foam::OFstream> Foam::functionObjectFile::createFile
 }
 
 
-void Foam::functionObjectFile::resetFile(const word& name)
+void Foam::functionObjectFile::resetFile(const word& fileName)
 {
-    filePtr_ = createFile(name);
+    fileName_ = fileName;
+    filePtr_ = createFile(fileName_);
 }
 
 
@@ -134,6 +135,7 @@ Foam::functionObjectFile::functionObjectFile
 :
     obr_(obr),
     prefix_(prefix),
+    fileName_("undefined"),
     filePtr_(),
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
@@ -144,15 +146,24 @@ Foam::functionObjectFile::functionObjectFile
 (
     const objectRegistry& obr,
     const word& prefix,
-    const word& name
+    const word& fileName,
+    const dictionary& dict
 )
 :
     obr_(obr),
     prefix_(prefix),
-    filePtr_(createFile(name)),
+    fileName_(fileName),
+    filePtr_(),
     writePrecision_(IOstream::defaultPrecision()),
     writeToFile_(true)
-{}
+{
+    read(dict);
+
+    if (writeToFile_)
+    {
+        filePtr_ = createFile(fileName_);
+    }
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -168,7 +179,9 @@ void Foam::functionObjectFile::read(const dictionary& dict)
     writePrecision_ =
         dict.lookupOrDefault("writePrecision", IOstream::defaultPrecision());
 
+    // Only write on master process
     writeToFile_ = dict.lookupOrDefault("writeToFile", true);
+    writeToFile_ = writeToFile_ && Pstream::master();
 }
 
 
@@ -177,13 +190,6 @@ Foam::OFstream& Foam::functionObjectFile::file()
     if (!writeToFile_)
     {
         return Snull;
-    }
-
-    if (!Pstream::master())
-    {
-        FatalErrorIn("Foam::OFstream& Foam::functionObjectFile::file()")
-            << "Request for file() can only be done by the master process"
-            << abort(FatalError);
     }
 
     if (!filePtr_.valid())
@@ -199,7 +205,7 @@ Foam::OFstream& Foam::functionObjectFile::file()
 
 bool Foam::functionObjectFile::writeToFile() const
 {
-    return Pstream::master() && writeToFile_;
+    return writeToFile_;
 }
 
 

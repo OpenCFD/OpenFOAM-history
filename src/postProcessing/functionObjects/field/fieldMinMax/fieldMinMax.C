@@ -55,29 +55,26 @@ Foam::fieldMinMax::modeTypeNames_;
 
 void Foam::fieldMinMax::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
+    writeHeader(os, "Field minima and maxima");
+    writeCommented(os, "Time");
+    writeTabbed(os, "field");
+    writeTabbed(os, "min");
+    writeTabbed(os, "position(min)");
+
+    if (Pstream::parRun())
     {
-        writeHeader(os, "Field minima and maxima");
-        writeCommented(os, "Time");
-        writeTabbed(os, "field");
-        writeTabbed(os, "min");
-        writeTabbed(os, "position(min)");
-
-        if (Pstream::parRun())
-        {
-            writeTabbed(os, "processor");
-        }
-
-        writeTabbed(os, "max");
-        writeTabbed(os, "position(max)");
-
-        if (Pstream::parRun())
-        {
-            writeTabbed(os, "processor");
-        }
-
-        os  << endl;
+        writeTabbed(os, "processor");
     }
+
+    writeTabbed(os, "max");
+    writeTabbed(os, "position(max)");
+
+    if (Pstream::parRun())
+    {
+        writeTabbed(os, "processor");
+    }
+
+    os  << endl;
 }
 
 
@@ -92,7 +89,7 @@ Foam::fieldMinMax::fieldMinMax
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     obr_(obr),
     log_(true),
     mode_(mdMag),
@@ -102,6 +99,7 @@ Foam::fieldMinMax::fieldMinMax
     if (setActive<fvMesh>())
     {
         read(dict);
+        writeFileHeader(file());
     }
 }
 
@@ -124,8 +122,6 @@ void Foam::fieldMinMax::read(const dictionary& dict)
 
         mode_ = modeTypeNames_[dict.lookupOrDefault<word>("mode", "magnitude")];
         dict.lookup("fields") >> fieldSet_;
-
-        writeFileHeader(file());
     }
 }
 

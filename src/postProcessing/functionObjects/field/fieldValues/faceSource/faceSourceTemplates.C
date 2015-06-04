@@ -350,15 +350,11 @@ bool Foam::fieldValues::faceSource::writeValues
 
         Type result = processValues(values, Sf, weightField);
 
-        if (writeToFile())
-        {
-            file()<< tab << result;
+        file()<< tab << result;
 
-            Info(log_)<< "    " << operationTypeNames_[operation_]
-                << "(" << sourceName_ << ") for " << fieldName
-                <<  " = " << result << endl;
-        }
-
+        Info(log_)<< "    " << operationTypeNames_[operation_]
+            << "(" << sourceName_ << ") for " << fieldName
+            <<  " = " << result << endl;
 
         // write state/results information
         const word& opName = operationTypeNames_[operation_];
@@ -454,4 +450,3 @@ Foam::tmp<Foam::Field<Type> > Foam::fieldValues::faceSource::filterField
 
 
 // ************************************************************************* //
-

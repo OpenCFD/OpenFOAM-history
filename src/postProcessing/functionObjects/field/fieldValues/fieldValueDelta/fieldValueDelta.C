@@ -58,33 +58,30 @@ namespace Foam
 
 void Foam::fieldValues::fieldValueDelta::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
+    const wordList& fields1 = source1Ptr_->fields();
+    const wordList& fields2 = source2Ptr_->fields();
+
+    DynamicList<word> commonFields(fields1.size());
+    forAll(fields1, i)
     {
-        const wordList& fields1 = source1Ptr_->fields();
-        const wordList& fields2 = source2Ptr_->fields();
-
-        DynamicList<word> commonFields(fields1.size());
-        forAll(fields1, i)
+        label index = findIndex(fields2, fields1[i]);
+        if (index != -1)
         {
-            label index = findIndex(fields2, fields1[i]);
-            if (index != -1)
-            {
-                commonFields.append(fields1[i]);
-            }
+            commonFields.append(fields1[i]);
         }
-
-        writeHeaderValue(os, "Source1", source1Ptr_->name());
-        writeHeaderValue(os, "Source2", source2Ptr_->name());
-        writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
-        writeCommented(os, "Time");
-
-        forAll(commonFields, i)
-        {
-            os  << tab << commonFields[i];
-        }
-
-        os  << endl;
     }
+
+    writeHeaderValue(os, "Source1", source1Ptr_->name());
+    writeHeaderValue(os, "Source2", source2Ptr_->name());
+    writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
+    writeCommented(os, "Time");
+
+    forAll(commonFields, i)
+    {
+        os  << tab << commonFields[i];
+    }
+
+    os  << endl;
 }
 
 
@@ -99,7 +96,7 @@ Foam::fieldValues::fieldValueDelta::fieldValueDelta
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
     log_(true),
@@ -110,6 +107,7 @@ Foam::fieldValues::fieldValueDelta::fieldValueDelta
     if (setActive<fvMesh>())
     {
         read(dict);
+        writeFileHeader(file());
     }
 }
 
@@ -153,8 +151,6 @@ void Foam::fieldValues::fieldValueDelta::read(const dictionary& dict)
         );
 
         operation_ = operationTypeNames_.read(dict.lookup("operation"));
-
-        writeFileHeader(file());
     }
 }
 
@@ -172,10 +168,7 @@ void Foam::fieldValues::fieldValueDelta::execute()
         source1Ptr_->write();
         source2Ptr_->write();
 
-        if (writeToFile())
-        {
-            file()<< obr_.time().value();
-        }
+        file()<< obr_.time().value();
 
         Info(log_)<< type() << " " << name_ << " output:" << endl;
 
@@ -243,10 +236,7 @@ void Foam::fieldValues::fieldValueDelta::execute()
             Info(log_) << endl;
         }
 
-        if (writeToFile())
-        {
-            file()<< endl;
-        }
+        file()<< endl;
     }
 }
 

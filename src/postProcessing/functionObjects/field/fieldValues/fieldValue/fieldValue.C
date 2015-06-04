@@ -76,7 +76,7 @@ Foam::fieldValue::fieldValue
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, valueType),
+    functionObjectFile(obr, name, valueType, dict),
     obr_(obr),
     dict_(dict),
     log_(true),

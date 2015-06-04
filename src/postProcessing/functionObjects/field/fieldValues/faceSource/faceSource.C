@@ -513,23 +513,20 @@ void Foam::fieldValues::faceSource::initialise(const dictionary& dict)
 
 void Foam::fieldValues::faceSource::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
+    writeHeaderValue(os, "Source", sourceTypeNames_[source_]);
+    writeHeaderValue(os, "Name", sourceName_);
+    writeHeaderValue(os, "Faces", nFaces_);
+    writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
+    writeHeaderValue(os, "Scale factor", scaleFactor_);
+    writeCommented(os, "Time");
+    writeTabbed(os, "sum(magSf)");
+
+    forAll(fields_, fieldI)
     {
-        writeHeaderValue(os, "Source", sourceTypeNames_[source_]);
-        writeHeaderValue(os, "Name", sourceName_);
-        writeHeaderValue(os, "Faces", nFaces_);
-        writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
-        writeHeaderValue(os, "Scale factor", scaleFactor_);
-        writeCommented(os, "Time");
-        writeTabbed(os, "sum(magSf)");
-
-        forAll(fields_, fieldI)
-        {
-            writeTabbed(os, fields_[fieldI]);
-        }
-
-        os  << endl;
+        writeTabbed(os, fields_[fieldI]);
     }
+
+    os  << endl;
 }
 
 
@@ -631,7 +628,11 @@ Foam::fieldValues::faceSource::faceSource
     facePatchId_(),
     faceSign_()
 {
-    read(dict);
+    if (active_)
+    {
+        read(dict);
+        writeFileHeader(file());
+    }
 }
 
 
@@ -645,13 +646,12 @@ Foam::fieldValues::faceSource::~faceSource()
 
 void Foam::fieldValues::faceSource::read(const dictionary& dict)
 {
-    fieldValue::read(dict);
-
     if (active_)
     {
+        fieldValue::read(dict);
+
         // No additional info to read
         initialise(dict);
-        writeFileHeader(file());
     }
 }
 
@@ -674,10 +674,7 @@ void Foam::fieldValues::faceSource::write()
             totalArea = gSum(filterField(mesh().magSf(), false));
         }
 
-        if (writeToFile())
-        {
-            file() << obr_.time().value() << tab << totalArea;
-        }
+        file() << obr_.time().value() << tab << totalArea;
 
         // Construct weight field. Note: zero size means weight = 1
         scalarField weightField;
@@ -715,10 +712,7 @@ void Foam::fieldValues::faceSource::write()
             }
         }
 
-        if (writeToFile())
-        {
-            file()<< endl;
-        }
+        file()<< endl;
 
         Info(log_)<< endl;
     }

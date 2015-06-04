@@ -40,17 +40,13 @@ namespace Foam
 
 void Foam::yPlus::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
-    {
-        writeHeader(os, "y+");
-
-        writeCommented(os, "Time");
-        writeTabbed(os, "patch");
-        writeTabbed(os, "min");
-        writeTabbed(os, "max");
-        writeTabbed(os, "average");
-        os << endl;
-    }
+    writeHeader(os, "y+");
+    writeCommented(os, "Time");
+    writeTabbed(os, "patch");
+    writeTabbed(os, "min");
+    writeTabbed(os, "max");
+    writeTabbed(os, "average");
+    os << endl;
 }
 
 
@@ -64,7 +60,7 @@ Foam::yPlus::yPlus
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     name_(name),
     obr_(obr),
     active_(true),
@@ -114,6 +110,8 @@ Foam::yPlus::yPlus
         );
 
         mesh.objectRegistry::store(yPlusPtr);
+
+        writeFileHeader(file());
     }
 }
 
@@ -136,8 +134,6 @@ void Foam::yPlus::read(const dictionary& dict)
         dict.readIfPresent("resultName", resultName_);
         dict.readIfPresent("phiName", phiName_);
         dict.readIfPresent("UName", UName_);
-
-        writeFileHeader(file());
     }
 }
 

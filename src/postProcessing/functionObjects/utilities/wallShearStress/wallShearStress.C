@@ -42,16 +42,13 @@ defineTypeNameAndDebug(wallShearStress, 0);
 
 void Foam::wallShearStress::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
-    {
-        // Add headers to output data
-        writeHeader(os, "Wall shear stress");
-        writeCommented(os, "Time");
-        writeTabbed(os, "patch");
-        writeTabbed(os, "min");
-        writeTabbed(os, "max");
-        os << endl;
-    }
+    // Add headers to output data
+    writeHeader(os, "Wall shear stress");
+    writeCommented(os, "Time");
+    writeTabbed(os, "patch");
+    writeTabbed(os, "min");
+    writeTabbed(os, "max");
+    os << endl;
 }
 
 
@@ -77,14 +74,11 @@ void Foam::wallShearStress::calcShearStress
         vector minSsp = gMin(ssp);
         vector maxSsp = gMax(ssp);
 
-        if (writeToFile())
-        {
-            file() << mesh.time().value()
-                << token::TAB << pp.name()
-                << token::TAB << minSsp
-                << token::TAB << maxSsp
-                << endl;
-        }
+        file() << mesh.time().value()
+            << token::TAB << pp.name()
+            << token::TAB << minSsp
+            << token::TAB << maxSsp
+            << endl;
 
         Info(log_)
             << "    min/max(" << pp.name() << ") = "
@@ -103,7 +97,7 @@ Foam::wallShearStress::wallShearStress
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     name_(name),
     obr_(obr),
     active_(true),
@@ -157,6 +151,8 @@ Foam::wallShearStress::wallShearStress
         );
 
         mesh.objectRegistry::store(wallShearStressPtr);
+
+        writeFileHeader(file());
     }
 }
 
@@ -225,8 +221,6 @@ void Foam::wallShearStress::read(const dictionary& dict)
 
             patchSet_ = filteredPatchSet;
         }
-
-        writeFileHeader(file());
     }
 }
 

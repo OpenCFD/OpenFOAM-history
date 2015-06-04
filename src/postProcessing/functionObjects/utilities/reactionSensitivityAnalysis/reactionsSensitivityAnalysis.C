@@ -31,7 +31,7 @@ License
 template<class chemistryType>
 void Foam::reactionsSensitivityAnalysis<chemistryType>::createFiles()
 {
-    if (writeToFile() && !productionFilePtr_.valid())
+    if (writeToFile())
     {
         productionFilePtr_ = createFile("production");
         writeLocalHeader("production", productionFilePtr_());
@@ -262,6 +262,8 @@ Foam::reactionsSensitivityAnalysis<chemistryType>::reactionsSensitivityAnalysis
             << " The object available are : " << mesh_.names()
             << exit(FatalError);
     }
+
+    createFiles();
 }
 
 
@@ -280,9 +282,7 @@ void Foam::reactionsSensitivityAnalysis<chemistryType>::read
 (
     const dictionary& dict
 )
-{
-    createFiles();
-}
+{}
 
 
 template<class chemistryType>

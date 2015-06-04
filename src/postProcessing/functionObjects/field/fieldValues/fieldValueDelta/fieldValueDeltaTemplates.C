@@ -100,10 +100,7 @@ void Foam::fieldValues::fieldValueDelta::apply
 
     Info(log_)<< "    " << resultName << " = " << result << endl;
 
-    if (writeToFile())
-    {
-        this->file()<< tab << result;
-    }
+    this->file()<< tab << result;
 
     // Write state/results information
     this->setResult(resultName, result);

@@ -73,15 +73,12 @@ void Foam::yPlus::calcYPlus
                 << " y+ : min = " << minYp << ", max = " << maxYp
                 << ", average = " << avgYp << nl;
 
-            if (writeToFile())
-            {
-                file() << obr_.time().value()
-                    << token::TAB << patch.name()
-                    << token::TAB << minYp
-                    << token::TAB << maxYp
-                    << token::TAB << avgYp
-                    << endl;
-            }
+            file() << obr_.time().value()
+                << token::TAB << patch.name()
+                << token::TAB << minYp
+                << token::TAB << maxYp
+                << token::TAB << avgYp
+                << endl;
         }
         else if (isA<wallFvPatch>(patch))
         {
@@ -103,15 +100,12 @@ void Foam::yPlus::calcYPlus
                 << " y+ : min = " << minYp << ", max = " << maxYp
                 << ", average = " << avgYp << nl;
 
-            if (writeToFile())
-            {
-                file() << obr_.time().value()
-                    << token::TAB << patch.name()
-                    << token::TAB << minYp
-                    << token::TAB << maxYp
-                    << token::TAB << avgYp
-                    << endl;
-            }
+            file() << obr_.time().value()
+                << token::TAB << patch.name()
+                << token::TAB << minYp
+                << token::TAB << maxYp
+                << token::TAB << avgYp
+                << endl;
         }
     }
 }

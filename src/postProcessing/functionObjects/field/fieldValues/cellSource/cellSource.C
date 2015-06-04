@@ -152,23 +152,20 @@ void Foam::fieldValues::cellSource::initialise(const dictionary& dict)
 
 void Foam::fieldValues::cellSource::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
+    writeHeaderValue(os, "Source", sourceTypeNames_[source_]);
+    writeHeaderValue(os, "Name", sourceName_);
+    writeHeaderValue(os, "Cells", nCells_);
+    writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
+    writeHeaderValue(os, "Scale factor", scaleFactor_);
+    writeCommented(os, "Time");
+    writeTabbed(os, "sum(V)");
+
+    forAll(fields_, fieldI)
     {
-        writeHeaderValue(os, "Source", sourceTypeNames_[source_]);
-        writeHeaderValue(os, "Name", sourceName_);
-        writeHeaderValue(os, "Cells", nCells_);
-        writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
-        writeHeaderValue(os, "Scale factor", scaleFactor_);
-        writeCommented(os, "Time");
-        writeTabbed(os, "sum(V)");
-
-        forAll(fields_, fieldI)
-        {
-            writeTabbed(os, fields_[fieldI]);
-        }
-
-        os << endl;
+        writeTabbed(os, fields_[fieldI]);
     }
+
+    os << endl;
 }
 
 
@@ -189,7 +186,11 @@ Foam::fieldValues::cellSource::cellSource
     cellId_(),
     weightFieldName_("none")
 {
-    read(dict);
+    if (active_)
+    {
+        read(dict);
+        writeFileHeader(file());
+    }
 }
 
 
@@ -203,13 +204,12 @@ Foam::fieldValues::cellSource::~cellSource()
 
 void Foam::fieldValues::cellSource::read(const dictionary& dict)
 {
-    fieldValue::read(dict);
-
     if (active_)
     {
+        fieldValue::read(dict);
+
         // No additional info to read
         initialise(dict);
-        writeFileHeader(file());
     }
 }
 
@@ -221,10 +221,7 @@ void Foam::fieldValues::cellSource::write()
     if (active_)
     {
         scalar totalVolume = gSum(filterField(mesh().V()));
-        if (writeToFile())
-        {
-            file() << obr_.time().value() << tab << totalVolume;
-        }
+        file() << obr_.time().value() << tab << totalVolume;
 
         // Construct weight field. Note: zero size means weight = 1
         scalarField weightField;
@@ -253,10 +250,7 @@ void Foam::fieldValues::cellSource::write()
             }
         }
 
-        if (writeToFile())
-        {
-            file()<< endl;
-        }
+        file()<< endl;
 
         Info(log_)<< endl;
     }

@@ -40,15 +40,12 @@ defineTypeNameAndDebug(DESModelRegions, 0);
 
 void Foam::DESModelRegions::writeFileHeader(Ostream& os) const
 {
-    if (writeToFile())
-    {
-        writeHeader(os, "DES model region coverage (% volume)");
+    writeHeader(os, "DES model region coverage (% volume)");
 
-        writeCommented(os, "Time");
-        writeTabbed(os, "LES");
-        writeTabbed(os, "RAS");
-        os << endl;
-    }
+    writeCommented(os, "Time");
+    writeTabbed(os, "LES");
+    writeTabbed(os, "RAS");
+    os << endl;
 }
 
 
@@ -62,7 +59,7 @@ Foam::DESModelRegions::DESModelRegions
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     name_(name),
     obr_(obr),
     active_(true),
@@ -110,6 +107,8 @@ Foam::DESModelRegions::DESModelRegions
         );
 
         mesh.objectRegistry::store(DESModelRegionsPtr);
+
+        writeFileHeader(file());
     }
 }
 
@@ -130,8 +129,6 @@ void Foam::DESModelRegions::read(const dictionary& dict)
 
         log_.readIfPresent("log", dict);
         dict.readIfPresent("resultName", resultName_);
-
-        writeFileHeader(file());
     }
 }
 
@@ -165,13 +162,10 @@ void Foam::DESModelRegions::execute()
                 gSum(DESModelRegions.internalField()*mesh.V())
                /gSum(mesh.V())*100.0;
 
-            if (writeToFile())
-            {
-                file() << obr_.time().value()
-                    << token::TAB << prc
-                    << token::TAB << 100.0 - prc
-                    << endl;
-            }
+            file() << obr_.time().value()
+                << token::TAB << prc
+                << token::TAB << 100.0 - prc
+                << endl;
 
             Info(log_)
                 << "    LES = " << prc << " % (volume)" << nl
