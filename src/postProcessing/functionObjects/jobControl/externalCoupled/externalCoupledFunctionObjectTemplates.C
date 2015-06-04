@@ -80,7 +80,13 @@ bool Foam::externalCoupledFunctionObject::readData
         {
             FatalIOErrorIn
             (
-                "externalCoupledFunctionObject::readData()",
+                "void externalCoupledFunctionObject::readData"
+                "("
+                    "const fvMesh&, "
+                    "const wordRe&, "
+                    "const labelList&, "
+                    "const word&"
+               ")",
                 masterFilePtr()
             )   << "Cannot open file for region " << mesh.name()
                 << ", field " << fieldName << ", patches " << patchIDs
@@ -231,7 +237,16 @@ bool Foam::externalCoupledFunctionObject::readData
         }
         else
         {
-            FatalErrorIn("void Foam::externalCoupledFunctionObject::readData()")
+            FatalErrorIn
+            (
+                "void externalCoupledFunctionObject::readData"
+                "("
+                    "const fvMesh&, "
+                    "const wordRe&, "
+                    "const labelList&, "
+                    "const word&"
+               ")"
+            )
                 << "Unsupported boundary condition " << bf[patchI].type()
                 << " for patch " << bf[patchI].patch().name()
                 << " in region " << mesh.name()
@@ -313,7 +328,7 @@ bool Foam::externalCoupledFunctionObject::writeData
 
 
     // File only opened on master; contains data for all processors, for all
-    // patchIDs.
+    // patchIDs
     autoPtr<OFstream> masterFilePtr;
     if (Pstream::master())
     {
@@ -333,7 +348,13 @@ bool Foam::externalCoupledFunctionObject::writeData
         {
             FatalIOErrorIn
             (
-                "externalCoupledFunctionObject::writeData()",
+                "externalCoupledFunctionObject::writeData"
+                "("
+                    "const fvMesh&, "
+                    "const wordRe&, "
+                    "const labelList&, "
+                    "const word&"
+                ") const",
                 masterFilePtr()
             )   << "Cannot open file for region " << mesh.name()
                 << ", field " << fieldName << ", patches " << patchIDs
@@ -344,7 +365,7 @@ bool Foam::externalCoupledFunctionObject::writeData
 
     bool headerDone = false;
 
-    // Handle column-wise writing of patch data. Supports most easy types.
+    // Handle column-wise writing of patch data. Supports most easy types
     forAll(patchIDs, i)
     {
         label patchI = patchIDs[i];
@@ -362,7 +383,7 @@ bool Foam::externalCoupledFunctionObject::writeData
             );
             OStringStream os;
 
-            // Pass responsability for all writing over to bc
+            // Pass responsibility for all writing over to bc
             pf.writeData(os);
 
             // Collect contributions from all processors and output them on
