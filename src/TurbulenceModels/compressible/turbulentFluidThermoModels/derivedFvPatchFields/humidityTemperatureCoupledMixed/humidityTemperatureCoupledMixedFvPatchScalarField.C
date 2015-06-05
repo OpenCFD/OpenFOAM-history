@@ -293,7 +293,6 @@ humidityTemperatureCoupledMixedFvPatchScalarField
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-
 scalar humidityTemperatureCoupledMixedFvPatchScalarField::Sh
 (
     const scalar Re,

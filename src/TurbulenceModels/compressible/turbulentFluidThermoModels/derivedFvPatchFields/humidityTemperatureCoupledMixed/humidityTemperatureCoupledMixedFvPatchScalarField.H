@@ -74,7 +74,7 @@ Description
 
     NOTE: The correclation used to calculate Tdew is for water vapor.
     In addition a scalar transport for the carrier specie have to be specified
-    via function objects or in the main solver. This specie transorts the
+    via function objects or in the main solver. This specie transports the
     vapour phase in the main ragion. The BC of this specie on the coupled wall
     has to fixedGradient in order to allow condensation or evaporation of the
     vapor in or out of this wall
@@ -222,13 +222,13 @@ private:
         //- Average molecular weight for the carrier mixture in the gas phase
         scalar Mcomp_;
 
-        //- Characteristic lenght scale
+        //- Characteristic length scale
         scalar L_;
 
         //- Fluid side
         bool fluid_;
 
-        //- Cp fiedl for inert mode
+        //- Cp field for inert mode
         scalarField cp_;
 
         //- Thickness field for inert mode
