@@ -679,6 +679,8 @@ void Foam::fluxSummary::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         log_ = dict.lookupOrDefault<Switch>("log", true);
 
         mode_ = modeTypeNames_.read(dict.lookup("mode"));
