@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -59,8 +59,6 @@ void Foam::fieldValue::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         Info(log_)<< type() << " " << name_ << " output:" << nl;
     }
 }
@@ -78,7 +76,7 @@ Foam::fieldValue::fieldValue
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, valueType),
+    functionObjectFile(obr, name, valueType, dict),
     obr_(obr),
     dict_(dict),
     log_(true),

@@ -153,14 +153,15 @@ protected:
             const Type& maxValue
         );
 
+
+        //- Output file header information
+        virtual void writeFileHeader(Ostream& os) const;
+
         //- Disallow default bitwise copy construct
         fieldMinMax(const fieldMinMax&);
 
         //- Disallow default bitwise assignment
         void operator=(const fieldMinMax&);
-
-        //- Output file header information
-        virtual void writeFileHeader(const label i);
 
 
 public:

@@ -329,7 +329,7 @@ Foam::regionSizeDistribution::regionSizeDistribution
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name),
     name_(name),
     obr_(obr),
     active_(true),

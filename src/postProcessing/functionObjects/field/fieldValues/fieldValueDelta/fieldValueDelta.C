@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -56,7 +56,7 @@ namespace Foam
 
 // * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
-void Foam::fieldValues::fieldValueDelta::writeFileHeader(const label i)
+void Foam::fieldValues::fieldValueDelta::writeFileHeader(Ostream& os) const
 {
     const wordList& fields1 = source1Ptr_->fields();
     const wordList& fields2 = source2Ptr_->fields();
@@ -70,8 +70,6 @@ void Foam::fieldValues::fieldValueDelta::writeFileHeader(const label i)
             commonFields.append(fields1[i]);
         }
     }
-
-    Ostream& os = file();
 
     writeHeaderValue(os, "Source1", source1Ptr_->name());
     writeHeaderValue(os, "Source2", source2Ptr_->name());
@@ -98,7 +96,7 @@ Foam::fieldValues::fieldValueDelta::fieldValueDelta
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     obr_(obr),
     loadFromFiles_(loadFromFiles),
     log_(true),
@@ -109,6 +107,7 @@ Foam::fieldValues::fieldValueDelta::fieldValueDelta
     if (setActive<fvMesh>())
     {
         read(dict);
+        writeFileHeader(file());
     }
 }
 
@@ -166,15 +165,10 @@ void Foam::fieldValues::fieldValueDelta::execute()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         source1Ptr_->write();
         source2Ptr_->write();
 
-        if (Pstream::master())
-        {
-            file()<< obr_.time().value();
-        }
+        file()<< obr_.time().value();
 
         Info(log_)<< type() << " " << name_ << " output:" << endl;
 
@@ -242,10 +236,7 @@ void Foam::fieldValues::fieldValueDelta::execute()
             Info(log_) << endl;
         }
 
-        if (Pstream::master())
-        {
-            file()<< endl;
-        }
+        file()<< endl;
     }
 }
 

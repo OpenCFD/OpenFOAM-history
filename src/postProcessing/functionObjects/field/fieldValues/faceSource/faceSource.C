@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -351,7 +351,7 @@ void Foam::fieldValues::faceSource::combineSurfaceGeometry
 
         if (Pstream::parRun())
         {
-            // dimension as fraction of mesh bounding box
+            // Dimension as fraction of mesh bounding box
             scalar mergeDim = 1e-10*mesh().bounds().mag();
 
             labelList pointsMap;
@@ -511,22 +511,22 @@ void Foam::fieldValues::faceSource::initialise(const dictionary& dict)
 }
 
 
-void Foam::fieldValues::faceSource::writeFileHeader(const label i)
+void Foam::fieldValues::faceSource::writeFileHeader(Ostream& os) const
 {
-    writeHeaderValue(file(), "Source", sourceTypeNames_[source_]);
-    writeHeaderValue(file(), "Name", sourceName_);
-    writeHeaderValue(file(), "Faces", nFaces_);
-    writeHeaderValue(file(), "Operation", operationTypeNames_[operation_]);
-    writeHeaderValue(file(), "Scale factor", scaleFactor_);
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "sum(magSf)");
+    writeHeaderValue(os, "Source", sourceTypeNames_[source_]);
+    writeHeaderValue(os, "Name", sourceName_);
+    writeHeaderValue(os, "Faces", nFaces_);
+    writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
+    writeHeaderValue(os, "Scale factor", scaleFactor_);
+    writeCommented(os, "Time");
+    writeTabbed(os, "sum(magSf)");
 
     forAll(fields_, fieldI)
     {
-        writeTabbed(file(), fields_[fieldI]);
+        writeTabbed(os, fields_[fieldI]);
     }
 
-    file() << endl;
+    os  << endl;
 }
 
 
@@ -628,7 +628,11 @@ Foam::fieldValues::faceSource::faceSource
     facePatchId_(),
     faceSign_()
 {
-    read(dict);
+    if (active_)
+    {
+        read(dict);
+        writeFileHeader(file());
+    }
 }
 
 
@@ -642,10 +646,11 @@ Foam::fieldValues::faceSource::~faceSource()
 
 void Foam::fieldValues::faceSource::read(const dictionary& dict)
 {
-    fieldValue::read(dict);
-
     if (active_)
     {
+        fieldValue::read(dict);
+
+        // No additional info to read
         initialise(dict);
     }
 }
@@ -669,12 +674,9 @@ void Foam::fieldValues::faceSource::write()
             totalArea = gSum(filterField(mesh().magSf(), false));
         }
 
-        if (Pstream::master())
-        {
-            file() << obr_.time().value() << tab << totalArea;
-        }
+        file() << obr_.time().value() << tab << totalArea;
 
-        // construct weight field. Note: zero size means weight = 1
+        // Construct weight field. Note: zero size means weight = 1
         scalarField weightField;
         if (weightFieldName_ != "none")
         {
@@ -687,7 +689,7 @@ void Foam::fieldValues::faceSource::write()
                 );
         }
 
-        // process the fields
+        // Process the fields
         forAll(fields_, i)
         {
             const word& fieldName = fields_[i];
@@ -710,10 +712,7 @@ void Foam::fieldValues::faceSource::write()
             }
         }
 
-        if (Pstream::master())
-        {
-            file()<< endl;
-        }
+        file()<< endl;
 
         Info(log_)<< endl;
     }

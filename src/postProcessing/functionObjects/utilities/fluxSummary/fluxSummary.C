@@ -643,6 +643,7 @@ Foam::fluxSummary::fluxSummary
     facePatchID_(),
     faceSign_(),
     faceArea_(),
+    filePtrs_(),
     tolerance_(0.8)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
@@ -771,34 +772,55 @@ void Foam::fluxSummary::read(const dictionary& dict)
 
         initialiseFaceArea();
 
-        functionObjectFile::resetNames(faceZoneName_);
+        if (writeToFile())
+        {
+            filePtrs_.setSize(faceZoneName_.size());
+            filePtrs_.clear();
+            forAll(filePtrs_, fileI)
+            {
+                const word& fzName = faceZoneName_[fileI];
+                filePtrs_.set(fileI, createFile(fzName));
+                writeFileHeader
+                (
+                    fzName,
+                    faceArea_[fileI],
+                    refDir[fileI],
+                    filePtrs_[fileI]
+                );
+            }
+        }
     }
 }
 
 
-void Foam::fluxSummary::writeFileHeader(const label i)
+void Foam::fluxSummary::writeFileHeader
+(
+    const word& fzName,
+    const scalar area,
+    const vector& refDir,
+    Ostream& os
+) const
 {
-    writeHeader(file(i), "Flux summary");
-    writeHeaderValue(file(i), "Face zone", faceZoneName_[i]);
-    writeHeaderValue(file(i), "Total area", faceArea_[i]);
+    writeHeader(os, "Flux summary");
+    writeHeaderValue(os, "Face zone", fzName);
+    writeHeaderValue(os, "Total area", area);
 
     switch (mode_)
     {
         case mdFaceZoneAndDirection:
         case mdCellZoneAndDirection:
         {
-            writeHeaderValue(file(i), "Reference direction", refDir_[i]);
+            writeHeaderValue(os, "Reference direction", refDir);
             break;
         }
         default:
         {}
     }
 
-    writeHeaderValue(file(i), "Scale factor", scaleFactor_);
+    writeHeaderValue(os, "Scale factor", scaleFactor_);
 
-    writeCommented(file(i), "Time");
-    file(i)
-        << tab << "positive"
+    writeCommented(os, "Time");
+    os  << tab << "positive"
         << tab << "negative"
         << tab << "net"
         << tab << "absolute"
@@ -830,8 +852,6 @@ void Foam::fluxSummary::write()
     {
         return;
     }
-
-    functionObjectFile::write();
 
     const surfaceScalarField& phi =
         obr_.lookupObject<surfaceScalarField>(phiName_);
@@ -909,9 +929,9 @@ void Foam::fluxSummary::write()
             << "        absolute : " << absoluteFlux
             << nl << endl;
 
-        if (Pstream::master())
+        if (writeToFile())
         {
-            file(zoneI)
+            filePtrs_[zoneI]
                 << obr_.time().value() << token::TAB
                 << phiPos << token::TAB
                 << phiNeg << token::TAB

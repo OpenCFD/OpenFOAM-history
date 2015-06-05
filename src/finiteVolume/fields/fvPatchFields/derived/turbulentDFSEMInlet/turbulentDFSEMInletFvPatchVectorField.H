@@ -38,7 +38,20 @@ Description
         Flow Turbulence Combust (2013) 91:519-539
     \endverbatim
 
+    \table
+        Property  | Description         | Required         | Default value
+        value     | restart value       | yes              |
+        UMean     | velocity mean       | yes              |
+        delta     | local length scale  | yes              |
+        d         | fill fraction       | no               | 1
+        kappa     | Von Karman constant | no               | 0.41
+        mapMethod | interpolation to obtain initial R | no | planarInterpolation
+        perturb   | point perturbation for initial R | no  | 1e-5
+    \endtable
+
+
 SeeAlso
+    timeVaryingMappedFixedValueFvPatchField
 
 SourceFiles
     turbulentDFSEMInletFvPatchVectorField.C
@@ -53,14 +66,17 @@ SourceFiles
 #include "treeDataPrimitivePatch.H"
 #include "cachedRandom.H"
 #include "eddy.H"
+#include "pointIndexHit.H"
+#include "instantList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-class treeDataFace;
 class cartesianCS;
+class globalIndex;
+class pointToPointPlanarInterpolation;
 
 /*---------------------------------------------------------------------------*\
            Class turbulentDFSEMInletFvPatchVectorField Declaration
@@ -76,25 +92,51 @@ class turbulentDFSEMInletFvPatchVectorField
         typedef treeDataPrimitivePatch<polyPatch> treeType;
 
         //- Mean velocity in patch (negative) normal direction
-        scalar UMean_;
+        const scalar UMean_;
 
         //- Typical length scale, e.g. half channel height
-        scalar delta_;
+        const scalar delta_;
 
         //- Ratio of sum of eddy volumes to eddy box volume; default = 1
-        scalar d_;
+        const scalar d_;
 
         //- Von Karman constant
-        scalar kappa_;
+        const scalar kappa_;
 
-        //- Turbulence kinetoc energy
-        scalarField k_;
+        //- Global numbering for faces
+        mutable autoPtr<globalIndex> globalFacesPtr_;
 
-        //- Turbulence dissipation rate
-        scalarField epsilon_;
 
-        //- Reynolds stress tensor
-        symmTensorField R_;
+        // Table reading of Reynolds stress tensor
+        // (see timeVaryingMappedFixedValue)
+
+            //- Fraction of perturbation (fraction of bounding box) to add
+            scalar perturb_;
+
+            //- Interpolation scheme to use
+            word mapMethod_;
+
+            //- 2D interpolation (for 'planarInterpolation' mapMethod)
+            autoPtr<pointToPointPlanarInterpolation> mapperPtr_;
+
+            //- List of boundaryData time directories
+            instantList sampleTimes_;
+
+            //- Current starting index in sampleTimes
+            label startSampleTime_;
+
+            //- Current end index in sampleTimes
+            label endSampleTime_;
+
+            //- R at startSampleTime_
+            symmTensorField RStart_;
+
+            //- R at endSampleTime_
+            symmTensorField REnd_;
+
+            //- Interpolated for current Time
+            symmTensorField R_;
+
 
         //- List of eddies
         List<eddy> eddies_;
@@ -129,6 +171,12 @@ class turbulentDFSEMInletFvPatchVectorField
 
     // Private Member Functions
 
+        //- Demand-driven access to global mesh-face numbering
+        const globalIndex& globalFaces() const;
+
+        //- Check 
+        void checkTable();
+
         //- Check the patch
         void checkPatch();
 
@@ -141,8 +189,9 @@ class turbulentDFSEMInletFvPatchVectorField
         //- Initialise eddies
         void initialiseEddies();
 
-        //- Set a new eddy position
-        void setNewPosition(point& p, label& faceI, bool localOnly);
+        //- Set a new eddy position. In parallel guarantees only one processor
+        //  selected
+        pointIndexHit setNewPosition(bool localOnly);
 
         //- Convect the eddies
         void convectEddies(const scalar deltaT);

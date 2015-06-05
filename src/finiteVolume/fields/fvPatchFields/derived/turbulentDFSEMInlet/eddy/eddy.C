@@ -113,26 +113,17 @@ Foam::vector Foam::eddy::uDash(const point& xp, cachedRandom& rndGen) const
     vector u(vector::zero);
 
     // Relative position inside eddy
-    vector r = cmptDivide(xp - position_, sigma_);
+    const vector r = cmptDivide(xp - position_, sigma_);
 
-    scalar d2 = magSqr(r);
+    const scalar d2 = magSqr(r);
 
     if (d2 < 1)
     {
         // Intensities
         vector alpha = this->alpha(rndGen);
 
-        for (label beta = 0; beta < 3; beta++)
-        {
-            label j = (beta + 1) % 3;
-            label l = (j + 1) % 3;
-
-            u[beta] += r[j]*alpha[l];
-            u[beta] -= r[l]*alpha[j];
-        }
-
         // Fluctuating velocity in principal axes system (eq. 8)
-        u = cmptMultiply(sigma_*(scalar(1) - d2), u);
+        u = cmptMultiply(sigma_*(scalar(1) - d2), r^alpha);
     }
 
     // Convert into eddy box system (eq. 10)

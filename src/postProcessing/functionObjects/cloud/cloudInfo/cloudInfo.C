@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,16 +37,16 @@ defineTypeNameAndDebug(cloudInfo, 0);
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-void Foam::cloudInfo::writeFileHeader(const label i)
+void Foam::cloudInfo::writeFileHeader(Ostream& os) const
 {
-    writeHeader(file(), "Cloud information");
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "nParcels");
-    writeTabbed(file(), "mass");
-    writeTabbed(file(), "Dmax");
-    writeTabbed(file(), "D10");
-    writeTabbed(file(), "D32");
-    file() << endl;
+    writeHeader(os, "Cloud information");
+    writeCommented(os, "Time");
+    writeTabbed(os, "nParcels");
+    writeTabbed(os, "mass");
+    writeTabbed(os, "Dmax");
+    writeTabbed(os, "D10");
+    writeTabbed(os, "D32");
+    os  << endl;
 }
 
 
@@ -64,7 +64,8 @@ Foam::cloudInfo::cloudInfo
     name_(name),
     obr_(obr),
     active_(true),
-    log_(true)
+    log_(true),
+    filePtrs_()
 {
     read(dict);
 }
@@ -82,25 +83,39 @@ void Foam::cloudInfo::read(const dictionary& dict)
 {
     if (active_)
     {
-        log_ = dict.lookupOrDefault<Switch>("log", true);
+        functionObjectFile::read(dict);
 
-        functionObjectFile::resetNames(dict.lookup("clouds"));
+        log_ = dict.lookupOrDefault<Switch>("log", true);
+        wordList cloudNames(dict.lookup("clouds"));
 
         if (log_)
         {
             Info<< type() << " " << name_ << ": ";
-            if (names().size())
+
+            if (cloudNames.size())
             {
                 Info<< "applying to clouds:" << nl;
-                forAllConstIter(wordHashSet, names(), iter)
+                forAll(cloudNames, i)
                 {
-                    Info<< "    " << iter.key() << nl;
+                    Info<< "    " << cloudNames[i] << nl;
                 }
                 Info<< endl;
             }
             else
             {
                 Info<< "no clouds to be processed" << nl << endl;
+            }
+        }
+
+        if (writeToFile())
+        {
+            filePtrs_.setSize(cloudNames.size());
+            filePtrs_.clear();
+            forAll(filePtrs_, fileI)
+            {
+                const word& cloudName = cloudNames[fileI];
+                filePtrs_.set(fileI, createFile(cloudName));
+                writeFileHeader(filePtrs_[fileI]);
             }
         }
     }
@@ -129,12 +144,10 @@ void Foam::cloudInfo::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
-        label i = 0;
-        forAllConstIter(wordHashSet, names(), iter)
+        const wordList& cloudNames = names();
+        forAll(cloudNames, cloudI)
         {
-            const word& cloudName = iter.key();
+            const word& cloudName = cloudNames[cloudI];
 
             const kinematicCloud& cloud =
                 obr_.lookupObject<kinematicCloud>(cloudName);
@@ -149,7 +162,7 @@ void Foam::cloudInfo::write()
 
             if (Pstream::master())
             {
-                file(i)
+                filePtrs_[cloudI]
                     << obr_.time().value() << token::TAB
                     << nParcels << token::TAB
                     << massInSystem << token::TAB
@@ -167,8 +180,6 @@ void Foam::cloudInfo::write()
                 << "    D10 diameter      : " << D10 << nl
                 << "    D32 diameter      : " << D32 << nl
                 << endl;
-
-            i++;
         }
     }
 }

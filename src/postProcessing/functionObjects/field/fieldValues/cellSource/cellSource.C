@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -150,22 +150,22 @@ void Foam::fieldValues::cellSource::initialise(const dictionary& dict)
 }
 
 
-void Foam::fieldValues::cellSource::writeFileHeader(const label i)
+void Foam::fieldValues::cellSource::writeFileHeader(Ostream& os) const
 {
-    writeHeaderValue(file(), "Source", sourceTypeNames_[source_]);
-    writeHeaderValue(file(), "Name", sourceName_);
-    writeHeaderValue(file(), "Cells", nCells_);
-    writeHeaderValue(file(), "Operation", operationTypeNames_[operation_]);
-    writeHeaderValue(file(), "Scale factor", scaleFactor_);
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "sum(V)");
+    writeHeaderValue(os, "Source", sourceTypeNames_[source_]);
+    writeHeaderValue(os, "Name", sourceName_);
+    writeHeaderValue(os, "Cells", nCells_);
+    writeHeaderValue(os, "Operation", operationTypeNames_[operation_]);
+    writeHeaderValue(os, "Scale factor", scaleFactor_);
+    writeCommented(os, "Time");
+    writeTabbed(os, "sum(V)");
 
     forAll(fields_, fieldI)
     {
-        writeTabbed(file(), fields_[fieldI]);
+        writeTabbed(os, fields_[fieldI]);
     }
 
-    file() << endl;
+    os << endl;
 }
 
 
@@ -186,7 +186,11 @@ Foam::fieldValues::cellSource::cellSource
     cellId_(),
     weightFieldName_("none")
 {
-    read(dict);
+    if (active_)
+    {
+        read(dict);
+        writeFileHeader(file());
+    }
 }
 
 
@@ -200,11 +204,11 @@ Foam::fieldValues::cellSource::~cellSource()
 
 void Foam::fieldValues::cellSource::read(const dictionary& dict)
 {
-    fieldValue::read(dict);
-
     if (active_)
     {
-        // no additional info to read
+        fieldValue::read(dict);
+
+        // No additional info to read
         initialise(dict);
     }
 }
@@ -217,12 +221,9 @@ void Foam::fieldValues::cellSource::write()
     if (active_)
     {
         scalar totalVolume = gSum(filterField(mesh().V()));
-        if (Pstream::master())
-        {
-            file() << obr_.time().value() << tab << totalVolume;
-        }
+        file() << obr_.time().value() << tab << totalVolume;
 
-        // construct weight field. Note: zero size means weight = 1
+        // Construct weight field. Note: zero size means weight = 1
         scalarField weightField;
         if (weightFieldName_ != "none")
         {
@@ -249,10 +250,7 @@ void Foam::fieldValues::cellSource::write()
             }
         }
 
-        if (Pstream::master())
-        {
-            file()<< endl;
-        }
+        file()<< endl;
 
         Info(log_)<< endl;
     }

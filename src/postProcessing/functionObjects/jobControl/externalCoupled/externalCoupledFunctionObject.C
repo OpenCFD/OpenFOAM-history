@@ -92,13 +92,10 @@ void Foam::externalCoupledFunctionObject::createLockFile() const
     const fileName fName(lockFile());
     IFstream is(fName);
 
-    // only create lock file if it doesn't already exist
+    // Only create lock file if it doesn't already exist
     if (!is.good())
     {
-        if (log_)
-        {
-            Info<< type() << ": creating lock file" << endl;
-        }
+        Info(log_)<< type() << ": creating lock file" << endl;
 
         OFstream os(fName);
         os  << "lock file";
@@ -114,10 +111,7 @@ void Foam::externalCoupledFunctionObject::removeLockFile() const
         return;
     }
 
-    if (log_)
-    {
-        Info<< type() << ": removing lock file" << endl;
-    }
+    Info(log_)<< type() << ": removing lock file" << endl;
 
     rm(lockFile());
 }
@@ -130,10 +124,7 @@ void Foam::externalCoupledFunctionObject::removeReadFiles() const
         return;
     }
 
-    if (log_)
-    {
-        Info<< type() << ": removing all read files" << endl;
-    }
+    Info(log_)<< type() << ": removing all read files" << endl;
 
     forAll(regionNames_, regionI)
     {
@@ -166,10 +157,7 @@ void Foam::externalCoupledFunctionObject::removeWriteFiles() const
         return;
     }
 
-    if (log_)
-    {
-        Info<< type() << ": removing all write files" << endl;
-    }
+    Info(log_)<< type() << ": removing all write files" << endl;
 
     forAll(regionNames_, regionI)
     {
@@ -201,10 +189,7 @@ void Foam::externalCoupledFunctionObject::wait() const
     label found = 0;
     label totalTime = 0;
 
-    if (log_)
-    {
-        Info<< type() << ": beginning wait for lock file " << fName << endl;
-    }
+    Info(log_)<< type() << ": beginning wait for lock file " << fName << endl;
 
     while (found == 0)
     {
@@ -228,20 +213,14 @@ void Foam::externalCoupledFunctionObject::wait() const
             {
                 found++;
 
-                if (log_)
-                {
-                    Info<< type() << ": found lock file " << fName << endl;
-                }
+                Info(log_)<< type() << ": found lock file " << fName << endl;
             }
             else
             {
                 sleep(waitInterval_);
                 totalTime += waitInterval_;
 
-                if (log_)
-                {
-                    Info<< type() << ": wait time = " << totalTime << endl;
-                }
+                Info(log_)<< type() << ": wait time = " << totalTime << endl;
             }
         }
 
@@ -919,7 +898,7 @@ bool Foam::externalCoupledFunctionObject::read(const dictionary& dict)
 
 
     // Note: we should not have to make directories since the geometry
-    //       should already be written but just make sure
+    //       should already be written - but just make sure
     if (Pstream::master())
     {
         forAll(regionNames_, regionI)
@@ -935,10 +914,9 @@ bool Foam::externalCoupledFunctionObject::read(const dictionary& dict)
                 fileName dir(groupDir(commsDir_, mesh.dbDir(), groupName));
                 if (!isDir(dir))
                 {
-                    if (log_)
-                    {
-                        Info<< type() << ": creating comms dir " << dir << endl;
-                    }
+                    Info(log_)
+                        << type() << ": creating communications directory "
+                        << dir << endl;
                     mkDir(dir);
                 }
             }

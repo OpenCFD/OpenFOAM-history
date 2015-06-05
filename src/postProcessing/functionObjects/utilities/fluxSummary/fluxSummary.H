@@ -172,6 +172,9 @@ protected:
             //- Sum of face areas
             List<scalar> faceArea_;
 
+            //- Output file per face zone
+            PtrList<OFstream> filePtrs_;
+
 
         //- Tolerance applied when matching face normals
         scalar tolerance_;
@@ -216,14 +219,20 @@ protected:
         //- Initialise the total area per derived faceZone
         void initialiseFaceArea();
 
+        //- Output file header information
+        virtual void writeFileHeader
+        (
+            const word& fzName,
+            const scalar area,
+            const vector& refDir,
+            Ostream& os
+        ) const;
+
         //- Disallow default bitwise copy construct
         fluxSummary(const fluxSummary&);
 
         //- Disallow default bitwise assignment
         void operator=(const fluxSummary&);
-
-        //- Output file header information
-        virtual void writeFileHeader(const label i);
 
 
 public:

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -81,33 +81,76 @@ public:
 
     // Member Functions
 
+        //- Return the FFT frequencies
+        static tmp<scalarField> frequencies
+        (
+            const label N,
+            const scalar deltaT
+        );
+
+        //- Return the 1/3 octave frequuencies
+        static tmp<scalarField> oneThirdOctaveFrequencies
+        (
+            const scalarField& f,
+            const scalar deltaT,
+            const scalar f1,
+            const scalar fU
+        );
+
         //- Return the graph of p(t)
         graph pt() const;
 
         //- Return the nth window
-        tmp<scalarField> window(const label N, const label n) const;
+        tmp<scalarField> window
+        (
+            const label N,
+            const label n,
+            const label nOverlap
+        ) const;
 
         //- Return the Hanning window function
         tmp<scalarField> Hanning(const label N) const;
 
+        //- Return the symmetric Hanning window function
+        tmp<scalarField> symmetricHanning(const label N) const;
+
         //- Return the fft of the given pressure data
         tmp<scalarField> Pf(const tmp<scalarField>& pn) const;
 
-        //- Return the multi-window mean fft of the complete pressure data
-        graph meanPf(const label N, const label nw) const;
+        //- Return the multi-window mean fft of the complete pressure data [Pa]
+        graph meanPf(const label N, const label nw, const label nOverlap) const;
 
-        //- Return the multi-window RMS mean fft of the complete pressure data
-        graph RMSmeanPf(const label N, const label nw) const;
+        //- Return the multi-window RMS mean fft of the complete pressure
+        //  data [Pa]
+        graph RMSmeanPf
+        (
+            const label N,
+            const label nw,
+            const label nOverlap
+        ) const;
 
-        //- Return the narrow-band PFL (pressure-fluctuation level) spectrum
+        //- Return the multi-window PSD (power spectral density) of the complete
+        //  pressure data [Pa^2/Hz]
+        graph PSDf
+        (
+            const label N,
+            const label nw,
+            const label nOverlap
+        ) const;
+
+        //- Return the PSD [dB]
+        graph PSD(const graph& gPSD) const;
+
+        //- Return the narrow-band PFL (pressure-fluctuation level)
+        //  spectrum [dB]
         graph Lf(const graph& gPf) const;
 
         //- Return the one-third-octave-band PFL spectrum
-        //  starting at octave with mean frequency f1
+        //  starting at octave with mean frequency f1 [dB]
         graph Ldelta(const graph& gLf, const scalar f1, const scalar fU) const;
 
         //- Return the one-third-octave-band pressure spectrum
-        //  starting at octave with mean frequency f1
+        //  starting at octave with mean frequency f1 [dB]
         graph Pdelta(const graph& gLf, const scalar f1, const scalar fU) const;
 
         //- Return the total PFL as the sum of Lf over all frequencies

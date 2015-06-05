@@ -28,12 +28,263 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "momentOfInertia.H"
-#include "treeBoundBox.H"
 #include "cartesianCS.H"
-#include "pointIndexHit.H"
 #include "treeDataFace.H"
+#include "globalIOFields.H"
+#include "globalIndex.H"
+#include "pointToPointPlanarInterpolation.H"
+#include "AverageIOField.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+const Foam::globalIndex&
+Foam::turbulentDFSEMInletFvPatchVectorField::globalFaces() const
+{
+    if (!globalFacesPtr_.valid())
+    {
+        globalFacesPtr_.reset
+        (
+            new globalIndex
+            (
+                patch().boundaryMesh().mesh().nFaces()
+            )
+        );
+    }
+    return globalFacesPtr_();
+}
+
+
+void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
+{
+    // Construct a spatial interpolation (using constant/boundaryData
+    // points), read the available list of sampled data ('R') and interpolate
+    // in time. (similar to timeVaryingMappedFixedValue)
+    // In general this is overkill and the R field is static one.
+    // In this case we probably shouldn't be holding the interpolation
+    // structure and the current values of R ('RStart_', 'REnd') for
+    // the current time.
+
+
+    // Initialise interpolation (2D planar interpolation by triangulation)
+    if (mapperPtr_.empty())
+    {
+        vectorGlobalIOField samplePoints
+        (
+            IOobject
+            (
+                "points",
+                this->db().time().caseConstant(),
+                "boundaryData"/this->patch().name(),
+                this->db(),
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE,
+                false
+            )
+        );
+
+        const fileName samplePointsFile = samplePoints.filePath();
+
+        if (debug)
+        {
+            Info<< "turbulentDFSEMInletFvPatchVectorField :"
+                << " Read " << samplePoints.size() << " sample points from "
+                << samplePointsFile << endl;
+        }
+
+
+        // tbd: run-time selection
+        bool nearestOnly =
+        (
+           !mapMethod_.empty()
+         && mapMethod_ != "planarInterpolation"
+        );
+
+        // Allocate the interpolator
+        mapperPtr_.reset
+        (
+            new pointToPointPlanarInterpolation
+            (
+                samplePoints,
+                this->patch().patch().faceCentres(),
+                perturb_,
+                nearestOnly
+            )
+        );
+
+        // Read the times for which data is available
+        const fileName samplePointsDir = samplePointsFile.path();
+        sampleTimes_ = Time::findTimes(samplePointsDir);
+
+        if (debug)
+        {
+            Info<< "turbulentDFSEMInletFvPatchVectorField : In directory "
+                << samplePointsDir << " found times "
+                << pointToPointPlanarInterpolation::timeNames(sampleTimes_)
+                << endl;
+        }
+    }
+
+
+    // Find current time in sampleTimes
+    label lo = -1;
+    label hi = -1;
+
+    bool foundTime = mapperPtr_().findTime
+    (
+        sampleTimes_,
+        startSampleTime_,
+        this->db().time().value(),
+        lo,
+        hi
+    );
+
+    if (!foundTime)
+    {
+        FatalErrorIn
+        (
+            "turbulentDFSEMInletFvPatchVectorField::checkTable()"
+        )   << "Cannot find starting sampling values for current time "
+            << this->db().time().value() << nl
+            << "Have sampling values for times "
+            << pointToPointPlanarInterpolation::timeNames(sampleTimes_) << nl
+            << "In directory "
+            <<  this->db().time().constant()/"boundaryData"/this->patch().name()
+            << "\n    on patch " << this->patch().name()
+            << " of field " << this->dimensionedInternalField().name()
+            << exit(FatalError);
+    }
+
+
+    // Update sampled data fields.
+
+    if (lo != startSampleTime_)
+    {
+        startSampleTime_ = lo;
+
+        if (startSampleTime_ == endSampleTime_)
+        {
+            // No need to reread since are end values
+            if (debug)
+            {
+                Pout<< "checkTable : Setting startValues to (already read) "
+                    <<   "boundaryData"
+                        /this->patch().name()
+                        /sampleTimes_[startSampleTime_].name()
+                    << endl;
+            }
+            RStart_ = REnd_;
+        }
+        else
+        {
+            if (debug)
+            {
+                Pout<< "checkTable : Reading startValues from "
+                    <<   "boundaryData"
+                        /this->patch().name()
+                        /sampleTimes_[lo].name()
+                    << endl;
+            }
+
+            RStart_ = mapperPtr_().interpolate
+            (
+                AverageIOField<symmTensor>
+                (
+                    IOobject
+                    (
+                        "R",
+                        this->db().time().caseConstant(),
+                        "boundaryData"
+                       /this->patch().name()
+                       /sampleTimes_[startSampleTime_].name(),
+                        this->db(),
+                        IOobject::MUST_READ,
+                        IOobject::AUTO_WRITE,
+                        false
+                    )
+                )
+            );
+        }
+    }
+
+    if (hi != endSampleTime_)
+    {
+        endSampleTime_ = hi;
+
+        if (endSampleTime_ == -1)
+        {
+            // endTime no longer valid. Might as well clear endValues.
+            if (debug)
+            {
+                Pout<< "checkTable : Clearing endValues" << endl;
+            }
+            REnd_.clear();
+        }
+        else
+        {
+            if (debug)
+            {
+                Pout<< "checkTable : Reading endValues from "
+                    <<   "boundaryData"
+                        /this->patch().name()
+                        /sampleTimes_[endSampleTime_].name()
+                    << endl;
+            }
+
+            REnd_ = mapperPtr_().interpolate
+            (
+                AverageIOField<symmTensor>
+                (
+                    IOobject
+                    (
+                        "R",
+                        this->db().time().caseConstant(),
+                        "boundaryData"
+                       /this->patch().name()
+                       /sampleTimes_[endSampleTime_].name(),
+                        this->db(),
+                        IOobject::MUST_READ,
+                        IOobject::AUTO_WRITE,
+                        false
+                    )
+                )
+            );
+        }
+    }
+
+
+    // Now we have cached start- and end-time values for R just use
+    // linear interpolation
+    if (endSampleTime_ == -1)
+    {
+        // only start value
+        if (debug)
+        {
+            Pout<< "checkTable : Sampled, non-interpolated values"
+                << " from start time:" << sampleTimes_[startSampleTime_].name()
+                << nl;
+        }
+        R_ = RStart_;
+    }
+    else
+    {
+        scalar start = sampleTimes_[startSampleTime_].value();
+        scalar end = sampleTimes_[endSampleTime_].value();
+
+        scalar s = (this->db().time().value() - start)/(end - start);
+
+        if (debug)
+        {
+            Pout<< "checkTable : Sampled, interpolated values"
+                << " between start time:"
+                << sampleTimes_[startSampleTime_].name()
+                << " and end time:" << sampleTimes_[endSampleTime_].name()
+                << " with weight:" << s << endl;
+        }
+
+        R_ = (1 - s)*RStart_ + s*REnd_;
+    }
+}
+
 
 void Foam::turbulentDFSEMInletFvPatchVectorField::checkPatch()
 {
@@ -62,7 +313,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkPatch()
 
 void Foam::turbulentDFSEMInletFvPatchVectorField::createTree()
 {
-    treeBoundBox bb(patch().patch().points());
+    treeBoundBox bb(patch().patch().points(), patch().patch().meshPoints());
     bb.inflate(0.01);
 
     if (!treePtr_.valid())
@@ -98,8 +349,8 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddyBox()
         scalar& s = sigmax_[faceI];
 
         // Length scale in x direction (based on eq. 14)
-        s = pow(k_[faceI], 1.5)/(epsilon_[faceI] + ROOTVSMALL);
-        s = min(s, kappa_*delta_);
+        //s = pow(k_[faceI], 1.5)/(epsilon_[faceI] + ROOTVSMALL);
+        s = kappa_*delta_;
         s = min(s, Foam::sqrt(magSf[faceI]));
     }
 
@@ -186,15 +437,23 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddies()
     scalar sumVolEddy = 0;
     scalar sumVolEddyAllProc = 0;
 
-    point position;
-    label faceI = -1;
     while (sumVolEddyAllProc/v0_ < d_)
     {
-        setNewPosition(position, faceI, false);
+        // Get new eddy on one of the processors
+        pointIndexHit pos(setNewPosition(false));
+
+        label faceI = pos.index();
 
         if (faceI != -1)
         {
-            eddy e(position, sigmax_[faceI], R_[faceI], patchNormal_, rndGen_);
+            eddy e
+            (
+                pos.hitPoint(),
+                sigmax_[faceI],
+                R_[faceI],
+                patchNormal_,
+                rndGen_
+            );
             eddies.append(e);
             sumVolEddy += e.boxVolume();
         }
@@ -244,95 +503,72 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddies()
 }
 
 
-void Foam::turbulentDFSEMInletFvPatchVectorField::setNewPosition
+Foam::pointIndexHit Foam::turbulentDFSEMInletFvPatchVectorField::setNewPosition
 (
-    point& p,
-    label& faceI,
     const bool localOnly
 )
 {
+    // Initialise to miss
+    pointIndexHit pos(false, vector::max, -1);
+
     while (true)
     {
         // Generate a position within eddy box
         if (localOnly)
         {
-            p = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
+            pos.rawPoint() = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
         }
         else
         {
             if (Pstream::master())
             {
-                p = cmptMultiply(rndGen_.sample01<vector>(), bounds_);
+                pos.rawPoint() =
+                    cmptMultiply(rndGen_.sample01<vector>(), bounds_);
             }
-            Pstream::scatter(p);
+            Pstream::scatter(pos.rawPoint());
         }
 
         // Snap point to inlet plane at x = 0
-        point pDash = p;
+        point pDash = pos.rawPoint();
         pDash.x() = 0.5*bounds_.x();
 
         // Position in global system
         pDash = boxCoordSystemPtr_->globalPosition(pDash);
 
-        point q(2*bounds_.x(), p.y(), p.z());
+        point q(2*bounds_.x(), pos.rawPoint().y(), pos.rawPoint().z());
         q = boxCoordSystemPtr_->globalPosition(q);
         vector dx = q - pDash;
 
         // Find patch face
         pointIndexHit sample = treePtr_->findLineAny(pDash-dx, pDash+dx);
-        bool hit = sample.hit();
 
         if (Pstream::parRun() && !localOnly)
         {
-            List<label> procHits(Pstream::nProcs(), 0);
+            label globalHit = returnReduce
+            (
+                (
+                    sample.hit()
+                  ? globalFaces().toGlobal(sample.index())
+                  : -1
+                ),
+                maxOp<label>()
+            );
 
-            if (hit)
+            if (globalHit != -1)
             {
-                procHits[Pstream::myProcNo()] = 1;
-            }
-            else
-            {
-                procHits[Pstream::myProcNo()] = 0;
-            }
-
-            Pstream::listCombineGather(procHits, plusEqOp<label>());
-            Pstream::listCombineScatter(procHits);
-            label nHits = sum(procHits);
-
-            if (nHits == 1)
-            {
-                faceI = sample.index();
-                return;
-            }
-            else if (nHits > 1)
-            {
-                // More than 1 processor has hit this position
-                // - select the processor with the lowest index
-                label winningProcI = -1;
-                forAll(procHits, procI)
+                if (globalFaces().isLocal(globalHit))
                 {
-                    if (procHits[procI] != 0)
-                    {
-                        winningProcI = procI;
-                        break;
-                    }
+                    pos.setHit();
+                    pos.setIndex(sample.index());
                 }
-
-                if (Pstream::myProcNo() == winningProcI)
-                {
-                    faceI = sample.index();
-                }
-                else
-                {
-                    faceI = -1;
-                }
-                return;
+                return pos;
             }
         }
-        else if (hit)
+        else if (sample.hit())
         {
-            faceI = sample.index();
-            return;
+            pos.setHit();
+            pos.setIndex(sample.index());
+            return pos;
         }
     }
 }
@@ -359,13 +595,13 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::convectEddies
         if (position0 > bounds_.x())
         {
             // Spawn new eddy on this processor
-            point newPosition = point::zero;
-            label faceI = -1;
-            setNewPosition(newPosition, faceI, true);
+            pointIndexHit pos(setNewPosition(true));
+
+            label faceI = pos.index();
 
             e = eddy
                 (
-                    newPosition,
+                    pos.hitPoint(),
                     sigmax_[faceI],
                     R_[faceI],
                     patchNormal_,
@@ -428,9 +664,12 @@ turbulentDFSEMInletFvPatchVectorField
     delta_(0),
     d_(0),
     kappa_(0),
-    k_(size(), 0),
-    epsilon_(size(), 0),
-    R_(size(), symmTensor::zero),
+
+    perturb_(1e-5),
+    mapMethod_("planarInterpolation"),
+    startSampleTime_(-1),
+    endSampleTime_(-1),
+
     eddies_(0),
     patchNormal_(vector::zero),
     v0_(0),
@@ -458,9 +697,14 @@ turbulentDFSEMInletFvPatchVectorField
     delta_(ptf.delta_),
     d_(ptf.d_),
     kappa_(ptf.kappa_),
-    k_(ptf.k_, mapper),
-    epsilon_(ptf.epsilon_, mapper),
+
+    perturb_(ptf.perturb_),
+    mapMethod_(ptf.mapMethod_),
+    mapperPtr_(NULL),
+    startSampleTime_(-1),
+    endSampleTime_(-1),
     R_(ptf.R_, mapper),
+
     eddies_(ptf.eddies_),
     patchNormal_(ptf.patchNormal_),
     v0_(ptf.v0_),
@@ -487,9 +731,13 @@ turbulentDFSEMInletFvPatchVectorField
     delta_(readScalar(dict.lookup("delta"))),
     d_(dict.lookupOrDefault("d", 1)),
     kappa_(dict.lookupOrDefault("kappa", 0.41)),
-    k_("k", dict, p.size()),
-    epsilon_("epsilon", dict, p.size()),
-    R_("R", dict, p.size()),
+
+    perturb_(dict.lookupOrDefault("perturb", 1e-5)),
+    mapMethod_(dict.lookup("mapMethod")),
+    mapperPtr_(NULL),
+    startSampleTime_(-1),
+    endSampleTime_(-1),
+
     eddies_(),
     patchNormal_(vector::zero),
     v0_(0),
@@ -500,7 +748,6 @@ turbulentDFSEMInletFvPatchVectorField
     sigmax_(size(), 0),
     nEddy_(0),
     curTimeIndex_(-1)
-
 {}
 
 
@@ -515,9 +762,14 @@ turbulentDFSEMInletFvPatchVectorField
     delta_(ptf.delta_),
     d_(ptf.d_),
     kappa_(ptf.kappa_),
-    k_(ptf.k_),
-    epsilon_(ptf.epsilon_),
+
+    perturb_(ptf.perturb_),
+    mapMethod_(ptf.mapMethod_),
+    mapperPtr_(NULL),
+    startSampleTime_(-1),
+    endSampleTime_(-1),
     R_(ptf.R_),
+
     eddies_(ptf.eddies_),
     patchNormal_(ptf.patchNormal_),
     v0_(ptf.v0_),
@@ -543,9 +795,14 @@ turbulentDFSEMInletFvPatchVectorField
     delta_(ptf.delta_),
     d_(ptf.d_),
     kappa_(ptf.kappa_),
-    k_(ptf.k_),
-    epsilon_(ptf.epsilon_),
+
+    perturb_(ptf.perturb_),
+    mapMethod_(ptf.mapMethod_),
+    mapperPtr_(NULL),
+    startSampleTime_(-1),
+    endSampleTime_(-1),
     R_(ptf.R_),
+
     eddies_(ptf.eddies_),
     patchNormal_(ptf.patchNormal_),
     v0_(ptf.v0_),
@@ -574,9 +831,17 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::autoMap
 )
 {
     fixedValueFvPatchField<vector>::autoMap(m);
-    k_.autoMap(m);
-    epsilon_.autoMap(m);
-    R_.autoMap(m);
+
+    if (RStart_.size())
+    {
+        RStart_.autoMap(m);
+        REnd_.autoMap(m);
+    }
+    // Clear interpolator
+    mapperPtr_.clear();
+    startSampleTime_ = -1;
+    endSampleTime_ = -1;
+
     sigmax_.autoMap(m);
 }
 
@@ -592,9 +857,13 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::rmap
     const turbulentDFSEMInletFvPatchVectorField& dfsemptf =
         refCast<const turbulentDFSEMInletFvPatchVectorField>(ptf);
 
-    k_.rmap(dfsemptf.k_, addr);
-    epsilon_.rmap(dfsemptf.epsilon_, addr);
-    R_.rmap(dfsemptf.R_, addr);
+    RStart_.rmap(dfsemptf.RStart_, addr);
+    REnd_.rmap(dfsemptf.REnd_, addr);
+    // Clear interpolator
+    mapperPtr_.clear();
+    startSampleTime_ = -1;
+    endSampleTime_ = -1;
+
     sigmax_.rmap(dfsemptf.sigmax_, addr);
 }
 
@@ -606,8 +875,15 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::updateCoeffs()
         return;
     }
 
+    // Interpolate R from table data (read from constant/boundaryData)
+    // (optionally interpolate in time as well)
+    checkTable();
+
     if (curTimeIndex_ == -1)
     {
+        // Ensure globalFaces constructed consistently in parallel
+        (void)globalFaces();
+
         checkPatch();
 
         createTree();
@@ -674,11 +950,29 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::write(Ostream& os) const
     writeEntry("value", os);
     os.writeKeyword("UMean") << UMean_ << token::END_STATEMENT << nl;
     os.writeKeyword("delta") << delta_ << token::END_STATEMENT << nl;
-    os.writeKeyword("d") << d_ << token::END_STATEMENT << nl;
-    os.writeKeyword("kappa") << kappa_ << token::END_STATEMENT << nl;
-    k_.writeEntry("k", os);
-    epsilon_.writeEntry("epsilon", os);
-    R_.writeEntry("R", os);
+    if (d_ != 1)
+    {
+        os.writeKeyword("d") << d_ << token::END_STATEMENT << nl;
+    }
+    if (kappa_ != 0.41)
+    {
+        os.writeKeyword("kappa") << kappa_ << token::END_STATEMENT << nl;
+    }
+
+    if (perturb_ != 1e-5)
+    {
+        os.writeKeyword("perturb") << perturb_ << token::END_STATEMENT << nl;
+    }
+
+    if
+    (
+       !mapMethod_.empty()
+     && mapMethod_ != "planarInterpolation"
+    )
+    {
+        os.writeKeyword("mapMethod") << mapMethod_
+            << token::END_STATEMENT << nl;
+    }
 }
 
 
