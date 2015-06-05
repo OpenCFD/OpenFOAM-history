@@ -775,7 +775,7 @@ void Foam::fluxSummary::read(const dictionary& dict)
         if (writeToFile())
         {
             filePtrs_.setSize(faceZoneName_.size());
-            filePtrs_.clear();
+
             forAll(filePtrs_, fileI)
             {
                 const word& fzName = faceZoneName_[fileI];
@@ -784,7 +784,7 @@ void Foam::fluxSummary::read(const dictionary& dict)
                 (
                     fzName,
                     faceArea_[fileI],
-                    refDir[fileI],
+                    refDir_[fileI],
                     filePtrs_[fileI]
                 );
             }
