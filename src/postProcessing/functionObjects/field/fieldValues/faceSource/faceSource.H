@@ -214,14 +214,14 @@ private:
         //- Set faces according to sampledSurface
         void sampledSurfaceFaces(const dictionary&);
 
-        //- Combine mesh faces and points from multiple processors 
+        //- Combine mesh faces and points from multiple processors
         void combineMeshGeometry
         (
             faceList& faces,
             pointField& points
         ) const;
 
-        //- Combine surface faces and points from multiple processors 
+        //- Combine surface faces and points from multiple processors
         void combineSurfaceGeometry
         (
             faceList& faces,
@@ -313,7 +313,7 @@ protected:
         ) const;
 
         //- Output file header information
-        virtual void writeFileHeader(const label i);
+        virtual void writeFileHeader(Ostream& os) const;
 
 
 public:

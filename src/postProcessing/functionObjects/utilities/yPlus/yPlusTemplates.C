@@ -68,20 +68,17 @@ void Foam::yPlus::calcYPlus
             const scalar maxYp = gMax(Yp);
             const scalar avgYp = gAverage(Yp);
 
-            if (Pstream::master())
-            {
-                Info(log_)
-                    << "    patch " << patch.name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
+            Info(log_)
+                << "    patch " << patch.name()
+                << " y+ : min = " << minYp << ", max = " << maxYp
+                << ", average = " << avgYp << nl;
 
-                file() << obr_.time().value()
-                    << token::TAB << patch.name()
-                    << token::TAB << minYp
-                    << token::TAB << maxYp
-                    << token::TAB << avgYp
-                    << endl;
-            }
+            file() << obr_.time().value()
+                << token::TAB << patch.name()
+                << token::TAB << minYp
+                << token::TAB << maxYp
+                << token::TAB << avgYp
+                << endl;
         }
         else if (isA<wallFvPatch>(patch))
         {
@@ -98,20 +95,17 @@ void Foam::yPlus::calcYPlus
             const scalar maxYp = gMax(Yp);
             const scalar avgYp = gAverage(Yp);
 
-            if (Pstream::master())
-            {
-                Info(log_)
-                    << "    patch " << patch.name()
-                    << " y+ : min = " << minYp << ", max = " << maxYp
-                    << ", average = " << avgYp << nl;
+            Info(log_)
+                << "    patch " << patch.name()
+                << " y+ : min = " << minYp << ", max = " << maxYp
+                << ", average = " << avgYp << nl;
 
-                file() << obr_.time().value()
-                    << token::TAB << patch.name()
-                    << token::TAB << minYp
-                    << token::TAB << maxYp
-                    << token::TAB << avgYp
-                    << endl;
-            }
+            file() << obr_.time().value()
+                << token::TAB << patch.name()
+                << token::TAB << minYp
+                << token::TAB << maxYp
+                << token::TAB << avgYp
+                << endl;
         }
     }
 }

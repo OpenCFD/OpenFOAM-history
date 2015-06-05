@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,49 +44,46 @@ void Foam::fieldMinMax::output
     const Type& maxValue
 )
 {
-    if (Pstream::master())
+    file()<< obr_.time().value();
+    writeTabbed(file(), fieldName);
+
+    file()
+        << token::TAB << minValue
+        << token::TAB << minC;
+
+    if (Pstream::parRun())
     {
-        file()<< obr_.time().value();
-        writeTabbed(file(), fieldName);
-
-        file()
-            << token::TAB << minValue
-            << token::TAB << minC;
-
-        if (Pstream::parRun())
-        {
-            file()<< token::TAB << minProcI;
-        }
-
-        file()
-            << token::TAB << maxValue
-            << token::TAB << maxC;
-
-        if (Pstream::parRun())
-        {
-            file()<< token::TAB << maxProcI;
-        }
-
-        file() << endl;
-
-        Info(log_)<< "    min(" << outputName << ") = "
-            << minValue << " at position " << minC;
-
-        if (Pstream::parRun())
-        {
-            Info(log_)<< " on processor " << minProcI;
-        }
-
-        Info(log_)<< nl << "    max(" << outputName << ") = "
-            << maxValue << " at position " << maxC;
-
-        if (Pstream::parRun())
-        {
-            Info(log_)<< " on processor " << maxProcI;
-        }
-
-        Info(log_)<< endl;
+        file()<< token::TAB << minProcI;
     }
+
+    file()
+        << token::TAB << maxValue
+        << token::TAB << maxC;
+
+    if (Pstream::parRun())
+    {
+        file()<< token::TAB << maxProcI;
+    }
+
+    file()<< endl;
+
+    Info(log_)<< "    min(" << outputName << ") = "
+        << minValue << " at position " << minC;
+
+    if (Pstream::parRun())
+    {
+        Info(log_)<< " on processor " << minProcI;
+    }
+
+    Info(log_)<< nl << "    max(" << outputName << ") = "
+        << maxValue << " at position " << maxC;
+
+    if (Pstream::parRun())
+    {
+        Info(log_)<< " on processor " << maxProcI;
+    }
+
+    Info(log_)<< endl;
 
     // write state/results information
     word nameStr('(' + outputName + ')');

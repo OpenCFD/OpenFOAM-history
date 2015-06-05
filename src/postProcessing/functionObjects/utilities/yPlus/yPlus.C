@@ -38,16 +38,15 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::yPlus::writeFileHeader(const label i)
+void Foam::yPlus::writeFileHeader(Ostream& os) const
 {
-    writeHeader(file(), "y+");
-
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "patch");
-    writeTabbed(file(), "min");
-    writeTabbed(file(), "max");
-    writeTabbed(file(), "average");
-    file() << endl;
+    writeHeader(os, "y+");
+    writeCommented(os, "Time");
+    writeTabbed(os, "patch");
+    writeTabbed(os, "min");
+    writeTabbed(os, "max");
+    writeTabbed(os, "average");
+    os << endl;
 }
 
 
@@ -61,7 +60,7 @@ Foam::yPlus::yPlus
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     name_(name),
     obr_(obr),
     active_(true),
@@ -111,6 +110,8 @@ Foam::yPlus::yPlus
         );
 
         mesh.objectRegistry::store(yPlusPtr);
+
+        writeFileHeader(file());
     }
 }
 
@@ -144,8 +145,6 @@ void Foam::yPlus::execute()
 
     if (active_)
     {
-        functionObjectFile::write();
-
         const surfaceScalarField& phi =
             obr_.lookupObject<surfaceScalarField>(phiName_);
 
@@ -231,8 +230,6 @@ void Foam::yPlus::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         const volScalarField& yPlus =
             obr_.lookupObject<volScalarField>(resultName_);
 

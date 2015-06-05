@@ -356,8 +356,6 @@ void Foam::nearWallFields::execute()
             createFields(vSpheretf_);
             createFields(vSymmtf_);
             createFields(vtf_);
-
-            Info(log_)<< endl;
         }
 
         Info(log_)<< type() << " " << name_ << " output:" << nl;
@@ -371,6 +369,8 @@ void Foam::nearWallFields::execute()
         sampleFields(vSpheretf_);
         sampleFields(vSymmtf_);
         sampleFields(vtf_);
+
+        Info(log_) << endl;
     }
 }
 

@@ -114,7 +114,7 @@ class yPlus
     // Private Member Functions
 
         //- File header information
-        virtual void writeFileHeader(const label i);
+        virtual void writeFileHeader(Ostream& os) const;
 
         //- Calculate y+
         template<class TurbulenceModel>

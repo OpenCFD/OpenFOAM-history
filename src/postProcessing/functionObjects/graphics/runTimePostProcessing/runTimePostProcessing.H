@@ -25,6 +25,26 @@ Class
     Foam::runTimePostProcessing
 
 Description
+    Function object to generate images during run-time.
+
+    The functionality makes use of the VTK libraries (see http://www.vtk.org)
+    which provide a broad set of functionality for scene composition and
+    manipulation.
+
+    Images are generated using a combination of function object output, and
+    additional data e.gg triangulated surfaces and text.  Current capabilities
+    include support for:
+    - Camera
+    - Objects
+    - Points
+    - Lines
+    - Surfaces
+    - Scalar bars
+    - Annotations
+    - Selection of colour maps
+    Scene configuration is performed using standard OpenFOAM dictionaries, using
+    the main headings of: output=, camera, colours, points, lines,
+    surfaces and text.
 
 SourceFiles
     runTimePostProcessing.C

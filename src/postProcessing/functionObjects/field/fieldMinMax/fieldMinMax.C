@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,6 +51,33 @@ const Foam::NamedEnum<Foam::fieldMinMax::modeType, 2>
 Foam::fieldMinMax::modeTypeNames_;
 
 
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
+
+void Foam::fieldMinMax::writeFileHeader(Ostream& os) const
+{
+    writeHeader(os, "Field minima and maxima");
+    writeCommented(os, "Time");
+    writeTabbed(os, "field");
+    writeTabbed(os, "min");
+    writeTabbed(os, "position(min)");
+
+    if (Pstream::parRun())
+    {
+        writeTabbed(os, "processor");
+    }
+
+    writeTabbed(os, "max");
+    writeTabbed(os, "position(max)");
+
+    if (Pstream::parRun())
+    {
+        writeTabbed(os, "processor");
+    }
+
+    os  << endl;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::fieldMinMax::fieldMinMax
@@ -62,7 +89,7 @@ Foam::fieldMinMax::fieldMinMax
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     obr_(obr),
     log_(true),
     mode_(mdMag),
@@ -72,6 +99,7 @@ Foam::fieldMinMax::fieldMinMax
     if (setActive<fvMesh>())
     {
         read(dict);
+        writeFileHeader(file());
     }
 }
 
@@ -98,31 +126,6 @@ void Foam::fieldMinMax::read(const dictionary& dict)
 }
 
 
-void Foam::fieldMinMax::writeFileHeader(const label i)
-{
-    writeHeader(file(), "Field minima and maxima");
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "field");
-    writeTabbed(file(), "min");
-    writeTabbed(file(), "position(min)");
-
-    if (Pstream::parRun())
-    {
-        writeTabbed(file(), "processor");
-    }
-
-    writeTabbed(file(), "max");
-    writeTabbed(file(), "position(max)");
-
-    if (Pstream::parRun())
-    {
-        writeTabbed(file(), "processor");
-    }
-
-    file() << endl;
-}
-
-
 void Foam::fieldMinMax::execute()
 {
     // Do nothing - only valid on write
@@ -145,8 +148,6 @@ void Foam::fieldMinMax::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         Info(log_)<< type() << " " << name_ <<  " output:" << nl;
 
         forAll(fieldSet_, fieldI)

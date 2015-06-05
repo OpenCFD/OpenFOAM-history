@@ -142,6 +142,9 @@ public:
         //- Return the condition name
         virtual const word& name() const;
 
+        //- Return the active flag
+        virtual bool active() const;
+
         //- Return the group index
         virtual label groupID() const;
 

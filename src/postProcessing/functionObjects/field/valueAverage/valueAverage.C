@@ -34,6 +34,20 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * //
+
+void Foam::valueAverage::writeFileHeader(Ostream& os) const
+{
+    writeHeader(os, "Value averages");
+    writeCommented(os, "Time");
+    forAll(fieldNames_, fieldI)
+    {
+        writeTabbed(os, fieldNames_[fieldI]);
+    }
+    os  << endl;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::valueAverage::valueAverage
@@ -45,7 +59,7 @@ Foam::valueAverage::valueAverage
 )
 :
     functionObjectState(obr, name),
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     obr_(obr),
     functionObjectName_(dict.lookup("functionObjectName")),
     fieldNames_(dict.lookup("fields")),
@@ -67,6 +81,8 @@ Foam::valueAverage::valueAverage
             }
         }
     }
+
+    writeFileHeader(file());
 }
 
 
@@ -85,20 +101,7 @@ void Foam::valueAverage::read(const dictionary& dict)
         functionObjectFile::read(dict);
 
         log_ = dict.lookupOrDefault<Switch>("log", true);
-
     }
-}
-
-
-void Foam::valueAverage::writeFileHeader(const label i)
-{
-    writeHeader(file(), "Value averages");
-    writeCommented(file(), "Time");
-    forAll(fieldNames_, fieldI)
-    {
-        writeTabbed(file(), fieldNames_[fieldI]);
-    }
-    file() << endl;
 }
 
 
@@ -107,11 +110,6 @@ void Foam::valueAverage::execute()
     if (!active_)
     {
         return;
-    }
-
-    if (Pstream::master())
-    {
-        functionObjectFile::write();
     }
 
     scalar dt = obr_.time().deltaTValue();
@@ -150,7 +148,11 @@ void Foam::valueAverage::execute()
         if (!processed)
         {
             unprocessedFields.append(fieldI);
-            file() << tab << "n/a";
+
+            if (writeToFile())
+            {
+                file() << tab << "n/a";
+            }
         }
 
         totalTime_[fieldI] += dt;
@@ -161,6 +163,7 @@ void Foam::valueAverage::execute()
     if (unprocessedFields.size())
     {
         WarningIn("bool Foam::valueAverage::execute()")
+            << "From function object: " << functionObjectName_ << nl
             << "Unprocessed fields:" << nl;
 
         forAll(unprocessedFields, i)

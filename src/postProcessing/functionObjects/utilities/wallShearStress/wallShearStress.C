@@ -40,15 +40,15 @@ defineTypeNameAndDebug(wallShearStress, 0);
 
 // * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
-void Foam::wallShearStress::writeFileHeader(const label i)
+void Foam::wallShearStress::writeFileHeader(Ostream& os) const
 {
     // Add headers to output data
-    writeHeader(file(), "Wall shear stress");
-    writeCommented(file(), "Time");
-    writeTabbed(file(), "patch");
-    writeTabbed(file(), "min");
-    writeTabbed(file(), "max");
-    file() << endl;
+    writeHeader(os, "Wall shear stress");
+    writeCommented(os, "Time");
+    writeTabbed(os, "patch");
+    writeTabbed(os, "min");
+    writeTabbed(os, "max");
+    os << endl;
 }
 
 
@@ -74,14 +74,11 @@ void Foam::wallShearStress::calcShearStress
         vector minSsp = gMin(ssp);
         vector maxSsp = gMax(ssp);
 
-        if (Pstream::master())
-        {
-            file() << mesh.time().value()
-                << token::TAB << pp.name()
-                << token::TAB << minSsp
-                << token::TAB << maxSsp
-                << endl;
-        }
+        file() << mesh.time().value()
+            << token::TAB << pp.name()
+            << token::TAB << minSsp
+            << token::TAB << maxSsp
+            << endl;
 
         Info(log_)
             << "    min/max(" << pp.name() << ") = "
@@ -100,7 +97,7 @@ Foam::wallShearStress::wallShearStress
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, typeName),
+    functionObjectFile(obr, name, typeName, dict),
     name_(name),
     obr_(obr),
     active_(true),
@@ -154,6 +151,8 @@ Foam::wallShearStress::wallShearStress
         );
 
         mesh.objectRegistry::store(wallShearStressPtr);
+
+        writeFileHeader(file());
     }
 }
 
@@ -233,8 +232,6 @@ void Foam::wallShearStress::execute()
 
     if (active_)
     {
-        functionObjectFile::write();
-
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
         volVectorField& wallShearStress =
@@ -294,8 +291,6 @@ void Foam::wallShearStress::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
         const volVectorField& wallShearStress =
             obr_.lookupObject<volVectorField>(resultName_);
 

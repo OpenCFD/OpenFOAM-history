@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,27 +23,30 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef externalCoupledMixedFvPatchFields_H
-#define externalCoupledMixedFvPatchFields_H
+#include "surfaceReader.H"
 
-#include "externalCoupledMixedFvPatchField.H"
-#include "fieldTypes.H"
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
+Foam::autoPtr<Foam::surfaceReader> Foam::surfaceReader::New
+(
+    const word& readerType,
+    const fileName& fName
+)
 {
+    fileNameConstructorTable::iterator cstrIter =
+        fileNameConstructorTablePtr_->find(readerType);
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    if (cstrIter == fileNameConstructorTablePtr_->end())
+    {
+        FatalErrorIn("surfaceReader::New(const word&)")
+            << "Unknown reader type \"" << readerType << "\"\n\n"
+            << "Valid reader types: "
+            << fileNameConstructorTablePtr_->sortedToc() << nl
+            << exit(FatalError);
+    }
 
-makePatchTypeFieldTypedefs(externalCoupledMixed);
+    return autoPtr<surfaceReader>(cstrIter()(fName));
+}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

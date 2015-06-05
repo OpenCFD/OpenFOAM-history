@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -95,24 +95,14 @@ void Foam::fieldValues::fieldValueDelta::apply
         }
     }
 
-    const word resultName
-    (
-        opName
-      + '('
-      + entryName1
-      + ','
-      + entryName2
-      + ')'
+    const word resultName(opName + '(' + entryName1 + ',' + entryName2 + ')'
     );
 
     Info(log_)<< "    " << resultName << " = " << result << endl;
 
-    if (Pstream::master())
-    {
-        this->file()<< tab << result;
-    }
+    this->file()<< tab << result;
 
-    // write state/results information
+    // Write state/results information
     this->setResult(resultName, result);
 
     found = true;

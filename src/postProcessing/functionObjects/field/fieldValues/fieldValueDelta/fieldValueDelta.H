@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -160,7 +160,7 @@ protected:
     // Functions to be over-ridden from IOoutputFilter class
 
         //- Output file header information
-        virtual void writeFileHeader(const label i);
+        virtual void writeFileHeader(Ostream& os) const;
 
 
 public:

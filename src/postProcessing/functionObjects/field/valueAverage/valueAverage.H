@@ -137,14 +137,14 @@ protected:
             bool& processed
         );
 
+        //- Output file header information
+        virtual void writeFileHeader(Ostream& os) const;
+
         //- Disallow default bitwise copy construct
         valueAverage(const valueAverage&);
 
         //- Disallow default bitwise assignment
         void operator=(const valueAverage&);
-
-        //- Output file header information
-        virtual void writeFileHeader(const label i);
 
 
 public:

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -208,15 +208,11 @@ bool Foam::fieldValues::cellSource::writeValues
 
         Type result = processValues(values, V, weightField);
 
-        if (Pstream::master())
-        {
-            file()<< tab << result;
+        file()<< tab << result;
 
-            Info(log_)<< "    " << operationTypeNames_[operation_]
-                << "(" << sourceName_ << ") for " << fieldName
-                <<  " = " << result << endl;
-        }
-
+        Info(log_)<< "    " << operationTypeNames_[operation_]
+            << "(" << sourceName_ << ") for " << fieldName
+            <<  " = " << result << endl;
 
         // write state/results information
         const word& opName = operationTypeNames_[operation_];
@@ -239,4 +235,3 @@ Foam::tmp<Foam::Field<Type> > Foam::fieldValues::cellSource::filterField
 
 
 // ************************************************************************* //
-

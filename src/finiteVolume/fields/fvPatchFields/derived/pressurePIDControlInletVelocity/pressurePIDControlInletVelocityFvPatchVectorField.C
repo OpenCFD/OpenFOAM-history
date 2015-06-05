@@ -66,29 +66,41 @@ Foam::pressurePIDControlInletVelocityFvPatchVectorField::facePressure() const
 }
 
 
-void Foam::pressurePIDControlInletVelocityFvPatchVectorField::
-zoneAreaAndPressure(const word& name, scalar& a, scalar& p) const
+void Foam::pressurePIDControlInletVelocityFvPatchVectorField::zoneAverages
+(
+    const word& name,
+    scalar& area,
+    vector& x,
+    scalar& p
+) const
 {
+    const fvMesh& mesh(this->patch().boundaryMesh().mesh());
+
     const surfaceScalarField& pf(facePressure());
 
-    const faceZone& zone = pf.mesh().faceZones()[name];
+    const faceZone& zone = mesh.faceZones()[name];
 
-    a = p = 0;
+    area = 0;
+    x = vector::zero;
+    p = 0;
 
     forAll(zone, faceI)
     {
         const label f(zone[faceI]);
 
-        const scalar da(pf.mesh().magSf()[f]);
+        const scalar da(mesh.magSf()[f]);
 
-        a += da;
+        area += da;
+        x += da*mesh.Cf()[f];
         p += da*pf[f];
     }
 
-    reduce(a, sumOp<scalar>());
+    reduce(area, sumOp<scalar>());
+    reduce(x, sumOp<vector>());
     reduce(p, sumOp<scalar>());
 
-    p /= a;
+    x /= area;
+    p /= area;
 }
 
 
@@ -102,18 +114,23 @@ pressurePIDControlInletVelocityFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(p, iF),
-    deltaP_(1),
     upstreamName_(word::null),
     downstreamName_(word::null),
+    deltaP_(1),
+    transient_(false),
+    shapeFactor_(0),
     pName_("p"),
     rhoName_("none"),
-    startTime_(0),
-    P_(1),
+    P_(0),
     I_(0),
     D_(0),
+    Q_(- gSum(*this & patch().Sf())),
     error_(0),
     errorIntegral_(0),
-    errorTimeIndex_(db().time().timeIndex())
+    oldQ_(0),
+    oldError_(0),
+    oldErrorIntegral_(0),
+    timeIndex_(db().time().timeIndex())
 {}
 
 
@@ -127,18 +144,23 @@ pressurePIDControlInletVelocityFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(ptf, p, iF, mapper),
-    deltaP_(ptf.deltaP_),
     upstreamName_(ptf.upstreamName_),
     downstreamName_(ptf.downstreamName_),
+    deltaP_(ptf.deltaP_),
+    transient_(ptf.transient_),
+    shapeFactor_(ptf.shapeFactor_),
     pName_(ptf.pName_),
     rhoName_(ptf.rhoName_),
-    startTime_(ptf.startTime_),
     P_(ptf.P_),
     I_(ptf.I_),
     D_(ptf.D_),
+    Q_(ptf.Q_),
     error_(ptf.error_),
     errorIntegral_(ptf.errorIntegral_),
-    errorTimeIndex_(ptf.errorTimeIndex_)
+    oldQ_(ptf.oldQ_),
+    oldError_(ptf.oldError_),
+    oldErrorIntegral_(ptf.oldErrorIntegral_),
+    timeIndex_(ptf.timeIndex_)
 {}
 
 
@@ -151,18 +173,23 @@ pressurePIDControlInletVelocityFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(p, iF, dict),
-    deltaP_(readScalar(dict.lookup("deltaP"))),
     upstreamName_(dict.lookup("upstream")),
     downstreamName_(dict.lookup("downstream")),
+    deltaP_(readScalar(dict.lookup("deltaP"))),
+    transient_(dict.lookup("transient")),
+    shapeFactor_(dict.lookupOrDefault<scalar>("shapeFactor", 0)),
     pName_(dict.lookupOrDefault<word>("p", "p")),
     rhoName_(dict.lookupOrDefault<word>("rho", "none")),
-    startTime_(dict.lookupOrDefault<scalar>("startTime", 0)),
     P_(readScalar(dict.lookup("P"))),
     I_(readScalar(dict.lookup("I"))),
     D_(readScalar(dict.lookup("D"))),
+    Q_(- gSum(*this & patch().Sf())),
     error_(dict.lookupOrDefault<scalar>("error", 0)),
     errorIntegral_(dict.lookupOrDefault<scalar>("errorIntegral", 0)),
-    errorTimeIndex_(db().time().timeIndex())
+    oldQ_(0),
+    oldError_(0),
+    oldErrorIntegral_(0),
+    timeIndex_(db().time().timeIndex())
 {}
 
 
@@ -173,18 +200,23 @@ pressurePIDControlInletVelocityFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(ptf),
-    deltaP_(ptf.deltaP_),
     upstreamName_(ptf.upstreamName_),
     downstreamName_(ptf.downstreamName_),
+    deltaP_(ptf.deltaP_),
+    transient_(ptf.transient_),
+    shapeFactor_(ptf.shapeFactor_),
     pName_(ptf.pName_),
     rhoName_(ptf.rhoName_),
-    startTime_(ptf.startTime_),
     P_(ptf.P_),
     I_(ptf.I_),
     D_(ptf.D_),
+    Q_(ptf.Q_),
     error_(ptf.error_),
     errorIntegral_(ptf.errorIntegral_),
-    errorTimeIndex_(ptf.errorTimeIndex_)
+    oldQ_(ptf.oldQ_),
+    oldError_(ptf.oldError_),
+    oldErrorIntegral_(ptf.oldErrorIntegral_),
+    timeIndex_(ptf.timeIndex_)
 {}
 
 
@@ -196,18 +228,23 @@ pressurePIDControlInletVelocityFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(ptf, iF),
-    deltaP_(ptf.deltaP_),
     upstreamName_(ptf.upstreamName_),
     downstreamName_(ptf.downstreamName_),
+    deltaP_(ptf.deltaP_),
+    transient_(ptf.transient_),
+    shapeFactor_(ptf.shapeFactor_),
     pName_(ptf.pName_),
     rhoName_(ptf.rhoName_),
-    startTime_(ptf.startTime_),
     P_(ptf.P_),
     I_(ptf.I_),
     D_(ptf.D_),
+    Q_(ptf.Q_),
     error_(ptf.error_),
     errorIntegral_(ptf.errorIntegral_),
-    errorTimeIndex_(ptf.errorTimeIndex_)
+    oldQ_(ptf.oldQ_),
+    oldError_(ptf.oldError_),
+    oldErrorIntegral_(ptf.oldErrorIntegral_),
+    timeIndex_(ptf.timeIndex_)
 {}
 
 
@@ -215,16 +252,25 @@ pressurePIDControlInletVelocityFvPatchVectorField
 
 void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
 {
-    if (updated() || errorTimeIndex_ == db().time().timeIndex())
+    if (updated())
     {
         return;
     }
 
-    errorTimeIndex_ = db().time().timeIndex();
-
+    // Get the time step
     const scalar deltaT(db().time().deltaTValue());
 
+    // Get the pressure field
     const volScalarField& p(db().lookupObject<volScalarField>(pName_));
+
+    // Update the old-time quantities
+    if (timeIndex_ != db().time().timeIndex())
+    {
+        timeIndex_ = db().time().timeIndex();
+        oldQ_ = Q_;
+        oldError_ = error_;
+        oldErrorIntegral_ = errorIntegral_;
+    }
 
     // Get the density
     scalar rho = 1;
@@ -252,55 +298,66 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
 
     // Patch properties
     const scalar patchA = gSum(patch().magSf());
-    const scalar patchU = - gSum(*this & patch().Sf())/patchA;
+    Q_ = - gSum(*this & patch().Sf());
 
-    // Zone properties
-    scalar upstreamA, upstreamP, downstreamA, downstreamP;
-    zoneAreaAndPressure(upstreamName_, upstreamA, upstreamP);
-    zoneAreaAndPressure(downstreamName_, downstreamA, downstreamP);
-    const scalar pDrop = upstreamP - downstreamP;
+    // Face-zone properties (a is upstream, b is downstream)
+    scalar Aa, Ab;
+    vector xa, xb;
+    scalar pa, pb;
+    zoneAverages(upstreamName_, Aa, xa, pa);
+    zoneAverages(downstreamName_, Ab, xb, pb);
+    const scalar L = mag(xa - xb);
+    const scalar LbyALinear = L/(Aa - Ab)*log(Aa/Ab);
+    const scalar LbyAStep = L/2*(1/Aa + 1/Ab);
+    const scalar LbyA = (1 - shapeFactor_)*LbyALinear + shapeFactor_*LbyAStep;
+    const scalar deltaP = pa - pb;
 
-    // Difference in area ratios
-    const scalar AStar = sqr(patchA/downstreamA) - sqr(patchA/upstreamA);
-
-    // Theoretical velocity
-    const scalar U = sqrt(2*deltaP_/(rho*AStar));
-
-    // If not yet controlling then set the patch to the theoretical velocity
-    if (db().time().value() < startTime_)
+    // Target and measured flow rates
+    scalar QTarget, QMeasured;
+    const scalar a = (1/sqr(Ab) - 1/sqr(Aa))/(2*rho);
+    if (transient_)
     {
-        operator==(- patch().nf()*U);
+        const scalar b = LbyA/deltaT;
+        const scalar c = - LbyA/deltaT*oldQ_ /* - deltaP */;
+        QTarget = (- b + sqrt(sqr(b) - 4*a*(c - deltaP_)))/(2*a);
+        QMeasured = (- b + sqrt(sqr(b) - 4*a*(c - deltaP)))/(2*a);
     }
-
-    // If controlling then push the patch velocity in the direction given by
-    // the various errors
     else
     {
-        const scalar errorOld = error_;
-
-        error_ = U - sqrt(2*pDrop/(rho*AStar));
-
-        errorIntegral_ += 0.5*(error_ + errorOld)*deltaT;
-
-        const scalar errorDifferential = (errorOld - error_)/deltaT;
-
-        operator==
-        (
-          - patch().nf()
-           *(
-               patchU
-             + P_*error_
-             + (I_/deltaT)*errorIntegral_
-             + (D_*deltaT)*errorDifferential
-            )
-        );
+        QTarget = sqrt(deltaP_/a);
+        QMeasured = sqrt(deltaP/a);
     }
 
+    // Errors
+    error_ = QTarget - QMeasured;
+    errorIntegral_ = oldErrorIntegral_ + 0.5*(error_ + oldError_);
+    const scalar errorDifferential = oldError_ - error_;
+
+    // Update the field
+    operator==
+    (
+      - patch().nf()
+       *(
+            QTarget
+          + P_*error_
+          + I_*errorIntegral_
+          + D_*errorDifferential
+        )/patchA
+    );
+
     // Log output
-    const scalar error = pDrop/deltaP_ - 1;
-    Info<< "pressurePIDControlInletVelocity " << patch().name()
-        << " : pressure drop = " << pDrop << " (" << mag(error)*100 << "\% "
-        << (error < 0 ? "below" : "above") << " the target)" << endl;
+    if (debug)
+    {
+        const scalar error = deltaP/deltaP_ - 1;
+        const scalar newQ = - gSum(*this & patch().Sf());
+        Info<< "pressurePIDControlInletVelocityFvPatchField " << patch().name()
+            << endl << "         "
+            << dimensionedScalar("U", dimVelocity, newQ/patchA)
+            << endl << "    "
+            << dimensionedScalar("deltaP", p.dimensions(), deltaP)
+            << " (" << mag(error)*100 << "\% "
+            << (error < 0 ? "below" : "above") << " the target)" << endl;
+    }
 
     fixedValueFvPatchField<vector>::updateCoeffs();
 }
@@ -317,19 +374,11 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::write
     os.writeKeyword("upstream") << upstreamName_ << token::END_STATEMENT << nl;
     os.writeKeyword("downstream")
         << downstreamName_ << token::END_STATEMENT << nl;
-    if (pName_ != "p")
-    {
-        os.writeKeyword("p") << pName_ << token::END_STATEMENT << nl;
-    }
-    if (rhoName_ != "none")
-    {
-        os.writeKeyword("rho") << rhoName_ << token::END_STATEMENT << nl;
-    }
-    if (startTime_ != 0)
-    {
-        os.writeKeyword("startTime")
-            << startTime_ << token::END_STATEMENT << nl;
-    }
+    os.writeKeyword("shapeFactor") << shapeFactor_
+        << token::END_STATEMENT << nl;
+    writeEntryIfDifferent<word>(os, "p", "p", pName_);
+    writeEntryIfDifferent<word>(os, "rho", "none", rhoName_);
+    os.writeKeyword("transient") << transient_ << token::END_STATEMENT << nl;
     os.writeKeyword("P") << P_ << token::END_STATEMENT << nl;
     os.writeKeyword("I") << I_ << token::END_STATEMENT << nl;
     os.writeKeyword("D") << D_ << token::END_STATEMENT << nl;
