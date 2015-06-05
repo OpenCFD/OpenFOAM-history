@@ -49,14 +49,45 @@ Foam::runTimeControl::runTimeControl
 :
     functionObjectState(obr, name),
     obr_(obr),
-    active_(true),
     conditions_(),
-    groupMap_()
+    groupMap_(),
+    nWriteStep_(0),
+    writeStepI_(0)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (setActive<fvMesh>())
     {
         read(dict);
+
+        // Check that some conditions are set
+        if (conditions_.empty())
+        {
+            Info<< type() << " " << name_ << " output:" << nl
+                << "    No conditions present - deactivating" << nl
+                << endl;
+
+            active_ = false;
+        }
+        else
+        {
+            // Check that at least one condition is active
+            active_ = false;
+            forAll(conditions_, conditionI)
+            {
+                if (conditions_[conditionI].active())
+                {
+                    active_ = true;
+                    break;
+                }
+            }
+
+            if (!active_)
+            {
+                Info<< type() << " " << name_ << " output:" << nl
+                    << "    All conditions inactive - deactivating" << nl
+                    << endl;
+            }
+        }
     }
 }
 
@@ -77,10 +108,6 @@ void Foam::runTimeControl::read(const dictionary& dict)
         const wordList conditionNames(conditionsDict.toc());
         conditions_.setSize(conditionNames.size());
 
-        groupMap_(conditions_.size());
-
-        label nGroup = 0;
-
         forAll(conditionNames, conditionI)
         {
             const word& conditionName = conditionNames[conditionI];
@@ -93,85 +120,111 @@ void Foam::runTimeControl::read(const dictionary& dict)
             );
 
             label groupI = conditions_[conditionI].groupID();
+
             if (groupMap_.found(groupI))
             {
-                groupMap_.set(groupI, nGroup++);
+                groupMap_.set(groupI, conditionI);
+            }
+            else
+            {
+                groupMap_.insert(groupI, conditionI);
             }
         }
+
+        dict.readIfPresent("nWriteStep", nWriteStep_);
     }
 }
 
 
 void Foam::runTimeControl::execute()
 {
-    if (active_)
+    if (!active_)
     {
-        // IDs of satisfied conditions
-        DynamicList<label> IDs(conditions_.size());
+        return;
+    }
 
-        // Run stops only if all conditions within a group are satisfied
-        List<bool> groupSatisfied(groupMap_.size(), true);
+    Info<< type() << " " << name_ << " output:" << nl;
 
-        forAll(conditions_, conditionI)
+    // IDs of satisfied conditions
+    DynamicList<label> IDs(conditions_.size());
+
+    // Run stops only if all conditions within a group are satisfied
+    List<bool> groupSatisfied(groupMap_.size(), true);
+
+    forAll(conditions_, conditionI)
+    {
+        runTimeCondition& condition = conditions_[conditionI];
+
+        bool conditionSatisfied = condition.apply();
+
+        label groupI = condition.groupID();
+        Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
+
+        if (conditionIter == groupMap_.end())
         {
-            runTimeCondition& condition = conditions_[conditionI];
-
-            bool conditionSatisfied = condition.apply();
-
-            label groupI = condition.groupID();
-            Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
-
-            if (conditionIter == groupMap_.end())
-            {
-                FatalErrorIn("void Foam::runTimeControl::execute()")
-                    << "group " << groupI << " not found in map"
-                    << abort(FatalError);
-            }
-
-            if (conditionSatisfied)
-            {
-                IDs.append(conditionI);
-
-                if (groupI == -1)
-                {
-                    groupSatisfied[conditionIter()] = true;
-                    break;
-                }
-            }
-            else
-            {
-                groupSatisfied[conditionIter()] = false;
-            }
+            FatalErrorIn("void Foam::runTimeControl::execute()")
+                << "group " << groupI << " not found in map"
+                << abort(FatalError);
         }
 
-        bool done = false;
-        forAll(groupSatisfied, groupI)
+        if (conditionSatisfied)
         {
-            if (groupSatisfied[groupI])
+            IDs.append(conditionI);
+
+            if (groupI == -1)
             {
-                done = true;
+                groupSatisfied[conditionIter()] = true;
                 break;
             }
         }
-
-        if (done)
+        else
         {
-            Info<< type() << " output:" << nl;
+            groupSatisfied[conditionIter()] = false;
+        }
+    }
 
-            forAll(IDs, conditionI)
-            {
-                Info<< "    " << conditions_[conditionI].type() << ": "
-                    <<  conditions_[conditionI].name()
-                    << " condition satisfied" << nl;
-            }
+    bool done = false;
+    forAll(groupSatisfied, groupI)
+    {
+        if (groupSatisfied[groupI])
+        {
+            done = true;
+            break;
+        }
+    }
 
-            Info<< "    Stopping calculation" << nl << endl;
+    if (done)
+    {
+        forAll(IDs, conditionI)
+        {
+            Info<< "    " << conditions_[conditionI].type() << ": "
+                <<  conditions_[conditionI].name()
+                << " condition satisfied" << nl;
+        }
 
-            // Set to finalise calculation
-            Time& time = const_cast<Time&>(obr_.time());
+
+        // Set to write a data dump or finalise the calculation
+        Time& time = const_cast<Time&>(obr_.time());
+
+        if (writeStepI_ < nWriteStep_ - 1)
+        {
+            writeStepI_++;
+            Info<< "    Writing fields - step " << writeStepI_ << nl;
+            time.writeNow();
+        }
+        else
+        {
+            Info<< "    Stopping calculation" << nl
+                << "    Writing fields - final step" << nl;
             time.writeAndEnd();
         }
     }
+    else
+    {
+        Info<< "    Conditions not met - calculations proceeding" << nl;
+    }
+
+    Info<< endl;
 }
 
 

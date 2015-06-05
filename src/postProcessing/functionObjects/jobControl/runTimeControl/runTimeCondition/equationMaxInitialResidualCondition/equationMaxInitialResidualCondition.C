@@ -94,13 +94,13 @@ bool Foam::equationMaxInitialResidualCondition::apply()
 
     if (!active_)
     {
-        return satisfied;
+        return true;
     }
 
     if (obr_.time().timeIndex() < startIter_)
     {
-        // do not start checking until start iter
-        return satisfied;
+        // Do not start checking until start iter
+        return false;
     }
 
     const fvMesh& mesh = refCast<const fvMesh>(obr_);

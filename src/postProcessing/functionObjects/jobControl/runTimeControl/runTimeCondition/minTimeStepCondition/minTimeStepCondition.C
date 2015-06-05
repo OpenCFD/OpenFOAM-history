@@ -70,7 +70,7 @@ bool Foam::minTimeStepCondition::apply()
 
     if (!active_)
     {
-        return satisfied;
+        return true;
     }
 
     if (obr_.time().deltaTValue() < minValue_)

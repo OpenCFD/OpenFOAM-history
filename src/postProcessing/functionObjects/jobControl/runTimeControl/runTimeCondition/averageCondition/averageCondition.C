@@ -49,7 +49,7 @@ Foam::averageCondition::averageCondition
     runTimeCondition(name, obr, dict, state),
     functionObjectName_(dict.lookup("functionObjectName")),
     fieldNames_(dict.lookup("fields")),
-    variation_(readScalar(dict.lookup("variation"))),
+    tolerance_(readScalar(dict.lookup("tolerance"))),
     window_(dict.lookupOrDefault<scalar>("window", -1)),
     totalTime_(fieldNames_.size(), obr_.time().deltaTValue()),
     resetOnRestart_(false)
@@ -82,16 +82,16 @@ Foam::averageCondition::~averageCondition()
 
 bool Foam::averageCondition::apply()
 {
+    bool satisfied = true;
+
     if (!active_)
     {
-        return false;
+        return satisfied;
     }
 
     scalar dt = obr_.time().deltaTValue();
 
-    Info(log_)<< type() << ": " << name_ << " averages:" << nl;
-
-    bool satisfied = true;
+    Info(log_)<< "    " << type() << ": " << name_ << " averages:" << nl;
 
     DynamicList<label> unprocessedFields(fieldNames_.size());
 
@@ -112,7 +112,7 @@ bool Foam::averageCondition::apply()
             }
             else
             {
-                // ensure that averaging is performed over window time
+                // Ensure that averaging is performed over window time
                 // before condition can be satisfied
                 satisfied = false;
             }
@@ -136,6 +136,7 @@ bool Foam::averageCondition::apply()
     if (unprocessedFields.size())
     {
         WarningIn("bool Foam::averageCondition::apply()")
+            << "From function object: " << functionObjectName_ << nl
             << "Unprocessed fields:" << nl;
 
         forAll(unprocessedFields, i)

@@ -53,12 +53,12 @@ void Foam::averageCondition::calc
 
     scalar delta = mag(meanValue - currentValue);
 
-    Info(log_)<< "    " << meanName << ": " << meanValue
-        << ", variation: " << delta << nl;
+    Info(log_)<< "        " << meanName << ": " << meanValue
+        << ", delta: " << delta << nl;
 
     state_.setResult(meanName, meanValue);
 
-    if (delta > variation_)
+    if (delta > tolerance_)
     {
         satisfied = false;
     }

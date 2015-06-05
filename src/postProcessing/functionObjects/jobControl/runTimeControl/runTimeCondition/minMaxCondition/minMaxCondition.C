@@ -73,7 +73,7 @@ Foam::minMaxCondition::minMaxCondition
     runTimeCondition(name, obr, dict, state),
     functionObjectName_(dict.lookup("functionObjectName")),
     mode_(modeTypeNames_.read(dict.lookup("mode"))),
-    fieldNames_(dict.lookup("fieldNames")),
+    fieldNames_(dict.lookup("fields")),
     value_(readScalar(dict.lookup("value")))
 {}
 
@@ -88,11 +88,11 @@ Foam::minMaxCondition::~minMaxCondition()
 
 bool Foam::minMaxCondition::apply()
 {
-    bool satisfied = false;
+    bool satisfied = true;
 
     if (!active_)
     {
-        return true;
+        return satisfied;
     }
 
     forAll(fieldNames_, fieldI)
@@ -141,7 +141,8 @@ bool Foam::minMaxCondition::apply()
             }
         }
 
-        Info(log_)<< type() << ": " << modeTypeNames_[mode_] << " "
+        Info(log_)
+            << "    " << type() << ": " << modeTypeNames_[mode_] << " "
             << fieldName << ": value = " << v
             << ", threshold value = " << value_
             << ", satisfied = " << ok << endl;

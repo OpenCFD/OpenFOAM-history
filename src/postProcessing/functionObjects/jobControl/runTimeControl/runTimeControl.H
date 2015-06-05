@@ -31,6 +31,10 @@ Description
     This function object controls when the calculation is terminated based on
     satisfying user-specified conditions.
 
+    Optionally specify a number of write steps before the calculation is
+    terminated.  Here, a write is performed each time that all conditons are
+    satisfied.
+
 SourceFiles
     runTimeControl.C
     IOrunTimeControl.H
@@ -65,20 +69,20 @@ class runTimeControl
 {
     // Private data
 
-        //- Name of this set of runTimeControl objects
-        word name_;
-
         //- Reference to the database
         const objectRegistry& obr_;
-
-        //- On/off switch
-        bool active_;
 
         //- List of conditions to satisfy
         PtrList<runTimeCondition> conditions_;
 
         //- Map to define group IDs
         Map<label> groupMap_;
+
+        //- Number of write steps before exiting
+        label nWriteStep_;
+
+        //- Current number of steps written
+        label writeStepI_;
 
 
     // Private Member Functions

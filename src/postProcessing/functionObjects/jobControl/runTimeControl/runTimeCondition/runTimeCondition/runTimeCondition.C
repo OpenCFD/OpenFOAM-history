@@ -95,6 +95,12 @@ const Foam::word& Foam::runTimeCondition::name() const
 }
 
 
+bool Foam::runTimeCondition::active() const
+{
+    return active_;
+}
+
+
 Foam::label Foam::runTimeCondition::groupID() const
 {
     return groupID_;
