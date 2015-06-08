@@ -65,6 +65,7 @@ Foam::cloudInfo::cloudInfo
     obr_(obr),
     active_(true),
     log_(true),
+    cloudNames_(),
     filePtrs_()
 {
     read(dict);
@@ -86,18 +87,18 @@ void Foam::cloudInfo::read(const dictionary& dict)
         functionObjectFile::read(dict);
 
         log_ = dict.lookupOrDefault<Switch>("log", true);
-        wordList cloudNames(dict.lookup("clouds"));
+        dict.lookup("clouds") >> cloudNames_;
 
         if (log_)
         {
             Info<< type() << " " << name_ << ": ";
 
-            if (cloudNames.size())
+            if (cloudNames_.size())
             {
                 Info<< "applying to clouds:" << nl;
-                forAll(cloudNames, i)
+                forAll(cloudNames_, i)
                 {
-                    Info<< "    " << cloudNames[i] << nl;
+                    Info<< "    " << cloudNames_[i] << nl;
                 }
                 Info<< endl;
             }
@@ -109,11 +110,11 @@ void Foam::cloudInfo::read(const dictionary& dict)
 
         if (writeToFile())
         {
-            filePtrs_.setSize(cloudNames.size());
+            filePtrs_.setSize(cloudNames_.size());
             filePtrs_.clear();
             forAll(filePtrs_, fileI)
             {
-                const word& cloudName = cloudNames[fileI];
+                const word& cloudName = cloudNames_[fileI];
                 filePtrs_.set(fileI, createFile(cloudName));
                 writeFileHeader(filePtrs_[fileI]);
             }
@@ -144,10 +145,9 @@ void Foam::cloudInfo::write()
 {
     if (active_)
     {
-        const wordList& cloudNames = names();
-        forAll(cloudNames, cloudI)
+        forAll(cloudNames_, cloudI)
         {
-            const word& cloudName = cloudNames[cloudI];
+            const word& cloudName = cloudNames_[cloudI];
 
             const kinematicCloud& cloud =
                 obr_.lookupObject<kinematicCloud>(cloudName);
