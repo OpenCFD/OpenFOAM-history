@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2012-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -302,7 +302,7 @@ void Foam::pressureTools::read(const dictionary& dict)
             rhoInfInitialised_ = true;
         }
 
-        if (!dict.readIfPresent("resultName_", resultName_))
+        if (!dict.readIfPresent("resultName", resultName_))
         {
             resultName_ = pName_;
 
