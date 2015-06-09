@@ -679,6 +679,8 @@ void Foam::fluxSummary::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         log_ = dict.lookupOrDefault<Switch>("log", true);
 
         mode_ = modeTypeNames_.read(dict.lookup("mode"));
@@ -775,7 +777,7 @@ void Foam::fluxSummary::read(const dictionary& dict)
         if (writeToFile())
         {
             filePtrs_.setSize(faceZoneName_.size());
-            filePtrs_.clear();
+
             forAll(filePtrs_, fileI)
             {
                 const word& fzName = faceZoneName_[fileI];
@@ -784,7 +786,7 @@ void Foam::fluxSummary::read(const dictionary& dict)
                 (
                     fzName,
                     faceArea_[fileI],
-                    refDir[fileI],
+                    refDir_[fileI],
                     filePtrs_[fileI]
                 );
             }

@@ -112,6 +112,9 @@ protected:
         //- Switch to send output to Info as well
         Switch log_;
 
+        //- List of cloud names
+        wordList cloudNames_;
+
         //- Output file per cloud
         PtrList<OFstream> filePtrs_;
 

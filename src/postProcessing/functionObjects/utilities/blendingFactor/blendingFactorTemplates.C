@@ -115,22 +115,43 @@ void Foam::blendingFactor::calc()
     factor.correctBoundaryConditions();
 
     // Output the number of blended cells, i.e. where factor != 0, 1
-    label nCells = 0;
+    label nCellsScheme1 = 0;
+    label nCellsScheme2 = 0;
+    label nCellsBlended = 0;
     forAll(factor, cellI)
     {
         scalar f = factor[cellI];
 
-        if ((f < (1 - tolerance_)) && (f > tolerance_))
+        if (f < tolerance_)
         {
-            nCells++;
+            nCellsScheme1++;
+        }
+        else if (f > (1 - tolerance_))
+        {
+            nCellsScheme2++;
+        }
+        else
+        {
+            nCellsBlended++;
         }
     }
 
-    reduce(nCells, sumOp<label>());
+    reduce(nCellsScheme1, sumOp<label>());
+    reduce(nCellsScheme2, sumOp<label>());
+    reduce(nCellsBlended, sumOp<label>());
 
     Info(log_)
         << type() << " " << name_ << " output:" << nl
-        << "    blended cells:  " << nCells << nl
+        << "    scheme 1 cells :  " << nCellsScheme1 << nl
+        << "    scheme 2 cells :  " << nCellsScheme2 << nl
+        << "    blended cells  :  " << nCellsBlended << nl
+        << endl;
+
+    file()
+        << obr_.time().time().value()
+        << token::TAB << nCellsScheme1
+        << token::TAB << nCellsScheme2
+        << token::TAB << nCellsBlended
         << endl;
 }
 

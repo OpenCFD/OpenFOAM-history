@@ -34,6 +34,19 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * //
+
+void Foam::blendingFactor::writeFileHeader(Ostream& os) const
+{
+    writeHeader(os, "Blending factor");
+    writeCommented(os, "Time");
+    writeTabbed(os, "Scheme1");
+    writeTabbed(os, "Scheme2");
+    writeTabbed(os, "Blended");
+    os  << endl;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::blendingFactor::blendingFactor
@@ -44,32 +57,21 @@ Foam::blendingFactor::blendingFactor
     const bool loadFromFiles
 )
 :
+    functionObjectState(obr, name),
+    functionObjectFile(obr, name, typeName, dict),
     name_(name),
     obr_(obr),
-    active_(true),
     phiName_("phi"),
     fieldName_("unknown-fieldName"),
     tolerance_(0.001),
     log_(true)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
-    if (!isA<fvMesh>(obr_))
+    if (setActive<fvMesh>())
     {
-        active_ = false;
-        WarningIn
-        (
-            "blendingFactor::blendingFactor"
-            "("
-                "const word&, "
-                "const objectRegistry&, "
-                "const dictionary&, "
-                "const bool"
-            ")"
-        )   << "No fvMesh available, deactivating " << name_ << nl
-            << endl;
+        read(dict);
+        writeFileHeader(file());
     }
-
-    read(dict);
 }
 
 
@@ -85,6 +87,8 @@ void Foam::blendingFactor::read(const dictionary& dict)
 {
     if (active_)
     {
+        functionObjectFile::read(dict);
+
         log_.readIfPresent("log", dict);
 
         dict.readIfPresent("phiName", phiName_);

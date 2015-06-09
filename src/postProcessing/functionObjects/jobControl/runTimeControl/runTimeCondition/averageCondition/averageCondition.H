@@ -47,7 +47,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class averageCondition Declaration
+                      Class averageCondition Declaration
 \*---------------------------------------------------------------------------*/
 
 class averageCondition
@@ -64,8 +64,8 @@ protected:
         //- List of fields on which to operate
         wordList fieldNames_;
 
-        //- Variation - when difference in mean values is less than this value
-        const scalar variation_;
+        //- Satisfied when difference in mean values is less than this value
+        const scalar tolerance_;
 
         //- Averaging window
         const scalar window_;

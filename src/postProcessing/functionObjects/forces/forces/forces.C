@@ -63,9 +63,9 @@ void Foam::forces::createFiles()
         if (nBin_ > 1)
         {
             forceBinFilePtr_ = createFile("forceBin");
-            writeBinHeader("Force bins", forceBinFilePtr_());
+            writeBinHeader("Force", forceBinFilePtr_());
             momentBinFilePtr_ = createFile("momentBin");
-            writeBinHeader("Moment bins", momentBinFilePtr_());
+            writeBinHeader("Moment", momentBinFilePtr_());
         }
 
         if (localSystem_)
@@ -78,9 +78,9 @@ void Foam::forces::createFiles()
             if (nBin_ > 1)
             {
                 localForceBinFilePtr_ = createFile("localForceBin");
-                writeBinHeader("Force bins", localForceBinFilePtr_());
+                writeBinHeader("Force", localForceBinFilePtr_());
                 localMomentBinFilePtr_ = createFile("localMomentBin");
-                writeBinHeader("Moment bins", localMomentBinFilePtr_());
+                writeBinHeader("Moment", localMomentBinFilePtr_());
             }
         }
     }
