@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -130,7 +130,7 @@ void Foam::LISAAtomization<CloudType>::update
     scalar dL = 0.0;
     scalar k = 0.0;
 
-    // update atomization characteristic time
+    // Update atomization characteristic time
     tc += dt;
 
     scalar We = 0.5*rhoAv*sqr(Urel)*d/sigma;
@@ -147,7 +147,7 @@ void Foam::LISAAtomization<CloudType>::update
 
     scalar hSheet = volFlowRate/(constant::mathematical::pi*delta*Urel);
 
-    // update drop diameter
+    // Update drop diameter
     d = min(d, hSheet);
 
     if (We > 27.0/16.0)
@@ -246,7 +246,7 @@ void Foam::LISAAtomization<CloudType>::update
 
     scalar pExp = 0.135;
 
-    //  modifing dD to take account of flash boiling
+    // Modifying dD to take account of flash boiling
     dD = dD*(1.0 - chi*pow(pRatio, -pExp));
     scalar lBU = Cl_ * mag(Urel)*tau;
 
@@ -268,7 +268,7 @@ void Foam::LISAAtomization<CloudType>::update
             }
         }
 
-        //  New droplet properties
+        // New droplet properties
         liquidCore = 0.0;
         d = x;
         tc = 0.0;

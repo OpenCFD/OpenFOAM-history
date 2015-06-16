@@ -32,13 +32,20 @@ Description
     the bended convection schemes.  The output is a volume field (cells) whose
     value is set to the maximum blending factor for any cell face.
 
+    The number of cells in each region, i.e. using scheme1, scheme2 and
+    those using a blend are writteb to the output file.
+
     Example of function object specification to calculate the blending factor:
     \verbatim
     blendingFactor1
     {
         type        blendingFactor;
         functionObjectLibs ("libutilityFunctionObjects.so");
+
         ...
+
+        // Name of field
+        fieldName   U;
     }
     \endverbatim
 
@@ -61,6 +68,8 @@ SourceFiles
 #ifndef blendingFactor_H
 #define blendingFactor_H
 
+#include "functionObjectState.H"
+#include "functionObjectFile.H"
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
 #include "OFstream.H"
@@ -82,17 +91,17 @@ class mapPolyMesh;
 \*---------------------------------------------------------------------------*/
 
 class blendingFactor
+:
+    public functionObjectState,
+    public functionObjectFile
 {
     // Private data
 
-        //- Name of this set of blendingFactor objects
-        word name_;
+        //- Name
+        const word name_;
 
         //- Reference to the database
         const objectRegistry& obr_;
-
-        //- On/off switch
-        bool active_;
 
         //- Name of flux field, default is "phi"
         word phiName_;
@@ -125,6 +134,14 @@ class blendingFactor
         //- Calculate the blending factor
         template<class Type>
         void calc();
+
+
+protected:
+
+    // Protected Member Functions
+
+        //- Write the file header
+        virtual void writeFileHeader(Ostream& os) const;
 
 
 public:
