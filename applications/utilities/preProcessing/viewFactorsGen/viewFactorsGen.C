@@ -371,12 +371,14 @@ int main(int argc, char *argv[])
     DynamicList<label> localAgg(nCoarseFaces);
 
     labelHashSet includePatches;
-    forAll (viewFactorsPatches, i)
+    forAll(viewFactorsPatches, i)
     {
         const label patchID = viewFactorsPatches[i];
 
         const polyPatch& pp = patches[patchID];
         const labelList& agglom = finalAgglom[patchID];
+
+        includePatches.insert(patchID);
 
         if (agglom.size() > 0)
         {
@@ -389,9 +391,6 @@ int main(int argc, char *argv[])
                 coarseMesh.Cf().boundaryField()[patchID];
             const pointField& coarseSf =
                 coarseMesh.Sf().boundaryField()[patchID];
-
-            //labelHashSet includePatches;
-            includePatches.insert(patchID);
 
             forAll(coarseCf, faceI)
             {
