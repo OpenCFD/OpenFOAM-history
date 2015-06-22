@@ -109,9 +109,9 @@ void Foam::blendingFactor::calc()
         refCast<const blendedSchemeBase<Type> >(interpScheme);
     const surfaceScalarField factorf(blendedScheme.blendingFactor(field));
 
-    // Convert into vol field whose values represent the local face maxima
+    // Convert into vol field whose values represent the local face minima
     volScalarField& factor = this->factor(field);
-    factor = fvc::cellReduce(factorf, maxEqOp<scalar>());
+    factor = fvc::cellReduce(factorf, minEqOp<scalar>(), GREAT);
     factor.correctBoundaryConditions();
 
     // Output the number of blended cells, i.e. where factor != 0, 1
