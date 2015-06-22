@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
                 const fileName name(surf.name());
                 surf.rename(name.lessExt() + "_patched." + name.ext());
 
-                Info<< "Writing repatched surface " << surf.name() << " to "
+                Info<< "Writing repatched surface " << name << " to "
                     << surf.name() << nl << endl;
 
                 surf.write();

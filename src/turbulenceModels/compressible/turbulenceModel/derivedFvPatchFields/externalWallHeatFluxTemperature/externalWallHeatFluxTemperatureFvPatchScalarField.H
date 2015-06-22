@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -60,7 +60,7 @@ Description
         thicknessLayers | list of thicknesses per layer [m] | yes |
         kappaLayers  | list of thermal conductivites per layer [W/m/K] | yes |
         kappaName    | name of thermal conductivity field | yes  |
-        QrName       | name of the radiative field | no | no
+        Qr           | name of the radiative field | no | no
     \endtable
 
     Example of the boundary condition specification:
@@ -76,7 +76,7 @@ Description
         kappaLayers     (1 2 3 4)
         value           uniform 300.0;
         kappaName       none;
-        QrName          none;
+        Qr              none;
     }
     \endverbatim
 
