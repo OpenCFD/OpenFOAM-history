@@ -331,7 +331,7 @@ void Foam::forceCoeffs::execute()
     scalar ClTot = 0;
     forAll(liftCoeffs, i)
     {
-        momentCoeffs[i] = (force_[i] & pitchAxis_)/(Aref_*pDyn*lRef_);
+        momentCoeffs[i] = (moment_[i] & pitchAxis_)/(Aref_*pDyn*lRef_);
         dragCoeffs[i] = (force_[i] & dragDir_)/(Aref_*pDyn);
         liftCoeffs[i] = (force_[i] & liftDir_)/(Aref_*pDyn);
 
