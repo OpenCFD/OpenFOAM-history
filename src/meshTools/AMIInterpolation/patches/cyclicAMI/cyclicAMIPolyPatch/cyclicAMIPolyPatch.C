@@ -176,18 +176,19 @@ void Foam::cyclicAMIPolyPatch::calcTransforms
                 scalar errorPos = mag(transformedAreaPos + area0);
                 scalar errorNeg = mag(transformedAreaNeg + area0);
 
-                if (errorPos < errorNeg)
-                {
-                    revT = revTPos;
-                }
-                else
+                scalar scaledErrorPos = errorPos/(mag(area0) + ROOTVSMALL);
+                scalar scaledErrorNeg = errorNeg/(mag(area0) + ROOTVSMALL);
+
+                // One of the errors should be (close to) zero. If this is
+                // the reverse transformation flip the rotation angle.
+                revT = revTPos;
+                if (errorPos > errorNeg && scaledErrorNeg <= matchTolerance())
                 {
                     revT = revTNeg;
                     rotationAngle_ *= -1;
                 }
 
-                scalar areaError =
-                    min(errorPos, errorNeg)/(mag(area0) + ROOTVSMALL);
+                scalar areaError = min(scaledErrorPos, scaledErrorNeg);
 
                 if (areaError > matchTolerance())
                 {

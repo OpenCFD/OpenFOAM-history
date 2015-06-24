@@ -29,11 +29,11 @@ Group
 
 Description
     This function object calculates and outputs the blendingFactor as used by
-    the bended convection schemes.  The output is a volume field (cells) whose
-    value is set to the maximum blending factor for any cell face.
+    the blended convection schemes.  The output is a volume field (cells) whose
+    value is set to the minimum blending factor for any cell face.
 
     The number of cells in each region, i.e. using scheme1, scheme2 and
-    those using a blend are writteb to the output file.
+    those using a blend are written to the output file.
 
     Example of function object specification to calculate the blending factor:
     \verbatim
@@ -55,7 +55,7 @@ Description
         type         | Type name: blendingFactor | yes       |
         phiName      | Name of flux field      | no          | phi
         fieldName    | Name of field to evaluate | yes       |
-        tolerance    | Tolerance for number of bleneded cells | no | 0.001
+        tolerance    | Tolerance for number of blended cells | no | 0.001
         log          | Log to standard output  | no          | yes
     \endtable
 
