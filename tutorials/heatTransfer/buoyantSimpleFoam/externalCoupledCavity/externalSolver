@@ -18,6 +18,8 @@ lockFile="${commsDir}/OpenFOAM.lock"
 dataFile="${commsDir}/${groupName}/${fieldName}"
 waitSec=1
 timeOut=10
+nSteps=200  # maximum number of time steps. Note: should be more than
+            # number of iterations on the OpenFOAM side
 refGrad=0
 valueFraction=1
 
@@ -58,7 +60,7 @@ init
 
 totalWait=0
 step=0
-while [ 1 ]; do
+while [ $step -lt $nSteps ]; do
     if [ -f $lockFile ]; then
         log "found lock file ${lockFile} - waiting"
         totalWait=$(expr $totalWait + $waitSec)
