@@ -95,10 +95,10 @@ castellatedMeshControls
     // actually be a lot less.
     maxGlobalCells 2000000;
 
-    // The surface refinement loop might spend lots of iterations refining just a
-    // few cells. This setting will cause refinement to stop if <= minimumRefine
-    // are selected for refinement. Note: it will at least do one iteration
-    // (unless the number of cells to refine is 0)
+    // The surface refinement loop might spend lots of iterations refining just
+    // a few cells. This setting will cause refinement to stop if
+    // <= minimumRefine cells are selected for refinement. Note: it will
+    // at least do one iteration (unless the number of cells to refine is 0)
     minRefinementCells 0;
 
     // Allow a certain level of imbalance during refining
@@ -493,10 +493,6 @@ addLayersControls
         // When to merge patch faces. Default is featureAngle. Useful when
         // featureAngle is large.
         //mergePatchFacesAngle 45;
-
-        // Do not extrude around sharp edge if not both faces are extruded.
-        // Default is 0.5*featureAngle. Set to -180 always attempt extrusion
-        layerTerminationAngle -180;
 
         // Stop layer growth on highly warped cells
         maxFaceThicknessRatio 0.5;
