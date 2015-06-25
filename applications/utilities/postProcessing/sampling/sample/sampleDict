@@ -33,6 +33,8 @@ setFormat raw;
 //      raw         : x y z value format for use with e.g. gnuplot 'splot'.
 //      boundaryData: written in a form that can be used with timeVaryingMapped
 //                    boundary conditions (move to constant/boundaryData)
+//      starcd      : Star-CD format (geometry in .cel/.vrt, data in .usr)
+//      nastran     : Nastran (.nas) format
 //
 // Note:
 // - other formats such as obj, stl, etc can also be written (by proxy)
@@ -62,14 +64,33 @@ setFormat raw;
 
 surfaceFormat vtk;
 
-// optionally define extra controls for the output formats
+// Optionally define extra controls for the output formats
 formatOptions
 {
     ensight
     {
+        // ascii/binary format
         format  ascii;
         //collateTimes true;  // write single file containing multiple timesteps
                               // (only for static surfaces)
+    }
+    nastran
+    {
+        // From OpenFOAM field name to Nastran field name
+        fields
+        (
+            (U      PLOAD4)
+            (p      PLOAD2)
+        );
+        // Optional scale
+        scale 1.0;
+        // Optional format
+        // short/long/free format
+        // short: scalar field width 8. default.
+        // long : scalar field width 16
+        // free : comma separated, field width according to writePrecision
+        //        setting
+        format  short;      // short/long/free
     }
 }
 
