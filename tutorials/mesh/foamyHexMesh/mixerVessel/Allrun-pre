@@ -51,8 +51,9 @@ intersectSurfaces rotating.stl shaft.stl -surf1Baffle -perturb
 for bladeI in $(seq 1 6);
 do
     intersectSurfaces \
-        stirrer_baffles_$bladeI.obj -surf1Baffle \
-        stirrer_baffles_plate.obj -surf2Baffle
+        stirrer_baffles_$bladeI.obj \
+        stirrer_baffles_plate.obj   \
+       -surf1Baffle -surf2Baffle
 done
 
 
@@ -76,11 +77,15 @@ runParallel -l log.collapseFaces collapseEdges $nProcs -collapseFaces -latestTim
 
 runParallel checkMesh $nProcs -allTopology -allGeometry -latestTime
 
-runApplication reconstructParMesh -latestTime
+# Copy the mesh into polyMesh and delete the latest time directory
+latestTime=$(foamInfoExec -case processor0 -latestTime)
+if [ "$latestTime" != "constant" ] && [ -d processor0/$latestTime/polyMesh ]
+then
+    runApplication reconstructParMesh -latestTime
 
-# Copy the mesh into polyMesh and delete the 102 directory
-\cp -r 101/polyMesh constant
-\rm -rf 101
+    \cp -r $latestTime/polyMesh constant
+    \rm -rf $latestTime
+fi
 
 
 # ----------------------------------------------------------------- end-of-file
