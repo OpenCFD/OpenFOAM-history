@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "equationMaxInitialResidualCondition.H"
+#include "equationInitialResidualCondition.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvMesh.H"
 #include "Time.H"
@@ -32,19 +32,30 @@ License
 
 namespace Foam
 {
-    defineTypeNameAndDebug(equationMaxInitialResidualCondition, 0);
+    defineTypeNameAndDebug(equationInitialResidualCondition, 0);
     addToRunTimeSelectionTable
     (
         runTimeCondition,
-        equationMaxInitialResidualCondition,
+        equationInitialResidualCondition,
         dictionary
     );
+
+    template<>
+    const char* Foam::NamedEnum
+    <
+        equationInitialResidualCondition::operatingMode,
+        2
+    >::names[] =
+    {
+        "minimum",
+        "maximum"
+    };
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::equationMaxInitialResidualCondition::equationMaxInitialResidualCondition
+Foam::equationInitialResidualCondition::equationInitialResidualCondition
 (
     const word& name,
     const objectRegistry& obr,
@@ -55,14 +66,15 @@ Foam::equationMaxInitialResidualCondition::equationMaxInitialResidualCondition
     runTimeCondition(name, obr, dict, state),
     fieldNames_(dict.lookup("fields")),
     value_(readScalar(dict.lookup("value"))),
-    startIter_(dict.lookupOrDefault("startIter", 2))
+    timeStart_(dict.lookupOrDefault("timeStart", -GREAT)),
+    mode_(operatingModeNames.read(dict.lookup("mode")))
 {
     if (!fieldNames_.size())
     {
         WarningIn
         (
-            "Foam::equationMaxInitialResidualCondition::"
-            "equationMaxInitialResidualCondition"
+            "Foam::equationInitialResidualCondition::"
+            "equationInitialResidualCondition"
             "("
                 "const word&, "
                 "const objectRegistry&, "
@@ -74,21 +86,19 @@ Foam::equationMaxInitialResidualCondition::equationMaxInitialResidualCondition
 
         active_ = false;
     }
-
-    startIter_ = max(startIter_, 2);
 }
 
 
 // * * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * //
 
-Foam::equationMaxInitialResidualCondition::
-~equationMaxInitialResidualCondition()
+Foam::equationInitialResidualCondition::
+~equationInitialResidualCondition()
 {}
 
 
 // * * * * * * * * * * * * * * Public Member Functions * * * * * * * * * * * //
 
-bool Foam::equationMaxInitialResidualCondition::apply()
+bool Foam::equationInitialResidualCondition::apply()
 {
     bool satisfied = false;
 
@@ -97,9 +107,9 @@ bool Foam::equationMaxInitialResidualCondition::apply()
         return true;
     }
 
-    if (obr_.time().timeIndex() < startIter_)
+    if ((obr_.time().timeIndex() > 2) && (obr_.time().value() > timeStart_))
     {
-        // Do not start checking until start iter
+        // Do not start checking until reached start time
         return false;
     }
 
@@ -118,9 +128,34 @@ bool Foam::equationMaxInitialResidualCondition::apply()
             const scalar residual = sp.first().initialResidual();
             result[fieldI] = residual;
 
-            if (residual > value_)
+            switch (mode_)
             {
-                satisfied = true;
+                case omMin:
+                {
+                    if (residual < value_)
+                    {
+                        satisfied = true;
+                    }
+                    break;
+                }
+                case omMax:
+                {
+                    if (residual > value_)
+                    {
+                        satisfied = true;
+                    }
+                    break;
+                }
+                default:
+                {
+                    FatalErrorIn
+                    (
+                        "bool Foam::equationInitialResidualCondition::apply()"
+                    )
+                        << "Unhandled enumeration "
+                        << operatingModeNames[mode_]
+                        << abort(FatalError);
+                }
             }
         }
     }
@@ -130,7 +165,7 @@ bool Foam::equationMaxInitialResidualCondition::apply()
     {
         if (result[i] < 0)
         {
-            WarningIn("bool Foam::equationMaxInitialResidualCondition::apply()")
+            WarningIn("bool Foam::equationInitialResidualCondition::apply()")
                 << "Initial residual data not found for field "
                 << fieldNames_[i] << endl;
         }
@@ -142,7 +177,7 @@ bool Foam::equationMaxInitialResidualCondition::apply()
 
     if (!valid)
     {
-        WarningIn("bool Foam::equationMaxInitialResidualCondition::apply()")
+        WarningIn("bool Foam::equationInitialResidualCondition::apply()")
             << "Initial residual data not found for any fields: "
             << "deactivating" << endl;
 
@@ -171,7 +206,7 @@ bool Foam::equationMaxInitialResidualCondition::apply()
 }
 
 
-void Foam::equationMaxInitialResidualCondition::write()
+void Foam::equationInitialResidualCondition::write()
 {
     // do nothing
 }
