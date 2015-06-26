@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2013 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,6 +36,12 @@ SourceFiles
 #ifndef PstreamGlobals_H
 #define PstreamGlobals_H
 
+// Workaround: some mpi.h (e.g. Intel) include stdint.h. stdint.h only defines
+// certain macros (e.g. UINT32_MAX) if __STDC_LIMIT_MACROS is set. These
+// macros are used in e.g. uint32.H (OpenFOAM) but including stdint.h will
+// not do anything since double inclusion checked for. So explicitly set
+// __STDC_LIMIT_MACROS as early as possible.
+#define __STDC_LIMIT_MACROS
 #include "mpi.h"
 
 #include "DynamicList.H"
