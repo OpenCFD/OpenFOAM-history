@@ -83,7 +83,7 @@ protected:
 public:
 
     //- Runtime type information
-    TypeName("equationMaxInitialResidual");
+    TypeName("equationInitialResidual");
 
     //- Constructor
     equationInitialResidualCondition

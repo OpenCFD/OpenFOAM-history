@@ -150,43 +150,51 @@ void Foam::runTimeControl::execute()
 
     // Run stops only if all conditions within a group are satisfied
     List<bool> groupSatisfied(groupMap_.size(), true);
+    List<bool> groupActive(groupMap_.size(), false);
 
     forAll(conditions_, conditionI)
     {
         runTimeCondition& condition = conditions_[conditionI];
 
-        bool conditionSatisfied = condition.apply();
-
-        label groupI = condition.groupID();
-        Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
-
-        if (conditionIter == groupMap_.end())
+        if (condition.active())
         {
-            FatalErrorIn("void Foam::runTimeControl::execute()")
-                << "group " << groupI << " not found in map"
-                << abort(FatalError);
-        }
+            label groupI = condition.groupID();
+            Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
 
-        if (conditionSatisfied)
-        {
-            IDs.append(conditionI);
-
-            if (groupI == -1)
+            if (conditionIter == groupMap_.end())
             {
-                groupSatisfied[conditionIter()] = true;
-                break;
+                FatalErrorIn("void Foam::runTimeControl::execute()")
+                    << "group " << groupI << " not found in map"
+                    << abort(FatalError);
             }
-        }
-        else
-        {
-            groupSatisfied[conditionIter()] = false;
+
+            bool conditionSatisfied = condition.apply();
+
+            groupActive[conditionIter()] = true;
+
+            if (conditionSatisfied)
+            {
+                IDs.append(conditionI);
+
+                if (groupI == -1)
+                {
+                    // Condition not part of a group - only requires this to be
+                    // satisfied for completion flag to be set
+                    groupSatisfied[conditionIter()] = true;
+                    break;
+                }
+            }
+            else
+            {
+                groupSatisfied[conditionIter()] = false;
+            }
         }
     }
 
     bool done = false;
     forAll(groupSatisfied, groupI)
     {
-        if (groupSatisfied[groupI])
+        if (groupSatisfied[groupI] && groupActive[groupI])
         {
             done = true;
             break;
