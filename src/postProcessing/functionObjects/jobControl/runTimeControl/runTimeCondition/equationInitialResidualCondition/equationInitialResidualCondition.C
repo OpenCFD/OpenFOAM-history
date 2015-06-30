@@ -50,6 +50,9 @@ namespace Foam
         "minimum",
         "maximum"
     };
+
+    const NamedEnum<Foam::equationInitialResidualCondition::operatingMode, 2>
+        Foam::equationInitialResidualCondition::operatingModeNames;
 }
 
 
@@ -107,7 +110,7 @@ bool Foam::equationInitialResidualCondition::apply()
         return true;
     }
 
-    if ((obr_.time().timeIndex() > 2) && (obr_.time().value() > timeStart_))
+    if ((obr_.time().timeIndex() < 3) || (obr_.time().value() < timeStart_))
     {
         // Do not start checking until reached start time
         return false;
