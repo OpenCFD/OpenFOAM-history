@@ -108,6 +108,7 @@ void Foam::runTimeControl::read(const dictionary& dict)
         const wordList conditionNames(conditionsDict.toc());
         conditions_.setSize(conditionNames.size());
 
+        label uniqueGroupI = 0;
         forAll(conditionNames, conditionI)
         {
             const word& conditionName = conditionNames[conditionI];
@@ -121,13 +122,9 @@ void Foam::runTimeControl::read(const dictionary& dict)
 
             label groupI = conditions_[conditionI].groupID();
 
-            if (groupMap_.found(groupI))
+            if (groupMap_.insert(groupI, uniqueGroupI))
             {
-                groupMap_.set(groupI, conditionI);
-            }
-            else
-            {
-                groupMap_.insert(groupI, conditionI);
+                uniqueGroupI++;
             }
         }
 
@@ -150,43 +147,52 @@ void Foam::runTimeControl::execute()
 
     // Run stops only if all conditions within a group are satisfied
     List<bool> groupSatisfied(groupMap_.size(), true);
+    List<bool> groupActive(groupMap_.size(), false);
 
     forAll(conditions_, conditionI)
     {
         runTimeCondition& condition = conditions_[conditionI];
 
-        bool conditionSatisfied = condition.apply();
-
-        label groupI = condition.groupID();
-        Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
-
-        if (conditionIter == groupMap_.end())
+        if (condition.active())
         {
-            FatalErrorIn("void Foam::runTimeControl::execute()")
-                << "group " << groupI << " not found in map"
-                << abort(FatalError);
-        }
+            bool conditionSatisfied = condition.apply();
 
-        if (conditionSatisfied)
-        {
-            IDs.append(conditionI);
+            label groupI = condition.groupID();
 
-            if (groupI == -1)
+            Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
+
+            if (conditionIter == groupMap_.end())
             {
-                groupSatisfied[conditionIter()] = true;
-                break;
+                FatalErrorIn("void Foam::runTimeControl::execute()")
+                    << "group " << groupI << " not found in map"
+                    << abort(FatalError);
             }
-        }
-        else
-        {
-            groupSatisfied[conditionIter()] = false;
+
+            if (conditionSatisfied)
+            {
+                IDs.append(conditionI);
+
+                groupActive[conditionIter()] = true;
+
+                if (groupI == -1)
+                {
+                    // Condition not part of a group - only requires this to be
+                    // satisfied for completion flag to be set
+                    groupSatisfied[conditionIter()] = true;
+                    break;
+                }
+            }
+            else
+            {
+                groupSatisfied[conditionIter()] = false;
+            }
         }
     }
 
     bool done = false;
     forAll(groupSatisfied, groupI)
     {
-        if (groupSatisfied[groupI])
+        if (groupSatisfied[groupI] && groupActive[groupI])
         {
             done = true;
             break;

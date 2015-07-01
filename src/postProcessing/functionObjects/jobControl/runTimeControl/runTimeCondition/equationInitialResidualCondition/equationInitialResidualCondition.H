@@ -22,19 +22,19 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::equationMaxInitialResidualCondition
+    Foam::equationInitialResidualCondition
 
 Description
-    Maximum initial residual run time condition
+    Minimum or maximum initial residual run time condition
 
 SourceFiles
-    equationMaxInitialResidualCondition.H
-    equationMaxInitialResidualCondition.C
+    equationInitialResidualCondition.H
+    equationInitialResidualCondition.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef equationMaxInitialResidualCondition_H
-#define equationMaxInitialResidualCondition_H
+#ifndef equationInitialResidualCondition_H
+#define equationInitialResidualCondition_H
 
 #include "runTimeCondition.H"
 #include "NamedEnum.H"
@@ -45,13 +45,24 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-             Class equationMaxInitialResidualCondition Declaration
+              Class equationInitialResidualCondition Declaration
 \*---------------------------------------------------------------------------*/
 
-class equationMaxInitialResidualCondition
+class equationInitialResidualCondition
 :
     public runTimeCondition
 {
+public:
+
+    enum operatingMode
+    {
+        omMin,
+        omMax
+    };
+
+    static const NamedEnum<operatingMode, 2> operatingModeNames;
+
+
 protected:
 
     // Protected data
@@ -62,17 +73,20 @@ protected:
         //- Value to compare
         const scalar value_;
 
-        //- Start checking from iteration - always skips first iteration
-        label startIter_;
+        //- Start checking from time - always skips first iteration
+        scalar timeStart_;
+
+        //- Operating mode
+        operatingMode mode_;
 
 
 public:
 
     //- Runtime type information
-    TypeName("equationMaxInitialResidual");
+    TypeName("equationInitialResidual");
 
     //- Constructor
-    equationMaxInitialResidualCondition
+    equationInitialResidualCondition
     (
         const word& name,
         const objectRegistry& obr,
@@ -81,7 +95,7 @@ public:
     );
 
     //- Destructor
-    virtual ~equationMaxInitialResidualCondition();
+    virtual ~equationInitialResidualCondition();
 
 
     // Public Member Functions

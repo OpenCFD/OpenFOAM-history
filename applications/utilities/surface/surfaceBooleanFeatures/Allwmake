@@ -8,7 +8,7 @@ then
 else
     wmake PolyhedronReader
     export COMPILE_FLAGS='-IPolyhedronReader'
-    export LINK_FLAGS='-lgmp -lCGAL -lPolyhedronReader'
+    export LINK_FLAGS='${CGAL_LIBS} -lPolyhedronReader'
 fi
 wmake
 
