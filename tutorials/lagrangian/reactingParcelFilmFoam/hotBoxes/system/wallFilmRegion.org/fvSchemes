@@ -17,11 +17,7 @@ FoamFile
 
 ddtSchemes
 {
-    default none;
-    ddt(deltaf*rhof) Euler;
-    ddt(rhof,deltaf) Euler;
-    ddt(deltaf*rhof,Uf) Euler;
-    ddt(deltaf*rhof,hf) Euler;
+    default Euler;
 }
 
 divSchemes
