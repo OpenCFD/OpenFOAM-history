@@ -72,9 +72,15 @@ int main(int argc, char *argv[])
 
         runTime++;
 
+        dimensionedScalar compressibility = fvc::domainIntegrate(psi);
+        bool compressible = (compressibility.value() > SMALL);
+
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "rhoEqn.H"
+        if (pimple.nCorrPIMPLE() <= 1)
+        {
+            #include "rhoEqn.H"
+        }
 
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
