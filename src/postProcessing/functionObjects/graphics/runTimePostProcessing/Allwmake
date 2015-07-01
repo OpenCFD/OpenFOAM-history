@@ -13,6 +13,10 @@ depDir="$objectsDir"
 
 if [ -d "$VTK_DIR" -o  -d "$ParaView_DIR" ]
 then
+    # ensure CMake gets the correct C++ compiler
+    [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+    [ -n "$WM_CC" ] && export CC="$WM_CC"
+
     (mkdir -p $depDir && cd $depDir && cmake $sourceDir && make)
 else
     echo "ERROR: Build of $PWD requires a valid VTK installation which"
