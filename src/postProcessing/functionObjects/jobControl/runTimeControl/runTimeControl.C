@@ -108,6 +108,7 @@ void Foam::runTimeControl::read(const dictionary& dict)
         const wordList conditionNames(conditionsDict.toc());
         conditions_.setSize(conditionNames.size());
 
+        label uniqueGroupI = 0;
         forAll(conditionNames, conditionI)
         {
             const word& conditionName = conditionNames[conditionI];
@@ -121,13 +122,9 @@ void Foam::runTimeControl::read(const dictionary& dict)
 
             label groupI = conditions_[conditionI].groupID();
 
-            if (groupMap_.found(groupI))
+            if (groupMap_.insert(groupI, uniqueGroupI))
             {
-                groupMap_.set(groupI, conditionI);
-            }
-            else
-            {
-                groupMap_.insert(groupI, conditionI);
+                uniqueGroupI++;
             }
         }
 
@@ -158,7 +155,10 @@ void Foam::runTimeControl::execute()
 
         if (condition.active())
         {
+            bool conditionSatisfied = condition.apply();
+
             label groupI = condition.groupID();
+
             Map<label>::const_iterator conditionIter = groupMap_.find(groupI);
 
             if (conditionIter == groupMap_.end())
@@ -168,13 +168,11 @@ void Foam::runTimeControl::execute()
                     << abort(FatalError);
             }
 
-            bool conditionSatisfied = condition.apply();
-
-            groupActive[conditionIter()] = true;
-
             if (conditionSatisfied)
             {
                 IDs.append(conditionI);
+
+                groupActive[conditionIter()] = true;
 
                 if (groupI == -1)
                 {
