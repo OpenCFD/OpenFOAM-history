@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -1041,28 +1041,7 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
         );
 
         // weights normalisation
-        normaliseWeights
-        (
-            srcMagSf_,
-            "source",
-            srcAddress_,
-            srcWeights_,
-            srcWeightsSum_,
-            AMIPtr->conformal(),
-            true,
-            lowWeightCorrection_
-        );
-        normaliseWeights
-        (
-            tgtMagSf_,
-            "target",
-            tgtAddress_,
-            tgtWeights_,
-            tgtWeightsSum_,
-            AMIPtr->conformal(),
-            true,
-            lowWeightCorrection_
-        );
+        normaliseWeights(AMIPtr->conformal(), true);
 
         // cache maps and reset addresses
         List<Map<label> > cMap;
@@ -1100,28 +1079,7 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
             tgtWeights_
         );
 
-        normaliseWeights
-        (
-            srcMagSf_,
-            "source",
-            srcAddress_,
-            srcWeights_,
-            srcWeightsSum_,
-            AMIPtr->conformal(),
-            true,
-            lowWeightCorrection_
-        );
-        normaliseWeights
-        (
-            tgtMagSf_,
-            "target",
-            tgtAddress_,
-            tgtWeights_,
-            tgtWeightsSum_,
-            AMIPtr->conformal(),
-            true,
-            lowWeightCorrection_
-        );
+        normaliseWeights(AMIPtr->conformal(), true);
     }
 
     if (debug)
@@ -1134,6 +1092,78 @@ void Foam::AMIInterpolation<SourcePatch, TargetPatch>::update
             << "    tgtMagSf       :" << gSum(tgtMagSf_) << nl
             << endl;
     }
+}
+
+
+template<class SourcePatch, class TargetPatch>
+void Foam::AMIInterpolation<SourcePatch, TargetPatch>::append
+(
+    const SourcePatch& srcPatch,
+    const TargetPatch& tgtPatch
+)
+{
+    // create a new interpolation
+    autoPtr<AMIInterpolation<SourcePatch, TargetPatch> > newPtr
+    (
+        new AMIInterpolation<SourcePatch, TargetPatch>
+        (
+            srcPatch,
+            tgtPatch,
+            triMode_,
+            requireMatch_,
+            methodName_,
+            lowWeightCorrection_,
+            reverseTarget_
+        )
+    );
+
+    // combine new and current data
+    forAll(srcMagSf_, srcFaceI)
+    {
+        srcAddress_[srcFaceI].append(newPtr->srcAddress()[srcFaceI]);
+        srcWeights_[srcFaceI].append(newPtr->srcWeights()[srcFaceI]);
+        srcWeightsSum_[srcFaceI] += newPtr->srcWeightsSum()[srcFaceI];
+    }
+
+    forAll(tgtMagSf_, tgtFaceI)
+    {
+        tgtAddress_[tgtFaceI].append(newPtr->tgtAddress()[tgtFaceI]);
+        tgtWeights_[tgtFaceI].append(newPtr->tgtWeights()[tgtFaceI]);
+        tgtWeightsSum_[tgtFaceI] += newPtr->tgtWeightsSum()[tgtFaceI];
+    }
+}
+
+
+template<class SourcePatch, class TargetPatch>
+void Foam::AMIInterpolation<SourcePatch, TargetPatch>::normaliseWeights
+(
+    const bool conformal,
+    const bool output
+)
+{
+    normaliseWeights
+    (
+        srcMagSf_,
+        "source",
+        srcAddress_,
+        srcWeights_,
+        srcWeightsSum_,
+        conformal,
+        output,
+        lowWeightCorrection_
+    );
+
+    normaliseWeights
+    (
+        tgtMagSf_,
+        "target",
+        tgtAddress_,
+        tgtWeights_,
+        tgtWeightsSum_,
+        conformal,
+        output,
+        lowWeightCorrection_
+    );
 }
 
 
