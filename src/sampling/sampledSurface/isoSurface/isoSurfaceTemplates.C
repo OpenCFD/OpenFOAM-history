@@ -120,7 +120,7 @@ Foam::isoSurface::adaptPatchFields
         {
             fvPatchField<Type>& pfld = const_cast<fvPatchField<Type>&>
             (
-                fld.boundaryField()[patchI]
+                sliceFld.boundaryField()[patchI]
             );
 
             const scalarField& w = mesh.weights().boundaryField()[patchI];
