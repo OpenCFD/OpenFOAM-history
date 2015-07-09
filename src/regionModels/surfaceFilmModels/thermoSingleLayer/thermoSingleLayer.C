@@ -27,6 +27,7 @@ License
 #include "fvcDiv.H"
 #include "fvcLaplacian.H"
 #include "fvm.H"
+#include "fvcDdt.H"
 #include "addToRunTimeSelectionTable.H"
 #include "zeroGradientFvPatchFields.H"
 #include "mappedFieldFvPatchField.H"
@@ -239,10 +240,12 @@ void thermoSingleLayer::updateSubmodels()
     htcs_->correct();
     htcw_->correct();
 
+    scalarField availableMass(alpha_*availableMass_);
+
     phaseChange_->correct
     (
         time_.deltaTValue(),
-        availableMass_,
+        availableMass,
         primaryMassPCTrans_,
         primaryEnergyPCTrans_
     );
@@ -288,16 +291,26 @@ void thermoSingleLayer::solveEnergy()
         Info<< "thermoSingleLayer::solveEnergy()" << endl;
     }
 
+
+    dimensionedScalar residualDeltaRho
+    (
+        "residualDeltaRho",
+        deltaRho_.dimensions(),
+        1e-10
+    );
+
     solve
     (
         fvm::ddt(deltaRho_, hs_)
       + fvm::div(phi_, hs_)
      ==
       - hsSp_
-      + q(hs_)
-      + radiation_->Shs()
+      + alpha_*q(hs_)
+      + alpha_*radiation_->Shs()
 //      - fvm::SuSp(rhoSp_, hs_)
       - rhoSp_*hs_
+      + fvc::ddt(residualDeltaRho + deltaRho_, hs_)
+      - fvm::ddt(residualDeltaRho + deltaRho_, hs_)
     );
 
     correctThermoFields();

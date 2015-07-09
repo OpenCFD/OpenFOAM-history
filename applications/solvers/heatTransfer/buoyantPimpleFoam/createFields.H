@@ -86,3 +86,26 @@
 
     Info<< "Creating field kinetic energy K\n" << endl;
     volScalarField K("K", 0.5*magSqr(U));
+
+    label pRefCell = 0;
+    scalar pRefValue = 0.0;
+    setRefCell
+    (
+        p,
+        p_rgh,
+        pimple.dict(),
+        pRefCell,
+        pRefValue
+    );
+
+    if (p_rgh.needReference())
+    {
+        p += dimensionedScalar
+        (
+            "p",
+            p.dimensions(),
+            pRefValue - getRefCellValue(p, pRefCell)
+        );
+    }
+
+    dimensionedScalar initialMass("initialMass", fvc::domainIntegrate(rho));
