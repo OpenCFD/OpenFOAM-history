@@ -8,3 +8,6 @@
 
     const bool momentumPredictor =
         pimple.lookupOrDefault("momentumPredictor", true);
+
+    const bool frozenFlow =
+        pimple.lookupOrDefault("frozenFlow", false);
