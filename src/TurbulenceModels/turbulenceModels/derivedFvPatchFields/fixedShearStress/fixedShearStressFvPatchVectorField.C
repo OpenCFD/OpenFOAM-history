@@ -38,7 +38,7 @@ Foam::fixedShearStressFvPatchVectorField::fixedShearStressFvPatchVectorField
     const DimensionedField<vector, volMesh>& iF
 )
 :
-    fixedValueFvPatchVectorField(p, iF),
+    fixedValueFvPatchField<vector>(p, iF),
     tau0_(vector::zero)
 {}
 
@@ -50,7 +50,7 @@ Foam::fixedShearStressFvPatchVectorField::fixedShearStressFvPatchVectorField
     const dictionary& dict
 )
 :
-    fixedValueFvPatchVectorField(p, iF),
+    fixedValueFvPatchField<vector>(p, iF),
     tau0_(dict.lookupOrDefault<vector>("tau", vector::zero))
 {
     fvPatchField<vector>::operator=(patchInternalField());
@@ -65,7 +65,7 @@ Foam::fixedShearStressFvPatchVectorField::fixedShearStressFvPatchVectorField
     const fvPatchFieldMapper& mapper
 )
 :
-    fixedValueFvPatchVectorField(ptf, p, iF, mapper),
+    fixedValueFvPatchField<vector>(ptf, p, iF, mapper),
     tau0_(ptf.tau0_)
 {}
 
@@ -75,7 +75,7 @@ Foam::fixedShearStressFvPatchVectorField::fixedShearStressFvPatchVectorField
     const fixedShearStressFvPatchVectorField& ptf
 )
 :
-    fixedValueFvPatchVectorField(ptf),
+    fixedValueFvPatchField<vector>(ptf),
     tau0_(ptf.tau0_)
 {}
 
@@ -86,7 +86,7 @@ Foam::fixedShearStressFvPatchVectorField::fixedShearStressFvPatchVectorField
     const DimensionedField<vector, volMesh>& iF
 )
 :
-    fixedValueFvPatchVectorField(ptf, iF),
+    fixedValueFvPatchField<vector>(ptf, iF),
     tau0_(ptf.tau0_)
 {}
 
@@ -109,7 +109,7 @@ void Foam::fixedShearStressFvPatchVectorField::updateCoeffs()
         )
     );
 
-    scalarField nuEff(turbModel.nuEff()()[patch().index()]);
+    scalarField nuEff(turbModel.nuEff(patch().index()));
 
     const vectorField Uc(patchInternalField());
 
@@ -119,13 +119,13 @@ void Foam::fixedShearStressFvPatchVectorField::updateCoeffs()
 
     operator==(tauHat*(tauHat & (tau0_*(1.0/(ry*nuEff)) + Uc)));
 
-    fixedValueFvPatchVectorField::updateCoeffs();
+    fixedValueFvPatchField<vector>::updateCoeffs();
 }
 
 
 void Foam::fixedShearStressFvPatchVectorField::write(Ostream& os) const
 {
-    fixedValueFvPatchVectorField::write(os);
+    fixedValueFvPatchField<vector>::write(os);
     os.writeKeyword("tau") << tau0_ << token::END_STATEMENT << nl;
     writeEntry("value", os);
 }

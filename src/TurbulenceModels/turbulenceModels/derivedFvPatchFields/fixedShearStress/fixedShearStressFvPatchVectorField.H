@@ -39,7 +39,8 @@ SourceFiles
 #define fixedShearStressFvPatchVectorField_H
 
 #include "fvPatchFields.H"
-#include "fixedValueFvPatchFields.H"
+//#include "fixedValueFvPatchFields.H"
+#include "fixedValueFvPatchField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -52,7 +53,7 @@ namespace Foam
 
 class fixedShearStressFvPatchVectorField
 :
-    public fixedValueFvPatchVectorField
+    public fixedValueFvPatchField<vector>//fixedValueFvPatchVectorField
 {
     // Private data
 
