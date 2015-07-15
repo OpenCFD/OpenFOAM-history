@@ -119,7 +119,7 @@ void dynamicKEqn<BasicTurbulenceModel>::correctNut()
         0.5*max
         (
             (filter_(magSqr(this->U_)) - magSqr(filter_(this->U_))),
-            dimensionedScalar("zero", sqr(dimVelocity), 0.0)
+            dimensionedScalar("small", KK.dimensions(), SMALL)
         )
     );
 
