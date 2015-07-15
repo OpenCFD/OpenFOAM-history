@@ -207,7 +207,7 @@ public:
             CDES_(readScalar(is)),
             invTau_("invTau", dimless/dimTime, readScalar(is)),
             sigmaMax_(readScalar(is)),
-            B0_("B0", dimless/sqr(dimTime), 1e-20)),
+            B0_("B0", dimless/sqr(dimTime), 1e-20),
             d0_("d0", dimLength, SMALL)
         {
             if (invTau_.value() <= 0)
@@ -244,7 +244,7 @@ public:
             CDES_(readScalar(is)),
             invTau_("invTau", dimless/dimTime, readScalar(is)),
             sigmaMax_(readScalar(is)),
-            B0_("B0", dimless/sqr(dimTime), 1e-20)),
+            B0_("B0", dimless/sqr(dimTime), 1e-20),
             d0_("d0", dimLength, SMALL)
         {
             if (invTau_.value() <= 0)
