@@ -41,6 +41,7 @@ volScalarField dynamicKEqn<BasicTurbulenceModel>::Ck
     const volScalarField& KK
 ) const
 {
+
     const volSymmTensorField LL
     (
         simpleFilter_(dev(filter_(sqr(this->U_)) - (sqr(filter_(this->U_)))))
@@ -115,7 +116,11 @@ void dynamicKEqn<BasicTurbulenceModel>::correctNut()
 {
     const volScalarField KK
     (
-        0.5*(filter_(magSqr(this->U_)) - magSqr(filter_(this->U_)))
+        0.5*max
+        (
+            (filter_(magSqr(this->U_)) - magSqr(filter_(this->U_))),
+            dimensionedScalar("zero", sqr(dimVelocity), 0.0)
+        )
     );
 
     correctNut(symm(fvc::grad(this->U_)), KK);
