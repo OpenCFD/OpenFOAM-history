@@ -114,14 +114,12 @@ void dynamicKEqn<BasicTurbulenceModel>::correctNut
 template<class BasicTurbulenceModel>
 void dynamicKEqn<BasicTurbulenceModel>::correctNut()
 {
-    const volScalarField KK
+
+    volScalarField KK
     (
-        0.5*max
-        (
-            (filter_(magSqr(this->U_)) - magSqr(filter_(this->U_))),
-            dimensionedScalar("small", KK.dimensions(), SMALL)
-        )
+        0.5*(filter_(magSqr(this->U_)) - magSqr(filter_(this->U_)))
     );
+    KK.max(dimensionedScalar("small", KK.dimensions(), SMALL));
 
     correctNut(symm(fvc::grad(this->U_)), KK);
 }
