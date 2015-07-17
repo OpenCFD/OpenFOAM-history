@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -54,25 +54,25 @@ void Foam::fv::actuationDiskSource::checkData() const
     {
         FatalErrorIn("Foam::fv::actuationDiskSource::checkData()")
            << "diskArea is approximately zero"
-           << exit(FatalIOError);
+           << exit(FatalError);
     }
     if (Cp_ <= VSMALL || Ct_ <= VSMALL)
     {
         FatalErrorIn("Foam::fv::actuationDiskSource::checkData()")
            << "Cp and Ct must be greater than zero"
-           << exit(FatalIOError);
+           << exit(FatalError);
     }
     if (mag(diskDir_) < VSMALL)
     {
         FatalErrorIn("Foam::fv::actuationDiskSource::checkData()")
            << "disk direction vector is approximately zero"
-           << exit(FatalIOError);
+           << exit(FatalError);
     }
     if (returnReduce(upstreamCellId_, maxOp<label>()) == -1)
     {
         FatalErrorIn("Foam::fv::actuationDiskSource::checkData()")
            << "upstream location " << upstreamPoint_  << " not found in mesh"
-           << exit(FatalIOError);
+           << exit(FatalError);
     }
 }
 

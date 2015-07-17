@@ -403,6 +403,7 @@ void readSurfaceData
     else
     {
         const label nLocalFace = procFaceOffset[0];
+
         pData.setSize(nLocalFace);
         forAll(times, timeI)
         {
@@ -417,7 +418,6 @@ void readSurfaceData
             label timeI = i + startTimeIndex;
 
             Info<< "    time: " << times[i] << endl;
-
             const scalarField p(reader->field(timeI, pIndex, scalar(0)));
 
             forAll(p, faceI)
@@ -730,7 +730,7 @@ void processSurfaceData
     // Storage for FFT data
     const label nLocalFace = pData.size();
     const scalarField freq1(noiseFFT::frequencies(N, deltaT));
-    const label nFFT = freq1.size()/fftWriteInterval + 1;
+    const label nFFT = freq1.size()/fftWriteInterval;
     List<scalarField> surfPf(nFFT);
     List<scalarField> surfLf(nFFT);
     List<scalarField> surfPSD(nFFT);
@@ -771,7 +771,7 @@ void processSurfaceData
         // Store the frequency results in slot for face of surface
         forAll(surfPf, i)
         {
-            label freqI = i*fftWriteInterval;
+            label freqI = (i + 1)*fftWriteInterval - 1;
             surfPf[i][faceI] = Pf.y()[freqI];
             surfLf[i][faceI] = Lf.y()[freqI];
             surfPSD[i][faceI] = PSD.y()[freqI];
