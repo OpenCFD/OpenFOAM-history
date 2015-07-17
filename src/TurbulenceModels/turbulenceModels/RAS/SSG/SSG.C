@@ -357,12 +357,12 @@ void SSG<BasicTurbulenceModel>::correct()
       + fvm::Sp(((C1_/2)*epsilon_ + (C1s_/2)*G)*alpha*rho/k_, R)
      ==
         alpha*rho*P
-      - ((1.0/3.0)*I)*(((2.0 - C1_)*epsilon_ - C1s_*G)*alpha*rho)
+      + ((1.0/3.0)*I)*(C1_*epsilon_ + C1s_*G)*alpha*rho
       + (C2_*(alpha*rho*epsilon_))*dev(innerSqr(b))
       + alpha*rho*k_
        *(
             (C3_ - C3s_*mag(b))*S
-          + C4_*dev(twoSymm(b&S.T()))
+          + C4_*dev(twoSymm(b&S))
           + C5_*twoSymm(b&Omega.T())
         )
     );
