@@ -122,6 +122,7 @@ dynamicLagrangian<BasicTurbulenceModel>::dynamicLagrangian
 {
     if (type == typeName)
     {
+        fmm_.correctBoundaryConditions();
         correctNut();
         this->printCoeffs(type);
     }
