@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -762,7 +762,7 @@ Foam::labelHashSet Foam::polyBoundaryMesh::patchSet
             ids.insert(patchIDs[j]);
         }
 
-        if (ids.empty())
+        if (patchIDs.empty())
         {
             if (usePatchGroups)
             {
@@ -782,7 +782,7 @@ Foam::labelHashSet Foam::polyBoundaryMesh::patchSet
                     }
                 }
 
-                if (ids.empty() && warnNotFound)
+                if (groupIDs.empty() && warnNotFound)
                 {
                     WarningIn
                     (
