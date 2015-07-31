@@ -19,19 +19,9 @@ wallFunction
 {
     highReynolds
     {
-        nut
-        {
-            type        nutkWallFunction;
-            value       ${:VALUE.nut};
-        }
     }
     lowReynolds
     {
-        nut
-        {
-            type        fixedValue;
-            value       uniform 0;
-        }
     }
 }
 

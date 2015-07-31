@@ -142,7 +142,7 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
             }
             else
             {
-                FatalErrorIn
+                FatalIOErrorIn
                 (
                     "Foam::dictionary "
                     "Foam::solverTemplate::readFluidFieldTemplates"
@@ -151,15 +151,16 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                         "const fileName&, "
                         "const dictionary&, "
                         "const Time&"
-                    ") const"
+                    ") const",
+                    fieldModels
                 )   << "Unhandled turbulence model option " << simulationType
-                    << ". Valid options are laminar, RASModel, LESModel"
-                    << exit(FatalError);
+                    << ". Valid options are laminar, RAS, LES"
+                    << exit(FatalIOError);
             }
         }
         else
         {
-            FatalErrorIn
+            FatalIOErrorIn
             (
                 "Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates"
                 "("
@@ -167,10 +168,11 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                     "const fileName&, "
                     "const dictionary&, "
                     "const Time&"
-                ") const"
+                ") const",
+                fieldModels
             )   << "Unhandled turbulence model option " << simulationType
-                << ". Valid options are laminar, RASModel, LESModel"
-                << exit(FatalError);
+                << ". Valid options are turbulenceModel"
+                << exit(FatalIOError);
         }
     }
 
@@ -187,6 +189,10 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
         )
     );
 
+    // Merge common fluid fields
+    fieldTemplates.merge(turbModelDict.subDict("fluidFields"));
+
+    // Merge specific compressible or incompressible fluid fields
     switch (solverType_)
     {
         case stIncompressible:

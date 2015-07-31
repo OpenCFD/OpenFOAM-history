@@ -21,7 +21,7 @@ multiRegion no;
 
 fluidModels
 {
-    turbulenceModel  RASModel;
+    turbulenceModel  turbulenceModel;
 }
 
 fluidFields
