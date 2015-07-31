@@ -46,9 +46,9 @@
 
     singlePhaseTransportModel laminarTransport(Urel, phi);
 
-    autoPtr<incompressible::RASModel> turbulence
+    autoPtr<incompressible::turbulenceModel> turbulence
     (
-        incompressible::RASModel::New(Urel, phi, laminarTransport)
+        incompressible::turbulenceModel::New(Urel, phi, laminarTransport)
     );
 
     Info<< "Creating SRF model\n" << endl;

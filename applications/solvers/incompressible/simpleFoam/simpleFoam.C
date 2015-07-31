@@ -28,7 +28,7 @@ Group
     grpIncompressibleSolvers
 
 Description
-    Steady-state solver for incompressible flow with RAS turbulence modelling.
+    Steady-state solver for incompressible with turbulence modelling.
 
     \heading Solver details
     The solver uses the SIMPLE algorithm to solve the continuity equation:
