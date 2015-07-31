@@ -29,6 +29,7 @@ License
 #include "fvPatchFieldMapper.H"
 #include "surfaceFields.H"
 #include "linear.H"
+#include "steadyStateDdtScheme.H"
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
@@ -66,23 +67,21 @@ Foam::pressurePIDControlInletVelocityFvPatchVectorField::facePressure() const
 }
 
 
-void Foam::pressurePIDControlInletVelocityFvPatchVectorField::zoneAverages
+template <class Type>
+void Foam::pressurePIDControlInletVelocityFvPatchVectorField::faceZoneAverage
 (
     const word& name,
+    const GeometricField<Type, fvsPatchField, surfaceMesh>& field,
     scalar& area,
-    vector& x,
-    scalar& p
+    Type& average
 ) const
 {
-    const fvMesh& mesh(this->patch().boundaryMesh().mesh());
-
-    const surfaceScalarField& pf(facePressure());
+    const fvMesh& mesh(patch().boundaryMesh().mesh());
 
     const faceZone& zone = mesh.faceZones()[name];
 
     area = 0;
-    x = vector::zero;
-    p = 0;
+    average = pTraits<Type>::zero;
 
     forAll(zone, faceI)
     {
@@ -91,16 +90,13 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::zoneAverages
         const scalar da(mesh.magSf()[f]);
 
         area += da;
-        x += da*mesh.Cf()[f];
-        p += da*pf[f];
+        average += da*field[f];
     }
 
     reduce(area, sumOp<scalar>());
-    reduce(x, sumOp<vector>());
-    reduce(p, sumOp<scalar>());
+    reduce(average, sumOp<Type>());
 
-    x /= area;
-    p /= area;
+    average /= area;
 }
 
 
@@ -117,9 +113,9 @@ pressurePIDControlInletVelocityFvPatchVectorField
     upstreamName_(word::null),
     downstreamName_(word::null),
     deltaP_(1),
-    transient_(false),
     shapeFactor_(0),
     pName_("p"),
+    phiName_("phi"),
     rhoName_("none"),
     P_(0),
     I_(0),
@@ -147,9 +143,9 @@ pressurePIDControlInletVelocityFvPatchVectorField
     upstreamName_(ptf.upstreamName_),
     downstreamName_(ptf.downstreamName_),
     deltaP_(ptf.deltaP_),
-    transient_(ptf.transient_),
     shapeFactor_(ptf.shapeFactor_),
     pName_(ptf.pName_),
+    phiName_(ptf.phiName_),
     rhoName_(ptf.rhoName_),
     P_(ptf.P_),
     I_(ptf.I_),
@@ -176,9 +172,9 @@ pressurePIDControlInletVelocityFvPatchVectorField
     upstreamName_(dict.lookup("upstream")),
     downstreamName_(dict.lookup("downstream")),
     deltaP_(readScalar(dict.lookup("deltaP"))),
-    transient_(dict.lookup("transient")),
     shapeFactor_(dict.lookupOrDefault<scalar>("shapeFactor", 0)),
     pName_(dict.lookupOrDefault<word>("p", "p")),
+    phiName_(dict.lookupOrDefault<word>("phi", "phi")),
     rhoName_(dict.lookupOrDefault<word>("rho", "none")),
     P_(readScalar(dict.lookup("P"))),
     I_(readScalar(dict.lookup("I"))),
@@ -203,9 +199,9 @@ pressurePIDControlInletVelocityFvPatchVectorField
     upstreamName_(ptf.upstreamName_),
     downstreamName_(ptf.downstreamName_),
     deltaP_(ptf.deltaP_),
-    transient_(ptf.transient_),
     shapeFactor_(ptf.shapeFactor_),
     pName_(ptf.pName_),
+    phiName_(ptf.phiName_),
     rhoName_(ptf.rhoName_),
     P_(ptf.P_),
     I_(ptf.I_),
@@ -231,9 +227,9 @@ pressurePIDControlInletVelocityFvPatchVectorField
     upstreamName_(ptf.upstreamName_),
     downstreamName_(ptf.downstreamName_),
     deltaP_(ptf.deltaP_),
-    transient_(ptf.transient_),
     shapeFactor_(ptf.shapeFactor_),
     pName_(ptf.pName_),
+    phiName_(ptf.phiName_),
     rhoName_(ptf.rhoName_),
     P_(ptf.P_),
     I_(ptf.I_),
@@ -257,11 +253,17 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
         return;
     }
 
+    // Get the mesh
+    const fvMesh& mesh(patch().boundaryMesh().mesh());
+
     // Get the time step
     const scalar deltaT(db().time().deltaTValue());
 
-    // Get the pressure field
-    const volScalarField& p(db().lookupObject<volScalarField>(pName_));
+    // Get the flux field
+    const surfaceScalarField& phi
+    (
+        db().lookupObject<surfaceScalarField>(phiName_)
+    );
 
     // Update the old-time quantities
     if (timeIndex_ != db().time().timeIndex())
@@ -274,11 +276,11 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
 
     // Get the density
     scalar rho = 1;
-    if (p.dimensions() == dimPressure/dimDensity)
+    if (phi.dimensions() == dimVelocity*dimArea)
     {
         // do nothing ...
     }
-    else if (p.dimensions() == dimPressure)
+    else if (phi.dimensions() == dimDensity*dimVelocity*dimArea)
     {
         const fvPatchField<scalar>& rhoField =
             patch().lookupPatchField<volScalarField, scalar>(rhoName_);
@@ -292,7 +294,11 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
             "void Foam::"
             "pressurePIDControlInletVelocityFvPatchVectorField::"
             "updateCoeffs()"
-        )   << "Pressure dimensions not recognised"
+        )   << "The dimensions of the field " << phiName_
+            << "are not recognised. The dimensions are " << phi.dimensions()
+            << ". The dimensions should be either " << dimVelocity*dimArea
+            << " for an incompressible case, or "
+            << dimDensity*dimVelocity*dimArea << " for a compressible case."
             << exit(FatalError);
     }
 
@@ -303,19 +309,30 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
     // Face-zone properties (a is upstream, b is downstream)
     scalar Aa, Ab;
     vector xa, xb;
-    scalar pa, pb;
-    zoneAverages(upstreamName_, Aa, xa, pa);
-    zoneAverages(downstreamName_, Ab, xb, pb);
+    faceZoneAverage(upstreamName_, mesh.Cf(), Aa, xa);
+    faceZoneAverage(downstreamName_, mesh.Cf(), Ab, xb);
     const scalar L = mag(xa - xb);
     const scalar LbyALinear = L/(Aa - Ab)*log(Aa/Ab);
     const scalar LbyAStep = L/2*(1/Aa + 1/Ab);
     const scalar LbyA = (1 - shapeFactor_)*LbyALinear + shapeFactor_*LbyAStep;
-    const scalar deltaP = pa - pb;
+
+    // Initialise the pressure drop. If the pressure field does not exist, the
+    // pressure drop is assumed to be that specified. This removes the error,
+    // so there is no control and the analytic inlet velocity is applied. This
+    // scenario only ever going to be applicable to potentialFoam.
+    scalar deltaP = deltaP_;
+    if (db().foundObject<volScalarField>(pName_))
+    {
+        scalar pa, pb;
+        faceZoneAverage(upstreamName_, facePressure(), Aa, pa);
+        faceZoneAverage(downstreamName_, facePressure(), Ab, pb);
+        deltaP = pa - pb;
+    }
 
     // Target and measured flow rates
     scalar QTarget, QMeasured;
     const scalar a = (1/sqr(Ab) - 1/sqr(Aa))/(2*rho);
-    if (transient_)
+    if (!mesh.steady() && db().foundObject<volScalarField>(pName_))
     {
         const scalar b = LbyA/deltaT;
         const scalar c = - LbyA/deltaT*oldQ_ /* - deltaP */;
@@ -348,13 +365,14 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
     // Log output
     if (debug)
     {
+        const dimensionSet pDimensions(phi.dimensions()*dimVelocity/dimArea);
         const scalar error = deltaP/deltaP_ - 1;
         const scalar newQ = - gSum(*this & patch().Sf());
         Info<< "pressurePIDControlInletVelocityFvPatchField " << patch().name()
             << endl << "         "
             << dimensionedScalar("U", dimVelocity, newQ/patchA)
             << endl << "    "
-            << dimensionedScalar("deltaP", p.dimensions(), deltaP)
+            << dimensionedScalar("deltaP", pDimensions, deltaP)
             << " (" << mag(error)*100 << "\% "
             << (error < 0 ? "below" : "above") << " the target)" << endl;
     }
@@ -378,7 +396,6 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::write
         << token::END_STATEMENT << nl;
     writeEntryIfDifferent<word>(os, "p", "p", pName_);
     writeEntryIfDifferent<word>(os, "rho", "none", rhoName_);
-    os.writeKeyword("transient") << transient_ << token::END_STATEMENT << nl;
     os.writeKeyword("P") << P_ << token::END_STATEMENT << nl;
     os.writeKeyword("I") << I_ << token::END_STATEMENT << nl;
     os.writeKeyword("D") << D_ << token::END_STATEMENT << nl;
