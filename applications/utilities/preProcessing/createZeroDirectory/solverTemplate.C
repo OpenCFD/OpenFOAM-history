@@ -142,7 +142,7 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
             }
             else
             {
-                FatalIOErrorIn
+                FatalErrorIn
                 (
                     "Foam::dictionary "
                     "Foam::solverTemplate::readFluidFieldTemplates"
@@ -151,16 +151,15 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                         "const fileName&, "
                         "const dictionary&, "
                         "const Time&"
-                    ") const",
-                    fieldModels
+                    ") const"
                 )   << "Unhandled turbulence model option " << simulationType
                     << ". Valid options are laminar, RAS, LES"
-                    << exit(FatalIOError);
+                    << exit(FatalError);
             }
         }
         else
         {
-            FatalIOErrorIn
+            FatalErrorIn
             (
                 "Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates"
                 "("
@@ -168,11 +167,10 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                     "const fileName&, "
                     "const dictionary&, "
                     "const Time&"
-                ") const",
-                fieldModels
+                ") const"
             )   << "Unhandled turbulence model option " << simulationType
                 << ". Valid options are turbulenceModel"
-                << exit(FatalIOError);
+                << exit(FatalError);
         }
     }
 
