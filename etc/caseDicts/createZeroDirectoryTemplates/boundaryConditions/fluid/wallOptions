@@ -27,6 +27,7 @@ wallFunction
         k
         {
             type        kqRWallFunction;
+            value       ${:VALUE.k};
         }
         epsilon
         {

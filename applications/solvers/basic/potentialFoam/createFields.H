@@ -57,6 +57,9 @@
         }
     }
 
+    // Note that registerObject is false for the pressure field. The pressure
+    // field in this solver doesn't have a physical value during the solution.
+    // It shouldn't be looked up and used by sub models or boundary conditions.
     Info<< "Constructing pressure field " << pName << nl << endl;
     volScalarField p
     (
@@ -66,7 +69,8 @@
             runTime.timeName(),
             mesh,
             IOobject::READ_IF_PRESENT,
-            IOobject::NO_WRITE
+            IOobject::NO_WRITE,
+            false
         ),
         mesh,
         dimensionedScalar(pName, sqr(dimVelocity), 0),
