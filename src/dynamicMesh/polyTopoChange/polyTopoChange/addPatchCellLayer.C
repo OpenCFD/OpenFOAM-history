@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -742,8 +742,15 @@ void Foam::addPatchCellLayer::calcExtrudeInfo
 
             if (otherProcI != -1)
             {
-                edgePatchID[edgeI] = gd.procPatchMap()[otherProcI];
-                if (edgePatchID[edgeI] == -1)
+                if (findIndex(gd[Pstream::myProcNo()], otherProcI) != -1)
+                {
+                    // There is already a processorPolyPatch to otherProcI.
+                    // Use it. Note that we can only index procPatchMap
+                    // if the processor actually is a neighbour processor
+                    // so that is why we first check.
+                    edgePatchID[edgeI] = gd.procPatchMap()[otherProcI];
+                }
+                else
                 {
                     // Cannot find a patch to processor. See if already
                     // marked for addition

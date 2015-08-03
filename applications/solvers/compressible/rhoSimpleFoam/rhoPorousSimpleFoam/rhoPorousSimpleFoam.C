@@ -29,7 +29,7 @@ Group
 
 Description
     Steady-state solver for turbulent flow of compressible fluids with
-    RANS turbulence modelling, implicit or explicit porosity treatment
+    generic turbulence modelling, implicit or explicit porosity treatment
     and run-time selectable finite volume sources.
 
 \*---------------------------------------------------------------------------*/

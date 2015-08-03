@@ -23,10 +23,6 @@ noSlip
 
 slip
 {
-    mut
-    {
-        type        zeroGradient;
-    }
     alphat
     {
         type        zeroGradient;

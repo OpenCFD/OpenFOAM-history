@@ -153,7 +153,7 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                         "const Time&"
                     ") const"
                 )   << "Unhandled turbulence model option " << simulationType
-                    << ". Valid options are laminar, RASModel, LESModel"
+                    << ". Valid options are laminar, RAS, LES"
                     << exit(FatalError);
             }
         }
@@ -169,7 +169,7 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
                     "const Time&"
                 ") const"
             )   << "Unhandled turbulence model option " << simulationType
-                << ". Valid options are laminar, RASModel, LESModel"
+                << ". Valid options are turbulenceModel"
                 << exit(FatalError);
         }
     }
@@ -187,6 +187,10 @@ Foam::dictionary Foam::solverTemplate::readFluidFieldTemplates
         )
     );
 
+    // Merge common fluid fields
+    fieldTemplates.merge(turbModelDict.subDict("fluidFields"));
+
+    // Merge specific compressible or incompressible fluid fields
     switch (solverType_)
     {
         case stIncompressible:

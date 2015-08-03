@@ -58,9 +58,9 @@ Description
         upstream    | upstream face zone name     | yes      |
         downstream  | downstream face zone name   | yes      |
         deltaP      | desired pressure drop       | yes      |
-        transient   | include transient effects   | yes      |
         shapeFactor | non-linearity in the nozzle | no       | 0
         p           | pressure field name         | no       | p
+        phi         | flux field name             | yes      | phi
         rho         | density field name          | no       | none
         P           | proportional gain           | yes      |
         I           | integral gain               | yes      |
@@ -76,9 +76,9 @@ Description
         upstream        upstream;
         downstream      downstream;
         deltaP          200;
-        transient       true;
         shapeFactor     0;
         p               p;
+        phi             phi;
         rho             none;
         P               0.5;
         I               0.5;
@@ -123,14 +123,14 @@ class pressurePIDControlInletVelocityFvPatchVectorField
         //- Desired pressure difference between upstream and downstream
         const scalar deltaP_;
 
-        //- Whether to apply the transient algorithm
-        const Switch transient_;
-
         //- Nozzle shape factor
         const scalar shapeFactor_;
 
         //- Name of the pressure field
         const word pName_;
+
+        //- Name of the flux field
+        const word phiName_;
 
         //- Name of the density field (if any)
         const word rhoName_;
@@ -171,13 +171,14 @@ class pressurePIDControlInletVelocityFvPatchVectorField
         //- Return the pressure interpolated to the faces
         const surfaceScalarField& facePressure() const;
 
-        //- Calculate averages on a zone
-        void zoneAverages
+        //- Calculate the average on a face zone
+        template <class Type>
+        void faceZoneAverage
         (
             const word& name,
+            const GeometricField<Type, fvsPatchField, surfaceMesh>& field,
             scalar& area,
-            point& x,
-            scalar& p
+            Type& average
         ) const;
 
 

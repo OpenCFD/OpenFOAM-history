@@ -17,64 +17,7 @@ FoamFile
 
 wallFunction
 {
-    highReynolds
-    {
-        k
-        {
-            type        compressible::kqRWallFunction;
-            value       ${:VALUE.k};
-        }
-        epsilon
-        {
-            type        compressible::epsilonWallFunction;
-            value       ${:VALUE.epsilon};
-        }
-        omega
-        {
-            type        compressible::omegaWallFunction;
-            value       ${:VALUE.omega};
-        }
-        mut
-        {
-            type        mutkWallFunction;
-            value       ${:VALUE.mut};
-        }
-        alphat
-        {
-            type        compressible::alphatWallFunction;
-            value       ${:VALUE.alphat};
-        }
-    }
-    lowReynolds
-    {
-        k
-        {
-            type        fixedValue;
-            value       uniform 0;
-        }
-        epsilon
-        {
-            type        fixedValue;
-            value       uniform 0;
-        }
-        omega
-        {
-            type        fixedValue;
-            value       uniform 0;
-        }
-        mut
-        {
-            type        fixedValue;
-            value       uniform 0;
-        }
-        alphat
-        {
-            type        fixedValue;
-            value       uniform 0;
-        }
-    }
 }
-
 
 heatTransfer
 {

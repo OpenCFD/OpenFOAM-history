@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-incompressibleFields
+fluidFields
 {
     k
     {
@@ -33,28 +33,20 @@ incompressibleFields
         dimensions  [0 2 -1 0 0];
     }
 }
+
+
+incompressibleFields
+{}
+
+
 compressibleFields
 {
-    k
-    {
-        type        scalar;
-        dimensions  [0 2 -2 0 0];
-    }
-    epsilon
-    {
-        type        scalar;
-        dimensions  [0 2 -3 0 0];
-    }
-    mut
-    {
-        type        scalar;
-        dimensions  [1 -1 -1 0 0];
-    }
     alphat
     {
         type        scalar;
         dimensions  [1 -1 -1 0 0];
     }
 }
+
 
 // ************************************************************************* //

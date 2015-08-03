@@ -22,11 +22,6 @@ subSonic
         type        fixedValue;
         value       ${:VALUE.T};
     }
-    mut
-    {
-        type        calculated;
-        value       ${:VALUE.mut};
-    }
     alphat
     {
         type        calculated;

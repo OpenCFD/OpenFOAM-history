@@ -21,6 +21,11 @@ noSlip
     {
         type        zeroGradient;
     }
+    nut
+    {
+        type        calculated;
+        value       ${:VALUE.nut};
+    }
 
     OPTIONS         (wallFunction motion);
 }
@@ -35,6 +40,11 @@ slip
     p
     {
         type        zeroGradient;
+    }
+    nut
+    {
+        type        calculated;
+        value       ${:VALUE.nut};
     }
     k
     {

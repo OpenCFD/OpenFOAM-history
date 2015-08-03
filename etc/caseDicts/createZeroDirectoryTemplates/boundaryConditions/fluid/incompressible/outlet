@@ -17,10 +17,6 @@ FoamFile
 
 subSonic
 {
-    nut
-    {
-        type        zeroGradient;
-    }
 }
 
 
