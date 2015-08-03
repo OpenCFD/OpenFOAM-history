@@ -110,6 +110,7 @@ void Foam::blendingFactor::calc()
     const surfaceScalarField factorf(blendedScheme.blendingFactor(field));
 
     // Convert into vol field whose values represent the local face minima
+    // Note: factor applied to 1st scheme, and (1-factor) to 2nd scheme
     volScalarField& factor = this->factor(field);
     factor = fvc::cellReduce(factorf, minEqOp<scalar>(), GREAT);
     factor.correctBoundaryConditions();
@@ -122,11 +123,11 @@ void Foam::blendingFactor::calc()
     {
         scalar f = factor[cellI];
 
-        if (f < tolerance_)
+        if (f > (1 - tolerance_))
         {
             nCellsScheme1++;
         }
-        else if (f > (1 - tolerance_))
+        else if (f < tolerance_)
         {
             nCellsScheme2++;
         }
