@@ -19,9 +19,15 @@ wallFunction
 {
     highReynolds
     {
+        nut
+        {
+            type        nutkWallFunction;
+            value       ${:VALUE.nut};
+        }
         k
         {
             type        kqRWallFunction;
+            value       ${:VALUE.k};
         }
         epsilon
         {
@@ -36,6 +42,11 @@ wallFunction
     }
     lowReynolds
     {
+        nut
+        {
+            type        fixedValue;
+            value       uniform 0;
+        }
         k
         {
             type        fixedValue;

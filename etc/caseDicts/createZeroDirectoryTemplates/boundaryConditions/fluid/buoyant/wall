@@ -43,10 +43,6 @@ slip
         type        fixedFluxPressure;
         value       ${:VALUE.p_rgh};
     }
-    mut
-    {
-        type        zeroGradient;
-    }
     alphat
     {
         type        zeroGradient;

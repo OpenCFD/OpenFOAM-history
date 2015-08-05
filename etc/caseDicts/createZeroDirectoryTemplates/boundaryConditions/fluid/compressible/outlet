@@ -23,10 +23,6 @@ subSonic
         inletValue  ${:VALUE.T};
         value       ${:VALUE.T};
     }
-    mut
-    {
-        type        zeroGradient;
-    }
     alphat
     {
         type        zeroGradient;

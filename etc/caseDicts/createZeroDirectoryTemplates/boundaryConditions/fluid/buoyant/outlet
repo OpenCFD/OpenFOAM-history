@@ -28,13 +28,10 @@ subSonic
         type        calculated;
         value       ${:VALUE.p};
     }
-    mut
-    {
-        type        zeroGradient;
-    }
     alphat
     {
-        type        zeroGradient;
+        type        calculated;
+        value       ${:VALUE.alphat};
     }
 }
 

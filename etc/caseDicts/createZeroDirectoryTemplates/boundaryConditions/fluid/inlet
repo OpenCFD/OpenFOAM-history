@@ -17,6 +17,11 @@ FoamFile
 
 subSonic
 {
+    nut
+    {
+        type        calculated;
+        value       ${:VALUE.nut};
+    }
     k
     {
         type        fixedValue;
