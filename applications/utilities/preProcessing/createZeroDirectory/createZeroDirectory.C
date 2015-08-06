@@ -150,7 +150,7 @@ void createFieldFiles
 
         dictionary field;
 
-        word regionPath = "/";
+        fileName regionPath = "/";
 
         if (regionName != word::null)
         {
@@ -160,10 +160,7 @@ void createFieldFiles
         field.add
         (
             "#include",
-            string
-            (
-                "${FOAM_CASE}/system" + regionPath + "caseProperties"
-            )
+            "${FOAM_CASE}/system" + regionPath + "caseProperties"
         );
 
         field.add("dimensions", fieldDimensions[i]);

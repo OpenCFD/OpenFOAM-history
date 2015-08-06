@@ -328,6 +328,22 @@ void Foam::pressurePIDControlInletVelocityFvPatchVectorField::updateCoeffs()
         faceZoneAverage(downstreamName_, facePressure(), Ab, pb);
         deltaP = pa - pb;
     }
+    else
+    {
+        WarningIn
+        (
+            "void Foam::pressurePIDControlInletVelocityFvPatchVectorField::"
+            "updateCoeffs()"
+        )   << "The pressure field name, \"pName\", is \"" << pName_ << "\", "
+            << "but a field of that name was not found. The inlet velocity "
+            << "will be set to an analytical value calculated from the "
+            << "specified pressure drop. No PID control will be done and "
+            << "transient effects will be ignored. This behaviour is designed "
+            << "to be appropriate for potentialFoam solutions. If you are "
+            << "getting this warning from another solver, you have probably "
+            << "specified an incorrect pressure name."
+            << endl << endl;
+    }
 
     // Target and measured flow rates
     scalar QTarget, QMeasured;
