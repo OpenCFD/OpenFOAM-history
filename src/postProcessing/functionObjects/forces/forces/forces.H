@@ -140,7 +140,6 @@ SourceFiles
 #include "Tuple2.H"
 #include "OFstream.H"
 #include "Switch.H"
-#include "writer.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
