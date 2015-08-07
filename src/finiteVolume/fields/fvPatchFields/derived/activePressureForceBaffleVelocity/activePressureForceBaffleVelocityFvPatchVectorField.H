@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2012 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,6 +35,9 @@ Description
     The baffle joins two mesh regions, where the open fraction determines
     the interpolation weights applied to each cyclic- and neighbour-patch
     contribution.
+
+    The baffle is activated when the pressure difference between master and
+    slave paches is positive and larger then minThresholdValue
 
     Once opened the baffle continues to open at a fixed rate using
 

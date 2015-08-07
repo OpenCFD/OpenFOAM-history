@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2011-2014 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -93,14 +93,20 @@ Foam::vector Foam::eigenValues(const tensor& T)
     scalar i, ii, iii;
 
     // diagonal matrix
-    if
-    (
+    const scalar onDiagMagSum =
+        (
+            mag(T.xx()) + mag(T.yy()) + mag(T.zz())
+        );
+
+    const scalar offDiagMagSum =
         (
             mag(T.xy()) + mag(T.xz()) + mag(T.yx())
           + mag(T.yz()) + mag(T.zx()) + mag(T.zy())
-        )
-        < SMALL
-    )
+        );
+
+    const scalar magSum = onDiagMagSum + offDiagMagSum;
+
+    if (offDiagMagSum < max(VSMALL, SMALL*magSum))
     {
         i = T.xx();
         ii = T.yy();
@@ -134,13 +140,13 @@ Foam::vector Foam::eigenValues(const tensor& T)
         scalar QQ = Q*Q;
 
         // Three identical roots
-        if (mag(P) < SMALL && mag(Q) < SMALL)
+        if (mag(P) < SMALL*sqr(magSum) && mag(Q) < SMALL*pow3(magSum))
         {
             return vector(- aBy3, - aBy3, - aBy3);
         }
 
         // Two identical roots and one distinct root
-        else if (mag(PPP/QQ - 1) < SMALL)
+        else if (mag(PPP - QQ) < SMALL*pow6(magSum))
         {
             scalar sqrtP = sqrt(P);
             scalar signQ = sign(Q);
@@ -169,7 +175,7 @@ Foam::vector Foam::eigenValues(const tensor& T)
                 << "complex eigenvalues detected for tensor: " << T
                 << endl;
 
-            if (mag(P) < SMALL)
+            if (mag(P) < SMALL*sqr(magSum))
             {
                 i = cbrt(QQ/2);
             }
