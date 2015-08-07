@@ -28,12 +28,25 @@ Group
     grpUtilitiesFunctionObjects
 
 Description
-    This function object calculates and outputs the blendingFactor as used by
-    the blended convection schemes.  The output is a volume field (cells) whose
-    value is set to the minimum blending factor for any cell face.
+    This function object provides information on the mode of operation of
+    blended convection schemes.
 
-    The number of cells in each region, i.e. using scheme1, scheme2 and
-    those using a blend are written to the output file.
+    The weight of a blended scheme is given by a function of the blending
+    factor, f:
+
+        weight = f*scheme1 + (1 - f)*scheme2
+
+    The factor is a face-based quantity, which is converted to a cell-based
+    quantity by assigning the minimum blending factor for any cell face.
+
+    An indicator (volume) field, named <functionObjectName>:<fieldName>, is
+    generated that is set to (1 - f), i.e. values of:
+    - 0 represent scheme1 as active, and
+    - 1 represent scheme2 as active.
+    - intermediate values show the contribution to scheme2
+
+    Additional reporting is written to the standard output, providing
+    statistics as to the number of cells used by each scheme.
 
     Example of function object specification to calculate the blending factor:
     \verbatim
@@ -109,6 +122,9 @@ class blendingFactor
         //- Field name
         word fieldName_;
 
+        //- Result field name
+        word resultName_;
+
         //- Tolerance used when calculating the number of blended cells
         scalar tolerance_;
 
@@ -123,13 +139,6 @@ class blendingFactor
 
         //- Disallow default bitwise assignment
         void operator=(const blendingFactor&);
-
-        //- Return the blending factor field from the database
-        template<class Type>
-        volScalarField& factor
-        (
-            const GeometricField<Type, fvPatchField, volMesh>& field
-        );
 
         //- Calculate the blending factor
         template<class Type>

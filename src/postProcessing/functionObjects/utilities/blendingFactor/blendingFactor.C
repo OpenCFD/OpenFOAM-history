@@ -63,6 +63,7 @@ Foam::blendingFactor::blendingFactor
     obr_(obr),
     phiName_("phi"),
     fieldName_("unknown-fieldName"),
+    resultName_(word::null),
     tolerance_(0.001),
     log_(true)
 {
@@ -71,6 +72,28 @@ Foam::blendingFactor::blendingFactor
     {
         read(dict);
         writeFileHeader(file());
+
+        const fvMesh& mesh = refCast<const fvMesh>(obr_);
+
+        volScalarField* indicatorPtr
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    resultName_,
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh,
+                dimensionedScalar("0", dimless, 0.0),
+                zeroGradientFvPatchScalarField::typeName
+            )
+        );
+
+        mesh.objectRegistry::store(indicatorPtr);
     }
 }
 
@@ -93,8 +116,14 @@ void Foam::blendingFactor::read(const dictionary& dict)
 
         dict.readIfPresent("phiName", phiName_);
         dict.lookup("fieldName") >> fieldName_;
-        dict.readIfPresent("tolerance", tolerance_);
 
+
+        if (!dict.readIfPresent("resultName", resultName_))
+        {
+            resultName_ = name_ + ':' + fieldName_;
+        }
+
+        dict.readIfPresent("tolerance", tolerance_);
         if ((tolerance_ < 0) || (tolerance_ > 1))
         {
             FatalErrorIn("void Foam::blendingFactor::read(const dictionary&)")
@@ -133,17 +162,15 @@ void Foam::blendingFactor::write()
 {
     if (active_)
     {
-        const word fieldName = "blendingFactor:" + fieldName_;
-
-        const volScalarField& blendingFactor =
-            obr_.lookupObject<volScalarField>(fieldName);
+        const volScalarField& indicator =
+            obr_.lookupObject<volScalarField>(resultName_);
 
         Info(log_)
             << type() << " " << name_ << " output:" << nl
-            << "    writing field " << blendingFactor.name() << nl
+            << "    writing field " << indicator.name() << nl
             << endl;
 
-        blendingFactor.write();
+        indicator.write();
     }
 }
 

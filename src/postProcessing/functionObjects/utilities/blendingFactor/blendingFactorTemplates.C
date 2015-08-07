@@ -30,45 +30,6 @@ License
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class Type>
-Foam::volScalarField& Foam::blendingFactor::factor
-(
-    const GeometricField<Type, fvPatchField, volMesh>& field
-)
-{
-    const word fieldName = "blendingFactor:" + field.name();
-
-    if (!obr_.foundObject<volScalarField>(fieldName))
-    {
-        const fvMesh& mesh = refCast<const fvMesh>(obr_);
-
-        volScalarField* factorPtr =
-            new volScalarField
-            (
-                IOobject
-                (
-                    fieldName,
-                    mesh.time().timeName(),
-                    mesh,
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE
-                ),
-                mesh,
-                dimensionedScalar("0", dimless, 0.0),
-                zeroGradientFvPatchScalarField::typeName
-            );
-
-        obr_.store(factorPtr);
-    }
-
-    return
-        const_cast<volScalarField&>
-        (
-            obr_.lookupObject<volScalarField>(fieldName)
-        );
-}
-
-
-template<class Type>
 void Foam::blendingFactor::calc()
 {
     typedef GeometricField<Type, fvPatchField, volMesh> fieldType;
@@ -111,23 +72,27 @@ void Foam::blendingFactor::calc()
 
     // Convert into vol field whose values represent the local face minima
     // Note: factor applied to 1st scheme, and (1-factor) to 2nd scheme
-    volScalarField& factor = this->factor(field);
-    factor = fvc::cellReduce(factorf, minEqOp<scalar>(), GREAT);
-    factor.correctBoundaryConditions();
+    volScalarField& indicator =
+        const_cast<volScalarField&>
+        (
+            obr_.lookupObject<volScalarField>(resultName_)
+        );
+    indicator = 1 - fvc::cellReduce(factorf, minEqOp<scalar>(), GREAT);
+    indicator.correctBoundaryConditions();
 
-    // Output the number of blended cells, i.e. where factor != 0, 1
+    // Generate scheme statistics
     label nCellsScheme1 = 0;
     label nCellsScheme2 = 0;
     label nCellsBlended = 0;
-    forAll(factor, cellI)
+    forAll(indicator, cellI)
     {
-        scalar f = factor[cellI];
+        scalar i = indicator[cellI];
 
-        if (f > (1 - tolerance_))
+        if (i < tolerance_)
         {
             nCellsScheme1++;
         }
-        else if (f < tolerance_)
+        else if (i > (1 - tolerance_))
         {
             nCellsScheme2++;
         }
