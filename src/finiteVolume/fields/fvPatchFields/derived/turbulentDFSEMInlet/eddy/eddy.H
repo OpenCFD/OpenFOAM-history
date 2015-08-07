@@ -54,6 +54,9 @@ class eddy
 {
     // Private data
 
+        //- Patch face index that spawned the eddy
+        label patchFaceI_;
+
         //- Position
         point position_;
 
@@ -84,6 +87,7 @@ public:
         //- Construct from components
         eddy
         (
+            const label patchFaceI,     // patch face index
             const point& position,      // position
             const scalar sigmaX,        // length scale
             const tensor& R,            // Stress tensor
@@ -99,6 +103,9 @@ public:
     // Public Member Functions
 
         // Access
+
+            //- Return the patch face index that spawned the eddy
+            inline label patchFaceI() const;
 
             //- Return the position
             inline const point& position() const;
@@ -153,7 +160,8 @@ public:
         friend bool operator==(const eddy& a, const eddy& b)
         {
             return
-                a.position_ == b.position_
+                a.patchFaceI_ == b.patchFaceI_
+             && a.position_ == b.position_
              && a.sigma_ == b.sigma_
              && a.alphaAve_ == b.alphaAve_
              && a.Rpg_ == b.Rpg_

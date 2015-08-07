@@ -30,6 +30,7 @@ License
 
 Foam::eddy::eddy(Istream& is)
 :
+    patchFaceI_(readLabel(is)),
     position_(is),
     sigma_(is),
     alphaAve_(readScalar(is)),
@@ -44,6 +45,7 @@ Foam::eddy::eddy(Istream& is)
 
 void Foam::eddy::operator=(const eddy& e)
 {
+    patchFaceI_ = e.patchFaceI_;
     position_ = e.position_;
     sigma_ = e.sigma_;
     alphaAve_ = e.alphaAve_;
@@ -62,7 +64,8 @@ Foam::Istream& Foam::operator>>(Istream& is, eddy& e)
         "(Foam::Istream&, Foam::eddy&)"
     );
 
-    is  >> e.position_
+    is  >> e.patchFaceI_
+        >> e.position_
         >> e.sigma_
         >> e.alphaAve_
         >> e.Rpg_
@@ -86,7 +89,8 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const eddy& e)
         "(Foam::Ostream&, const Foam::eddy&)"
     );
 
-    os  << e.position_
+    os  << e.patchFaceI_
+        << e.position_
         << e.sigma_
         << e.alphaAve_
         << e.Rpg_

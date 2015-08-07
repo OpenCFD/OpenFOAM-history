@@ -29,6 +29,7 @@ License
 
 Foam::eddy::eddy()
 :
+    patchFaceI_(-1),
     position_(vector::zero),
     sigma_(vector::zero),
     alphaAve_(0),
@@ -39,6 +40,7 @@ Foam::eddy::eddy()
 
 Foam::eddy::eddy
 (
+    const label patchFaceI,
     const point& position,
     const scalar sigmaX,
     const tensor& R,
@@ -46,6 +48,7 @@ Foam::eddy::eddy
     cachedRandom& rndGen
 )
 :
+    patchFaceI_(patchFaceI),
     position_(position),
     sigma_(vector::zero),
     alphaAve_(0),
@@ -98,6 +101,7 @@ Foam::eddy::eddy
 
 Foam::eddy::eddy(const eddy& e)
 :
+    patchFaceI_(e.patchFaceI_),
     position_(e.position_),
     sigma_(e.sigma_),
     alphaAve_(e.alphaAve_),

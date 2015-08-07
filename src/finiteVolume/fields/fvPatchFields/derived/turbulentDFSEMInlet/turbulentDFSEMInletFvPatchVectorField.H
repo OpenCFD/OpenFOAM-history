@@ -91,9 +91,6 @@ class turbulentDFSEMInletFvPatchVectorField
         //- Convenience typedef for tree type
         typedef treeDataPrimitivePatch<polyPatch> treeType;
 
-        //- Mean velocity in patch (negative) normal direction
-        const scalar UMean_;
-
         //- Typical length scale, e.g. half channel height
         const scalar delta_;
 
@@ -107,7 +104,7 @@ class turbulentDFSEMInletFvPatchVectorField
         mutable autoPtr<globalIndex> globalFacesPtr_;
 
 
-        // Table reading of Reynolds stress tensor
+        // Table reading for patch normal velocity and Reynolds stress tensor
         // (see timeVaryingMappedFixedValue)
 
             //- Fraction of perturbation (fraction of bounding box) to add
@@ -128,13 +125,22 @@ class turbulentDFSEMInletFvPatchVectorField
             //- Current end index in sampleTimes
             label endSampleTime_;
 
+            //- Mean inlet velocity at startSampleTime_
+            scalarField UMeanStart_;
+
+            //- Mean inlet velocity at endSampleTime_
+            scalarField UMeanEnd_;
+
+            //- Mean inlet velocity for current time
+            scalarField UMean_;
+
             //- R at startSampleTime_
             symmTensorField RStart_;
 
             //- R at endSampleTime_
             symmTensorField REnd_;
 
-            //- Interpolated for current Time
+            //- Interpolated for current time
             symmTensorField R_;
 
 
@@ -174,8 +180,8 @@ class turbulentDFSEMInletFvPatchVectorField
         //- Demand-driven access to global mesh-face numbering
         const globalIndex& globalFaces() const;
 
-        //- Check 
-        void checkTable();
+        //- Interplate boundary
+        void interpolateBoundary();
 
         //- Check the patch
         void checkPatch();
@@ -198,6 +204,14 @@ class turbulentDFSEMInletFvPatchVectorField
 
         //- Calculate the velocity fluctuation at a point
         vector uDashEddy(const point& globalX);
+
+        //- Helper function to interpolate values from the boundary data
+        template<class Type>
+        tmp<Field<Type> > interpolateBoundaryData
+        (
+            const word& fieldName,
+            const label index
+        ) const;
 
 
 public:
@@ -300,6 +314,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "turbulentDFSEMInletFvPatchVectorFieldTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -32,8 +32,6 @@ License
 #include "treeDataFace.H"
 #include "globalIOFields.H"
 #include "globalIndex.H"
-#include "pointToPointPlanarInterpolation.H"
-#include "AverageIOField.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -54,14 +52,14 @@ Foam::turbulentDFSEMInletFvPatchVectorField::globalFaces() const
 }
 
 
-void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
+void Foam::turbulentDFSEMInletFvPatchVectorField::interpolateBoundary()
 {
     // Construct a spatial interpolation (using constant/boundaryData
-    // points), read the available list of sampled data ('R') and interpolate
-    // in time. (similar to timeVaryingMappedFixedValue)
-    // In general this is overkill and the R field is static one.
+    // points), read the available list of sampled data ('u',R') and
+    // interpolate in time. (similar to timeVaryingMappedFixedValue)
+    // In general this is overkill and both fields are static.
     // In this case we probably shouldn't be holding the interpolation
-    // structure and the current values of R ('RStart_', 'REnd') for
+    // structure and the current field values ('*Start_', '*End') for
     // the current time.
 
 
@@ -142,7 +140,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
     {
         FatalErrorIn
         (
-            "turbulentDFSEMInletFvPatchVectorField::checkTable()"
+            "turbulentDFSEMInletFvPatchVectorField::interpolateBoundary()"
         )   << "Cannot find starting sampling values for current time "
             << this->db().time().value() << nl
             << "Have sampling values for times "
@@ -155,7 +153,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
     }
 
 
-    // Update sampled data fields.
+    // Update sampled data fields
 
     if (lo != startSampleTime_)
     {
@@ -163,46 +161,33 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
 
         if (startSampleTime_ == endSampleTime_)
         {
-            // No need to reread since are end values
+            // No need to re-read since start=end values
             if (debug)
             {
-                Pout<< "checkTable : Setting startValues to (already read) "
-                    <<   "boundaryData"
-                        /this->patch().name()
-                        /sampleTimes_[startSampleTime_].name()
+                Pout<< "interpolateBoundary : Setting startValues to "
+                    << "(already read) boundaryData"
+                       /this->patch().name()
+                       /sampleTimes_[startSampleTime_].name()
                     << endl;
             }
+            UMeanStart_ = UMeanEnd_;
             RStart_ = REnd_;
         }
         else
         {
             if (debug)
             {
-                Pout<< "checkTable : Reading startValues from "
-                    <<   "boundaryData"
-                        /this->patch().name()
-                        /sampleTimes_[lo].name()
+                Pout<< "interpolateBoundary : Reading startValues from "
+                    << "boundaryData"
+                       /this->patch().name()
+                       /sampleTimes_[lo].name()
                     << endl;
             }
 
-            RStart_ = mapperPtr_().interpolate
-            (
-                AverageIOField<symmTensor>
-                (
-                    IOobject
-                    (
-                        "R",
-                        this->db().time().caseConstant(),
-                        "boundaryData"
-                       /this->patch().name()
-                       /sampleTimes_[startSampleTime_].name(),
-                        this->db(),
-                        IOobject::MUST_READ,
-                        IOobject::AUTO_WRITE,
-                        false
-                    )
-                )
-            );
+            UMeanStart_ =
+                interpolateBoundaryData<scalar>("U", startSampleTime_);
+            RStart_ =
+                interpolateBoundaryData<symmTensor>("R", startSampleTime_);
         }
     }
 
@@ -212,57 +197,43 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
 
         if (endSampleTime_ == -1)
         {
-            // endTime no longer valid. Might as well clear endValues.
+            // endTime no longer valid. Might as well clear *End values.=
             if (debug)
             {
-                Pout<< "checkTable : Clearing endValues" << endl;
+                Pout<< "interpolateBoundary : Clearing *End values" << endl;
             }
+            UMeanEnd_.clear();
             REnd_.clear();
         }
         else
         {
             if (debug)
             {
-                Pout<< "checkTable : Reading endValues from "
-                    <<   "boundaryData"
-                        /this->patch().name()
-                        /sampleTimes_[endSampleTime_].name()
+                Pout<< "interpolateBoundary : Reading *End values from "
+                    << "boundaryData"
+                       /this->patch().name()
+                       /sampleTimes_[endSampleTime_].name()
                     << endl;
             }
 
-            REnd_ = mapperPtr_().interpolate
-            (
-                AverageIOField<symmTensor>
-                (
-                    IOobject
-                    (
-                        "R",
-                        this->db().time().caseConstant(),
-                        "boundaryData"
-                       /this->patch().name()
-                       /sampleTimes_[endSampleTime_].name(),
-                        this->db(),
-                        IOobject::MUST_READ,
-                        IOobject::AUTO_WRITE,
-                        false
-                    )
-                )
-            );
+            UMeanEnd_ = interpolateBoundaryData<scalar>("U", endSampleTime_);
+            REnd_ = interpolateBoundaryData<symmTensor>("R", endSampleTime_);
         }
     }
 
 
-    // Now we have cached start- and end-time values for R just use
+    // Now we have cached start- and end-time values for UMean and R just use
     // linear interpolation
     if (endSampleTime_ == -1)
     {
-        // only start value
+        // Only start value
         if (debug)
         {
-            Pout<< "checkTable : Sampled, non-interpolated values"
+            Pout<< "interpolateBoundary : Sampled, non-interpolated values"
                 << " from start time:" << sampleTimes_[startSampleTime_].name()
                 << nl;
         }
+        UMean_ = UMeanStart_;
         R_ = RStart_;
     }
     else
@@ -274,13 +245,14 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::checkTable()
 
         if (debug)
         {
-            Pout<< "checkTable : Sampled, interpolated values"
+            Pout<< "interpolateBoundary : Sampled, interpolated values"
                 << " between start time:"
                 << sampleTimes_[startSampleTime_].name()
                 << " and end time:" << sampleTimes_[endSampleTime_].name()
                 << " with weight:" << s << endl;
         }
 
+        UMean_ = (1 - s)*UMeanStart_ + s*UMeanEnd_;
         R_ = (1 - s)*RStart_ + s*REnd_;
     }
 }
@@ -448,6 +420,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::initialiseEddies()
         {
             eddy e
             (
+                faceI,
                 pos.hitPoint(),
                 sigmax_[faceI],
                 R_[faceI],
@@ -586,8 +559,9 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::convectEddies
     forAll(eddies_, eddyI)
     {
         eddy& e = eddies_[eddyI];
+        const label eFaceI = e.patchFaceI();
 
-        e.move(deltaT*UMean_);
+        e.move(deltaT*UMean_[eFaceI]);
 
         const scalar position0 = e.position().x();
 
@@ -601,6 +575,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::convectEddies
 
             e = eddy
                 (
+                    faceI,
                     pos.hitPoint(),
                     sigmax_[faceI],
                     R_[faceI],
@@ -660,7 +635,6 @@ turbulentDFSEMInletFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(p, iF),
-    UMean_(0),
     delta_(0),
     d_(0),
     kappa_(0),
@@ -693,7 +667,6 @@ turbulentDFSEMInletFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(ptf, p, iF, mapper),
-    UMean_(ptf.UMean_),
     delta_(ptf.delta_),
     d_(ptf.d_),
     kappa_(ptf.kappa_),
@@ -703,6 +676,7 @@ turbulentDFSEMInletFvPatchVectorField
     mapperPtr_(NULL),
     startSampleTime_(-1),
     endSampleTime_(-1),
+    UMean_(ptf.UMean_, mapper),
     R_(ptf.R_, mapper),
 
     eddies_(ptf.eddies_),
@@ -727,7 +701,6 @@ turbulentDFSEMInletFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(p, iF, dict),
-    UMean_(readScalar(dict.lookup("UMean"))),
     delta_(readScalar(dict.lookup("delta"))),
     d_(dict.lookupOrDefault("d", 1)),
     kappa_(dict.lookupOrDefault("kappa", 0.41)),
@@ -758,7 +731,6 @@ turbulentDFSEMInletFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(ptf),
-    UMean_(ptf.UMean_),
     delta_(ptf.delta_),
     d_(ptf.d_),
     kappa_(ptf.kappa_),
@@ -768,6 +740,7 @@ turbulentDFSEMInletFvPatchVectorField
     mapperPtr_(NULL),
     startSampleTime_(-1),
     endSampleTime_(-1),
+    UMean_(ptf.UMean_),
     R_(ptf.R_),
 
     eddies_(ptf.eddies_),
@@ -791,7 +764,6 @@ turbulentDFSEMInletFvPatchVectorField
 )
 :
     fixedValueFvPatchField<vector>(ptf, iF),
-    UMean_(ptf.UMean_),
     delta_(ptf.delta_),
     d_(ptf.d_),
     kappa_(ptf.kappa_),
@@ -801,6 +773,7 @@ turbulentDFSEMInletFvPatchVectorField
     mapperPtr_(NULL),
     startSampleTime_(-1),
     endSampleTime_(-1),
+    UMean_(ptf.UMean_),
     R_(ptf.R_),
 
     eddies_(ptf.eddies_),
@@ -832,11 +805,14 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::autoMap
 {
     fixedValueFvPatchField<vector>::autoMap(m);
 
-    if (RStart_.size())
+    if (UMeanStart_.size())
     {
+        UMeanStart_.autoMap(m);
+        UMeanEnd_.autoMap(m);
         RStart_.autoMap(m);
         REnd_.autoMap(m);
     }
+
     // Clear interpolator
     mapperPtr_.clear();
     startSampleTime_ = -1;
@@ -857,8 +833,12 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::rmap
     const turbulentDFSEMInletFvPatchVectorField& dfsemptf =
         refCast<const turbulentDFSEMInletFvPatchVectorField>(ptf);
 
+    UMeanStart_.rmap(dfsemptf.UMeanStart_, addr);
+    UMeanEnd_.rmap(dfsemptf.UMeanEnd_, addr);
+
     RStart_.rmap(dfsemptf.RStart_, addr);
     REnd_.rmap(dfsemptf.REnd_, addr);
+
     // Clear interpolator
     mapperPtr_.clear();
     startSampleTime_ = -1;
@@ -875,9 +855,9 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::updateCoeffs()
         return;
     }
 
-    // Interpolate R from table data (read from constant/boundaryData)
+    // Interpolate UMean and R from table data (read from constant/boundaryData)
     // (optionally interpolate in time as well)
-    checkTable();
+    interpolateBoundary();
 
     if (curTimeIndex_ == -1)
     {
@@ -915,7 +895,7 @@ void Foam::turbulentDFSEMInletFvPatchVectorField::updateCoeffs()
         }
 
         // Re-scale to ensure correct flow rate
-        scalar fCorr = gSum(U & -patch().Sf())/gSum(patch().magSf())/UMean_;
+        scalar fCorr = gSum(U & -patch().Sf())/gSum(UMean_*patch().magSf());
         U *= fCorr;
 
         if (debug)

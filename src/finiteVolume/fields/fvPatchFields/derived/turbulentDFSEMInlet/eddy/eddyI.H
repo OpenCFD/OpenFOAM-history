@@ -25,6 +25,12 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+inline Foam::label Foam::eddy::patchFaceI() const
+{
+    return patchFaceI_;
+}
+
+
 inline const Foam::point& Foam::eddy::position() const
 {
     return position_;
