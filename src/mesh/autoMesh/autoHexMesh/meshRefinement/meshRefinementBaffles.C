@@ -3,7 +3,7 @@
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
     \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
-     \\/     M anipulation  |
+     \\/     M anipulation  |               2015 OpenCFD Ltd.
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
@@ -4292,13 +4292,16 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::zonify
         }
 
 
-        // 2.Combine faceZoneNames allocated on different processors
+        // 2. Combine faceZoneNames allocated on different processors
 
         Pstream::mapCombineGather(zonesToFaceZone, eqOp<word>());
         Pstream::mapCombineScatter(zonesToFaceZone);
 
 
         // 3. Allocate faceZones from (now synchronised) faceZoneNames
+        //    Note: the faceZoneNames contain the same data but in different
+        //          order. We could sort the contents but instead just loop
+        //          in sortedToc order.
 
         Info<< "Setting faceZones according to neighbouring cellZones:"
             << endl;
@@ -4311,27 +4314,31 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::zonify
 
         const cellZoneMesh& cellZones = mesh_.cellZones();
 
-        forAllConstIter(wordPairHashTable, zonesToFaceZone, iter)
         {
-            const Pair<word>& cz = iter.key();
-            const word& fzName = iter();
+            List<Pair<word> > czs(zonesToFaceZone.sortedToc());
 
-            Info<< indent<< "cellZones : "
-                << cz[0] << ' ' << cz[1] << nl
-                << "    faceZone : " << fzName << endl;
+            forAll(czs, i)
+            {
+                const Pair<word>& cz = czs[i];
+                const word& fzName = zonesToFaceZone[cz];
 
-            label faceZoneI = surfaceZonesInfo::addFaceZone
-            (
-                fzName,                 // name
-                labelList(0),           // addressing
-                boolList(0),            // flipMap
-                mesh_
-            );
+                Info<< indent<< "cellZones : "
+                    << cz[0] << ' ' << cz[1] << nl
+                    << "    faceZone : " << fzName << endl;
 
-            label cz0 = cellZones.findZoneID(cz[0]);
-            label cz1 = cellZones.findZoneID(cz[1]);
+                label faceZoneI = surfaceZonesInfo::addFaceZone
+                (
+                    fzName,                 // name
+                    labelList(0),           // addressing
+                    boolList(0),            // flipMap
+                    mesh_
+                );
 
-            fZoneLookup.insert(labelPair(cz0, cz1), faceZoneI);
+                label cz0 = cellZones.findZoneID(cz[0]);
+                label cz1 = cellZones.findZoneID(cz[1]);
+
+                fZoneLookup.insert(labelPair(cz0, cz1), faceZoneI);
+            }
         }
 
 
