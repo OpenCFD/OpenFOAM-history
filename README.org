@@ -45,4 +45,5 @@ Copyright (c) 2015 OpenCFD Ltd. (See Changes)
   - OpenCFD 22/09/2015: Removed 'Reporting bugs in OpenFOAM' link
   - OpenCFD 22/09/2015: Removed 'Contacting the OpenFOAM Foundation' link
 
+
 OpenFOAM is a registered trademark of ESI/OpenCFD Ltd
