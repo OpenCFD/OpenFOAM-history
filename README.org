@@ -5,15 +5,14 @@
 #+DATE:                      22nd September 2015
 #+LINK:                  http://www.openfoam.com
 #+OPTIONS: author:nil ^:{} toc:nil
-Copyright (c) 2015 OpenFOAM Foundation.
 
-Copyright (c) 2015 OpenCFD Ltd. (See Changes)
+Copyright (c) 2015 OpenCFD Ltd.
 
 * About this version
   The OpenFOAM-history repository is a frozen, unsupported version, and not
-  under active development.  It is not the official version of OpenFOAM (see
-  [[http://www.OpenFOAM.org][OpenFOAM Foundation]] for information relating to official releases).
-  It consolidates a history of contributions by
+  under active development.  It is not the official version of OpenFOAM (see the
+  [[http://www.OpenFOAM.com][OpenFOAM website]] for information relating to
+  official releases). It consolidates a history of contributions by
   [[http://www.OpenFOAM.com][OpenCFD]], sponsors and partners,
   committed to releasing code openly under the terms of the GPL.
 
@@ -33,9 +32,8 @@ Copyright (c) 2015 OpenCFD Ltd. (See Changes)
   [[http://www.gnu.org/licenses/]], for a description of the GNU General Public
   License terms under which you can copy the files.
 
-* [[http://www.OpenFOAM.org/git.php][Download and installation instructions]]
-* [[http://www.OpenFOAM.org/docs][Documentation]]
-* [[http://OpenFOAM.github.io/Documentation-dev/html][Source code documentation]]
+* [[https://www.openfoam.com/download/][Download and installation instructions]]
+* [[https://www.openfoam.com/documentation/][Documentation]]
 * Changes
   - OpenCFD 19/03/2015: Title: Updated version to OpenFOAM-history
   - OpenCFD 19/03/2015: Author: OpenFOAM Foundation to OpenCFD Ltd.
